@@ -32,8 +32,12 @@ internal class SoundPreviewControls(
 
     private fun button(text: String, action: () -> Unit) {
         add(TextButton(text, buttonStyle).apply {
+            setProgrammaticChangeEvents(false)
             addListener(object : ChangeListener() {
-                override fun changed(event: ChangeEvent, actor: Actor) { action() }
+                override fun changed(event: ChangeEvent, actor: Actor) {
+                    isChecked = false
+                    action()
+                }
             })
         })
     }

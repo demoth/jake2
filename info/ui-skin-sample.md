@@ -983,3 +983,47 @@ shared owner now restores the viewer's getLoaded behavior. A separate atomic
 fix and GL regression fixture verify that a WAL thumbnail lazily acquires its
 palette and releases its own texture on folder cleanup. The standalone folder
 navigation probe passes without missing-palette errors.
+
+
+### Client WAV audition and controls
+
+The client now matches standalone WAV interaction: one click auditions a sound
+while retaining the folder grid; double-click opens duration and Play/Pause/Loop/
+Stop controls without restarting it. Play selects/resumes single playback, Pause
+retains position, Loop selects/resumes repeated playback and Stop resets. Space
+toggles pause/resume while retaining loop mode; S stops. Clicking a WAV again
+restarts its audition. Known durations stop the playback state on completion.
+
+SoundPlayback moved from viewer to audio, with its existing timing tests retained.
+SoundPreviewControls moved to ui and accepts explicit label/button styles; its
+Skin constructor preserves the standalone viewer's native font/artwork. Client
+controls use the active resolved menu styles. The four action buttons no longer
+retain a checked highlight after clicking, in either host.
+
+ContentBrowserStage owns at most one preview sound and its playback instance.
+Cake supplies a direct ConvertingSoundLoader.loadSync callback restricted to
+resolveContent, reusing 8-bit PCM conversion and duration registration. Sounds
+are independent of shared game AssetManager references; failed loads do not
+create manager tasks or require global cache recovery. Selecting another file,
+Back to folder, changing/up folder, leaving the browser, profile/style replacement,
+server-data context changes and disposal stop and release the sound. A failed
+path is retained for the current selection to avoid repeating a failed load on
+the second click, and opening controls shows a dismissible themed error. No
+new audio loader, preview framework, cache or persistent test harness was added.
+
+Validation: focused SoundPlayback, WAV conversion, menu and preview ownership
+tests pass; client/fullgame/viewer compile. A temporary hidden-window probe uses
+real WAV content and a recording audio backend to verify audition, no restart
+on double-click, Play/Pause/Loop/Stop, momentary buttons, keyboard handling,
+known duration, themed fonts, 4K and cleanup on selection/folder/Back/profile/
+shutdown. A corrupt WAV is recoverable, and another file can play afterward.
+A standalone PAK probe checks native-font controls, the same playback semantics
+and Back cleanup after extraction. A separate native OpenAL check uses its null
+output device and zero volume to verify actual WAV decoding, conversion, play/
+pause/resume/stop and malformed-input rejection without audible output.
+Both-theme control captures were inspected. Probes use isolated temporary
+settings with cfg_autosave disabled.
+
+Two commits separate shared playback/style extraction from client ownership and
+input wiring. Production scope is about 100 added lines, within the 90–130 line
+estimate. Sprite, MD2 and BSP previews remain later slices.

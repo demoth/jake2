@@ -87,7 +87,13 @@ previews borrow these cached textures through shared ImagePreviewPane, with
 aspect fit, pointer-anchored zoom and pan. Back to folder / Escape restore the
 grid scroll position. Further Escape presses navigate to the parent folder,
 leaving the browser only at the root. Both hosts call ContentBrowser.navigateBack;
-the host supplies its root action. Audio/sprite/model/map previews remain standalone-only.
+the host supplies its root action. WAV audition and controls also work in both
+hosts: SoundPlayback lives in audio, and SoundPreviewControls borrows explicit
+label/button styles (or the viewer's native Skin). A single click auditions;
+double-click shows controls without restarting. The client stage directly owns
+one converted sound and stops/disposes it on selection, navigation and profile
+changes. Space toggles playback; S stops. Sprite/model/map previews remain
+standalone-only.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 

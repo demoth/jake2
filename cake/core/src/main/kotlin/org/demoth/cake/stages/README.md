@@ -16,7 +16,7 @@ The developer console has [its own documentation](console/README.md).
 | `JoinGameStage` | Manual server address entry and validation feedback |
 | `PlayerSetupStage` | Player name, password, model, skin, and handedness |
 | `OptionsMenuStage` | Available client option sections |
-| `ContentBrowserStage` | Active-profile VFS tree/grid/metadata; borrowed theme, owned image thumbnails and borrowed full-image previews |
+| `ContentBrowserStage` | Active-profile VFS tree/grid/metadata; borrowed theme, owned image thumbnails, borrowed image previews and owned WAV audition/controls |
 | `OptionsSectionStage` | Editable values for one section of opted-in cvars |
 
 ## Menu Flow

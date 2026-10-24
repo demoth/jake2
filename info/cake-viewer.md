@@ -94,8 +94,18 @@ retains relative zoom/pan, and reopening starts fitted again. Back to folder or
 Escape restores the folder grid and its scroll position. Further Escape presses
 go up one folder at a time; only at the root does Escape return to the main menu. Failed images show a dismissible inline error. The preview borrows
 the folder-cache texture, so returning to the grid retains it; there is no second
-image load or cache. Audio, sprite and model/map previews remain later client
-slices. Browsing does not change theme.
+image load or cache.
+
+Client WAV tiles now match the viewer's audition behavior: click to play once in
+the grid, double-click to open duration and Play/Pause/Loop/Stop controls without
+restarting. Space toggles pause/resume, retaining loop mode; S stops. Play resumes
+or restarts single playback, Loop selects repeated playback, and clicking the
+same tile again restarts it. The controls use the active menu theme and their
+buttons are momentary actions. Selecting another file, Back to folder, folder-up,
+leaving the browser, profile changes and shutdown stop and dispose the preview
+sound. A failed sound shows a dismissible error when its controls are opened.
+Existing 8-bit PCM conversion is reused. Sprite and model/map previews remain
+later client slices. Browsing does not change theme.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main`, optionally passing a file path as the program argument.

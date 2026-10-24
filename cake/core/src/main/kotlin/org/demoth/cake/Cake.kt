@@ -1292,7 +1292,11 @@ class Cake(
         )
         if (::contentBrowserStage.isInitialized) contentBrowserStage.dispose()
         contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style,
-            ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent)))
+            ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent))) { entry ->
+            val file = requireNotNull(fileResolver.resolveContent(entry.normalizedPath)) { "Missing profile sound" }
+            // Own this preview separately; failures must not leave tasks in the shared asset manager.
+            ConvertingSoundLoader(fileResolver).loadSync(assetManager, entry.normalizedPath, file, null)
+        }
         if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
         if (
             menuVisible && menuView in setOf(
