@@ -1,12 +1,11 @@
-package org.demoth.cake.viewer
-
-import org.demoth.cake.ui.ImagePreviewPane
+package org.demoth.cake.ui
 
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
 import org.demoth.cake.assets.Sp2Asset
 import com.badlogic.gdx.utils.Scaling
@@ -42,13 +41,18 @@ internal class SpriteFrameImage(private val sprite: Sp2Asset, private val playba
     }
 }
 
-internal class SpritePreview(sprite: Sp2Asset, playback: FramePlayback, skin: Skin) : Table(skin) {
+internal class SpritePreview(
+    sprite: Sp2Asset, playback: FramePlayback, labelStyle: Label.LabelStyle, buttonStyle: TextButton.TextButtonStyle,
+) : Table() {
+    constructor(sprite: Sp2Asset, playback: FramePlayback, skin: Skin) : this(sprite, playback,
+        skin.get(Label.LabelStyle::class.java), skin.get(TextButton.TextButtonStyle::class.java))
+
     init {
         add(ImagePreviewPane(SpriteFrameImage(sprite, playback, Scaling.fit))).grow().row()
-        add(FramePlaybackControls(playback, skin) {
+        add(FramePlaybackControls(playback, labelStyle, buttonStyle) {
             val frame = sprite.frames[playback.frameIndex]
             "${frame.width} x ${frame.height}"
         }).growX().row()
-        add(Label("Drag: pan | Wheel: zoom", skin)).pad(4f)
+        add(Label("Drag: pan | Wheel: zoom", labelStyle)).pad(4f)
     }
 }

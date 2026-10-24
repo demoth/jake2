@@ -1,4 +1,4 @@
-package org.demoth.cake.viewer
+package org.demoth.cake.ui
 
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.HorizontalGroup
@@ -10,9 +10,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 
 /** Shared sprite/model transport; playback state and resources remain host-owned. */
 internal class FramePlaybackControls(
-    private val playback: FramePlayback, skin: Skin, private val description: () -> String,
-) : Table(skin) {
-    private val info = Label("", skin).apply { setWrap(true) }
+    private val playback: FramePlayback, labelStyle: Label.LabelStyle,
+    private val buttonStyle: TextButton.TextButtonStyle, private val description: () -> String,
+) : Table() {
+    constructor(playback: FramePlayback, skin: Skin, description: () -> String) : this(playback,
+        skin.get(Label.LabelStyle::class.java), skin.get(TextButton.TextButtonStyle::class.java), description)
+
+    private val info = Label("", labelStyle).apply { setWrap(true) }
     private val buttons = HorizontalGroup().apply { wrap(); space(4f); wrapSpace(4f) }
 
     init {
@@ -25,7 +29,7 @@ internal class FramePlaybackControls(
         button("Stop") { playback.stop() }
         button("Next") { playback.step(1) }
         add(buttons).growX().row()
-        add(Label("Space: play/pause | Left/Right: step", skin).apply { setWrap(true) }).growX()
+        add(Label("Space: play/pause | Left/Right: step", labelStyle).apply { setWrap(true) }).growX()
         updateInfo()
     }
 
@@ -35,9 +39,10 @@ internal class FramePlaybackControls(
     }
 
     private fun button(text: String, action: () -> Unit) {
-        buttons.addActor(TextButton(text, skin).apply {
+        buttons.addActor(TextButton(text, buttonStyle).apply {
+            setProgrammaticChangeEvents(false)
             addListener(object : ChangeListener() {
-                override fun changed(event: ChangeEvent, actor: Actor) { action() }
+                override fun changed(event: ChangeEvent, actor: Actor) { isChecked = false; action() }
             })
         })
     }

@@ -1,5 +1,7 @@
 package org.demoth.cake.viewer
 
+import org.demoth.cake.ui.FramePlayback
+
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

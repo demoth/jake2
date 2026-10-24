@@ -1,4 +1,4 @@
-package org.demoth.cake.viewer
+package org.demoth.cake.ui
 
 /** Fixed-rate frame playback for sprite and MD2 previews, independent of rendering. */
 internal class FramePlayback(val frameCount: Int) {

@@ -32,6 +32,10 @@ import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.cakeSkin
 import org.demoth.cake.audio.SoundDurationRegistry
 import org.demoth.cake.audio.SoundPlayback
+import org.demoth.cake.ui.FramePlayback
+import org.demoth.cake.ui.FramePlaybackControls
+import org.demoth.cake.ui.SpriteFrameImage
+import org.demoth.cake.ui.SpritePreview
 import org.demoth.cake.ui.SoundPreviewControls
 import org.demoth.cake.initializeShaderCompatibility
 import org.demoth.cake.md2FragmentShader
