@@ -38,7 +38,9 @@ and active-stage drawing/input selection; navigation decisions stay in `MenuCont
   them and enables hosting when the current profile and session state allow it.
 - Join Game validates host/port before using Cake's existing connection path.
 - Player Setup writes on Save; Back discards staged edits. The backend writes
-  userinfo cvars, including derived gender, and saves profile configuration.
+  userinfo cvars through `ui.menu.PlayerSetup`, including derived gender; Cake
+  then saves profile configuration. `PlayerSetup` owns the cached model/skin
+  catalog, which Cake invalidates when applying a profile.
 - Sound volume uses the shared horizontal slider over 0–1 in steps of 0.05, with
   a numeric readout. Changes are staged until Apply; other numeric options use
   text fields.

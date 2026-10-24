@@ -173,7 +173,7 @@ class Cake(
     private var lastDownloadProgressPercent: Int = -1
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
-    private var cachedPlayerSetupCatalog: PlayerSetupCatalog? = null
+    private val playerSetup = PlayerSetup(fileResolver)
     private val menuEventBus = MenuEventBus()
     private lateinit var menuController: MenuController
     private var currentGameUiStyle: GameUiStyle? = null
@@ -1601,55 +1601,6 @@ class Cake(
         consoleStage.replaceCommandHistory(loadActiveConsoleHistory())
     }
 
-    private fun playerSetupCatalog(): PlayerSetupCatalog {
-        cachedPlayerSetupCatalog?.let { return it }
-        val catalog = if (fileResolver.isVfsInitialized()) {
-            PlayerSetupCatalog.fromResolvedFiles(fileResolver.debugResolvedFiles())
-        } else {
-            PlayerSetupCatalog.fallback()
-        }
-        cachedPlayerSetupCatalog = catalog
-        return catalog
-    }
-
-    private fun currentPlayerSetupForm(): PlayerSetupFormState {
-        val name = Cvar.getInstance().find<String>("name").typedValue.ifBlank { "unnamed" }
-        val password = Cvar.getInstance().find<String>("password").typedValue
-        val skinValue = Cvar.getInstance().find<String>("skin").typedValue.ifBlank { "male/grunt" }
-        val split = skinValue.split('/', limit = 2)
-        val rawModel = split.firstOrNull().orEmpty().ifBlank { "male" }
-        val rawSkin = split.getOrNull(1).orEmpty().ifBlank { "grunt" }
-        val hand = Cvar.getInstance().find<Int>("hand").typedValue
-        return playerSetupCatalog().normalize(
-            PlayerSetupFormState(
-                name = name,
-                password = password,
-                model = rawModel,
-                skin = rawSkin,
-                hand = hand,
-            ),
-        )
-    }
-
-    private fun savePlayerSetup(form: PlayerSetupFormState): String {
-        val normalized = playerSetupCatalog().normalize(
-            form.copy(
-                name = form.name.trim().ifBlank { "unnamed" },
-                password = form.password.trim(),
-            ),
-        )
-        val skinValue = "${normalized.model}/${normalized.skin}"
-        val genderValue = deriveGenderFromSkin(skinValue)
-
-        Cvar.getInstance().find<String>("name").set(normalized.name)
-        Cvar.getInstance().find<String>("password").set(normalized.password)
-        Cvar.getInstance().find<String>("skin").set(skinValue)
-        Cvar.getInstance().find<Int>("hand").set(normalized.hand)
-        Cvar.getInstance().find<String>("gender").set(genderValue)
-        saveActiveProfileConfig()
-        return "Saved player setup for ${normalized.name}"
-    }
-
     private fun optionSections(): List<OptionsSection> {
         val cvars = Cvar.getInstance()
         return DEFAULT_OPTIONS_SECTIONS.map { section ->
@@ -1685,22 +1636,6 @@ class Cake(
             "Saved $updatedCount option(s)."
         }
         return (listOf(summary) + errors).joinToString("\n")
-    }
-
-    private fun deriveGenderFromSkin(skinValue: String): String {
-        return when {
-            skinValue.startsWith("male", ignoreCase = true) || skinValue.startsWith(
-                "cyborg",
-                ignoreCase = true
-            ) -> "male"
-
-            skinValue.startsWith("female", ignoreCase = true) || skinValue.startsWith(
-                "crackhor",
-                ignoreCase = true
-            ) -> "female"
-
-            else -> "none"
-        }
     }
 
     private fun loadProfileById(profileId: String): CakeGameProfile? {
@@ -1808,7 +1743,7 @@ class Cake(
         fileResolver.gamemod = normalized?.gamemod
         resolveNewGameAlias()
         clearCurrentGameUiStyle()
-        cachedPlayerSetupCatalog = null
+        playerSetup.invalidateCatalog()
         reloadProfileBackground()
         reloadActiveConsoleHistory()
         if (::menuStages.isInitialized) {
@@ -1938,11 +1873,15 @@ class Cake(
             return "Joining $address..."
         }
 
-        override fun playerSetupCatalog(): PlayerSetupCatalog = this@Cake.playerSetupCatalog()
+        override fun playerSetupCatalog(): PlayerSetupCatalog = playerSetup.catalog()
 
-        override fun currentPlayerSetupForm(): PlayerSetupFormState = this@Cake.currentPlayerSetupForm()
+        override fun currentPlayerSetupForm(): PlayerSetupFormState = playerSetup.currentForm()
 
-        override fun savePlayerSetup(form: PlayerSetupFormState): String = this@Cake.savePlayerSetup(form)
+        override fun savePlayerSetup(form: PlayerSetupFormState): String {
+            val normalized = playerSetup.apply(form)
+            saveActiveProfileConfig()
+            return "Saved player setup for ${normalized.name}"
+        }
 
         override fun optionSections(): List<OptionsSection> = this@Cake.optionSections()
 
