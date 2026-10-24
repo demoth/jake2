@@ -2,10 +2,14 @@ package org.demoth.cake.ui
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.FileHandleResolver
+import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -16,6 +20,10 @@ import org.demoth.cake.stages.ingame.SceneFrameBuffer
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import jake2.qcommon.vfs.VfsEntry
+import jake2.qcommon.vfs.VfsLayer
+import jake2.qcommon.vfs.VfsSource
+import jake2.qcommon.vfs.VfsSourceType
 
 @EnabledIfEnvironmentVariable(named = "CAKE_VIDEO_GL_TESTS", matches = "1")
 class ConcharsAtlasGlTest {
@@ -26,6 +34,7 @@ class ConcharsAtlasGlTest {
             override fun create() {
                 try {
                     verifyAtlasSampling()
+                    verifyThumbnailOwnership()
                 } catch (error: Throwable) {
                     failure = error
                 } finally {
@@ -163,6 +172,50 @@ class ConcharsAtlasGlTest {
             font.dispose()
             menuFont.dispose()
             texture.dispose()
+        }
+    }
+
+    private fun verifyThumbnailOwnership() {
+        val image = FileHandle(java.nio.file.Files.createTempFile("cake-thumbnail", ".png").toFile())
+        val broken = FileHandle(java.nio.file.Files.createTempFile("cake-thumbnail-broken", ".png").toFile())
+        val pixmap = Pixmap(2, 2, Pixmap.Format.RGBA8888)
+        PixmapIO.writePNG(image, pixmap)
+        pixmap.dispose()
+        broken.writeString("invalid image", false)
+        val attempts = mutableMapOf<String, Int>()
+        val resolver = FileHandleResolver { path ->
+            attempts[path] = attempts.getOrDefault(path, 0) + 1
+            if (path == "image.png") image else broken
+        }
+        val assets = AssetManager(resolver)
+        val thumbnails = ImageThumbnails(assets, resolver)
+        fun entry(path: String) = VfsEntry(path, path, VfsLayer.BASE_LOOSE, 0,
+            VfsSource(VfsSourceType.DIRECTORY, image.file().toPath().parent, path, null, false, false), 0, 0)
+        try {
+            assets.load("image.png", Texture::class.java)
+            assets.finishLoading()
+            val shared = assets.get("image.png", Texture::class.java)
+            val thumbnail = thumbnails.load(entry("image.png"))!!
+            assertNotSame(shared, thumbnail, "Thumbnail owns a separate texture")
+            assertSame(thumbnail, thumbnails.load(entry("image.png")), "Folder cache reuses its texture")
+            assertEquals(1, assets.getReferenceCount("image.png"))
+            assertNull(thumbnails.load(entry("broken.png")))
+            assertNull(thumbnails.load(entry("broken.png")))
+            assertEquals(1, attempts["broken.png"], "Failed image is attempted once per folder")
+            assertTrue(assets.update(), "Direct thumbnail failure does not poison shared loading")
+            thumbnails.clear()
+            thumbnails.clear()
+            assertEquals(0, thumbnail.textureObjectHandle, "Folder cleanup disposes owned texture")
+            assertTrue(shared.textureObjectHandle != 0, "Shared game texture survives cleanup")
+            val reloaded = thumbnails.load(entry("image.png"))!!
+            assertNotSame(thumbnail, reloaded, "A new folder lifetime can load again")
+            thumbnails.dispose()
+            assertEquals(0, reloaded.textureObjectHandle)
+        } finally {
+            thumbnails.dispose()
+            assets.dispose()
+            image.delete()
+            broken.delete()
         }
     }
 

@@ -49,6 +49,7 @@ import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
+import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ContentBrowser
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -74,8 +75,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var fileResolver: ViewerFileResolver
     private var currentFile: File? = null
     private var archiveEntryCount: Int? = null
-    private val archiveThumbnails = mutableMapOf<String, Texture>()
-    private val failedThumbnails = mutableSetOf<String>()
+    private lateinit var archiveThumbnails: ImageThumbnails
     private lateinit var previewResources: PreviewResources
     private lateinit var assetManager: AssetManager
     private lateinit var camera: Camera
@@ -127,6 +127,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
 
+        archiveThumbnails = ImageThumbnails(assetManager, fileResolver)
         previewResources = PreviewResources(assetManager)
         batch = SpriteBatch()
 
@@ -163,7 +164,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 val entries = fileResolver.configureArchive(file.absolutePath)
                 archiveEntryCount = entries.size
                 browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
-                    ::previewArchiveResource, ::loadArchiveThumbnail, ::clearArchiveThumbnails, ::selectArchiveResource)
+                    ::previewArchiveResource, archiveThumbnails::load, archiveThumbnails::clear, ::selectArchiveResource)
                 browserHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
@@ -188,35 +189,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
             recoverFromLoadError("Could not load ${file.name}. Drop another resource to continue.")
         }
-    }
-
-    private fun loadArchiveThumbnail(entry: VfsEntry): Texture? {
-        val path = entry.normalizedPath
-        archiveThumbnails[path]?.let { return it }
-        if (path in failedThumbnails) return null
-        return try {
-            val file = requireNotNull(fileResolver.resolve(path))
-            // Invoke existing loaders directly: these textures are viewer-owned, and a bad
-            // thumbnail cannot leave failed tasks/dependency records in the shared manager.
-            val texture = when (path.substringAfterLast('.')) {
-                "pcx" -> PcxLoader(fileResolver).load(assetManager, path, file, null)
-                "wal" -> WalLoader(fileResolver).load(assetManager, path, file, WalLoader.Parameters(
-                    externalPalette = assetManager.getLoaded<Any>("q2palette.bin") as IntArray))
-                else -> Texture(file)
-            }
-            archiveThumbnails[path] = texture
-            texture
-        } catch (error: Exception) {
-            failedThumbnails += path
-            Gdx.app.error("Cake Viewer", "Could not thumbnail ${entry.displayPath}", error)
-            null
-        }
-    }
-
-    private fun clearArchiveThumbnails() {
-        archiveThumbnails.values.forEach { it.dispose() }
-        archiveThumbnails.clear()
-        failedThumbnails.clear()
     }
 
     private fun selectArchiveResource(entry: VfsEntry?): Actor? {
@@ -544,7 +516,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun closePreview() {
         closeResourcePreview()
-        clearArchiveThumbnails()
+        archiveThumbnails.clear()
         archiveEntryCount = null
         if (::browserHost.isInitialized) {
             browserHost.actor = null
