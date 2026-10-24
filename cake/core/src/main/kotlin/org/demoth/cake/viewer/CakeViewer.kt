@@ -450,7 +450,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             if (sound != null) soundPlayback?.toggle() else playback?.toggle()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit()
+            if (!browserHost.isVisible || browserHost.actor?.navigateBack() != true) Gdx.app.exit()
         } else if (sound != null && Gdx.input.isKeyJustPressed(Input.Keys.S)) {
             soundPlayback?.stop()
         } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {

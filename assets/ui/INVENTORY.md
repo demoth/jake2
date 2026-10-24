@@ -446,7 +446,8 @@ Visible PCX/WAL/TGA tiles load progressive thumbnails. Each host owns a
 folder-scoped ImageThumbnails cache; client resolution uses profile content only.
 Full image previews borrow their texture from the folder cache and reuse the
 shared ImagePreviewPane for fit, zoom and pan. Back to folder / Escape retain
-the grid scroll position and cached images. Folder changes, browser exit and
+the grid scroll position and cached images. Further Escape presses go up one
+folder, leaving the browser/viewer only at its root. Folder changes, browser exit and
 profile replacement release owned textures.
 ContentBrowserStyles supplies explicit shell, tile and control roles. The native
 standalone adapter preserves viewer sizing; the client adapter borrows menu

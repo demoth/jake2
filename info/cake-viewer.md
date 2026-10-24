@@ -24,7 +24,9 @@ preview area, preserving its aspect ratio and enlarging small images. Use the
 wheel over the pane to zoom around the pointer and left-drag to pan. Resizing
 retains relative zoom and pan; reopening an image restores the initial fit.
 "Back to folder" restores the grid
-and its scroll position. Loaded thumbnails stay available while scrolling in the
+and its scroll position. Escape closes an open preview first, then goes up one
+folder per press; only Escape at the archive root closes the viewer. When viewing
+a loose resource or the empty viewer, Escape closes the viewer directly. Loaded thumbnails stay available while scrolling in the
 same folder and across full-preview/Back navigation. Leaving the folder or archive
 releases them; there is no persistent thumbnail cache. Preview tiles use plain
 images with a flat hover/selection highlight. Browsing reads archive metadata without extraction;
@@ -89,8 +91,8 @@ reads metadata only; image loading materializes visible package entries on deman
 Double-click an image to open its aspect-preserving full preview, with dimensions
 and a pan/zoom hint. Wheel zooms around the pointer; left-drag pans. Resizing
 retains relative zoom/pan, and reopening starts fitted again. Back to folder or
-Escape restores the folder grid and its scroll position; another Escape leaves
-the browser. Failed images show a dismissible inline error. The preview borrows
+Escape restores the folder grid and its scroll position. Further Escape presses
+go up one folder at a time; only at the root does Escape return to the main menu. Failed images show a dismissible inline error. The preview borrows
 the folder-cache texture, so returning to the grid retains it; there is no second
 image load or cache. Audio, sprite and model/map previews remain later client
 slices. Browsing does not change theme.

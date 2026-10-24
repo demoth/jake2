@@ -154,6 +154,17 @@ class ContentBrowser(
         return true
     }
 
+    /** Close a preview first, then go up one folder; the host handles leaving the root. */
+    fun navigateBack(): Boolean {
+        if (closePreview()) return true
+        val parent = tree.selectedNode?.parent ?: return false
+        parent.expandTo()
+        parent.isExpanded = true
+        tree.selection.set(parent)
+        stage?.scrollFocus = gridScroll
+        return true
+    }
+
     override fun act(delta: Float) {
         super.act(delta)
         val loader = loadThumbnail ?: return

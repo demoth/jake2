@@ -62,7 +62,7 @@ class ContentBrowserStage(
     }
 
     override fun keyUp(keycode: Int): Boolean {
-        if (keycode == Input.Keys.ESCAPE && (content.actor as? ContentBrowser)?.closePreview() == true) return true
+        if (keycode == Input.Keys.ESCAPE && (content.actor as? ContentBrowser)?.navigateBack() == true) return true
         return super.keyUp(keycode)
     }
 

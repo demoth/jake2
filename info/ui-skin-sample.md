@@ -958,3 +958,28 @@ The change is split into the shared-pane move and client wiring commits. Added
 production scope is about 35 lines, within the 35–55 line estimate; no new loader,
 cache, artwork or graphics harness was needed. Audio, sprite and model/map
 previews remain later slices.
+
+
+### Escape follows the browser hierarchy
+
+Both client and standalone viewer now call ContentBrowser.navigateBack. It closes
+an open full preview first, otherwise selects the current folder's parent through
+the existing tree-selection path. It returns false at the root so the client can
+post its normal main-menu intent and the standalone viewer can exit. Escape in
+the standalone empty/loose-resource view still exits directly. Explicit top Back
+and Back to folder buttons retain their existing meanings. Folder-up navigation
+clears child thumbnails through the existing folder lifecycle; returning from a
+preview retains its folder cache and grid scroll position. No navigation stack
+or separate shortcut handling was introduced.
+
+Validation: all three hosts compile; menu/folder tests and existing GL checks
+pass. Temporary desktop probes check preview → same folder → immediate parent
+→ root → host exit, nested folders in both client themes, thumbnail cleanup,
+standalone render-time Escape polling and loose-file exit.
+
+The standalone probe also caught a thumbnail-extraction regression: using plain
+AssetManager.get for the WAL palette assumed it had already been loaded. The
+shared owner now restores the viewer's getLoaded behavior. A separate atomic
+fix and GL regression fixture verify that a WAL thumbnail lazily acquires its
+palette and releases its own texture on folder cleanup. The standalone folder
+navigation probe passes without missing-palette errors.
