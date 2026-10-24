@@ -623,7 +623,7 @@ callbacks. Reuse it rather than introducing another browser or UI framework.
 | --- | --- | --- |
 | Labels, action buttons, panels | Resolved engine/game menu styles; native Quake size restored | Reuse; preserve the standalone viewer's existing engine sizing |
 | Separator | Both orientations implemented: conchars 29–31 and engine gray line, shown in sample | Available for browser use; static only, themed drag handle remains deferred |
-| Tree | Standard libGDX Tree; current browser obtains its engine TreeStyle and node labels directly from Skin | Resolve selection, hover and node labels; preferred expand/collapse candidate is conchars triangle 13, right when collapsed and rotated down when expanded; +/- remain an alternative |
+| Tree | Resolved engine/game TreeStyle and labels, with an interactive sample | Available: triangle 13 right/down, selection and hover. ContentBrowser still needs to adopt these styles instead of raw Skin |
 | Split pane | Standard libGDX SplitPane; browser uses left/right panes with a vertical handle | Themed handle artwork/interaction refinements are deferred; retain the existing engine handle as an explicit fallback when adapting the browser |
 | File/folder tile | Existing Button with transparent idle and locally assigned hover/selected fill | Resolve a tile ButtonStyle plus label/placeholder styling; retain flat idle and borrowed thumbnail textures |
 | Image / placeholder | Existing Image/Container, aspect-fit thumbnails and unavailable placeholder | Include representative image, folder, unsupported and unavailable cases in a browser sample; no new ImageStyle is required |
@@ -724,3 +724,40 @@ resource), 40 added lines extending the existing tests/fixtures, and documentati
 no moved code, new textures, dependency or separate widget class. This is within
 the approximate 50–80 production-line estimate; the rotation helper is local to
 the existing style builder.
+
+
+### Resolved tree styling and sample
+
+**Status: implemented.** MenuWidgetStyles now exposes a TreeStyle. Game marks
+use native conchars glyph 13 for collapsed and its clockwise rotation for
+expanded. Selection and hover use solid square glyph 11 (green/gray tints) so
+row feedback is visible independently of the dark panel-centre texture. Leaves
+have no expand mark, following standard libGDX Tree behavior.
+
+The raw engine TreeStyle is unchanged. A Skin `menu` TreeStyle uses the existing
+engine right/down shapes with readable text-colour tints and a subdued hover
+fill. Copies use 24-unit source slots, becoming 8-unit menu slots; the existing
+16px textures remain unchanged. Node labels use the selected theme's LabelStyle.
+
+The sample places a compact folder tree beside the separator specimens. It has
+single required selection, expanded and collapsed branches, leaves, a selected
+path readout and a thick outer scroll frame. Clicking a mark toggles its branch;
+clicking its label selects the folder. Expanded paths, selected path and scroll
+position survive engine/game switching. Tree wheel focus stays independent of
+the other scrolling specimen. The existing ContentBrowser is not changed yet.
+
+Verification: focused style/viewport tests and client/fullgame compilation pass.
+The existing GL atlas/style test checks 8-unit marks, native glyph-13 UV mapping,
+selection/hover availability and unchanged raw engine mark size. A real-content
+pointer probe in both starting themes checks expand/collapse clicks, leaf/parent
+selection, hover, wheel focus/scroll, retained expansion/selection/scroll across
+theme changes, close and 4K pointer coordinates. The sample needs 517 units in
+engine mode and 462 in game mode, within 608 available at `cl_ui_size 640`.
+Automatic captures and interaction captures were visually inspected.
+
+Actual scope: 99 added / 5 removed production lines (94 net), mostly sample
+fixture/state handling, plus 13 lines extending existing tests/fixtures and
+documentation. This is approximately the 100–150 added-line estimate. No new
+texture, loader, dependency, Tree subclass or browser integration is introduced.
+The sample uses the small standard Tree.Node subclass required by its generic
+node/label types. Themed drag handles and dropdown indicators remain deferred.

@@ -17,10 +17,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import com.badlogic.gdx.scenes.scene2d.ui.Tree
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.Scaling
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
+import org.demoth.cake.ui.MenuWidgetStyles
 import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.createEngineMenuWidgetStyles
 
@@ -48,6 +50,13 @@ class UiSkinSample(
     private var selectedChoice = "Medium"
     private var actionCount = 0
     private var sliderValue = 50f
+    private class FolderNode(val path: String, style: Label.LabelStyle) :
+        Tree.Node<FolderNode, String, Label>(Label(path.substringAfterLast('/'), style)) {
+        init { value = path }
+    }
+    private val treeNodes = linkedMapOf<String, FolderNode>()
+    private var treeScroll: ScrollPane? = null
+    private var selectedFolder = "baseq2/players/male"
 
     init {
         resize(Gdx.graphics.width, Gdx.graphics.height)
@@ -67,6 +76,9 @@ class UiSkinSample(
 
     fun showMode(game: Boolean) {
         val scrollY = scroll?.scrollY ?: 0f
+        val treeScrollY = treeScroll?.scrollY ?: 0f
+        val expanded = if (treeNodes.isEmpty()) setOf("baseq2", "baseq2/players")
+            else treeNodes.values.filter { it.isExpanded }.mapTo(mutableSetOf()) { it.path }
         dropdown?.hideScrollPane()
         // hideScrollPane normally fades out; discard the old popup before replacing its controls.
         dropdown?.scrollPane?.remove()
@@ -188,17 +200,61 @@ class UiSkinSample(
             add(Label("", styles.label)).width(percentageWidth)
         }).row()
         content.add(Table().apply {
-            defaults().left().pad(3f)
-            add(Label("Separators", styles.label)).colspan(3).row()
-            add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).width(120f).height(16f)
-            add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).growX().minWidth(24f).height(16f)
-            add(Image(styles.separatorVertical).apply { setScaling(Scaling.stretchY) }).width(16f).height(48f)
+            defaults().top().pad(3f)
+            add(treeSample(styles, expanded)).width(300f)
+            add(Table().apply {
+                defaults().left().pad(3f)
+                add(Label("Separators", styles.label)).colspan(3).row()
+                add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).width(120f).height(16f)
+                add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).growX().minWidth(24f).height(16f)
+                add(Image(styles.separatorVertical).apply { setScaling(Scaling.stretchY) }).width(16f).height(48f)
+            }).growX()
         }).growX().row()
         root.add(content).growX().maxWidth(900f).minWidth(0f)
         root.validate()
         scroll!!.scrollY = scrollY
         scroll!!.updateVisualScroll()
+        treeScroll!!.scrollY = treeScrollY
+        treeScroll!!.updateVisualScroll()
         scrollFocus = scroll
+    }
+
+    private fun treeSample(styles: MenuWidgetStyles, expanded: Set<String>): Table {
+        val tree = Tree<FolderNode, String>(styles.tree).apply {
+            selection.required = true
+            selection.setMultiple(false)
+            setPadding(4f)
+            setIndentSpacing(12f)
+        }
+        treeNodes.clear()
+        for (path in listOf(
+            "baseq2", "baseq2/maps", "baseq2/maps/unit1", "baseq2/maps/unit2",
+            "baseq2/models", "baseq2/models/weapons", "baseq2/models/monsters",
+            "baseq2/players", "baseq2/players/male", "baseq2/players/female", "baseq2/players/cyborg",
+            "baseq2/textures", "baseq2/textures/e1u1", "baseq2/sound", "baseq2/sound/world",
+        )) {
+            val node = FolderNode(path, styles.label)
+            treeNodes[path] = node
+            val parent = treeNodes[path.substringBeforeLast('/', "")]
+            if (parent == null) tree.add(node) else parent.add(node)
+            node.isExpanded = path in expanded
+        }
+        tree.selection.set(treeNodes.getValue(selectedFolder))
+        val selected = Label(selectedFolder, styles.label).apply { setWrap(true) }
+        tree.addListener(object : ChangeListener() {
+            override fun changed(event: ChangeEvent, actor: Actor) {
+                tree.selectedValue?.let { selectedFolder = it; selected.setText(it) }
+            }
+        })
+        treeScroll = scrolling(tree, ScrollPane.ScrollPaneStyle(styles.scrollPane).apply {
+            background = styles.containerPanel
+        })
+        return Table().apply {
+            defaults().left().growX().minWidth(0f).padBottom(3f)
+            add(Label("Tree", styles.label)).row()
+            add(treeScroll).height(112f).row()
+            add(selected)
+        }
     }
 
     private fun button(text: String, style: TextButton.TextButtonStyle, action: () -> Unit) =

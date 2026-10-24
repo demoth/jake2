@@ -84,8 +84,9 @@ client/fullgame. Engine/Game switching covers label, action button, checkbox,
 text input, selectable list, dropdown, panel and scroll pane specimens. The
 captions and mode controls use the selected style. Game mode identifies engine
 fallback; its panel uses the resolved scroll/input surface. The gallery fits one
-virtual screen and follows the vertical `cl_ui_size` setting live. Tree, split
-pane, content tile, image view and screen
+virtual screen and follows the vertical `cl_ui_size` setting live. Tree styling
+and an expandable sample are now available in both themes. Split pane, content
+tile, image view and screen
 compositions remain planned. Availability does not establish visual consistency.
 Two panel variants, a horizontal slider, linked read-only progress and a disabled
 slider are available in both modes. Sound options now use the shared slider for `s_volume` in 0.05 increments;
@@ -255,8 +256,8 @@ named, possibly tinted or stretchable use of artwork.
 | D16 | Text input | `textField`, `textFieldDown`, `textFieldDisabled`, `textFieldCursor` | Mixed: conchars backgrounds; engine cursor and selection |
 | D17 | Tooltip surface | `tooltip` | Engine only |
 | D18 | Touchpad | `touchpad`, `touchpadKnob` | Engine only |
-| D19 | Tree surface and hover | `tree`, `treeOver` | Engine only |
-| D20 | Tree controls | `treeMinus`, `treePlus` | Engine only |
+| D19 | Tree surface and hover | Raw `tree`/`treeOver`; menu uses `menuTreeOver` and existing selection fill | Tree selection/hover use solid conchars square 11 with green/gray tints; no extra tree background |
+| D20 | Tree controls | Raw `treeMinus`/`treePlus`; menu uses visible `menuTreeMinus`/`menuTreePlus` in 8-unit slots | Triangle 13, right collapsed and rotated down expanded; native 8-unit slots |
 | D21 | Window and panel surfaces | `window`, `windowResize`, `windowBorder` | Engine only; browser and viewer use `window` as a panel drawable |
 | D22 | Separator / divider artwork | `separatorHorizontal`: gray `line-h`; menu copy is 1 unit thick, vertical copy is rotated | Conchars 29–31 with fixed caps/stretch middle; horizontal and rotated vertical drawables available |
 
@@ -276,7 +277,8 @@ current style builder and the legacy menu drawing code.
 | Source | Glyph indices | Current coverage | Role |
 | --- | --- | --- | --- |
 | Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container, scroll surface and action buttons | Thick frame for containers/groups and action buttons |
-| Tree direction mark, row 1 | 13: right-pointing triangle | Available source; not wired to TreeStyle yet | Preferred collapsed mark; rotate down for expanded; +/- (43/45) remain alternatives |
+| Tree direction mark, row 1 | 13: right-pointing triangle | Derived TreeStyle.plus; clockwise version supplies minus | Right collapsed / down expanded; +/- alternative not needed |
+| Solid row fill, row 1 | 11: filled square | Tree selection and hover surfaces | Green selection and gray hover; panel centres remain separate resources |
 | Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for checkbox toggles, fields and dropdowns |
 | Separator, row 2 last three cells | Start: 29; middle: 30; end: 31 | Derived horizontal and clockwise vertical drawables; exposed in sample | Horizontal divider; reuse rotated for vertical divider/handle |
 | Slider, row 9 | Start: 128; middle: 129; end: 130; knob: 131 | Derived SliderStyle; also used by legacy Java menus | Horizontal slider track and knob |
@@ -338,7 +340,7 @@ skin to a widget still selects engine styles.
 | W05 | List / `ListStyle` | `default`, `background`, `list-nobg` | Mixed; conchars font/selection, engine text colour | Required; profiles and dropdown internals |
 | W06 | Dropdown / `SelectBoxStyle` | `default` | Mixed; includes resolved nested list and scroll styles | Required; forms and MD2 skin selector |
 | W07 | Scroll pane / `ScrollPaneStyle` | `default`, `clean`, `list`, `background` | Mixed; vertical chrome replaced, horizontal retained | Required; forms and browser |
-| W08 | Tree / `TreeStyle` | `default`, `background` | Engine only; triangle 13 is preferred content candidate (right/down); +/- alternative | Required; browser; plus/minus slots accept marks and node text uses separate LabelStyle |
+| W08 | Tree / `TreeStyle` | Raw `default`/`background`; resolved `menu` | Derived triangle 13 right/down, solid selection/hover fills | Available in sample; node labels use selected theme; browser adoption remains planned |
 | W09 | Split pane / `SplitPaneStyle` | `default-horizontal`, `default-vertical` | Engine only; keep explicit handle fallback; themed handle deferred | Existing browser behavior; no new grip required for preparation |
 | W10 | Button / `ButtonStyle` | `default`, `toggle`, `spinner-up`, `spinner-down` | Engine only | Required style class for browser tiles; stock variants are extensions |
 | W11 | Browser tile | Local ButtonStyle; no idle background | Engine only | Required; labels, thumbnail/placeholder, selection |
@@ -408,10 +410,11 @@ interactive support.
 | F03–F05 Quake text compatibility | Partial | Open | Normal conchars and unsupported text examples available; alternate bank/numbers remain planned |
 | D01–D06 panels, button chrome, selection | Partial | Open | Button, checkbox and list states visible; console panel/raw drawable gallery remain planned |
 | D10–D13 scrolling, dropdown, splitter | Partial | Open | Vertical scroll/dropdown specimens available; horizontal scroll and splitter remain planned |
-| D16, D19–D21 input, tree, panels | Partial | Open | Inputs and thick/thin panel roles available; tree remains planned |
-| W01–W11 required standard controls and tiles | Partial | Open | W01–W07 specimens available; W08–W11 tree/split/button variants/tiles remain planned |
+| D16, D19–D21 input, tree, panels | Partial | Open | Inputs, panels and resolved tree states are visible in sample; browser adoption remains planned |
+| W01–W11 required standard controls and tiles | Partial | Open | W01–W08 specimens available; W09–W11 split/button variants/tiles remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
+| W08 / D19–D20 tree | Available | Open | Engine/game right/down marks, required single selection, hover, scrolling and state retention in sample; browser adoption remains planned |
 | D22 / W23 separator | Available | Open | Two horizontal lengths and a vertical specimen in both modes; game caps remain fixed; engine flat-line art can be refined later |
 | Themed split handle | Deferred | Open | Existing libGDX dragging and engine handle can be retained; separate from static separator work |
 | Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
@@ -435,10 +438,11 @@ choosing a new design is not a completion condition for this inventory.
 
 See [the browser preparation plan](../../info/ui-skin-sample.md#browser-preparation-before-client-embedding)
 for the next slices. Basic controls are available. Remaining shell coverage is
-TreeStyle, tile ButtonStyle, image/placeholder presentation
-and explicit browser background/style resolution. The current browser directly
-reads Skin for each of these; the menu style bundle does not yet cover the tree,
-split pane or tile roles. The separator is source artwork for a divider; it does
+tile ButtonStyle, image/placeholder presentation
+and explicit browser background/style resolution. The current browser still
+reads Skin directly. TreeStyle is now resolved in MenuWidgetStyles and verified
+in the sample, but ContentBrowser has not adopted it yet. Split pane and tile
+roles still need explicit style/fallback wiring. The separator is source artwork for a divider; it does
 not provide splitter dragging behavior by itself. The browser already has that
 behavior through libGDX SplitPane. A new themed handle is deferred; retain the
 existing engine handle as an explicit fallback when adapting styles.

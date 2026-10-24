@@ -66,7 +66,7 @@ reference, so disposing one owner does not unload another owner's assets.
 ## Menus and Sounds
 
 `MenuWidgetStyles` provides content-styled labels, buttons, text fields, select
-boxes, lists, scroll panes, horizontal sliders and read-only progress indicators.
+boxes, lists, scroll panes, horizontal sliders, progress indicators and trees.
 Two Drawable roles distinguish thick containers/action buttons from thin controls:
 IdTech2 thick panels use conchars cells 1–9, and control frames use 18–26 with
 half-cell content insets.
@@ -74,6 +74,10 @@ Slider tracks use 128–130 with knob 131; progress shares the track and knob.
 Static separators use 29–31 with fixed caps and a stretchable middle, plus a
 clockwise vertical variant. Engine menus use a gray line from the existing atlas.
 Both orientations are Drawables shown through Image; they add no dragging behavior.
+TreeStyle uses conchars 13 right/down marks and square 11 for row selection/hover;
+engine menus use the existing tree shapes in matching 8-unit slots. Tree node
+labels use the resolved LabelStyle. The sample retains folder expansion, selection
+and scroll position when changing theme. ContentBrowser adoption is a later slice.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 
