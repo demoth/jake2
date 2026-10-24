@@ -810,3 +810,23 @@ probe retains expansion/selection/scroll state across themes and passes at 4K;
 scrollbar top/bottom dragging and wheel scrolling also pass after relocation.
 Current sample heights are 482 engine / 417 game within 608 available at
 `cl_ui_size 640` (35/45 units shorter than the previous arrangement).
+
+
+### Browser style adaptation
+
+ContentBrowser now accepts explicit borrowed ContentBrowserStyles. The native
+Skin constructor remains available to the standalone viewer and preserves its
+font, panels, tree, splitter and tile selection. The client adapter uses resolved
+menu labels, buttons, tree marks and selection, a thick outer container and
+unframed inner scroll panes. Tiles share the themed tree selection fill; the
+existing engine SplitPane handle remains an explicit fallback in both themes.
+No new atlas resources or resource ownership are introduced.
+
+Thumbnail loading is optional: without a loader, tiles show their file extension
+and do not attempt media loading or display a misleading load failure. Existing
+viewer thumbnail and preview callbacks retain their behavior.
+
+Validation: client/viewer compilation, folder hierarchy and fallback-style tests
+pass. The existing GL style test also checks native viewer resource identity and
+resolved client style/selection/scrollbar wiring for both themes. Client hosting
+is the next slice.

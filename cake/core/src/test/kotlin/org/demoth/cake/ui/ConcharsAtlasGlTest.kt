@@ -70,6 +70,20 @@ class ConcharsAtlasGlTest {
             try {
                 val engine = EngineUiStyle(skin)
                 val quake = createMenuWidgetStyles(skin, font, texture)
+                val viewerBrowser = ContentBrowserStyles.fromSkin(skin)
+                assertSame(skin.getFont("default"), viewerBrowser.label.font)
+                assertSame(skin.get(Tree.TreeStyle::class.java), viewerBrowser.tree)
+                assertSame(skin.getDrawable("window"), viewerBrowser.background)
+                for (widgets in listOf(engine.menuWidgets, quake)) {
+                    val browser = ContentBrowserStyles.fromMenu(widgets, skin)
+                    assertSame(widgets.label, browser.label)
+                    assertSame(widgets.tree, browser.tree)
+                    assertSame(widgets.tree.selection, browser.tile.checked)
+                    assertSame(widgets.containerPanel, browser.background)
+                    assertNull(browser.scrollPane.background, "Only the outer browser panel is framed")
+                    assertSame(widgets.scrollPane.vScrollKnob, browser.scrollPane.vScrollKnob)
+                    assertSame(viewerBrowser.splitPane, browser.splitPane, "Engine splitter remains the fallback")
+                }
                 assertEquals(24f, skin.getFont("default").lineHeight, "Raw engine UI retains native font size")
                 assertEquals(8f, engine.menuWidgets.label.font.capHeight, 0.001f)
                 assertEquals(38f / 3f, engine.menuWidgets.label.font.lineHeight, 0.001f)

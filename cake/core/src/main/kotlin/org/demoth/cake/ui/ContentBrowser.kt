@@ -54,25 +54,32 @@ internal class ContentDirectory(val path: String, val name: String) {
  * [onSelect] may supply a borrowed inline preview for the selected tile.
  */
 class ContentBrowser(
-    entries: List<VfsEntry>, rootName: String, skin: Skin,
+    entries: List<VfsEntry>, rootName: String, private val styles: ContentBrowserStyles,
     private val previewSelection: (VfsEntry?) -> Actor? = { null },
-    private val loadThumbnail: (VfsEntry) -> Texture? = { null },
+    private val loadThumbnail: ((VfsEntry) -> Texture?)? = null,
     private val clearThumbnails: () -> Unit = {},
     private val onSelect: (VfsEntry?) -> Actor? = { null },
-) : Table(skin) {
-    private class FolderNode(val directory: ContentDirectory, skin: Skin) :
-        Tree.Node<FolderNode, ContentDirectory, Label>(Label(directory.name, skin)) {
+) : Table() {
+    /** Preserve the standalone viewer's native engine styling and callback contract. */
+    constructor(
+        entries: List<VfsEntry>, rootName: String, skin: Skin,
+        previewSelection: (VfsEntry?) -> Actor? = { null },
+        loadThumbnail: ((VfsEntry) -> Texture?)? = null,
+        clearThumbnails: () -> Unit = {},
+        onSelect: (VfsEntry?) -> Actor? = { null },
+    ) : this(entries, rootName, ContentBrowserStyles.fromSkin(skin),
+        previewSelection, loadThumbnail, clearThumbnails, onSelect)
+
+    private class FolderNode(val directory: ContentDirectory, styles: ContentBrowserStyles) :
+        Tree.Node<FolderNode, ContentDirectory, Label>(Label(directory.name, styles.label)) {
         init { value = directory }
     }
 
-    private class Tile(val directory: ContentDirectory?, val entry: VfsEntry?, skin: Skin) : Button(ButtonStyle().apply {
-        over = skin.getDrawable("selection")
-        down = over
-        checked = over
-    }) {
+    private class Tile(val directory: ContentDirectory?, val entry: VfsEntry?, styles: ContentBrowserStyles,
+                       thumbnailsEnabled: Boolean) : Button(styles.tile) {
         val thumbnail = entry?.normalizedPath?.substringAfterLast('.') in setOf("pcx", "wal", "tga")
-        val placeholder = Label(if (directory != null) "Folder" else if (thumbnail) "…" else
-            entry!!.normalizedPath.substringAfterLast('.').uppercase(), skin).apply {
+        val placeholder = Label(if (directory != null) "Folder" else if (thumbnail && thumbnailsEnabled) "…" else
+            entry!!.normalizedPath.substringAfterLast('.').uppercase(), styles.label).apply {
             setEllipsis(true)
             setAlignment(Align.center)
         }
@@ -82,27 +89,27 @@ class ContentBrowser(
         init {
             val name = directory?.let { "${it.name}/" } ?: entry!!.displayPath.replace('\\', '/').substringAfterLast('/')
             add(picture).size(128f, 96f).row()
-            add(Label(name, skin).apply { setEllipsis(true) }).width(128f).padTop(4f)
+            add(Label(name, styles.label).apply { setEllipsis(true) }).width(128f).padTop(4f)
             pad(6f)
         }
     }
 
-    private val tree = Tree<FolderNode, ContentDirectory>(skin)
+    private val tree = Tree<FolderNode, ContentDirectory>(styles.tree)
     private val grid = HorizontalGroup().apply { wrap(); top(); left(); space(8f); wrapSpace(8f); pad(8f) }
     private val tiles = mutableListOf<Tile>()
     private var auditionTile: Tile? = null
-    private val pathLabel = Label("/", skin).apply { setWrap(true) }
-    private val selectionInfo = Label("Select a file to see its path and size.", skin).apply {
+    private val pathLabel = Label("/", styles.label).apply { setWrap(true) }
+    private val selectionInfo = Label("Select a file to see its path and size.", styles.label).apply {
         setEllipsis(true)
         setAlignment(Align.topLeft)
     }
     private val nodes = mutableMapOf<String, FolderNode>()
-    private val gridScroll = scrollPane(grid, skin).apply { setScrollingDisabled(true, false) }
+    private val gridScroll = scrollPane(grid).apply { setScrollingDisabled(true, false) }
     private val content = Container<Actor>(gridScroll).apply { fill() }
-    private val backButton = TextButton("Back to folder", skin).apply { isVisible = false }
+    private val backButton = TextButton("Back to folder", styles.button).apply { isVisible = false }
 
     init {
-        background = skin.getDrawable("window")
+        background = styles.background
         pad(8f)
         tree.selection.setMultiple(false)
         tree.selection.required = true
@@ -116,9 +123,9 @@ class ContentBrowser(
             // Reserve both path and size lines before selection, keeping tiles under the pointer.
             add(selectionInfo).minWidth(0f).height(selectionInfo.style.font.data.lineHeight * 2f).pad(8f).row()
         }
-        add(SplitPane(scrollPane(tree, skin), listing, false, skin).apply { splitAmount = 0.3f }).grow()
+        add(SplitPane(scrollPane(tree), listing, false, styles.splitPane).apply { splitAmount = 0.3f }).grow()
 
-        val root = addFolder(ContentDirectory.fromEntries(entries, rootName), skin)
+        val root = addFolder(ContentDirectory.fromEntries(entries, rootName))
         tree.add(root)
         root.isExpanded = true
         tree.addListener(object : ChangeListener() {
@@ -139,6 +146,7 @@ class ContentBrowser(
 
     override fun act(delta: Float) {
         super.act(delta)
+        val loader = loadThumbnail ?: return
         if (content.actor !== gridScroll || stage == null) return
         validate()
         gridScroll.validate()
@@ -151,17 +159,17 @@ class ContentBrowser(
         // Load small images together. A single synchronous load can exceed this 4 ms budget.
         for (tile in pending) {
             tile.attempted = true
-            val texture = loadThumbnail(tile.entry!!)
+            val texture = loader(tile.entry!!)
             tile.picture.actor = texture?.let { Image(it).apply { setScaling(Scaling.fit) } }
                 ?: tile.placeholder.apply { setText("Unavailable") }
             if (System.nanoTime() - started >= 4_000_000L) break
         }
     }
 
-    private fun addFolder(directory: ContentDirectory, skin: Skin): FolderNode {
-        val node = FolderNode(directory, skin)
+    private fun addFolder(directory: ContentDirectory): FolderNode {
+        val node = FolderNode(directory, styles)
         nodes[directory.path] = node
-        directory.folders.values.forEach { node.add(addFolder(it, skin)) }
+        directory.folders.values.forEach { node.add(addFolder(it)) }
         return node
     }
 
@@ -182,7 +190,7 @@ class ContentBrowser(
     }
 
     private fun addTile(directory: ContentDirectory?, entry: VfsEntry?) {
-        val tile = Tile(directory, entry, skin)
+        val tile = Tile(directory, entry, styles, loadThumbnail != null)
         tiles += tile
         grid.addActor(tile)
         tile.addListener(object : ClickListener() {
@@ -204,7 +212,7 @@ class ContentBrowser(
                     tree.selection.set(node)
                 } else {
                     val preview = previewSelection(entry) ?: return
-                    content.actor = scrollPane(preview, skin)
+                    content.actor = scrollPane(preview)
                     backButton.isVisible = true
                 }
             }
@@ -216,7 +224,7 @@ class ContentBrowser(
         auditionTile = null
     }
 
-    private fun scrollPane(actor: Actor, skin: Skin) = ScrollPane(actor, skin).apply {
+    private fun scrollPane(actor: Actor) = ScrollPane(actor, styles.scrollPane).apply {
         setFadeScrollBars(false)
         setFlickScroll(false)
         addListener(object : InputListener() {
