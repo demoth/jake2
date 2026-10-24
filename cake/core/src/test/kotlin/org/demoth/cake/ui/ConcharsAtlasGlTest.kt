@@ -99,6 +99,8 @@ class ConcharsAtlasGlTest {
                 assertSame(quake.tree.selection, quake.selectBox.listStyle.selection)
                 assertSame(quake.separatorVertical, quake.scrollPane.vScrollKnob)
                 assertSame(quake.separatorVertical, quake.selectBox.scrollStyle.vScrollKnob)
+                assertNull(quake.scrollPane.vScroll, "Game scrollbar has no separate track backdrop")
+                assertNull(quake.selectBox.scrollStyle.vScroll)
                 verifySeparators(quake, batch, target)
                 engine.dispose()
             } finally {

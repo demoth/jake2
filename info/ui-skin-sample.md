@@ -779,8 +779,9 @@ GL check asserts the shared selection identity across all four usages.
 
 Game vertical scrollbar thumbs now share the same rotated 29/30/31 Drawable as
 the vertical separator. Native dimensions are 8 units wide and at least 24 long,
-with fixed start/end caps and a stretchable middle. The existing compact
-thin-panel track remains separate. This applies through the shared ScrollPane
+with fixed start/end caps and a stretchable middle. The separate thin-panel
+track backdrop is removed; the thumb sits directly on the pane background.
+This applies through the shared ScrollPane
 styles to scrolling specimens, trees, menus and scrollable dropdown popups.
 Engine scrollbar styling is unchanged; themed SplitPane handles remain deferred.
 
@@ -788,3 +789,7 @@ Verification: focused style tests and both client compilations pass. The GL styl
 check asserts shared separator/thumb identity for standard and dropdown scroll
 styles. A real-content pointer probe drags the thumb to both ends and exercises
 wheel scrolling; tree state/hover/scroll/4K and dropdown selection probes pass.
+
+Follow-up: the vertical track drawable is explicitly null in both ordinary and
+dropdown scroll styles. ScrollPane retains its scrollbar hit area and native
+thumb drag behavior without drawing a thin-panel backdrop.

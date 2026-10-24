@@ -224,21 +224,11 @@ internal fun createMenuWidgetStyles(
     }) as TransformDrawable
     val separatorVertical = ClockwiseDrawable(separator)
     val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, SOLID_FILL, MENU_SELECTION_COLOR) }
-    // Game thumbs reuse the vertical separator; the track retains its compact thin frame.
-    val contentScrollKnobDrawable = concharsTexture?.let { separatorVertical }
-    val contentScrollTrackDrawable = contentControlDrawable?.let {
-        NinePatchDrawable(NinePatch(it.patch).apply { scale(0.5f, 0.5f) })
-            .tint(Color(0.45f, 0.45f, 0.45f, 1f))
-    }
     val contentScrollPaneStyle = ScrollPane.ScrollPaneStyle(baseScrollPaneStyle).also { style ->
-        if (contentControlDrawable != null) {
+        if (concharsTexture != null) {
             style.background = containerPanel
-        }
-        if (contentScrollTrackDrawable != null) {
-            style.vScroll = contentScrollTrackDrawable
-        }
-        if (contentScrollKnobDrawable != null) {
-            style.vScrollKnob = contentScrollKnobDrawable
+            style.vScroll = null
+            style.vScrollKnob = separatorVertical
         }
     }
     val contentListStyle = Scene2dList.ListStyle(baseListStyle).also { style ->
