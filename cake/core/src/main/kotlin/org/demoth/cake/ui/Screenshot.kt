@@ -19,4 +19,3 @@ fun writeScreenshot(file: FileHandle) {
         pixmap.dispose()
     }
 }
-
