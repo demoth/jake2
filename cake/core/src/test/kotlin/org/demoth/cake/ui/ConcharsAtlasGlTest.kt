@@ -97,6 +97,8 @@ class ConcharsAtlasGlTest {
                 assertSame(quake.tree.selection, quake.textField.selection, "Game text selection uses the tree's green fill")
                 assertSame(quake.tree.selection, quake.list.selection)
                 assertSame(quake.tree.selection, quake.selectBox.listStyle.selection)
+                assertSame(quake.separatorVertical, quake.scrollPane.vScrollKnob)
+                assertSame(quake.separatorVertical, quake.selectBox.scrollStyle.vScrollKnob)
                 verifySeparators(quake, batch, target)
                 engine.dispose()
             } finally {

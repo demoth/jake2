@@ -73,7 +73,8 @@ half-cell content insets.
 Slider tracks use 128–130 with knob 131; progress shares the track and knob.
 Static separators use 29–31 with fixed caps and a stretchable middle, plus a
 clockwise vertical variant. Engine menus use a gray line from the existing atlas.
-Both orientations are Drawables shown through Image; they add no dragging behavior.
+Both orientations are Drawables shown through Image. Game vertical scrollbar
+thumbs reuse the vertical separator; standard ScrollPane supplies dragging.
 TreeStyle uses conchars 13 right/down marks and square 11 for row selection/hover;
 engine menus use the existing tree shapes in matching 8-unit slots. Tree node
 labels use the resolved LabelStyle. The sample retains folder expansion, selection

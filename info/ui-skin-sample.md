@@ -773,3 +773,18 @@ menu selection colour. Text input selection no longer inherits the engine's
 magenta fill, and list/dropdown selection no longer uses the dark panel-centre
 cell. The engine palette and game caret resource are unchanged. The style-level
 GL check asserts the shared selection identity across all four usages.
+
+
+### Game scrollbar thumb from separator artwork
+
+Game vertical scrollbar thumbs now share the same rotated 29/30/31 Drawable as
+the vertical separator. Native dimensions are 8 units wide and at least 24 long,
+with fixed start/end caps and a stretchable middle. The existing compact
+thin-panel track remains separate. This applies through the shared ScrollPane
+styles to scrolling specimens, trees, menus and scrollable dropdown popups.
+Engine scrollbar styling is unchanged; themed SplitPane handles remain deferred.
+
+Verification: focused style tests and both client compilations pass. The GL style
+check asserts shared separator/thumb identity for standard and dropdown scroll
+styles. A real-content pointer probe drags the thumb to both ends and exercises
+wheel scrolling; tree state/hover/scroll/4K and dropdown selection probes pass.

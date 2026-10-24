@@ -222,13 +222,14 @@ internal fun createMenuWidgetStyles(
             minHeight = 3f
         }
     }) as TransformDrawable
+    val separatorVertical = ClockwiseDrawable(separator)
     val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, SOLID_FILL, MENU_SELECTION_COLOR) }
-    // ScrollPane stretches its track and proportional thumb vertically. A nine-patch keeps
-    // their borders intact; the horizontal slider glyphs in conchars cannot be stretched this way.
-    val contentScrollKnobDrawable = contentControlDrawable?.let {
+    // Game thumbs reuse the vertical separator; the track retains its compact thin frame.
+    val contentScrollKnobDrawable = concharsTexture?.let { separatorVertical }
+    val contentScrollTrackDrawable = contentControlDrawable?.let {
         NinePatchDrawable(NinePatch(it.patch).apply { scale(0.5f, 0.5f) })
+            .tint(Color(0.45f, 0.45f, 0.45f, 1f))
     }
-    val contentScrollTrackDrawable = contentScrollKnobDrawable?.tint(Color(0.45f, 0.45f, 0.45f, 1f))
     val contentScrollPaneStyle = ScrollPane.ScrollPaneStyle(baseScrollPaneStyle).also { style ->
         if (contentControlDrawable != null) {
             style.background = containerPanel
@@ -315,7 +316,7 @@ internal fun createMenuWidgetStyles(
         slider = slider,
         progress = progress,
         separatorHorizontal = separator,
-        separatorVertical = ClockwiseDrawable(separator),
+        separatorVertical = separatorVertical,
         tree = tree,
     )
 }
