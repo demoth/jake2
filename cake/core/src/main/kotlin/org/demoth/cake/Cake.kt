@@ -4,7 +4,6 @@ import org.demoth.cake.assets.bsp.BspLoader
 import org.demoth.cake.assets.bsp.BspMapAsset
 import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
@@ -56,18 +55,8 @@ import org.demoth.cake.profile.CakeConsoleHistoryStore
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.profile.CakeProfileConfigStore
+import org.demoth.cake.stages.MenuStages
 import org.demoth.cake.stages.DebugGraphStage
-import org.demoth.cake.stages.HostingSetupStage
-import org.demoth.cake.stages.JoinGameStage
-import org.demoth.cake.stages.ContentBrowserStage
-import org.demoth.cake.ui.ImageThumbnails
-import org.demoth.cake.stages.MainMenuStage
-import org.demoth.cake.stages.MultiplayerMenuStage
-import org.demoth.cake.stages.OptionsMenuStage
-import org.demoth.cake.stages.OptionsSectionStage
-import org.demoth.cake.stages.PlayerSetupStage
-import org.demoth.cake.stages.ProfileEditStage
-import org.demoth.cake.stages.BackNavigableMenuStage
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.GameUiStyle
@@ -86,19 +75,6 @@ private enum class ClientNetworkState {
     CONNECTING, // started the connection procedure
     CONNECTED, // connection established, preparing resources
     ACTIVE // game is running
-}
-
-private enum class MenuView {
-    MAIN,
-    PROFILE_EDIT,
-    MULTIPLAYER,
-    SINGLEPLAYER,
-    HOST_GAME,
-    JOIN_GAME,
-    PLAYER_SETUP,
-    OPTIONS,
-    OPTIONS_SECTION,
-    CONTENT_BROWSER,
 }
 
 /**
@@ -121,17 +97,8 @@ class Cake(
         private val CONSOLE_TOGGLE_CHARS = setOf('`', '§')
     }
 
-    private lateinit var menuStage: MainMenuStage
-    private lateinit var profileEditStage: ProfileEditStage
-    private lateinit var multiplayerMenuStage: MultiplayerMenuStage
-    private lateinit var singleplayerStage: HostingSetupStage
-    private lateinit var hostGameStage: HostingSetupStage
+    private lateinit var menuStages: MenuStages
     private var awaitingNewGame = false
-    private lateinit var joinGameStage: JoinGameStage
-    private lateinit var playerSetupStage: PlayerSetupStage
-    private lateinit var optionsMenuStage: OptionsMenuStage
-    private lateinit var contentBrowserStage: ContentBrowserStage
-    private lateinit var optionsSectionStage: OptionsSectionStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
     private lateinit var glProfiler: GLProfiler
@@ -167,7 +134,6 @@ class Cake(
             field = value
             updateInputHandlers(consoleVisible, field)
         }
-    private var menuView = MenuView.MAIN
 
     // network
     private var networkState = DISCONNECTED
@@ -758,18 +724,7 @@ class Cake(
         val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage
             uiSample != null -> uiSample!!
-            menuVisible -> when (menuView) {
-                MenuView.MAIN -> menuStage
-                MenuView.PROFILE_EDIT -> profileEditStage
-                MenuView.MULTIPLAYER -> multiplayerMenuStage
-                MenuView.SINGLEPLAYER -> singleplayerStage
-                MenuView.HOST_GAME -> hostGameStage
-                MenuView.JOIN_GAME -> joinGameStage
-                MenuView.PLAYER_SETUP -> playerSetupStage
-                MenuView.OPTIONS -> optionsMenuStage
-                MenuView.OPTIONS_SECTION -> optionsSectionStage
-                MenuView.CONTENT_BROWSER -> contentBrowserStage
-            }
+            menuVisible -> menuStages.inputProcessor
 
             else -> {
                 // delegate to the game screen
@@ -822,7 +777,7 @@ class Cake(
             menuController.pumpIntents()
             menuController.refreshExternalState()
             drainMenuSignals()
-            syncMenuViewFromBusState()
+            syncMenuStageFromBusState()
             assetManager.update() // todo: 1000/fps millis
             val deltaSeconds = Gdx.graphics.deltaTime
             Globals.curtime += (deltaSeconds * 1000f).toInt() // todo: get rid of globals!
@@ -894,53 +849,7 @@ class Cake(
                 uiSample!!.draw()
                 captureUiSampleFrame()
             } else if (menuVisible) {
-                uiViewport.apply()
-                when (menuView) {
-                    MenuView.MAIN -> {
-                        menuStage.act()
-                        menuStage.draw()
-                    }
-
-                    MenuView.PROFILE_EDIT -> {
-                        profileEditStage.act(deltaSeconds)
-                        profileEditStage.draw()
-                    }
-
-                    MenuView.MULTIPLAYER -> {
-                        multiplayerMenuStage.act(deltaSeconds)
-                        multiplayerMenuStage.draw()
-                    }
-
-                    MenuView.SINGLEPLAYER -> {
-                        singleplayerStage.act(deltaSeconds)
-                        singleplayerStage.draw()
-                    }
-                    MenuView.HOST_GAME -> {
-                        hostGameStage.act(deltaSeconds)
-                        hostGameStage.draw()
-                    }
-                    MenuView.JOIN_GAME -> {
-                        joinGameStage.act(deltaSeconds)
-                        joinGameStage.draw()
-                    }
-
-                    MenuView.PLAYER_SETUP -> {
-                        playerSetupStage.act(deltaSeconds)
-                        playerSetupStage.draw()
-                    }
-                    MenuView.OPTIONS -> {
-                        optionsMenuStage.act(deltaSeconds)
-                        optionsMenuStage.draw()
-                    }
-                    MenuView.CONTENT_BROWSER -> {
-                        contentBrowserStage.act(deltaSeconds)
-                        contentBrowserStage.draw()
-                    }
-                    MenuView.OPTIONS_SECTION -> {
-                        optionsSectionStage.act(deltaSeconds)
-                        optionsSectionStage.draw()
-                    }
-                }
+                menuStages.render(deltaSeconds)
             }
 
             // Engine console and diagnostics stay in unscaled window coordinates.
@@ -1088,7 +997,7 @@ class Cake(
                     closeUiSample()
                     return true
                 }
-                if (!consoleVisible && menuVisible && menuView == MenuView.MAIN && game3dScreen != null) {
+                if (!consoleVisible && menuVisible && menuStages.activeScreen == MenuScreen.MAIN && game3dScreen != null) {
                     menuVisible = false
                     updateInputHandlers(consoleVisible, menuVisible)
                     return true
@@ -1097,7 +1006,7 @@ class Cake(
                     menuVisible = true
                     menuEventBus.postIntent(MenuIntent.OpenMainMenu)
                     menuController.pumpIntents()
-                    syncMenuViewFromBusState()
+                    syncMenuStageFromBusState()
                     updateInputHandlers(consoleVisible, menuVisible)
                     return true
                 }
@@ -1156,16 +1065,7 @@ class Cake(
         Cmd.RemoveCommand("ui_sample_capture")
         disconnect()
         saveActiveProfileConfig()
-        menuStage.dispose()
-        profileEditStage.dispose()
-        multiplayerMenuStage.dispose()
-        singleplayerStage.dispose()
-        hostGameStage.dispose()
-        joinGameStage.dispose()
-        playerSetupStage.dispose()
-        optionsMenuStage.dispose()
-        optionsSectionStage.dispose()
-        contentBrowserStage.dispose()
+        menuStages.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearCurrentGameUiStyle()
@@ -1179,8 +1079,6 @@ class Cake(
             glProfiler.disable()
             glProfilerActive = false
         }
-        disposeGame3dScreen()
-        releaseDeferredConfigUnload()
     }
 
     /**
@@ -1227,110 +1125,13 @@ class Cake(
     }
 
     private fun rebuildContentStyledMenuStages(style: GameUiStyle) {
-        val showHosting = host.availability != HostAvailability.REMOTE_ONLY
-        if (::menuStage.isInitialized) {
-            menuStage.dispose()
+        if (!::menuStages.isInitialized) {
+            menuStages = MenuStages(uiViewport, menuEventBus, assetManager, fileResolver,
+                showHosting = host.availability != HostAvailability.REMOTE_ONLY,
+                activeProfileId = { activeGameProfile?.id })
         }
-        menuStage = MainMenuStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-            showHosting = showHosting,
-        )
-        if (::multiplayerMenuStage.isInitialized) {
-            multiplayerMenuStage.dispose()
-        }
-        multiplayerMenuStage = MultiplayerMenuStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-            showHosting = showHosting,
-        )
-        if (::optionsMenuStage.isInitialized) {
-            optionsMenuStage.dispose()
-        }
-        optionsMenuStage = OptionsMenuStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-        )
-        if (::singleplayerStage.isInitialized) singleplayerStage.dispose()
-        singleplayerStage = HostingSetupStage(uiViewport, menuEventBus, style, true)
-        if (::hostGameStage.isInitialized) hostGameStage.dispose()
-        hostGameStage = HostingSetupStage(uiViewport, menuEventBus, style, false)
-        if (::joinGameStage.isInitialized) {
-            joinGameStage.dispose()
-        }
-        joinGameStage = JoinGameStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-        )
-        if (::playerSetupStage.isInitialized) {
-            playerSetupStage.dispose()
-        }
-        playerSetupStage = PlayerSetupStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-        )
-        if (::profileEditStage.isInitialized) {
-            profileEditStage.dispose()
-        }
-        profileEditStage = ProfileEditStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-        )
-        if (::optionsSectionStage.isInitialized) {
-            optionsSectionStage.dispose()
-        }
-        optionsSectionStage = OptionsSectionStage(
-            viewport = uiViewport,
-            menuEventBus = menuEventBus,
-            style = style,
-        )
-        if (::contentBrowserStage.isInitialized) contentBrowserStage.dispose()
-        contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style,
-            ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent)), createBrowserPreviewAssets()) { entry ->
-            val file = requireNotNull(fileResolver.resolveContent(entry.normalizedPath)) { "Missing profile sound" }
-            // Own this preview separately; failures must not leave tasks in the shared asset manager.
-            ConvertingSoundLoader(fileResolver).loadSync(assetManager, entry.normalizedPath, file, null)
-        }
-        if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
-        if (
-            menuVisible && menuView in setOf(
-                MenuView.MAIN,
-                MenuView.PROFILE_EDIT,
-                MenuView.MULTIPLAYER,
-                MenuView.SINGLEPLAYER,
-                MenuView.HOST_GAME,
-                MenuView.JOIN_GAME,
-                MenuView.PLAYER_SETUP,
-                MenuView.OPTIONS,
-                MenuView.OPTIONS_SECTION,
-                MenuView.CONTENT_BROWSER,
-            )
-        ) {
-            updateInputHandlers(consoleVisible, menuVisible)
-        }
-    }
-
-    private fun createBrowserPreviewAssets(): AssetManager {
-        val resolver = FileHandleResolver { path ->
-            // Engine palette/shaders remain available; content dependencies stay within the active profile.
-            if (path == "q2palette.bin" || path.startsWith("shaders/")) fileResolver.resolve(path)
-            else fileResolver.resolveContent(path)
-        }
-        return AssetManager(resolver).apply {
-            setLoader(Any::class.java, ObjectLoader(resolver))
-            setLoader(String::class.java, TextAssetLoader(resolver))
-            setLoader(Sp2Asset::class.java, Sp2Loader(resolver))
-            setLoader(Md2Asset::class.java, Md2Loader(resolver))
-            setLoader(BspMapAsset::class.java, BspLoader(resolver))
-            setLoader(Texture::class.java, "pcx", PcxLoader(resolver))
-            setLoader(Texture::class.java, "wal", WalLoader(resolver))
-        }
+        menuStages.rebuild(style)
+        if (menuVisible) updateInputHandlers(consoleVisible, menuVisible)
     }
 
     private fun resolveCurrentGameUiStyle(): GameUiStyle {
@@ -1346,7 +1147,7 @@ class Cake(
         val created = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         currentGameUiStyle = created
         currentGameUiStyleKey = key
-        if (::menuStage.isInitialized) {
+        if (::menuStages.isInitialized) {
             rebuildContentStyledMenuStages(created)
         }
         return created
@@ -1488,7 +1289,7 @@ class Cake(
                     resetClientStateForServerData()
                     netchan.reliablePending.clear()
 
-                    contentBrowserStage.hide()
+                    menuStages.hideContentBrowser()
                     fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
                     game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
                     game3dScreen?.processServerDataMessage(msg)
@@ -2001,7 +1802,7 @@ class Cake(
 
     private fun applyGameProfile(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
-        if (::contentBrowserStage.isInitialized) contentBrowserStage.hide()
+        if (::menuStages.isInitialized) menuStages.hideContentBrowser()
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
@@ -2010,7 +1811,7 @@ class Cake(
         cachedPlayerSetupCatalog = null
         reloadProfileBackground()
         reloadActiveConsoleHistory()
-        if (::menuStage.isInitialized) {
+        if (::menuStages.isInitialized) {
             resolveCurrentGameUiStyle()
         }
     }
@@ -2039,7 +1840,7 @@ class Cake(
             ),
         )
         menuController.pumpIntents()
-        syncMenuViewFromBusState()
+        syncMenuStageFromBusState()
     }
 
     private fun setActiveGameProfile(args: List<String>) {
@@ -2161,56 +1962,9 @@ class Cake(
         gamemod = gamemod.takeIf { it.isNotBlank() },
     )
 
-    private fun syncMenuViewFromBusState() {
-        val targetView = when (menuEventBus.latestState().activeScreen) {
-            MenuScreen.MAIN -> MenuView.MAIN
-            MenuScreen.PROFILE_EDIT -> MenuView.PROFILE_EDIT
-            MenuScreen.MULTIPLAYER -> MenuView.MULTIPLAYER
-            MenuScreen.SINGLEPLAYER -> MenuView.SINGLEPLAYER
-            MenuScreen.HOST_GAME -> MenuView.HOST_GAME
-            MenuScreen.JOIN_GAME -> MenuView.JOIN_GAME
-            MenuScreen.PLAYER_SETUP -> MenuView.PLAYER_SETUP
-            MenuScreen.OPTIONS -> MenuView.OPTIONS
-            MenuScreen.OPTIONS_SECTION -> MenuView.OPTIONS_SECTION
-            MenuScreen.CONTENT_BROWSER -> MenuView.CONTENT_BROWSER
-        }
-        if (targetView == menuView) return
-        if (menuView == MenuView.CONTENT_BROWSER) contentBrowserStage.hide()
-        currentMenuStage(menuView)?.resetMenuInteractionState()
-        menuView = targetView
-        if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
-        currentMenuStage(menuView)?.resetMenuInteractionState()
-        if (menuVisible) {
+    private fun syncMenuStageFromBusState() {
+        if (menuStages.select(menuEventBus.latestState().activeScreen) && menuVisible) {
             updateInputHandlers(consoleVisible, menuVisible)
-        }
-    }
-
-    private fun refreshContentBrowser() {
-        val profile = activeGameProfile
-        if (profile == null) {
-            contentBrowserStage.show(emptyList(), "<unset>", "Select a profile to browse its content.")
-            return
-        }
-        try {
-            contentBrowserStage.show(fileResolver.listContentEntries(), profile.id)
-        } catch (error: Exception) {
-            Com.Warn("Could not list profile content: ${error.message}")
-            contentBrowserStage.show(emptyList(), profile.id, "Could not list profile content.")
-        }
-    }
-
-    private fun currentMenuStage(view: MenuView): BackNavigableMenuStage? {
-        return when (view) {
-            MenuView.MAIN -> menuStage
-            MenuView.PROFILE_EDIT -> profileEditStage
-            MenuView.MULTIPLAYER -> multiplayerMenuStage
-            MenuView.SINGLEPLAYER -> singleplayerStage
-            MenuView.HOST_GAME -> hostGameStage
-            MenuView.JOIN_GAME -> joinGameStage
-            MenuView.PLAYER_SETUP -> playerSetupStage
-            MenuView.OPTIONS -> optionsMenuStage
-            MenuView.OPTIONS_SECTION -> optionsSectionStage
-            MenuView.CONTENT_BROWSER -> contentBrowserStage
         }
     }
 }

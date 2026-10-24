@@ -3,8 +3,8 @@
 ## Responsibilities
 
 This package contains Scene2D menu screens. Navigation, validation, and backend
-requests belong to `ui.menu`; `Cake` owns stages and routes input between the active
-menu, console, and game screen. Content styles come from [the UI package](../ui/README.md).
+requests belong to `ui.menu`; `MenuStages` owns menu stage lifetimes and presentation. `Cake` routes input
+between the active menu, console, and game screen. Content styles come from [the UI package](../ui/README.md).
 The developer console has [its own documentation](console/README.md).
 
 | Screen | Purpose |
@@ -26,12 +26,13 @@ Stage interaction
   -> MenuIntent -> MenuEventBus
   -> MenuController validates, updates state, and calls MenuBackend
   -> Cake implements backend actions
-  -> MenuStateSnapshot synchronises widgets and selects the active MenuView
+  -> MenuStateSnapshot synchronises widgets and selects the active MenuScreen through MenuStages
 ```
 
 Menu stages present state and collect edits; navigation state lives in `ui.menu`.
-`Cake` owns their lifetime and rebuilds content-styled stages when the shared style
-changes. They must not be treated as permanent instances across style changes.
+`MenuStages` owns their lifetime and rebuilds content-styled stages when Cake
+supplies a changed shared style. It handles browser entry/exit, interaction resets,
+and active-stage drawing/input selection; navigation decisions stay in `MenuController`. They must not be treated as permanent instances across style changes.
 
 - `cake-client` hides Singleplayer and Host Game entries. `cake-fullgame` exposes
   them and enables hosting when the current profile and session state allow it.

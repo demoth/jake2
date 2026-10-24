@@ -17,7 +17,7 @@ import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
-/** Read-only profile browser. Cake supplies a fresh VFS snapshot on entry or profile/style change. */
+/** Read-only profile browser. MenuStages supplies a fresh VFS snapshot on entry or profile/style change. */
 class ContentBrowserStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,

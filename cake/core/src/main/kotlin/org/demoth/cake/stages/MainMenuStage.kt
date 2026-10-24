@@ -18,9 +18,9 @@ import org.demoth.cake.ui.menu.MenuIntent
  * - Shows Singleplayer when hosting support is available.
  *
  * Ownership/Lifecycle:
- * - Created by [org.demoth.cake.Cake] and rebuilt when the shared content style changes.
+ * - Created by [MenuStages] and rebuilt when the shared content style changes.
  * - Drawn/acted while menu visibility is enabled by `Cake` input routing.
- * - Disposed by `Cake.dispose()`.
+ * - Disposed by `MenuStages.dispose()`.
  *
  * Invariants/Constraints:
  * - Menu buttons are laid out in a single table column with uniform width
