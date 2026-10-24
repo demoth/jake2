@@ -58,6 +58,7 @@ import org.demoth.cake.profile.CakeProfileConfigStore
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.HostingSetupStage
 import org.demoth.cake.stages.JoinGameStage
+import org.demoth.cake.stages.ContentBrowserStage
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
 import org.demoth.cake.stages.OptionsMenuStage
@@ -95,6 +96,7 @@ private enum class MenuView {
     PLAYER_SETUP,
     OPTIONS,
     OPTIONS_SECTION,
+    CONTENT_BROWSER,
 }
 
 /**
@@ -126,6 +128,7 @@ class Cake(
     private lateinit var joinGameStage: JoinGameStage
     private lateinit var playerSetupStage: PlayerSetupStage
     private lateinit var optionsMenuStage: OptionsMenuStage
+    private lateinit var contentBrowserStage: ContentBrowserStage
     private lateinit var optionsSectionStage: OptionsSectionStage
     private lateinit var consoleStage: ConsoleStage
     private lateinit var debugGraphStage: DebugGraphStage
@@ -763,6 +766,7 @@ class Cake(
                 MenuView.PLAYER_SETUP -> playerSetupStage
                 MenuView.OPTIONS -> optionsMenuStage
                 MenuView.OPTIONS_SECTION -> optionsSectionStage
+                MenuView.CONTENT_BROWSER -> contentBrowserStage
             }
 
             else -> {
@@ -925,6 +929,10 @@ class Cake(
                     MenuView.OPTIONS -> {
                         optionsMenuStage.act(deltaSeconds)
                         optionsMenuStage.draw()
+                    }
+                    MenuView.CONTENT_BROWSER -> {
+                        contentBrowserStage.act(deltaSeconds)
+                        contentBrowserStage.draw()
                     }
                     MenuView.OPTIONS_SECTION -> {
                         optionsSectionStage.act(deltaSeconds)
@@ -1155,6 +1163,7 @@ class Cake(
         playerSetupStage.dispose()
         optionsMenuStage.dispose()
         optionsSectionStage.dispose()
+        contentBrowserStage.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
         clearCurrentGameUiStyle()
@@ -1279,6 +1288,9 @@ class Cake(
             menuEventBus = menuEventBus,
             style = style,
         )
+        if (::contentBrowserStage.isInitialized) contentBrowserStage.dispose()
+        contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style, Scene2DSkin.defaultSkin)
+        if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
         if (
             menuVisible && menuView in setOf(
                 MenuView.MAIN,
@@ -1290,6 +1302,7 @@ class Cake(
                 MenuView.PLAYER_SETUP,
                 MenuView.OPTIONS,
                 MenuView.OPTIONS_SECTION,
+                MenuView.CONTENT_BROWSER,
             )
         ) {
             updateInputHandlers(consoleVisible, menuVisible)
@@ -2133,13 +2146,29 @@ class Cake(
             MenuScreen.PLAYER_SETUP -> MenuView.PLAYER_SETUP
             MenuScreen.OPTIONS -> MenuView.OPTIONS
             MenuScreen.OPTIONS_SECTION -> MenuView.OPTIONS_SECTION
+            MenuScreen.CONTENT_BROWSER -> MenuView.CONTENT_BROWSER
         }
         if (targetView == menuView) return
         currentMenuStage(menuView)?.resetMenuInteractionState()
         menuView = targetView
+        if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
         currentMenuStage(menuView)?.resetMenuInteractionState()
         if (menuVisible) {
             updateInputHandlers(consoleVisible, menuVisible)
+        }
+    }
+
+    private fun refreshContentBrowser() {
+        val profile = activeGameProfile
+        if (profile == null) {
+            contentBrowserStage.show(emptyList(), "<unset>", "Select a profile to browse its content.")
+            return
+        }
+        try {
+            contentBrowserStage.show(fileResolver.listContentEntries(), profile.id)
+        } catch (error: Exception) {
+            Com.Warn("Could not list profile content: ${error.message}")
+            contentBrowserStage.show(emptyList(), profile.id, "Could not list profile content.")
         }
     }
 
@@ -2154,6 +2183,7 @@ class Cake(
             MenuView.PLAYER_SETUP -> playerSetupStage
             MenuView.OPTIONS -> optionsMenuStage
             MenuView.OPTIONS_SECTION -> optionsSectionStage
+            MenuView.CONTENT_BROWSER -> contentBrowserStage
         }
     }
 }

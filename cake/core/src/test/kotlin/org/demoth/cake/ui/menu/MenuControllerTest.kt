@@ -11,6 +11,24 @@ import org.junit.jupiter.api.Test
 class MenuControllerTest {
 
     @Test
+    fun contentBrowserNavigationUsesMainMenuParentAndSounds() {
+        val bus = MenuEventBus()
+        val controller = MenuController(FakeMenuBackend(), bus)
+        controller.initialize()
+        bus.drainSignals { }
+
+        bus.postIntent(MenuIntent.OpenContentBrowser)
+        controller.pumpIntents()
+        assertEquals(MenuScreen.CONTENT_BROWSER, bus.latestState().activeScreen)
+        assertEquals(listOf(MenuUiSoundEffect.ENTER_SUBMENU), drainedSoundEffects(bus))
+
+        bus.postIntent(MenuIntent.OpenMainMenu)
+        controller.pumpIntents()
+        assertEquals(MenuScreen.MAIN, bus.latestState().activeScreen)
+        assertEquals(listOf(MenuUiSoundEffect.EXIT_SUBMENU), drainedSoundEffects(bus))
+    }
+
+    @Test
     fun createProfileDraftUsesProvidedStatusMessage() {
         val backend = FakeMenuBackend()
         val bus = MenuEventBus()

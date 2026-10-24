@@ -12,6 +12,7 @@ sealed interface MenuIntent {
     data object OpenJoinGame : MenuIntent
     data object OpenPlayerSetup : MenuIntent
     data object OpenOptions : MenuIntent
+    data object OpenContentBrowser : MenuIntent
     data class OpenOptionsSection(val prefix: String) : MenuIntent
     data object DisconnectRequested : MenuIntent
     data class SelectProfile(val profileId: String) : MenuIntent

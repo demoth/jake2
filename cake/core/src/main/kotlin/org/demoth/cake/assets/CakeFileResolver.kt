@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
+import jake2.qcommon.vfs.VfsEntry
 import org.demoth.cake.download.CakeDownloadCache
 import java.util.Locale
 
@@ -56,6 +57,9 @@ class CakeFileResolver(
 
     /** Profile content only, without remote downloads or bundled asset fallbacks. */
     internal fun resolveContent(path: String): FileHandle? = vfsAssetSource.resolve(path)
+
+    /** Winning profile entries only; listing does not extract packages or load media. */
+    fun listContentEntries(): List<VfsEntry> = vfsAssetSource.listEntries()
 
     fun debugResolvedFiles(): List<String> = vfsAssetSource.debugResolvedFiles()
 

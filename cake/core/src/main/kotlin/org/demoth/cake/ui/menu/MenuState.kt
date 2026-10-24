@@ -10,6 +10,7 @@ enum class MenuScreen {
     PLAYER_SETUP,
     OPTIONS,
     OPTIONS_SECTION,
+    CONTENT_BROWSER,
 }
 
 data class MainMenuState(

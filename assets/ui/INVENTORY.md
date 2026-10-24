@@ -258,15 +258,15 @@ named, possibly tinted or stretchable use of artwork.
 | D18 | Touchpad | `touchpad`, `touchpadKnob` | Engine only |
 | D19 | Tree surface and hover | Raw `tree`/`treeOver`; menu uses `menuTreeOver` and existing selection fill | Tree selection/hover use solid conchars square 11 with green/gray tints; no extra tree background |
 | D20 | Tree controls | Raw `treeMinus`/`treePlus`; menu uses visible `menuTreeMinus`/`menuTreePlus` in 8-unit slots | Triangle 13, right collapsed and rotated down expanded; native 8-unit slots |
-| D21 | Window and panel surfaces | `window`, `windowResize`, `windowBorder` | Engine only; browser and viewer use `window` as a panel drawable |
+| D21 | Window and panel surfaces | `window`, `windowResize`, `windowBorder` | Raw viewer uses `window`; embedded browser uses resolved thick container panel |
 | D22 | Separator / divider artwork | `separatorHorizontal`: gray `line-h`; menu copy is 1 unit thick, vertical copy is rotated | Conchars 29–31 with fixed caps/stretch middle; horizontal and rotated vertical drawables available |
 
-There is no named browser-tile style yet: `ContentBrowser` constructs a
-`ButtonStyle` locally, with transparent idle appearance and the engine `selection`
-drawable for hover, press and checked states. The sample should make this usage
-visible alongside other buttons so shared and intentionally different treatments
-can be identified. Keyboard focus currently has no distinct button drawable in
-the default engine style.
+`ContentBrowserStyles` resolves browser labels, action buttons, tree, scroll panes,
+tile ButtonStyle and background explicitly. Tiles retain transparent idle and use
+the shared tree selection for hover, press and checked states in menu themes.
+The standalone adapter retains native engine resources and its selection fill.
+The existing engine SplitPaneStyle is an explicit fallback in both themes.
+Keyboard focus has no distinct button drawable in the default engine style.
 
 ### Conchars source primitives
 
@@ -340,10 +340,10 @@ skin to a widget still selects engine styles.
 | W05 | List / `ListStyle` | `default`, `background`, `list-nobg` | Mixed; conchars font/selection, engine text colour | Required; profiles and dropdown internals |
 | W06 | Dropdown / `SelectBoxStyle` | `default` | Mixed; includes resolved nested list and scroll styles | Required; forms and MD2 skin selector |
 | W07 | Scroll pane / `ScrollPaneStyle` | `default`, `clean`, `list`, `background` | Mixed; vertical chrome replaced, horizontal retained | Required; forms and browser |
-| W08 | Tree / `TreeStyle` | Raw `default`/`background`; resolved `menu` | Derived triangle 13 right/down, solid selection/hover fills | Available in sample; node labels use selected theme; browser adoption remains planned |
+| W08 | Tree / `TreeStyle` | Raw `default`/`background`; resolved `menu` | Derived triangle 13 right/down, solid selection/hover fills | Available in sample and browser; node labels use selected theme |
 | W09 | Split pane / `SplitPaneStyle` | `default-horizontal`, `default-vertical` | Engine only; keep explicit handle fallback; themed handle deferred | Existing browser behavior; no new grip required for preparation |
 | W10 | Button / `ButtonStyle` | `default`, `toggle`, `spinner-up`, `spinner-down` | Engine only | Required style class for browser tiles; stock variants are extensions |
-| W11 | Browser tile | Local ButtonStyle; no idle background | Engine only | Required; labels, thumbnail/placeholder, selection |
+| W11 | Browser tile | ContentBrowserStyles.tile; transparent idle | Resolved tree selection fill | Available in client and viewer; themed labels/placeholders; viewer owns thumbnails |
 | W12 | Checkbox / `CheckBoxStyle` | `default`, `radio` | Engine only | Extension; optional future replacement for W03 |
 | W13 | Icon button / `ImageButtonStyle` | `default` | Engine only | Extension; current playback buttons use text |
 | W14 | Icon and text button / `ImageTextButtonStyle` | `default` | Engine only | Extension |
@@ -380,13 +380,13 @@ defined in [the sample specification](../../info/ui-skin-sample.md).
 | S08 | Console | Engine skin, ScreenViewport | Composition: severity text, panel, command input |
 | S09 | Debug graphs | Engine text with locally defined metric colours, ScreenViewport | Composition: diagnostic labels and graph backdrop |
 | S10 | Standalone viewer information panel | Engine skin, ScreenViewport | Composition: filename, metadata, hints, errors |
-| S11 | Content Browser shell | Engine skin in standalone viewer | Composition: tree, splitter, tiles, path, status, Back |
+| S11 | Content Browser shell | Explicit native engine adapter in standalone viewer | Composition: tree, splitter, tiles, path, status, Back |
 | S12 | Image preview | Engine UI around borrowed texture | Composition: clipping, native dimensions, pan/zoom hint |
 | S13 | Sound controls | Engine skin | Composition: duration and Play/Pause/Loop/Stop |
 | S14 | Sprite and MD2 controls | Engine skin | Composition: frame info, transport buttons, skin dropdown |
 | S15 | BSP and MD2 scene | Engine UI around scene rendering | Composition: contrasting light/dark preview backdrop |
 | S16 | HUD and game overlays | Content font and numeric renderer | Compatibility area: normal/alternate text and numbers |
-| S17 | Embedded Content Browser | Planned active-profile style with engine fallback | Same browser composition under resolved content theme |
+| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata and winning source; media deferred |
 
 The legacy Java client's direct picture/character UI provides compatibility
 reference material; it does not consume the Scene2D skin. Standalone archive
@@ -410,11 +410,11 @@ interactive support.
 | F03–F05 Quake text compatibility | Partial | Open | Normal conchars and unsupported text examples available; alternate bank/numbers remain planned |
 | D01–D06 panels, button chrome, selection | Partial | Open | Button, checkbox and list states visible; console panel/raw drawable gallery remain planned |
 | D10–D13 scrolling, dropdown, splitter | Partial | Open | Vertical scroll/dropdown specimens available; horizontal scroll and splitter remain planned |
-| D16, D19–D21 input, tree, panels | Partial | Open | Inputs, panels and resolved tree states are visible in sample; browser adoption remains planned |
-| W01–W11 required standard controls and tiles | Partial | Open | W01–W08 specimens available; W09–W11 split/button variants/tiles remain planned |
+| D16, D19–D21 input, tree, panels | Partial | Open | Inputs, panels and resolved tree states are visible in sample; browser adoption complete |
+| W01–W11 required standard controls and tiles | Partial | Open | W01–W08 specimens available; browser tiles/splitter verified in live host; stock button variants remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
-| W08 / D19–D20 tree | Available | Open | Engine/game right/down marks, required single selection, hover, scrolling and state retention in sample; browser adoption remains planned |
+| W08 / D19–D20 tree | Available | Open | Engine/game right/down marks, required single selection, hover, scrolling and state retention in sample; browser adoption complete |
 | D22 / W23 separator | Available | Open | Horizontal divider above the bottom group and vertical divider between tree and scrolling panel; game caps remain fixed |
 | Themed split handle | Deferred | Open | Existing libGDX dragging and engine handle can be retained; separate from static separator work |
 | Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
@@ -422,7 +422,8 @@ interactive support.
 | W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |
-| S16–S17 HUD compatibility and embedded host | Planned | Open | Compatibility area; embedding remains planned |
+| S16 HUD compatibility | Planned | Open | Compatibility area remains planned |
+| S17 embedded browser | Available | Open | Both themes verified in live host, including profile replacement and 4K pointer input; media deferred |
 
 When a group contains different statuses, split the row or name the incomplete
 IDs in the evidence column. For each style decision, record the role, affected
@@ -437,20 +438,18 @@ choosing a new design is not a completion condition for this inventory.
 ## Client Content Browser readiness
 
 See [the browser preparation plan](../../info/ui-skin-sample.md#browser-preparation-before-client-embedding)
-for the next slices. Basic controls are available. Remaining shell coverage is
-tile ButtonStyle, image/placeholder presentation
-and explicit browser background/style resolution. The current browser still
-reads Skin directly. TreeStyle is now resolved in MenuWidgetStyles and verified
-in the sample, but ContentBrowser has not adopted it yet. Split pane and tile
-roles still need explicit style/fallback wiring. The separator is source artwork for a divider; it does
-not provide splitter dragging behavior by itself. The browser already has that
-behavior through libGDX SplitPane. A new themed handle is deferred; retain the
-existing engine handle as an explicit fallback when adapting styles.
+for the scope and decisions. The first client integration is implemented: main
+menu → Content browser opens the active profile's resolved VFS snapshot with
+tree/grid/metadata, including source layer and winning package/directory name.
+ContentBrowserStyles supplies explicit shell, tile and control roles. The native
+standalone adapter preserves viewer sizing; the client adapter borrows menu
+styles and has one thick outer panel. The existing engine SplitPane handle and
+horizontal scrollbar artwork remain explicit fallbacks. A themed splitter
+handle is deferred; existing libGDX dragging is verified.
 
 The dropdown indicator is explicitly deferred. It must not block the browser.
 Atlas cleanup, optional widgets and exact theme geometry matching are also not
-prerequisites. First client integration can browse the resolved profile snapshot
-and show metadata/source; media-preview embedding and override inspection are
+prerequisites. Client media-preview embedding and override inspection remain
 separate later slices. The standalone viewer remains engine styled.
 
 ## Implementation references

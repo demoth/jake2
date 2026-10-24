@@ -125,6 +125,9 @@ internal class CakeVfsAssetSource {
     fun isInitialized(): Boolean = initialized
 
     @Synchronized
+    fun listEntries(): List<VfsEntry> = vfs.listEntries()
+
+    @Synchronized
     fun debugResolvedFiles(): List<String> {
         if (!initialized) return emptyList()
         return vfs.debugResolvedFiles()

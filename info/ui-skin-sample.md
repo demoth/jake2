@@ -625,12 +625,12 @@ callbacks. Reuse it rather than introducing another browser or UI framework.
 | --- | --- | --- |
 | Labels, action buttons, panels | Resolved engine/game menu styles; native Quake size restored | Reuse; preserve the standalone viewer's existing engine sizing |
 | Separator | Both orientations implemented: conchars 29–31 and engine gray line, shown in sample | Available for browser use; static only, themed drag handle remains deferred |
-| Tree | Resolved engine/game TreeStyle and labels, with an interactive sample | Available: triangle 13 right/down, selection and hover. ContentBrowser still needs to adopt these styles instead of raw Skin |
+| Tree | Resolved engine/game TreeStyle and labels, with an interactive sample | Available: triangle 13 right/down, selection and hover. Adopted through ContentBrowserStyles; native viewer adapter retained |
 | Split pane | Standard libGDX SplitPane; browser uses left/right panes with a vertical handle | Themed handle artwork/interaction refinements are deferred; retain the existing engine handle as an explicit fallback when adapting the browser |
-| File/folder tile | Existing Button with transparent idle and locally assigned hover/selected fill | Resolve a tile ButtonStyle plus label/placeholder styling; retain flat idle and borrowed thumbnail textures |
+| File/folder tile | Resolved tile ButtonStyle with transparent idle and shared tree selection | Adopted in both hosts; themed labels/placeholders and borrowed viewer thumbnails |
 | Image / placeholder | Existing Image/Container, aspect-fit thumbnails and unavailable placeholder | Include representative image, folder, unsupported and unavailable cases in a browser sample; no new ImageStyle is required |
 | Scroll panes and long text | Existing styles/behavior; grid is vertical-only, tree may overflow horizontally | Check tree/grid wheel focus, long/deep paths, ellipsis/wrapping and any engine horizontal-scroll fallback explicitly |
-| Browser shell / metadata / Back | Existing composition and preview callbacks; background and controls read raw Skin | Accept explicit resolved styles; keep standalone engine appearance, use active-profile styles when embedded |
+| Browser shell / metadata / Back | Explicit ContentBrowserStyles and existing preview callbacks | Implemented: native engine adapter for viewer, active-profile menu adapter for client |
 
 Keep decorative separators separate from draggable split panes in the inventory.
 Reuse a drawable between them where useful. A horizontal bar assembled from
@@ -647,7 +647,7 @@ independently.
    orientations in the sample; check fixed end caps, stretching and minimum
    size at native Quake sizing and current `cl_ui_size`. Themed drag handles are
    deferred. No general Separator class is needed.
-2. **Browser style coverage and adoption.** Extend existing resolved styles with
+2. **Browser style coverage and adoption — complete.** Extend existing resolved styles with
    TreeStyle, tile ButtonStyle and the shell background role; reuse existing
    label/button/scroll styles and retain the existing engine SplitPaneStyle as
    an explicit fallback. TreeStyle already has plus/minus drawable slots: the
@@ -656,13 +656,15 @@ independently.
    per-widget Skin lookups with these explicit styles. Preserve the standalone
    viewer's current engine presentation; the client will use menu-sized styles.
    No theme registry, extra skin loader or fallback framework is required.
-3. **A browser composition in the sample.** Reuse the styled ContentBrowser with
+3. **A browser composition in the sample — deferred optional fixture view.**
+   Live client/browser verification now covers the first integration; the compact
+   ui_sample remains a widget gallery. A separate fixture view can still reuse the styled ContentBrowser with
    fixture VfsEntry values and placeholder images/callbacks. Include expanded and
    collapsed folders, tree selection, tile hover/selection, long names/paths,
    empty folders, failed thumbnails and a preview/Back transition. Verify split
    dragging, nested scroll focus, resize and theme switching in both themes.
    Use a compact browser sample/view so each sample view fits one virtual screen.
-4. **Client integration, after the shell is verified.** Add the entry point and
+4. **Client integration — tree/grid/metadata complete.** Add the entry point and
    browse the active profile's resolved VFS snapshot. Show the winning source
    alongside logical path and size; VfsEntry already carries source/layer data.
    Handle close/Escape, input priority, pause policy, profile changes and style
@@ -830,3 +832,40 @@ Validation: client/viewer compilation, folder hierarchy and fallback-style tests
 pass. The existing GL style test also checks native viewer resource identity and
 resolved client style/selection/scrollbar wiring for both themes. Client hosting
 is the next slice.
+
+
+### Client Content Browser host
+
+Main menu → Content browser opens a VFS snapshot from the active profile. The
+shared browser shows folders/files, logical path, byte size and the winning
+source layer plus package/directory name. It lists profile content only: bundled
+engine assets and remote download fallbacks are excluded. The VFS may expose a
+package itself as a loose file in addition to its winning contents. Listing does
+not extract package entries or load media. Reopening starts at the root with a
+new snapshot of the current mounted VFS index; it does not rescan the filesystem.
+
+ContentBrowserStage shares the menu UiViewport and cl_ui_size convention. It uses
+the resolved theme throughout except the deferred engine splitter/horizontal
+scrollbar fallbacks. The browser has one thick outer frame, themed tile selection
+and unframed inner scroll panes. Without a media loader, image tiles show the
+file extension. Empty/missing profiles and listing failures have a message.
+Back/Escape return to the main menu. Existing console input priority and menu
+pause policy apply. Profile/style changes rebuild the stage and replace the old
+snapshot; stages borrow skin/style resources and own no media textures.
+
+Verification: 45 focused tests pass (directory hierarchy, resolver snapshots and
+override winners, menu navigation/sounds, style fallback, viewport), and client,
+fullgame and viewer compile. The first slice's existing GL check validates both
+style adapters. Temporary desktop probes verify real profile content, metadata
+selection, independent wheel focus, grid scrolling, splitter drag, Back/Escape,
+root reset on reopening, profile/style replacement, missing profile, pause and
+4K pointer input. Both theme captures and a 4K capture were inspected. A separate
+standalone probe loads a real PAK thumbnail, opens a full image preview and
+returns to its grid while retaining the raw 24-unit engine font. Probe settings
+use an isolated temporary home with cfg_autosave disabled.
+
+The client host adds about 110 production lines, including the stage, navigation,
+VFS snapshot access and source metadata. No loader, atlas, dependency, custom
+input framework or persistent capture harness was added. Embedded thumbnails,
+media preview toolbars and override inspection remain later slices. The optional
+fixture browser view was deferred in favor of verifying the actual host.

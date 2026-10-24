@@ -59,6 +59,7 @@ class ContentBrowser(
     private val loadThumbnail: ((VfsEntry) -> Texture?)? = null,
     private val clearThumbnails: () -> Unit = {},
     private val onSelect: (VfsEntry?) -> Actor? = { null },
+    private val showSource: Boolean = false,
 ) : Table() {
     /** Preserve the standalone viewer's native engine styling and callback contract. */
     constructor(
@@ -120,8 +121,9 @@ class ContentBrowser(
                 add(backButton).padLeft(8f)
             }).pad(8f).row()
             add(content).grow().row()
-            // Reserve both path and size lines before selection, keeping tiles under the pointer.
-            add(selectionInfo).minWidth(0f).height(selectionInfo.style.font.data.lineHeight * 2f).pad(8f).row()
+            // Reserve metadata lines before selection, keeping tiles under the pointer.
+            add(selectionInfo).minWidth(0f).height(selectionInfo.style.font.data.lineHeight *
+                if (showSource) 3f else 2f).pad(8f).row()
         }
         add(SplitPane(scrollPane(tree), listing, false, styles.splitPane).apply { splitAmount = 0.3f }).grow()
 
@@ -196,7 +198,10 @@ class ContentBrowser(
         tile.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent, x: Float, y: Float) {
                 tiles.forEach { it.isChecked = it === tile }
-                selectionInfo.setText(entry?.let { "${it.displayPath}\n${it.size} bytes" } ?: "${directory!!.path}/")
+                selectionInfo.setText(entry?.let {
+                    "${it.displayPath}\n${it.size} bytes" + if (showSource)
+                        "\nSource: ${it.layer} / ${it.source.containerPath.fileName}" else ""
+                } ?: "${directory!!.path}/")
                 if (tapCount == 1) {
                     clearAudition()
                     onSelect(entry)?.let { preview ->

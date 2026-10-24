@@ -78,7 +78,9 @@ thumbs reuse the vertical separator; standard ScrollPane supplies dragging.
 TreeStyle uses conchars 13 right/down marks and square 11 for row selection/hover;
 engine menus use the existing tree shapes in matching 8-unit slots. Tree node
 labels use the resolved LabelStyle. The sample retains folder expansion, selection
-and scroll position when changing theme. ContentBrowser adoption is a later slice.
+and scroll position when changing theme. ContentBrowser now adopts these resolved styles through ContentBrowserStyles;
+its standalone Skin adapter retains native engine sizing. The client host browses
+profile VFS metadata without loading media.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 

@@ -32,6 +32,28 @@ class CakeFileResolverTest {
     lateinit var temp: Path
 
     @Test
+    fun contentSnapshotListsWinnersAndChangesWithProfileWithoutBundledFallbacks() {
+        createFile("baseq2/shared.cfg", "base".toByteArray())
+        createFile("baseq2/base-only.cfg")
+        writePak(temp.resolve("rogue/pak0.pak"), linkedMapOf("shared.cfg" to "mod".toByteArray()))
+        val resolver = CakeFileResolver(temp.toString(), "rogue")
+
+        val snapshot = resolver.listContentEntries()
+        assertEquals(listOf("base-only.cfg", "pak0.pak", "shared.cfg"), snapshot.map { it.normalizedPath }.sorted())
+        val winner = snapshot.single { it.normalizedPath == "shared.cfg" }
+        assertEquals(temp.resolve("rogue/pak0.pak"), winner.source.containerPath)
+        assertEquals(3L, winner.size)
+        assertTrue(snapshot.none { it.normalizedPath.startsWith("ui/") })
+
+        resolver.gamemod = null
+        assertEquals(temp.resolve("baseq2"), resolver.listContentEntries()
+            .single { it.normalizedPath == "shared.cfg" }.source.containerPath)
+        assertEquals(temp.resolve("rogue/pak0.pak"), winner.source.containerPath, "Earlier snapshot stays intact")
+        resolver.basedir = null
+        assertTrue(resolver.listContentEntries().isEmpty())
+    }
+
+    @Test
     fun resolvesExactCaseInGamemod() {
         setFsDebugLoaders("0")
         val basedir = temp.toString()

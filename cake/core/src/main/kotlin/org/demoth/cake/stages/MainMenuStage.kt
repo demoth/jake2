@@ -84,6 +84,11 @@ class MainMenuStage(
             })
             row()
 
+            add(createMenuButton("Content browser", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.OpenContentBrowser)
+            })
+            row()
+
             add(createMenuButton("Exit", buttonStyle) {
                     Cbuf.AddText("quit")
             })

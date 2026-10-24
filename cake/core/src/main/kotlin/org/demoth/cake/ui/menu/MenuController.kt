@@ -122,6 +122,10 @@ class MenuController(
                 )
             }
 
+            is MenuIntent.OpenContentBrowser -> {
+                refreshState(activeScreen = MenuScreen.CONTENT_BROWSER, formOverride = state.profileEditor.form)
+            }
+
             is MenuIntent.OpenOptions -> {
                 refreshState(
                     activeScreen = MenuScreen.OPTIONS,
@@ -431,7 +435,8 @@ class MenuController(
     private fun screenDepth(screen: MenuScreen): Int {
         return when (screen) {
             MenuScreen.MAIN -> 0
-            MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS, MenuScreen.SINGLEPLAYER -> 1
+            MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS, MenuScreen.SINGLEPLAYER,
+            MenuScreen.CONTENT_BROWSER -> 1
             MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION, MenuScreen.HOST_GAME -> 2
         }
     }
