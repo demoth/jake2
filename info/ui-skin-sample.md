@@ -108,8 +108,9 @@ captions rather than resource descriptions. Every label and control, including
 Engine/Game/Close, uses the selected style. A common neutral background avoids
 mixing either mode with the active profile's backdrop. Game mode explicitly
 identifies whole-theme engine fallback and its inherited engine caret/selection.
-The outer panel uses the container role; the list and inner scrolling content use
-the control role. Slider and progress share a track and knob, with a separate
+The outer panel and scrolling specimen use the thick container role; the list
+uses the thin control role. The scrolling content has no inner frame in either
+theme. Slider and progress share a track and knob, with a separate
 disabled slider specimen. The progress indicator follows the editable slider.
 
 ## Automated captures
@@ -552,7 +553,7 @@ and untouched off-grid values. Clean Engine/Game captures are produced through
 Visible engine text is narrower and has different cap-height/descender metrics;
 Quake's square cells remain intact. Exact wrapping is intentionally different.
 The slider knob is 24 units high in both themes but differs in width/artwork,
-and scroll surfaces still differ in nesting. These remain targeted visual
+and scroll surface nesting differed at that slice. These remained targeted visual
 choices for subsequent review, rather than a requirement for a geometry system.
 
 

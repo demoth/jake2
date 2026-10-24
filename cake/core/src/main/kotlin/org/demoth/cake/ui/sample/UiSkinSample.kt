@@ -131,12 +131,13 @@ class UiSkinSample(
         }
         dropdown = choice
         val panel = Table().apply {
-            background = styles.controlPanel
             pad(8f)
             defaults().left().pad(3f)
             repeat(12) { add(Label("Scrollable row ${it + 1}", styles.label)).row() }
         }
-        scroll = scrolling(panel, styles.scrollPane)
+        scroll = scrolling(panel, ScrollPane.ScrollPaneStyle(styles.scrollPane).apply {
+            background = styles.containerPanel
+        })
         val lower = Table().apply {
             defaults().growX().minWidth(0f).uniformX().top().pad(4f)
             add(Label("List", styles.label))
