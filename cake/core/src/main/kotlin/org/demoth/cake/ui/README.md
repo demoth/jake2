@@ -80,7 +80,10 @@ engine menus use the existing tree shapes in matching 8-unit slots. Tree node
 labels use the resolved LabelStyle. The sample retains folder expansion, selection
 and scroll position when changing theme. ContentBrowser now adopts these resolved styles through ContentBrowserStyles;
 its standalone Skin adapter retains native engine sizing. The client host browses
-profile VFS metadata without loading media.
+profile VFS metadata and loads visible PCX/WAL/TGA thumbnails progressively.
+ImageThumbnails owns folder-scoped textures independently of shared game assets;
+folder changes, browser exit and profile changes release them. Full previews
+remain standalone-only for now.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 

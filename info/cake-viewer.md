@@ -81,9 +81,12 @@ an explanatory message. The client splitter uses each theme's vertical separator
 as its handle; libGDX provides dragging. The standalone viewer retains its
 existing native engine handle.
 
-This first client host is metadata-only; tiles show file extensions. Thumbnail
-and media preview callbacks remain with the standalone viewer until a later
-integration slice. Browsing does not extract archive entries or change theme.
+Visible PCX, WAL and TGA tiles now load aspect-fit image thumbnails progressively,
+using the same loaders as the standalone viewer. Other tiles show their file
+extension; failed images show "Unavailable". Scrolling retains folder thumbnails;
+changing folders, Back/Escape, profile changes and shutdown release them. Listing
+reads metadata only; image loading materializes visible package entries on demand.
+Full image/media previews remain a later client slice. Browsing does not change theme.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main`, optionally passing a file path as the program argument.

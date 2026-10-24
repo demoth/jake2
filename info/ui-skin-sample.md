@@ -885,3 +885,45 @@ Verification: the existing GL style check asserts shared separator/handle
 identity for both themes; all three hosts compile. The client desktop probe
 checks splitter dragging in both themes alongside scrolling, metadata selection,
 profile replacement and 4K input.
+
+
+### Client image thumbnails
+
+Visible PCX/WAL/TGA tiles in the client now load image thumbnails through the
+existing ContentBrowser callbacks and 4 ms per-frame loading budget. A single
+synchronous decode may exceed that budget. This uses existing full-size texture
+loaders with aspect-fit display, matching the viewer; it adds no background jobs,
+thumbnail resizing pipeline or persistent cache. Folder and unsupported-file
+placeholders retain their existing presentation, and failed images display
+Unavailable without interrupting browsing.
+
+ImageThumbnails extracts the viewer's existing texture/failure cache into a small
+shared owner. Both hosts create their own textures by invoking the existing
+PCX/WAL loaders directly (TGA uses Texture), avoiding shared AssetManager references
+and failed manager tasks. Client image resolution uses resolveContent, excluding
+remote downloads and bundled missing-image fallbacks. WAL keeps the existing
+q2palette.bin palette. Metadata listing does not extract packages; loading an
+image materializes its entry through the existing VFS adapter.
+
+The client stage owns thumbnails while browser actors borrow them. Scrolling
+retains the current folder's cache. Folder navigation, Back/Escape, profile
+replacement, server-data context changes and stage disposal clear it. Actors
+are detached before stage cleanup, and profile changes clear thumbnails before
+reconfiguring the resolver. Reopening starts a new folder lifetime. Console or
+UI-sample overlays preserve the underlying browser. Shared game textures and
+style assets retain their existing ownership. Full image/media previews remain
+a separate slice.
+
+Validation: focused resolver/navigation/hierarchy/preview ownership tests and all
+three host builds pass. The existing GL test now checks separate thumbnail/shared
+texture ownership, cache reuse, disposal, reloading and malformed-image failure
+isolation. A temporary desktop probe checks real PCX/WAL files, a generated TGA,
+a corrupt PCX placeholder, progressive visible loading, caching during scrolling,
+folder/Back/profile/disposal cleanup, theme replacement, resize and 4K. Both-theme
+and WAL captures were inspected. The standalone archive thumbnail → full image
+preview → Back probe also passes after extraction. Temporary probes use isolated
+settings with cfg_autosave disabled.
+
+Two commits separate shared ownership extraction from client lifecycle wiring.
+Production scope is about 80 added lines and 35 removed, within the 60–90 added
+line estimate. No new loader, asset or preview toolbar is introduced.

@@ -4,6 +4,7 @@ import org.demoth.cake.assets.bsp.BspLoader
 import org.demoth.cake.assets.bsp.BspMapAsset
 import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
@@ -59,6 +60,7 @@ import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.HostingSetupStage
 import org.demoth.cake.stages.JoinGameStage
 import org.demoth.cake.stages.ContentBrowserStage
+import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.stages.MultiplayerMenuStage
 import org.demoth.cake.stages.OptionsMenuStage
@@ -1289,7 +1291,8 @@ class Cake(
             style = style,
         )
         if (::contentBrowserStage.isInitialized) contentBrowserStage.dispose()
-        contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style)
+        contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style,
+            ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent)))
         if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
         if (
             menuVisible && menuView in setOf(
@@ -1464,6 +1467,7 @@ class Cake(
                     resetClientStateForServerData()
                     netchan.reliablePending.clear()
 
+                    contentBrowserStage.hide()
                     fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
                     game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
                     game3dScreen?.processServerDataMessage(msg)
@@ -1976,6 +1980,7 @@ class Cake(
 
     private fun applyGameProfile(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
+        if (::contentBrowserStage.isInitialized) contentBrowserStage.hide()
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
@@ -2149,6 +2154,7 @@ class Cake(
             MenuScreen.CONTENT_BROWSER -> MenuView.CONTENT_BROWSER
         }
         if (targetView == menuView) return
+        if (menuView == MenuView.CONTENT_BROWSER) contentBrowserStage.hide()
         currentMenuStage(menuView)?.resetMenuInteractionState()
         menuView = targetView
         if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()

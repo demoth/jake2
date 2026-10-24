@@ -344,7 +344,7 @@ skin to a widget still selects engine styles.
 | W08 | Tree / `TreeStyle` | Raw `default`/`background`; resolved `menu` | Derived triangle 13 right/down, solid selection/hover fills | Available in sample and browser; node labels use selected theme |
 | W09 | Split pane / `SplitPaneStyle` | Raw viewer: default-horizontal; client: resolved vertical separator | Conchars 29–31 vertical separator handle | Standard libGDX dragging; shared themed artwork, no new grip |
 | W10 | Button / `ButtonStyle` | `default`, `toggle`, `spinner-up`, `spinner-down` | Engine only | Required style class for browser tiles; stock variants are extensions |
-| W11 | Browser tile | ContentBrowserStyles.tile; transparent idle | Resolved tree selection fill | Available in client and viewer; themed labels/placeholders; viewer owns thumbnails |
+| W11 | Browser tile | ContentBrowserStyles.tile; transparent idle | Resolved tree selection fill | Available in client and viewer; themed labels/placeholders; each host owns its thumbnails |
 | W12 | Checkbox / `CheckBoxStyle` | `default`, `radio` | Engine only | Extension; optional future replacement for W03 |
 | W13 | Icon button / `ImageButtonStyle` | `default` | Engine only | Extension; current playback buttons use text |
 | W14 | Icon and text button / `ImageTextButtonStyle` | `default` | Engine only | Extension |
@@ -387,7 +387,7 @@ defined in [the sample specification](../../info/ui-skin-sample.md).
 | S14 | Sprite and MD2 controls | Engine skin | Composition: frame info, transport buttons, skin dropdown |
 | S15 | BSP and MD2 scene | Engine UI around scene rendering | Composition: contrasting light/dark preview backdrop |
 | S16 | HUD and game overlays | Content font and numeric renderer | Compatibility area: normal/alternate text and numbers |
-| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata and winning source; media deferred |
+| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source and image thumbnails; full previews deferred |
 
 The legacy Java client's direct picture/character UI provides compatibility
 reference material; it does not consume the Scene2D skin. Standalone archive
@@ -424,7 +424,7 @@ interactive support.
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |
 | S16 HUD compatibility | Planned | Open | Compatibility area remains planned |
-| S17 embedded browser | Available | Open | Both themes verified in live host, including profile replacement and 4K pointer input; media deferred |
+| S17 embedded browser | Available | Open | Both themes verified in live host, including thumbnails, profile replacement and 4K input; full previews deferred |
 
 When a group contains different statuses, split the row or name the incomplete
 IDs in the evidence column. For each style decision, record the role, affected
@@ -442,6 +442,9 @@ See [the browser preparation plan](../../info/ui-skin-sample.md#browser-preparat
 for the scope and decisions. The first client integration is implemented: main
 menu → Content browser opens the active profile's resolved VFS snapshot with
 tree/grid/metadata, including source layer and winning package/directory name.
+Visible PCX/WAL/TGA tiles load progressive thumbnails. Each host owns a
+folder-scoped ImageThumbnails cache; client resolution uses profile content only.
+Folder changes, screen exit and profile replacement release owned textures.
 ContentBrowserStyles supplies explicit shell, tile and control roles. The native
 standalone adapter preserves viewer sizing; the client adapter borrows menu
 styles and has one thick outer panel. Its SplitPane handle shares each theme's
