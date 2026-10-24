@@ -102,7 +102,7 @@ other numeric editors are unchanged.
 | Dropdown | Closed control, open list and disabled treatment | SelectBoxStyle with ListStyle and ScrollPaneStyle | Hosting/player/options choices, MD2 skin choice |
 | Scroll pane | Horizontal/vertical tracks and thumbs; optional surface | ScrollPaneStyle | Long forms, lists, browser and previews |
 | Tree | Expand/collapse controls, selection and row text | TreeStyle plus LabelStyle | Content Browser folders |
-| Split pane | Existing draggable divider; themed handle deferred | SplitPaneStyle; retain engine handle fallback initially | Content Browser tree/content division |
+| Split pane | Existing draggable divider with themed separator artwork | SplitPaneStyle.handle uses separatorVertical | Content Browser tree/content division |
 | Separator | Decorative horizontal/vertical divider with fixed end caps | Image/Drawable or container background; no custom widget required | Section boundaries; artwork can also supply a split-pane handle |
 | Panel | Thick container frame and thin control frame, with content insets | Table/Container and Drawables; two Drawable roles, no custom Panel class required | Containers for groups; button/checkbox/field/dropdown chrome |
 | Horizontal slider | Start/middle/end track, knob and disabled treatment | SliderStyle; conchars mapping available | Sample and Sound options (`s_volume`, step 0.05) |
@@ -250,7 +250,7 @@ named, possibly tinted or stretchable use of artwork.
 | D10 | Scroll tracks and thumbs | `scrollHorizontal`, `scrollVertical`, `scrollKnob`, `scrollKnobVertical` | Vertical thumb reuses the rotated separator (29–31) with no separate track backdrop; horizontal resources remain engine |
 | D11 | Scroll surface | `scrollPane` | Quake default scroll style adds a conchars panel background; form hosts remove it |
 | D12 | Dropdown surfaces | `selectBox`, `selectOver`, `selectDown`, `selectDisabled`, `selectList` | Conchars thin frame for both closed field and popup; list background remains empty to avoid nested frames |
-| D13 | Split handle | `splitPane` | Engine only |
+| D13 | Split handle | Raw viewer: `splitPane`; client: vertical gray separator | Client: rotated conchars 29–31 separator |
 | D14 | Horizontal slider | `sliderHorizontal`, `sliderKnob`, `sliderKnobOver`, `sliderKnobDown`, `sliderKnobDisabled` | Derived track 128–130 and knob 131; pressed/disabled tints |
 | D15 | Vertical slider | `sliderVertical`, `sliderVerticalKnob`, `sliderVerticalKnobOver`, `sliderVerticalKnobDown`, `sliderVerticalKnobDisabled` | Engine only |
 | D16 | Text input | `textField`, `textFieldDown`, `textFieldDisabled`, `textFieldCursor` | Conchars backgrounds and shared green selection; caret still uses engine resource |
@@ -265,7 +265,8 @@ named, possibly tinted or stretchable use of artwork.
 tile ButtonStyle and background explicitly. Tiles retain transparent idle and use
 the shared tree selection for hover, press and checked states in menu themes.
 The standalone adapter retains native engine resources and its selection fill.
-The existing engine SplitPaneStyle is an explicit fallback in both themes.
+Client SplitPaneStyle.handle reuses each theme's vertical separator; the standalone
+viewer retains its native engine SplitPaneStyle.
 Keyboard focus has no distinct button drawable in the default engine style.
 
 ### Conchars source primitives
@@ -341,7 +342,7 @@ skin to a widget still selects engine styles.
 | W06 | Dropdown / `SelectBoxStyle` | `default` | Mixed; includes resolved nested list and scroll styles | Required; forms and MD2 skin selector |
 | W07 | Scroll pane / `ScrollPaneStyle` | `default`, `clean`, `list`, `background` | Mixed; vertical chrome replaced, horizontal retained | Required; forms and browser |
 | W08 | Tree / `TreeStyle` | Raw `default`/`background`; resolved `menu` | Derived triangle 13 right/down, solid selection/hover fills | Available in sample and browser; node labels use selected theme |
-| W09 | Split pane / `SplitPaneStyle` | `default-horizontal`, `default-vertical` | Engine only; keep explicit handle fallback; themed handle deferred | Existing browser behavior; no new grip required for preparation |
+| W09 | Split pane / `SplitPaneStyle` | Raw viewer: default-horizontal; client: resolved vertical separator | Conchars 29–31 vertical separator handle | Standard libGDX dragging; shared themed artwork, no new grip |
 | W10 | Button / `ButtonStyle` | `default`, `toggle`, `spinner-up`, `spinner-down` | Engine only | Required style class for browser tiles; stock variants are extensions |
 | W11 | Browser tile | ContentBrowserStyles.tile; transparent idle | Resolved tree selection fill | Available in client and viewer; themed labels/placeholders; viewer owns thumbnails |
 | W12 | Checkbox / `CheckBoxStyle` | `default`, `radio` | Engine only | Extension; optional future replacement for W03 |
@@ -416,7 +417,7 @@ interactive support.
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
 | W08 / D19–D20 tree | Available | Open | Engine/game right/down marks, required single selection, hover, scrolling and state retention in sample; browser adoption complete |
 | D22 / W23 separator | Available | Open | Horizontal divider above the bottom group and vertical divider between tree and scrolling panel; game caps remain fixed |
-| Themed split handle | Deferred | Open | Existing libGDX dragging and engine handle can be retained; separate from static separator work |
+| Themed split handle | Available in client | Open | SplitPaneStyle.handle shares separatorVertical in both themes; libGDX supplies dragging |
 | Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
 | Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× source panels displayed at 1/3 scale; both visible in sample |
 | W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
@@ -443,9 +444,10 @@ menu → Content browser opens the active profile's resolved VFS snapshot with
 tree/grid/metadata, including source layer and winning package/directory name.
 ContentBrowserStyles supplies explicit shell, tile and control roles. The native
 standalone adapter preserves viewer sizing; the client adapter borrows menu
-styles and has one thick outer panel. The existing engine SplitPane handle and
-horizontal scrollbar artwork remain explicit fallbacks. A themed splitter
-handle is deferred; existing libGDX dragging is verified.
+styles and has one thick outer panel. Its SplitPane handle shares each theme's
+vertical separator artwork; libGDX supplies dragging. Horizontal scrollbar
+artwork remains an engine fallback. The standalone viewer retains its native
+engine splitter.
 
 The dropdown indicator is explicitly deferred. It must not block the browser.
 Atlas cleanup, optional widgets and exact theme geometry matching are also not

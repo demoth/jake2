@@ -2,7 +2,6 @@ package org.demoth.cake.stages
 
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.viewport.Viewport
@@ -18,9 +17,8 @@ class ContentBrowserStage(
     viewport: Viewport,
     menuEventBus: MenuEventBus,
     style: GameUiStyle,
-    skin: Skin,
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenMainMenu) {
-    private val styles = ContentBrowserStyles.fromMenu(style.menuWidgets, skin)
+    private val styles = ContentBrowserStyles.fromMenu(style.menuWidgets)
     private val title = Label("Content browser", styles.label)
     private val content = Container<Actor>().fill()
 

@@ -1289,7 +1289,7 @@ class Cake(
             style = style,
         )
         if (::contentBrowserStage.isInitialized) contentBrowserStage.dispose()
-        contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style, Scene2DSkin.defaultSkin)
+        contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style)
         if (menuView == MenuView.CONTENT_BROWSER) refreshContentBrowser()
         if (
             menuVisible && menuView in setOf(

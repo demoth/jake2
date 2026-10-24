@@ -31,13 +31,13 @@ data class ContentBrowserStyles(
             skin.getDrawable("window"),
         )
 
-        /** Client controls follow the active menu theme; the engine splitter is an explicit fallback. */
-        fun fromMenu(widgets: MenuWidgetStyles, skin: Skin) = ContentBrowserStyles(
+        /** Client controls and splitter artwork follow the active menu theme. */
+        fun fromMenu(widgets: MenuWidgetStyles) = ContentBrowserStyles(
             widgets.label,
             widgets.button,
             widgets.tree,
             ScrollPane.ScrollPaneStyle(widgets.scrollPane).apply { background = null },
-            skin.get("default-horizontal", SplitPane.SplitPaneStyle::class.java),
+            SplitPane.SplitPaneStyle(widgets.separatorVertical),
             tileStyle(widgets.tree.selection),
             widgets.containerPanel,
         )

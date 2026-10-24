@@ -869,3 +869,19 @@ VFS snapshot access and source metadata. No loader, atlas, dependency, custom
 input framework or persistent capture harness was added. Embedded thumbnails,
 media preview toolbars and override inspection remain later slices. The optional
 fixture browser view was deferred in favor of verifying the actual host.
+
+
+### Client splitter uses themed separators
+
+The client browser now assigns separatorVertical directly to SplitPaneStyle.handle
+in both themes: conchars 29–31 for game, gray line for engine. SplitPane provides
+the existing hit detection, cursor-coordinate handling and drag behavior. The
+separator's minimum width defines the handle width (8 game / 1 engine logical
+units). No extra grip, resource or interaction code is needed. This supersedes
+the earlier decision to retain the engine splitter fallback. The standalone
+viewer adapter continues to use its native engine SplitPaneStyle.
+
+Verification: the existing GL style check asserts shared separator/handle
+identity for both themes; all three hosts compile. The client desktop probe
+checks splitter dragging in both themes alongside scrolling, metadata selection,
+profile replacement and 4K input.

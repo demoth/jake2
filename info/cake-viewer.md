@@ -77,8 +77,9 @@ profile's resolved VFS snapshot and menu theme, with tree/grid navigation and a
 fixed footer showing logical path, size and winning source layer/package or
 directory. Back or Escape returns to the main menu. It shares `cl_ui_size` and
 refreshes its snapshot on entry or profile/style changes. Empty profiles have
-an explanatory message. The existing engine splitter handle remains available
-in both themes.
+an explanatory message. The client splitter uses each theme's vertical separator
+as its handle; libGDX provides dragging. The standalone viewer retains its
+existing native engine handle.
 
 This first client host is metadata-only; tiles show file extensions. Thumbnail
 and media preview callbacks remain with the standalone viewer until a later
