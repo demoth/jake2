@@ -197,7 +197,7 @@ explicit decisions about their roles and usages.
 | C01 | Base palette | `lavender_veil` #E3D3E4; `midnight_violet` #231123; `canary_yellow` #FFFD77; `watermelon` #E83151; `raspberry_plum` #CE27A4; `malachite` #2EDC76; `strong_cyan` #50D8D7 | Engine palette retained; conchars supplies its own pixel colours |
 | C02 | Light and dark roles | `white` → lavender; `black` → midnight; `background` → black | Engine roles; HUD text draws with a white multiplier |
 | C03 | Feedback | `warning` → canary; `error` → watermelon; `message` → canary | Console uses engine colours; these are not Quake-derived |
-| C04 | Selection and hover | `selection`, `highlight` → raspberry; `over`, `checkedOver` → selection | Menu hover text is hardcoded RGBA (0.35, 0.95, 0.35, 1); list selection fill is (0.22, 0.35, 0.22, 0.95) |
+| C04 | Selection and hover | `selection`, `highlight` → raspberry; `over`, `checkedOver` → selection | Menu hover text is hardcoded RGBA (0.35, 0.95, 0.35, 1); game text/list/dropdown/tree selection shares fill (0.22, 0.35, 0.22, 0.95) |
 | C05 | Pressed and checked | `down`, `checked` → strong cyan | Quake button press uses a darkened panel; toggle uses font visibility |
 | C06 | Neutral and disabled | `gray` = (0.5, 0.5, 0.5, 1); `up` = (0.1, 0.1, 0.1, 1); `disabled` = (0.4, 0.4, 0.4, 1) | Mixed with hardcoded panel tints |
 | C07 | Split and translucent surfaces | `split` = (0.4431, 0.4784, 0.5373, 1); `semiTransparent` = (0.2, 0.2, 0.2, 0.6) | Engine roles retained where used |
@@ -242,7 +242,7 @@ named, possibly tinted or stretchable use of artwork.
 | D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Thick panel from conchars cells 1–9; darkened pressed/disabled variants |
 | D03 | Checkbox marks | `checkBoxOn`, `checkBoxOff`, `checkBoxOver`, `checkBoxOnDisabled`, `checkBoxOffDisabled` | Engine only; content menus instead use a bordered `x` text toggle |
 | D04 | Generic icon | `icon` | Engine only; currently uses the check-on artwork |
-| D05 | Flat fills and highlights | `split`, `black`, `highlight`, `selection`, `alpha` | Quake list selection uses tinted cell 5; browser still uses engine resources |
+| D05 | Flat fills and highlights | `split`, `black`, `highlight`, `selection`, `alpha` | Quake text, list/dropdown and tree selection share green-tinted solid square 11; browser still uses raw engine resources |
 | D06 | List surface | `list` | Quake standalone list background is explicitly cleared |
 | D07 | Horizontal progress | `progressHorizontal`, `progressHorizontalKnob`, `progressHorizontalDisabled`, `progressHorizontalKnobDisabled` | Derived conchars track/knob for position indicator |
 | D08 | Vertical progress | `progressVertical`, `progressVerticalKnob`, `progressVerticalDisabled`, `progressVerticalKnobDisabled` | Engine only |
@@ -253,7 +253,7 @@ named, possibly tinted or stretchable use of artwork.
 | D13 | Split handle | `splitPane` | Engine only |
 | D14 | Horizontal slider | `sliderHorizontal`, `sliderKnob`, `sliderKnobOver`, `sliderKnobDown`, `sliderKnobDisabled` | Derived track 128–130 and knob 131; pressed/disabled tints |
 | D15 | Vertical slider | `sliderVertical`, `sliderVerticalKnob`, `sliderVerticalKnobOver`, `sliderVerticalKnobDown`, `sliderVerticalKnobDisabled` | Engine only |
-| D16 | Text input | `textField`, `textFieldDown`, `textFieldDisabled`, `textFieldCursor` | Mixed: conchars backgrounds; engine cursor and selection |
+| D16 | Text input | `textField`, `textFieldDown`, `textFieldDisabled`, `textFieldCursor` | Conchars backgrounds and shared green selection; caret still uses engine resource |
 | D17 | Tooltip surface | `tooltip` | Engine only |
 | D18 | Touchpad | `touchpad`, `touchpadKnob` | Engine only |
 | D19 | Tree surface and hover | Raw `tree`/`treeOver`; menu uses `menuTreeOver` and existing selection fill | Tree selection/hover use solid conchars square 11 with green/gray tints; no extra tree background |
@@ -336,7 +336,7 @@ skin to a widget still selects engine styles.
 | W01 | Label / `LabelStyle` | `default`, `window`, `list`, `subtitle`, `white` | Mixed: default label copied with conchars font | Required; all areas |
 | W02 | Action button / `TextButtonStyle` | `default`, `toggle`, `text`, `textToggle` | Mixed: resolved action style with conchars font and panel | Required; menus, browser navigation, playback |
 | W03 | Boolean option | Local `TextButton("x", checkBoxStyle)`; no named engine style | Derived font-and-panel toggle | Required; options; keep separate from native CheckBox |
-| W04 | Text input / `TextFieldStyle` | `default`, `spinner` | Mixed; font/backgrounds replaced, cursor/selection retained | Required; forms, masked Player Setup password, engine console |
+| W04 | Text input / `TextFieldStyle` | `default`, `spinner` | Conchars font/backgrounds and shared green selection; engine caret retained | Required; forms, masked Player Setup password, engine console |
 | W05 | List / `ListStyle` | `default`, `background`, `list-nobg` | Mixed; conchars font/selection, engine text colour | Required; profiles and dropdown internals |
 | W06 | Dropdown / `SelectBoxStyle` | `default` | Mixed; includes resolved nested list and scroll styles | Required; forms and MD2 skin selector |
 | W07 | Scroll pane / `ScrollPaneStyle` | `default`, `clean`, `list`, `background` | Mixed; vertical chrome replaced, horizontal retained | Required; forms and browser |

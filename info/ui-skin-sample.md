@@ -107,7 +107,8 @@ a panel and a scrolling specimen. They fit on one virtual screen, with short
 captions rather than resource descriptions. Every label and control, including
 Engine/Game/Close, uses the selected style. A common neutral background avoids
 mixing either mode with the active profile's backdrop. Game mode explicitly
-identifies whole-theme engine fallback and its inherited engine caret/selection.
+identifies whole-theme engine fallback. Game styling retains the engine caret
+resource but uses its own shared green selection fill.
 The outer panel and scrolling specimen use the thick container role; the list
 uses the thin control role. The scrolling content has no inner frame in either
 theme. Slider and progress share a track and knob, with a separate
@@ -509,7 +510,8 @@ To keep the sample on one virtual page with taller buttons, the heading now
 identifies the theme and replaces the separate mode-description row; the text
 specimen is one line. The input specimen still contains a long resource path,
 and unavailable game styling is explicitly identified as engine fallback.
-Game caret and text selection still inherit engine resources, as before.
+At that slice, game caret and text selection still inherited engine resources;
+the later shared-selection fix below replaces game text selection with green.
 
 Verification: four focused style/viewport tests passed. The graphics probe
 confirmed thick action-button and thin checkbox insets in both themes, preserved
@@ -761,3 +763,13 @@ documentation. This is approximately the 100–150 added-line estimate. No new
 texture, loader, dependency, Tree subclass or browser integration is introduced.
 The sample uses the small standard Tree.Node subclass required by its generic
 node/label types. Themed drag handles and dropdown indicators remain deferred.
+
+
+### Shared game selection background
+
+Game text inputs, selectable lists, dropdown rows and tree nodes now share the
+same green selection Drawable: conchars solid square 11 tinted with the existing
+menu selection colour. Text input selection no longer inherits the engine's
+magenta fill, and list/dropdown selection no longer uses the dark panel-centre
+cell. The engine palette and game caret resource are unchanged. The style-level
+GL check asserts the shared selection identity across all four usages.

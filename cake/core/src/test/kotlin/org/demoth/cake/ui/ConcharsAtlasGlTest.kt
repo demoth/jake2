@@ -94,6 +94,9 @@ class ConcharsAtlasGlTest {
                 }
                 assertEquals(16f, skin.get(Tree.TreeStyle::class.java).plus.minWidth, "Raw engine tree mark is unchanged")
                 assertEquals((13 * 8 + 0.5f) / 128f, (quake.tree.plus as TextureRegionDrawable).region.u)
+                assertSame(quake.tree.selection, quake.textField.selection, "Game text selection uses the tree's green fill")
+                assertSame(quake.tree.selection, quake.list.selection)
+                assertSame(quake.tree.selection, quake.selectBox.listStyle.selection)
                 verifySeparators(quake, batch, target)
                 engine.dispose()
             } finally {

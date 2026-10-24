@@ -106,7 +106,7 @@ class EngineUiStyle(
     }
 }
 
-private const val BOX_FILL = 5
+private const val SOLID_FILL = 11
 
 /** Menu units follow native Quake cells. The engine's source assets are authored at 3x. */
 internal fun createEngineMenuWidgetStyles(skin: Skin): MenuWidgetStyles {
@@ -222,7 +222,7 @@ internal fun createMenuWidgetStyles(
             minHeight = 3f
         }
     }) as TransformDrawable
-    val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, BOX_FILL, MENU_SELECTION_COLOR) }
+    val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, SOLID_FILL, MENU_SELECTION_COLOR) }
     // ScrollPane stretches its track and proportional thumb vertically. A nine-patch keeps
     // their borders intact; the horizontal slider glyphs in conchars cannot be stretched this way.
     val contentScrollKnobDrawable = contentControlDrawable?.let {
@@ -254,8 +254,8 @@ internal fun createMenuWidgetStyles(
             plus = createConcharsGlyphDrawable(concharsTexture, 13)
             minus = ClockwiseDrawable(plus as TransformDrawable)
             // The solid square keeps row feedback visible; panel centres are almost black.
-            selection = createConcharsFillDrawable(concharsTexture, 11, MENU_SELECTION_COLOR)
-            over = createConcharsFillDrawable(concharsTexture, 11, Color(0.3f, 0.3f, 0.3f, 0.7f))
+            selection = contentSelectionDrawable
+            over = createConcharsFillDrawable(concharsTexture, SOLID_FILL, Color(0.3f, 0.3f, 0.3f, 0.7f))
         } else {
             // Existing 16px engine marks use a 24px source slot, becoming 8 menu units.
             plus = skin.newDrawable(plus).apply { minWidth = 24f; minHeight = 24f }
@@ -292,6 +292,7 @@ internal fun createMenuWidgetStyles(
                 style.background = contentControlDrawable
                 style.focusedBackground = contentControlDrawable
                 style.disabledBackground = contentControlDrawable.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
+                style.selection = contentSelectionDrawable
             }
         },
         selectBox = SelectBox.SelectBoxStyle(baseSelectBoxStyle).also { style ->
