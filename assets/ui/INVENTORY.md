@@ -438,7 +438,7 @@ choosing a new design is not a completion condition for this inventory.
 
 ## Client Content Browser readiness
 
-See [the browser preparation plan](../../info/ui-skin-sample.md#browser-preparation-before-client-embedding)
+See [the sample and browser reference](../../info/ui-skin-sample.md#content-browser)
 for the scope and decisions. The first client integration is implemented: main
 menu → Content browser opens the active profile's resolved VFS snapshot with
 tree/grid/metadata, including source layer and winning package/directory name.
