@@ -49,6 +49,7 @@ import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.md2VertexShader
+import org.demoth.cake.ui.ImagePreviewPane
 import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ContentBrowser
 import java.io.File

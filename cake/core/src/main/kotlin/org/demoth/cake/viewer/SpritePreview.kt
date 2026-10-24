@@ -1,5 +1,7 @@
 package org.demoth.cake.viewer
 
+import org.demoth.cake.ui.ImagePreviewPane
+
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
