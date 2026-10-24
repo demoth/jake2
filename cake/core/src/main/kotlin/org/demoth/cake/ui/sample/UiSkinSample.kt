@@ -204,8 +204,7 @@ class UiSkinSample(
             add(treeSample(styles, expanded)).width(300f)
             add(Table().apply {
                 defaults().left().pad(3f)
-                add(Label("Separators", styles.label)).colspan(3).row()
-                add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).width(120f).height(16f)
+                add(Label("Separators", styles.label)).colspan(2).row()
                 add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).growX().minWidth(24f).height(16f)
                 add(Image(styles.separatorVertical).apply { setScaling(Scaling.stretchY) }).width(16f).height(48f)
             }).growX()

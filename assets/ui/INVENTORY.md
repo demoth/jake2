@@ -415,7 +415,7 @@ interactive support.
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
 | W08 / D19–D20 tree | Available | Open | Engine/game right/down marks, required single selection, hover, scrolling and state retention in sample; browser adoption remains planned |
-| D22 / W23 separator | Available | Open | Two horizontal lengths and a vertical specimen in both modes; game caps remain fixed; engine flat-line art can be refined later |
+| D22 / W23 separator | Available | Open | One horizontal and one vertical specimen in both modes; game caps remain fixed; engine flat-line art can be refined later |
 | Themed split handle | Deferred | Open | Existing libGDX dragging and engine handle can be retained; separate from static separator work |
 | Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
 | Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× source panels displayed at 1/3 scale; both visible in sample |

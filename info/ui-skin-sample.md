@@ -706,9 +706,9 @@ Engine styling uses the existing `line-h` primitive tinted gray through the Skin
 `separatorHorizontal` role. Its menu copy is 1 unit thick with minimum length 24;
 the vertical variant reuses the same rotation wrapper. Its flat-line appearance
 is an initial engine styling choice, not an attempt to copy Quake's border art.
-The sample centres these drawables in their cells using Image scaling: two
-horizontal lengths demonstrate stretching and a vertical specimen demonstrates
-orientation. No new UI widget, input behavior, texture asset or dependency is
+The sample centres these drawables in their cells using Image scaling: one
+horizontal specimen demonstrates stretching and one vertical specimen shows
+orientation. Fixed end caps at different lengths remain covered by the GL check. No new UI widget, input behavior, texture asset or dependency is
 introduced. The themed drag handle and dropdown indicator remain deferred;
 right/down triangle tree styling remains the next browser coverage slice.
 
