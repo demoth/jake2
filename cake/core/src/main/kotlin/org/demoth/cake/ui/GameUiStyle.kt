@@ -260,6 +260,7 @@ internal fun createMenuWidgetStyles(
             style.scrollStyle = ScrollPane.ScrollPaneStyle(contentScrollPaneStyle)
             style.listStyle = Scene2dList.ListStyle(contentListStyle)
             if (contentControlDrawable != null) {
+                style.scrollStyle.background = contentControlDrawable
                 style.background = contentControlDrawable
                 style.backgroundOver = contentControlDrawable
                 style.backgroundOpen = contentControlDrawable

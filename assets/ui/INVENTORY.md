@@ -247,7 +247,7 @@ named, possibly tinted or stretchable use of artwork.
 | D09 | Progress tile | `progress-bar-knob-t` (`TiledDrawable`) | Engine only |
 | D10 | Scroll tracks and thumbs | `scrollHorizontal`, `scrollVertical`, `scrollKnob`, `scrollKnobVertical` | Mixed: vertical track/thumb use a half-size conchars panel; horizontal resources remain engine |
 | D11 | Scroll surface | `scrollPane` | Quake default scroll style adds a conchars panel background; form hosts remove it |
-| D12 | Dropdown surfaces | `selectBox`, `selectOver`, `selectDown`, `selectDisabled`, `selectList` | Mixed: conchars panel for control; dropdown list uses resolved list/scroll styles |
+| D12 | Dropdown surfaces | `selectBox`, `selectOver`, `selectDown`, `selectDisabled`, `selectList` | Conchars thin frame for both closed field and popup; list background remains empty to avoid nested frames |
 | D13 | Split handle | `splitPane` | Engine only |
 | D14 | Horizontal slider | `sliderHorizontal`, `sliderKnob`, `sliderKnobOver`, `sliderKnobDown`, `sliderKnobDisabled` | Derived track 128–130 and knob 131; pressed/disabled tints |
 | D15 | Vertical slider | `sliderVertical`, `sliderVerticalKnob`, `sliderVerticalKnobOver`, `sliderVerticalKnobDown`, `sliderVerticalKnobDisabled` | Engine only |

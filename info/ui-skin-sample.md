@@ -592,3 +592,18 @@ This supersedes using a fixed 3× display scale for Quake menus. The 3× factor 
 an engine source-resolution reference; overall UI density remains controlled by
 `cl_ui_size`. Further engine font/art refinement can use this native Quake
 baseline without enlarging the game theme.
+
+
+### Dropdown popup frame and indicator support
+
+Game dropdown popups use the same thin frame as the closed field. This changes
+only the SelectBox's copied ScrollPaneStyle; ordinary scroll panes keep their
+existing container frame and the popup list has no extra background.
+
+The pinned libGDX 1.13.1 SelectBoxStyle has no separate arrow/icon property. It
+supports normal/hover/open/disabled background drawables, which also provide
+left/right content insets. An indicator can be included or composed into those
+backgrounds with a reserved right inset, without changing widget behavior. The
+legacy engine `select` atlas region already includes a down triangle; current
+engine/game thin-frame backgrounds do not include an indicator. Adding one to
+both themes remains a separate resource/composition choice.
