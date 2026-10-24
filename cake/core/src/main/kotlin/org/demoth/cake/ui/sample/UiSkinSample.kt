@@ -155,8 +155,7 @@ class UiSkinSample(
         val lower = Table().apply {
             defaults().growX().minWidth(0f).uniformX().top().pad(4f)
             add(Label("List", styles.label))
-            add(Label("Dropdown", styles.label))
-            add(Label("Panel / scrolling", styles.label)).row()
+            add(Label("Dropdown", styles.label)).row()
             add(Table().apply {
                 background = styles.controlPanel
                 add(list).growX().minWidth(0f)
@@ -169,7 +168,6 @@ class UiSkinSample(
                     isDisabled = true
                 })
             })
-            add(scroll).height(112f)
         }
         content.add(lower).row()
         val progress = ProgressBar(0f, 100f, 1f, false, styles.progress).apply { value = sliderValue }
@@ -199,15 +197,17 @@ class UiSkinSample(
             }).growX().minWidth(0f)
             add(Label("", styles.label)).width(percentageWidth)
         }).row()
+        content.add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) })
+            .growX().minWidth(24f).height(16f).row()
         content.add(Table().apply {
             defaults().top().pad(3f)
             add(treeSample(styles, expanded)).width(300f)
+            add(Image(styles.separatorVertical).apply { setScaling(Scaling.stretchY) }).width(16f).growY()
             add(Table().apply {
-                defaults().left().pad(3f)
-                add(Label("Separators", styles.label)).colspan(2).row()
-                add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).growX().minWidth(24f).height(16f)
-                add(Image(styles.separatorVertical).apply { setScaling(Scaling.stretchY) }).width(16f).height(48f)
-            }).growX()
+                defaults().left().growX().minWidth(0f).padBottom(3f)
+                add(Label("Panel / scrolling", styles.label)).row()
+                add(scroll).height(112f)
+            }).growX().minWidth(0f)
         }).growX().row()
         root.add(content).growX().maxWidth(900f).minWidth(0f)
         root.validate()

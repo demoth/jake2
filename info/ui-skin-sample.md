@@ -741,7 +741,8 @@ engine right/down shapes with readable text-colour tints and a subdued hover
 fill. Copies use 24-unit source slots, becoming 8-unit menu slots; the existing
 16px textures remain unchanged. Node labels use the selected theme's LabelStyle.
 
-The sample places a compact folder tree beside the separator specimens. It has
+The sample includes a compact folder tree (now beside the scrolling panel,
+separated by a vertical divider). It has
 single required selection, expanded and collapsed branches, leaves, a selected
 path readout and a thick outer scroll frame. Clicking a mark toggles its branch;
 clicking its label selects the folder. Expanded paths, selected path and scroll
@@ -793,3 +794,19 @@ wheel scrolling; tree state/hover/scroll/4K and dropdown selection probes pass.
 Follow-up: the vertical track drawable is explicitly null in both ordinary and
 dropdown scroll styles. ScrollPane retains its scrollbar hit area and native
 thumb drag behavior without drawing a thin-panel backdrop.
+
+
+### Separators as layout boundaries
+
+The sample now uses its single horizontal separator above the bottom group,
+then lays out tree → vertical separator → panel/scrolling side by side. List
+and dropdown occupy two columns above the slider/progress rows. The separate
+separator specimen area and label are removed, giving both dividers a purpose
+and reducing unused vertical space. Both scrolling panes keep independent wheel
+focus and their existing content/state.
+
+Verification: client build and both automatic captures pass. The tree interaction
+probe retains expansion/selection/scroll state across themes and passes at 4K;
+scrollbar top/bottom dragging and wheel scrolling also pass after relocation.
+Current sample heights are 482 engine / 417 game within 608 available at
+`cl_ui_size 640` (35/45 units shorter than the previous arrangement).
