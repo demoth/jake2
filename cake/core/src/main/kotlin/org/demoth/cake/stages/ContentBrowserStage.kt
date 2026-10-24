@@ -23,6 +23,7 @@ import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.ui.FramePlayback
 import org.demoth.cake.ui.SpriteFrameImage
 import org.demoth.cake.ui.SpritePreview
+import org.demoth.cake.ui.SceneResourcePreview
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
@@ -32,10 +33,11 @@ class ContentBrowserStage(
     menuEventBus: MenuEventBus,
     style: GameUiStyle,
     private val thumbnails: ImageThumbnails,
-    private val spriteAssets: AssetManager,
+    private val previewAssets: AssetManager,
     private val loadSound: (VfsEntry) -> Sound,
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenMainMenu) {
     private val styles = ContentBrowserStyles.fromMenu(style.menuWidgets)
+    private val scene = SceneResourcePreview(previewAssets, styles)
     private val title = Label("Content browser", styles.label)
     private val content = Container<Actor>().fill()
     private var sound: Sound? = null
@@ -103,6 +105,13 @@ class ContentBrowserStage(
             return if (ensureSprite(entry)) SpritePreview(sprite!!, spritePlayback!!, styles.label, styles.button)
             else Label("Could not load sprite.", styles.label)
         }
+        if (entry.normalizedPath.substringAfterLast('.') == "md2") {
+            return try { scene.openMd2(entry.normalizedPath) } catch (error: Exception) {
+                clearSprite()
+                Gdx.app.error("Content browser", "Could not preview ${entry.displayPath}", error)
+                Label("Could not load model.", styles.label)
+            }
+        }
         return previewImage(entry)
     }
 
@@ -137,9 +146,9 @@ class ContentBrowserStage(
         if (failedSpritePath == entry.normalizedPath) return false
         clearSprite()
         return try {
-            spriteAssets.load(entry.normalizedPath, Sp2Asset::class.java)
-            spriteAssets.finishLoading()
-            sprite = spriteAssets.get(entry.normalizedPath, Sp2Asset::class.java)
+            previewAssets.load(entry.normalizedPath, Sp2Asset::class.java)
+            previewAssets.finishLoading()
+            sprite = previewAssets.get(entry.normalizedPath, Sp2Asset::class.java)
             spritePlayback = FramePlayback(sprite!!.frames.size)
             spritePath = entry.normalizedPath
             true
@@ -152,18 +161,20 @@ class ContentBrowserStage(
     }
 
     private fun clearSprite() {
+        scene.close()
         spritePlayback?.stop()
         sprite = null
         spritePlayback = null
         spritePath = null
         failedSpritePath = null
         // This manager belongs only to the browser; failed dependencies never clear game assets.
-        spriteAssets.clear()
+        previewAssets.clear()
     }
 
     override fun act(delta: Float) {
         soundPlayback?.update()
         spritePlayback?.update(delta)
+        scene.act(delta)
         super.act(delta)
     }
 
@@ -191,7 +202,7 @@ class ContentBrowserStage(
                 Input.Keys.S -> { playback.stop(); return true }
             }
         }
-        spritePlayback?.let {
+        (spritePlayback ?: scene.animation)?.let {
             when (keycode) {
                 Input.Keys.SPACE -> { it.toggle(); return true }
                 Input.Keys.LEFT -> { it.step(-1); return true }
@@ -212,7 +223,7 @@ class ContentBrowserStage(
 
     override fun dispose() {
         hide()
-        spriteAssets.dispose()
+        previewAssets.dispose()
         super.dispose()
     }
 }

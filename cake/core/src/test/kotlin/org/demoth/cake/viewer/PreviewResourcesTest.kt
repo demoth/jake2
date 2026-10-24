@@ -1,5 +1,7 @@
 package org.demoth.cake.viewer
 
+import org.demoth.cake.ui.PreviewResources
+
 import com.badlogic.gdx.assets.AssetDescriptor
 import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.assets.AssetManager

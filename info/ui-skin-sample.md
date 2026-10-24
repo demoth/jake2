@@ -1072,3 +1072,16 @@ inspected. Probe settings use a temporary home with cfg_autosave disabled.
 Two commits separate shared frame/style extraction from client resource/input
 wiring. Production scope is about 115 added lines, within the 100–150 estimate.
 MD2 and BSP previews remain later slices.
+
+### Client MD2 previews
+
+MD2 double-click opens orbit/zoom, animation transport, frame names and a themed
+skin selector. Native viewer adapters remain available. Shared 3D panes now size
+render targets from actual screen pixels, including the client virtual viewport.
+The browser's private preview manager loads model/skin dependencies; renderers,
+panes and model references close before that manager clears. No-skin models use
+the existing labelled generated default skin; malformed models show an inline
+error. Real-model desktop probes pass in both themes and at 4K, including skin
+switching, animation, orbit/zoom, target sizing and Back/profile/disposal cleanup.
+Focused animation/ownership tests and all host compilations pass. BSP integration
+and the requested cleanup pass follow in separate commits.

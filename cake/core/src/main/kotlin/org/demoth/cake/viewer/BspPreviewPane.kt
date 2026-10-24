@@ -1,5 +1,7 @@
 package org.demoth.cake.viewer
 
+import org.demoth.cake.ui.ScenePreviewPane
+
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.graphics.Camera

@@ -4,6 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.SplitPane
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.Tree
@@ -18,6 +19,7 @@ data class ContentBrowserStyles(
     val splitPane: SplitPane.SplitPaneStyle,
     val tile: Button.ButtonStyle,
     val background: Drawable,
+    val selectBox: SelectBox.SelectBoxStyle,
 ) {
     companion object {
         /** The standalone viewer keeps its native engine font and artwork sizes. */
@@ -29,6 +31,7 @@ data class ContentBrowserStyles(
             skin.get("default-horizontal", SplitPane.SplitPaneStyle::class.java),
             tileStyle(skin.getDrawable("selection")),
             skin.getDrawable("window"),
+            skin.get(SelectBox.SelectBoxStyle::class.java),
         )
 
         /** Client controls and splitter artwork follow the active menu theme. */
@@ -40,6 +43,7 @@ data class ContentBrowserStyles(
             SplitPane.SplitPaneStyle(widgets.separatorVertical),
             tileStyle(widgets.tree.selection),
             widgets.containerPanel,
+            widgets.selectBox,
         )
 
         private fun tileStyle(selection: Drawable) = Button.ButtonStyle().apply {

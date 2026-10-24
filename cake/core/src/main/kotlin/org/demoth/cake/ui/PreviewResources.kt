@@ -1,4 +1,4 @@
-package org.demoth.cake.viewer
+package org.demoth.cake.ui
 
 import com.badlogic.gdx.assets.AssetLoaderParameters
 import com.badlogic.gdx.assets.AssetManager
