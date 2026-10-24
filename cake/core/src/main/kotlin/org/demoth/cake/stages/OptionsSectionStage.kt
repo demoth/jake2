@@ -75,7 +75,7 @@ class OptionsSectionStage(
             add(Label("Description", labelStyle)).left().growX().fillX().row()
 
             entries.forEachIndexed { index, entry ->
-                add(Label(entry.name, labelStyle).apply { setWrap(true) }).minWidth(220f).left()
+                add(Label(entry.name, labelStyle)).minWidth(180f).left()
                 val type = entry.type
                 val value: Any = entry.pendingValue ?: entry.typedValue
                 val entryChoices = choices[index]
@@ -117,7 +117,7 @@ class OptionsSectionStage(
                 }
                 add(Label(descriptionText, labelStyle).apply {
                     setWrap(true)
-                }).minWidth(280f).prefWidth(520f).growX().fillX().row()
+                }).minWidth(320f).prefWidth(520f).growX().fillX().row()
             }
 
             val buttons = Table(Scene2DSkin.defaultSkin).apply {

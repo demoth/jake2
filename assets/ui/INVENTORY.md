@@ -23,33 +23,32 @@ a few direct sizing choices. Adjust engine font/frame resources first, then
 widget padding or construction where visible differences remain. A general
 geometry system or exact matching of every pixel and text wrap is unnecessary.
 
-The engine resource reference is **3× Quake's native vertical metrics**. This
-is an asset authoring reference, separate from viewport/display scaling. Preserve
-natural engine glyph widths: Quake's square character cells do not impose square
-engine glyphs, identical text wrapping or identical widget widths. Regenerate the
-bitmap font with `BitmapFontGeneratorTool`; do not stretch its baked glyphs or
-rewrite its metrics to simulate a different font size.
+**Quake's native on-screen size is the fixed baseline.** Engine menu source
+artwork is authored at **3×**, then displayed at **1/3 scale**. The previous
+attempt to enlarge Quake menus was rejected after real-screen testing. Keep
+native Quake textures, HUD metrics and vertical `cl_ui_size` semantics unchanged.
+The raw engine skin used by console/viewer/diagnostics is independent from menu
+presentation and keeps its existing font and drawable sizes.
 
-| Reference | Quake | Engine | Status |
+Preserve natural engine glyph widths and line spacing. Font **visible capital
+height** is the comparison metric: matching line height alone made the engine
+letters too small. The menu font is regenerated with `BitmapFontGeneratorTool`
+at size 34: source cap height 24, line height 38, scaled by 1/3. The original
+size-21 raw UI font remains unchanged.
+
+| Reference | Quake menu units | Engine source → menu units | Status |
 | --- | --- | --- | --- |
-| Font line height | 8 | 24 (generator size 21) | Implemented; natural engine glyph advances retained |
-| Panel corner / source cell | 8 | 24 | Implemented; separate thick/thin engine artwork |
-| Thick frame content inset | 8 | 24 | Implemented |
-| Thin frame content inset | 4 | 12 | Implemented |
-| Thin frame minimum extent | 16 | 48 | Implemented |
-| Slider track / knob and other inherited artwork | Conchars menu drawables at 3× | Existing engine resources | Logical knob height 24 in both; width/art treatment still differs |
+| Visible capital height | 8 | 24 → 8 | Implemented; natural engine glyph widths retained |
+| Font line height | 8 | 38 → 38/3 | Intentional difference; natural line spacing retained |
+| Panel corner / thick content inset | 8 | 24 → 8 | Implemented; raw skin drawables are not mutated |
+| Thin content inset | 4 | 12 → 4 | Implemented |
+| Thin frame minimum extent | 16 | 48 → 16 | Implemented |
+| Slider knob height | 8 | 24 → 8 | Implemented; width/art treatment still differs |
 
-Menu normalization is implemented with a fixed 3× scale on Quake menu font
-metrics and conchars-derived drawables. Both themes therefore use a 24-unit font
-line height, 24-unit thick insets and 12-unit thin insets in the same layout.
-Native Quake textures, HUD metrics and vertical `cl_ui_size` semantics stay
-unchanged; no extra scale setting or theme-specific viewport is introduced.
-Menus own a separate font instance while sharing the HUD's atlas texture.
-
-The engine font keeps narrower natural glyph advances and a different visible
-cap height. Text width/wrapping and subtle row-height differences are intentional
-comparison points, not reasons to force square glyphs. Slider knob width and
-scroll surface nesting remain available for later visual refinement.
+Menu fonts have independent metrics from the HUD/raw engine fonts. Engine menu
+styles use copies of the skin drawables; the sample borrows the same menu style
+builder as real menus. No extra scale cvar or theme-specific viewport is needed.
+Exact text wrapping, row heights and pixel matching remain unnecessary.
 
 The sample now exposes two panel roles and horizontal slider/progress support
 from the existing Quake sheet. Thick frames contain groups of widgets and draw action buttons; thin frames
@@ -213,8 +212,8 @@ the skin; keep those visible as separate screen concerns.
 
 | ID | Role | Engine baseline | Quake baseline | Scope |
 | --- | --- | --- | --- | --- |
-| F01 | Main UI text | `default`: Share Tech Mono, generator size 21, line height 24, separate 512×512 `share-tech-mono.png` | Separate conchars menu font at 3× (24-unit line height); HUD remains native | Required |
-| F02 | Font roles | `font`, `list`, `subtitle`, `window` all alias `default` | No separate role fonts | Defined; separate typography is optional |
+| F01 | Main UI text | `default`: size 21, line height 24 (raw UI); `menu`: size 34, cap height 24/line height 38 at 1/3 scale, separate 1024×512 texture | Separate native conchars menu/HUD font metrics | Required |
+| F02 | Font roles | `font`, `list`, `subtitle`, `window` alias `default`; independent `menu` font | Separate menu/HUD instances over one conchars texture | Defined; raw UI and menu typography are separate |
 | F03 | Quake normal and alternate text | Engine HUD fallback uses `default` | 16×16 conchars grid; high-bit alternate bank preserves game glyph colours | Required for HUD compatibility |
 | F04 | HUD number fields | `EngineHudNumberFont` uses the default font | 22 separate `num_*` / `anum_*` PCX images, including minus | Required for HUD; separate from UI atlas |
 | F05 | Unsupported text | Coverage depends on the bundled font's glyphs | Conchars has game glyph IDs 0–255, not general Unicode | Planned explicit replacement or font fallback policy |
@@ -237,7 +236,7 @@ named, possibly tinted or stretchable use of artwork.
 
 | ID | Role | Engine drawable names | Current Quake coverage |
 | --- | --- | --- | --- |
-| D01 | Console panel | `console-panel` | Engine only; tinted `panel-thick` (24-pixel corners/insets) |
+| D01 | Console panel | `console-panel` | Engine only; tinted `panel-thick` (source corners/insets 24; menu copy uses 8) |
 | D02 | Button chrome | `buttonUp`, `buttonOver`, `buttonDown`, `buttonDisabled`, `buttonChecked`, `buttonCheckedOver` | Thick panel from conchars cells 1–9; darkened pressed/disabled variants |
 | D03 | Checkbox marks | `checkBoxOn`, `checkBoxOff`, `checkBoxOver`, `checkBoxOnDisabled`, `checkBoxOffDisabled` | Engine only; content menus instead use a bordered `x` text toggle |
 | D04 | Generic icon | `icon` | Engine only; currently uses the check-on artwork |
@@ -408,7 +407,7 @@ interactive support.
 | W01–W11 required standard controls and tiles | Partial | Open | W01–W07 specimens available; W08–W11 tree/split/button variants/tiles remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
-| Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× panels; both visible in sample |
+| Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× source panels displayed at 1/3 scale; both visible in sample |
 | W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |

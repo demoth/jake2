@@ -31,15 +31,17 @@ this distinction for both themes.
 Quake uses its fixed conchars art; engine now has distinct thick/thin frames
 with 24-pixel corners and 24/12-pixel content insets respectively.
 
-The accepted engine asset reference is **3×**: Quake's 8-pixel font line height
-corresponds to engine line height 24. `BitmapFontGeneratorTool` generates this at
-size 21 from Share Tech Mono; engine glyphs retain their natural widths.
-Square glyphs, identical wrapping and identical widget footprints are not goals.
-The native resource ratio is separate from display scaling. Menu normalization
-now applies a fixed 3× scale to Quake menu metrics/drawables, so both themes use
-the engine's existing UI units and the same vertical `cl_ui_size`. HUD metrics
-and the original texture remain unchanged. Slider and other inherited engine
-artwork still have visual differences; captures guide further direct choices.
+The accepted engine asset reference is **3× native Quake resolution**, displayed
+at **1/3 scale in menus**. Quake's on-screen size stays native. Engine source
+panels keep 24-pixel corners and 24/12-pixel insets; menu copies use 8-pixel
+corners and 8/4-unit insets. Raw engine skin usage outside menus remains unchanged.
+
+Visible font capital height is the typography comparison: a menu-specific Share
+Tech Mono bitmap is generated at size 34 (cap height 24, line height 38), then
+scaled by 1/3 to cap height 8. Its natural widths and line spacing remain intact.
+The original raw UI font remains size 21/line height 24. Matching engine/Quake
+line heights, square glyphs and identical wrapping are not goals. Both menu
+themes use the same vertical `cl_ui_size`; HUD metrics stay native.
 
 ## Sample coverage follows the target hierarchy
 
@@ -515,9 +517,10 @@ reference heights 640/720 and 4K. Current preferred height is 599 for engine and
 316 for game, within the 608-unit content area at `cl_ui_size 640`.
 
 
-### Menu display normalization
+### Menu display normalization (superseded)
 
-**Status: implemented.** The Quake menu font has its own metrics/cache over the
+**Status: superseded.** Enlarging Quake menus was rejected in user testing; see
+the native-size correction below. At this slice, The Quake menu font has its own metrics/cache over the
 same conchars texture as the native HUD font. Menu font and derived panels,
 slider track/knob, selection fill and vertical scroll drawables use a fixed 3×
 scale. Fonts and drawables agree on 24-unit cells, thick insets 24, thin insets
@@ -551,3 +554,40 @@ Quake's square cells remain intact. Exact wrapping is intentionally different.
 The slider knob is 24 units high in both themes but differs in width/artwork,
 and scroll surfaces still differ in nesting. These remain targeted visual
 choices for subsequent review, rather than a requirement for a geometry system.
+
+
+### Native Quake size and engine menu adaptation
+
+**Status: implemented.** Quake menu metrics/drawables return to native size;
+HUD/menu font separation remains. Engine menus use the independent Skin `menu`
+font and copied drawables at 1/3 scale. Native cap height 24 becomes 8; font
+advances and line spacing retain their natural proportions. Raw engine skin
+fonts and panels used by the console/viewer/diagnostics remain unchanged.
+The sample now uses the same engine menu style builder as real menus.
+
+The shared menu-button helper retains frame left/right insets instead of
+replacing them with zero. The option-name wrapping/column changes made solely
+for enlarged Quake text are reverted, as are shortened gallery captions. The
+fixed-width percentage column remains useful for stable slider dragging.
+
+Verification: six focused font/style/viewport tests, the opt-in OpenGL atlas/style
+test, and both client builds pass. The GL test checks visible cap height 8,
+engine natural line height 38/3, native Quake/HUD metrics, 8/4 frame insets,
+16-unit thin minimums and unmodified raw engine font/panels. Real-content probes
+check sample interaction, slider endpoints/midpoint, disabled controls, linked
+progress, typed-state retention, theme/fallback changes, console/close and 4K.
+The sample needs 361 units in engine mode and 316 in game mode, within 608
+available at `cl_ui_size 640`.
+
+A broader audit captures 13 screens in both themes at reference heights 640 and
+720: main, multiplayer, profiles, singleplayer setup, hosting, join, player setup,
+options hub, Sound, Video, Input, Renderer and Client options (52 captures).
+No menu buttons lie outside the stage or discard frame insets. The profile
+editor's two columns are visible again; longer Video forms retain vertical
+scrolling as needed. Both themes pass the Sound volume interaction probe,
+including all 21 increments, Apply/Back and off-grid value preservation.
+
+This supersedes using a fixed 3× display scale for Quake menus. The 3× factor is
+an engine source-resolution reference; overall UI density remains controlled by
+`cl_ui_size`. Further engine font/art refinement can use this native Quake
+baseline without enlarging the game theme.

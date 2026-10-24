@@ -86,9 +86,9 @@ abstract class BackNavigableMenuStage(
             var hovered = false
             pad(
                 HUB_MENU_BUTTON_VERTICAL_PADDING,
-                0f,
+                padLeft,
                 HUB_MENU_BUTTON_VERTICAL_PADDING,
-                0f,
+                padRight,
             )
             labelCell.minWidth(MENU_BUTTON_MIN_WIDTH)
             resetHoverState()
