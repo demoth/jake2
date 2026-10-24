@@ -354,7 +354,7 @@ skin to a widget still selects engine styles.
 | W18 | Window / `WindowStyle` | `default`, `resize`, `border`, `dialog` | Engine only | Extension as a widget; its `window` drawable is required by panels |
 | W19 | Touchpad / `TouchpadStyle` | `default` | Engine only | Extension |
 | W20 | Console output | Custom widget reads `default` font and `font`, `warning`, `error` colours | Engine only | Required; wrapping, clipping, scrolling |
-| W21 | Image and scene preview | Image/Widget/WidgetGroup implementations; content textures borrowed from host | Media is content, UI surrounds use engine skin | Required; images, sprites, MD2 and BSP |
+| W21 | Image and scene preview | Image/Widget/WidgetGroup implementations; content textures borrowed from host | Native engine UI in viewer; resolved menu styles for client image/sprite previews | Required; images, sprites, MD2 and BSP |
 | W22 | Layout containers | Table, Container, HorizontalGroup and other groups | Shared layout mechanisms | Required; no independent standard style; backgrounds are Drawables |
 | W23 | Separator | Image/Drawable; horizontal and vertical variants | Derived conchars 29–31; engine uses an existing line primitive | Available in sample; static decoration, distinct from draggable W09 split pane |
 
@@ -384,10 +384,10 @@ defined in [the sample specification](../../info/ui-skin-sample.md).
 | S11 | Content Browser shell | Explicit native engine adapter in standalone viewer | Composition: tree, splitter, tiles, path, status, Back |
 | S12 | Image preview | Native engine UI in viewer; resolved menu style in client, both borrow textures | Composition: clipping, native dimensions, pan/zoom hint |
 | S13 | Sound controls | Native engine styles in viewer; resolved label/button styles in client | Composition: duration and Play/Pause/Loop/Stop |
-| S14 | Sprite and MD2 controls | Engine skin | Composition: frame info, transport buttons, skin dropdown |
+| S14 | Sprite and MD2 controls | Native engine viewer styles; resolved client styles for sprite controls | Composition: frame info, transport buttons, skin dropdown |
 | S15 | BSP and MD2 scene | Engine UI around scene rendering | Composition: contrasting light/dark preview backdrop |
 | S16 | HUD and game overlays | Content font and numeric renderer | Compatibility area: normal/alternate text and numbers |
-| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source, image previews and WAV audition/controls; sprite/model/map previews deferred |
+| S17 | Embedded Content Browser | Active-profile menu style with engine fallback; UiViewport | Main menu entry; tree/grid/metadata, winning source, image/WAV/SP2 previews; model/map previews deferred |
 
 The legacy Java client's direct picture/character UI provides compatibility
 reference material; it does not consume the Scene2D skin. Standalone archive
@@ -424,7 +424,7 @@ interactive support.
 | S01–S09 menus and engine tools | Planned | Open | Both viewport policies |
 | S10–S15 viewer and browser | Planned | Open | Shared resources and differences between usages |
 | S16 HUD compatibility | Planned | Open | Compatibility area remains planned |
-| S17 embedded browser | Available | Open | Both themes verified in live host, including image/WAV previews, profile replacement and 4K input; sprite/model/map previews deferred |
+| S17 embedded browser | Available | Open | Both themes verified in live host, including image/WAV/SP2 previews, profile replacement and 4K input; model/map previews deferred |
 
 When a group contains different statuses, split the row or name the incomplete
 IDs in the evidence column. For each style decision, record the role, affected
@@ -453,6 +453,11 @@ Client WAV audition and duration/transport controls share SoundPlayback and
 SoundPreviewControls with the viewer, using resolved label/button styles.
 The client owns one directly loaded preview sound; selection and navigation
 stop/dispose it independently of shared game sound assets.
+Client SP2 tile/full previews share SpriteFrameImage, SpritePreview and
+FramePlaybackControls with the viewer. Resolved labels/buttons style frame
+metadata and transport. A private browser AssetManager owns sprite/frame
+textures independently of game assets and is cleared on selection/navigation
+or failure; missing frames do not use engine image fallbacks.
 ContentBrowserStyles supplies explicit shell, tile and control roles. The native
 standalone adapter preserves viewer sizing; the client adapter borrows menu
 styles and has one thick outer panel. Its SplitPane handle shares each theme's
@@ -462,7 +467,7 @@ engine splitter.
 
 The dropdown indicator is explicitly deferred. It must not block the browser.
 Atlas cleanup, optional widgets and exact theme geometry matching are also not
-prerequisites. Client sprite/model/map preview embedding and override inspection remain
+prerequisites. Client model/map preview embedding and override inspection remain
 separate later slices. The standalone viewer remains engine styled.
 
 ## Implementation references

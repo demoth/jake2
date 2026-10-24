@@ -92,8 +92,17 @@ hosts: SoundPlayback lives in audio, and SoundPreviewControls borrows explicit
 label/button styles (or the viewer's native Skin). A single click auditions;
 double-click shows controls without restarting. The client stage directly owns
 one converted sound and stops/disposes it on selection, navigation and profile
-changes. Space toggles playback; S stops. Sprite/model/map previews remain
-standalone-only.
+changes. Space toggles playback; S stops.
+
+SpriteFrameImage, SpritePreview, FramePlayback and FramePlaybackControls also
+serve both hosts. Click an SP2 tile to play once; double-click opens themed
+frame controls without restarting. Sprite frames use a fixed maximum-size
+canvas with per-frame centring, inside the shared zoom/pan pane. The client
+owns a private sprite AssetManager using existing loaders and profile-only
+frame resolution (the engine palette remains available for WAL). Selection,
+Back, profile changes and failures clear that manager without unloading game
+textures. Space toggles playback; Left/Right step and pause. Model/map previews
+remain standalone-only.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 

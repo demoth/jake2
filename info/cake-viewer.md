@@ -104,8 +104,18 @@ same tile again restarts it. The controls use the active menu theme and their
 buttons are momentary actions. Selecting another file, Back to folder, folder-up,
 leaving the browser, profile changes and shutdown stop and dispose the preview
 sound. A failed sound shows a dismissible error when its controls are opened.
-Existing 8-bit PCM conversion is reused. Sprite and model/map previews remain
-later client slices. Browsing does not change theme.
+Existing 8-bit PCM conversion is reused.
+
+Client SP2 tiles now match the viewer too: click to play once in the tile,
+double-click to open the larger preview without resetting playback. It fits a
+fixed canvas based on the largest frame dimensions, centres each frame and
+supports the same wheel zoom/left-drag pan as images. The themed transport shows
+frame index/count and dimensions, with Previous/Next, Play/Pause/Loop/Stop.
+Space toggles play/pause; Left/Right step and pause. Stop resets to frame one.
+Back to folder, selection/folder changes, browser exit and profile changes stop
+animation and release its frame textures. Missing/corrupt frames show a
+recoverable error. Model/map previews remain later client slices. Browsing does
+not change theme.
 
 ### How to run
 Run from IDE using `org.demoth.cake.lwjgl3.Lwjgl3ViewerLauncher.main`, optionally passing a file path as the program argument.

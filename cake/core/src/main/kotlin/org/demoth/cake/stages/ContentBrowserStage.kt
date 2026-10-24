@@ -3,12 +3,14 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.audio.Sound
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.viewport.Viewport
+import com.badlogic.gdx.utils.Scaling
 import jake2.qcommon.vfs.VfsEntry
 import org.demoth.cake.ui.ContentBrowser
 import org.demoth.cake.ui.ContentBrowserStyles
@@ -17,6 +19,10 @@ import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ImagePreviewPane
 import org.demoth.cake.ui.SoundPreviewControls
 import org.demoth.cake.audio.SoundPlayback
+import org.demoth.cake.assets.Sp2Asset
+import org.demoth.cake.ui.FramePlayback
+import org.demoth.cake.ui.SpriteFrameImage
+import org.demoth.cake.ui.SpritePreview
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
@@ -26,6 +32,7 @@ class ContentBrowserStage(
     menuEventBus: MenuEventBus,
     style: GameUiStyle,
     private val thumbnails: ImageThumbnails,
+    private val spriteAssets: AssetManager,
     private val loadSound: (VfsEntry) -> Sound,
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenMainMenu) {
     private val styles = ContentBrowserStyles.fromMenu(style.menuWidgets)
@@ -35,6 +42,10 @@ class ContentBrowserStage(
     private var soundPlayback: SoundPlayback? = null
     private var soundPath: String? = null
     private var failedSoundPath: String? = null
+    private var sprite: Sp2Asset? = null
+    private var spritePlayback: FramePlayback? = null
+    private var spritePath: String? = null
+    private var failedSpritePath: String? = null
 
     init {
         addActor(Table().apply {
@@ -60,10 +71,20 @@ class ContentBrowserStage(
     }
 
     private fun selectResource(entry: VfsEntry?): Actor? {
-        if (entry?.normalizedPath?.substringAfterLast('.') == "wav") {
-            if (ensureSound(entry)) soundPlayback!!.replay()
-        } else {
-            clearSound()
+        when (entry?.normalizedPath?.substringAfterLast('.')) {
+            "wav" -> {
+                clearSprite()
+                if (ensureSound(entry)) soundPlayback!!.replay()
+            }
+            "sp2" -> {
+                clearSound()
+                if (ensureSprite(entry)) {
+                    spritePlayback!!.stop()
+                    spritePlayback!!.play()
+                    return SpriteFrameImage(sprite!!, spritePlayback!!, Scaling.fit)
+                }
+            }
+            else -> { clearSound(); clearSprite() }
         }
         return null
     }
@@ -71,11 +92,16 @@ class ContentBrowserStage(
     private fun previewResource(entry: VfsEntry?): Actor? {
         if (entry == null) {
             clearSound()
+            clearSprite()
             return null
         }
         if (entry.normalizedPath.substringAfterLast('.') == "wav") {
             return if (ensureSound(entry)) SoundPreviewControls(sound!!, soundPlayback!!, styles.label, styles.button)
             else Label("Could not load sound.", styles.label)
+        }
+        if (entry.normalizedPath.substringAfterLast('.') == "sp2") {
+            return if (ensureSprite(entry)) SpritePreview(sprite!!, spritePlayback!!, styles.label, styles.button)
+            else Label("Could not load sprite.", styles.label)
         }
         return previewImage(entry)
     }
@@ -106,9 +132,39 @@ class ContentBrowserStage(
         failedSoundPath = null
     }
 
+    private fun ensureSprite(entry: VfsEntry): Boolean {
+        if (spritePath == entry.normalizedPath) return true
+        if (failedSpritePath == entry.normalizedPath) return false
+        clearSprite()
+        return try {
+            spriteAssets.load(entry.normalizedPath, Sp2Asset::class.java)
+            spriteAssets.finishLoading()
+            sprite = spriteAssets.get(entry.normalizedPath, Sp2Asset::class.java)
+            spritePlayback = FramePlayback(sprite!!.frames.size)
+            spritePath = entry.normalizedPath
+            true
+        } catch (error: Exception) {
+            clearSprite()
+            failedSpritePath = entry.normalizedPath
+            Gdx.app.error("Content browser", "Could not preview ${entry.displayPath}", error)
+            false
+        }
+    }
+
+    private fun clearSprite() {
+        spritePlayback?.stop()
+        sprite = null
+        spritePlayback = null
+        spritePath = null
+        failedSpritePath = null
+        // This manager belongs only to the browser; failed dependencies never clear game assets.
+        spriteAssets.clear()
+    }
+
     override fun act(delta: Float) {
-        super.act(delta)
         soundPlayback?.update()
+        spritePlayback?.update(delta)
+        super.act(delta)
     }
 
     private fun previewImage(entry: VfsEntry?): Actor? {
@@ -135,6 +191,13 @@ class ContentBrowserStage(
                 Input.Keys.S -> { playback.stop(); return true }
             }
         }
+        spritePlayback?.let {
+            when (keycode) {
+                Input.Keys.SPACE -> { it.toggle(); return true }
+                Input.Keys.LEFT -> { it.step(-1); return true }
+                Input.Keys.RIGHT -> { it.step(1); return true }
+            }
+        }
         return super.keyDown(keycode)
     }
 
@@ -143,11 +206,13 @@ class ContentBrowserStage(
         unfocusAll()
         content.actor = null
         clearSound()
+        clearSprite()
         thumbnails.clear()
     }
 
     override fun dispose() {
         hide()
+        spriteAssets.dispose()
         super.dispose()
     }
 }

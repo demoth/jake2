@@ -1292,7 +1292,7 @@ class Cake(
         )
         if (::contentBrowserStage.isInitialized) contentBrowserStage.dispose()
         contentBrowserStage = ContentBrowserStage(uiViewport, menuEventBus, style,
-            ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent))) { entry ->
+            ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent)), createSpritePreviewAssets()) { entry ->
             val file = requireNotNull(fileResolver.resolveContent(entry.normalizedPath)) { "Missing profile sound" }
             // Own this preview separately; failures must not leave tasks in the shared asset manager.
             ConvertingSoundLoader(fileResolver).loadSync(assetManager, entry.normalizedPath, file, null)
@@ -1313,6 +1313,21 @@ class Cake(
             )
         ) {
             updateInputHandlers(consoleVisible, menuVisible)
+        }
+    }
+
+    private fun createSpritePreviewAssets(): AssetManager {
+        val resolver = FileHandleResolver { path ->
+            // Palette is an engine resource; all sprite/frame paths stay within the active profile.
+            requireNotNull(if (path == "q2palette.bin") fileResolver.resolve(path) else fileResolver.resolveContent(path)) {
+                "Missing profile preview resource: $path"
+            }
+        }
+        return AssetManager(resolver).apply {
+            setLoader(Any::class.java, ObjectLoader(resolver))
+            setLoader(Sp2Asset::class.java, Sp2Loader(resolver))
+            setLoader(Texture::class.java, "pcx", PcxLoader(resolver))
+            setLoader(Texture::class.java, "wal", WalLoader(resolver))
         }
     }
 

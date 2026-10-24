@@ -1027,3 +1027,48 @@ settings with cfg_autosave disabled.
 Two commits separate shared playback/style extraction from client ownership and
 input wiring. Production scope is about 100 added lines, within the 90–130 line
 estimate. Sprite, MD2 and BSP previews remain later slices.
+
+
+### Client SP2 sprite previews
+
+Client SP2 tiles now match the viewer: single-click starts one playback in the
+tile, while double-click opens a larger preview without resetting the animation.
+The shared SpriteFrameImage keeps a fixed maximum-frame-size canvas and centres
+each frame at its declared dimensions. ImagePreviewPane supplies fit, zoom/pan
+and clipping. Themed frame metadata and Previous/Play/Pause/Loop/Stop/Next
+controls reuse FramePlaybackControls. Space toggles play/pause, Left/Right step
+and pause, and Stop resets to the first frame. One-shot playback holds its final
+frame; Loop repeats. Frame action buttons remain momentary in both hosts.
+
+SpriteFrameImage/SpritePreview, FramePlayback and FramePlaybackControls moved
+from viewer to ui. Native Skin constructors preserve standalone appearance;
+client constructors take resolved label/button styles. The existing frame
+playback tests follow the shared implementation. MD2's standalone transport
+also continues to use the same shared controls.
+
+The client stage owns a private sprite AssetManager, configured with existing
+Sp2Loader, PCX/WAL and default image loaders. Sprite/frame paths resolve only
+through the active profile; q2palette.bin retains normal engine resolution.
+This isolates preview textures and failed dependency tasks from game assets.
+Selecting another file, Back to folder, folder/up navigation, browser exit,
+profile/style/server context changes and disposal clear the sprite manager and
+stop playback; disposal also closes the private manager. WAV and sprite audition
+are mutually exclusive. Missing, malformed and empty sprites show a recoverable
+error; the private manager is cleared and another file can open. No new loader
+or general preview framework was added.
+
+Validation: animation, sound, menu and preview ownership tests pass; all three
+hosts compile. Temporary desktop probes check a real game SP2 plus varying-size
+TGA-frame fixtures, single-click tile animation, no double-click reset, transport
+buttons and keyboard, one-shot completion, stable fit, zoom/pan, resize and 4K
+in both themes. They check independent preview/game texture identity, game
+reference survival, frame disposal on selection/folder/Back/profile/shutdown,
+and recovery from missing/partial dependencies, malformed headers and zero
+frames. Shared game UI textures remain alive after failures. A real standalone
+PAK probe checks tile/full previews, native control fonts and frame cleanup; the
+client WAV regression probe also passes. Both-theme sprite captures were
+inspected. Probe settings use a temporary home with cfg_autosave disabled.
+
+Two commits separate shared frame/style extraction from client resource/input
+wiring. Production scope is about 115 added lines, within the 100–150 estimate.
+MD2 and BSP previews remain later slices.
