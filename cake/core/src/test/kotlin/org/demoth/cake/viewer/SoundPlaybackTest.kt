@@ -1,6 +1,7 @@
 package org.demoth.cake.viewer
 
 import com.badlogic.gdx.audio.Sound
+import org.demoth.cake.audio.SoundPlayback
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.lang.reflect.Proxy

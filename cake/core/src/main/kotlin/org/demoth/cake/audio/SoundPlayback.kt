@@ -1,7 +1,6 @@
-package org.demoth.cake.viewer
+package org.demoth.cake.audio
 
 import com.badlogic.gdx.audio.Sound
-import org.demoth.cake.audio.SoundDurationRegistry
 
 /** Owns one playback instance, borrowing the sound from the active preview's asset scope. */
 internal class SoundPlayback(
