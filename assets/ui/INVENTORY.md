@@ -258,7 +258,7 @@ named, possibly tinted or stretchable use of artwork.
 | D19 | Tree surface and hover | `tree`, `treeOver` | Engine only |
 | D20 | Tree controls | `treeMinus`, `treePlus` | Engine only |
 | D21 | Window and panel surfaces | `window`, `windowResize`, `windowBorder` | Engine only; browser and viewer use `window` as a panel drawable |
-| D22 | Separator / divider artwork | Existing split/line primitives can seed the engine role | Conchars 29–31, row 2 last three cells; not yet wired; vertical variant can reuse rotated artwork |
+| D22 | Separator / divider artwork | `separatorHorizontal`: gray `line-h`; menu copy is 1 unit thick, vertical copy is rotated | Conchars 29–31 with fixed caps/stretch middle; horizontal and rotated vertical drawables available |
 
 There is no named browser-tile style yet: `ContentBrowser` constructs a
 `ButtonStyle` locally, with transparent idle appearance and the engine `selection`
@@ -278,7 +278,7 @@ current style builder and the legacy menu drawing code.
 | Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container, scroll surface and action buttons | Thick frame for containers/groups and action buttons |
 | Tree direction mark, row 1 | 13: right-pointing triangle | Available source; not wired to TreeStyle yet | Preferred collapsed mark; rotate down for expanded; +/- (43/45) remain alternatives |
 | Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for checkbox toggles, fields and dropdowns |
-| Separator, row 2 last three cells | Start: 29; middle: 30; end: 31 | Available source; not wired | Horizontal divider; reuse rotated for vertical divider/handle |
+| Separator, row 2 last three cells | Start: 29; middle: 30; end: 31 | Derived horizontal and clockwise vertical drawables; exposed in sample | Horizontal divider; reuse rotated for vertical divider/handle |
 | Slider, row 9 | Start: 128; middle: 129; end: 130; knob: 131 | Derived SliderStyle; also used by legacy Java menus | Horizontal slider track and knob |
 | Progress indicator | Reuse 128–131 | Derived ProgressBarStyle | Read-only position indicator sharing the slider track |
 
@@ -353,7 +353,7 @@ skin to a widget still selects engine styles.
 | W20 | Console output | Custom widget reads `default` font and `font`, `warning`, `error` colours | Engine only | Required; wrapping, clipping, scrolling |
 | W21 | Image and scene preview | Image/Widget/WidgetGroup implementations; content textures borrowed from host | Media is content, UI surrounds use engine skin | Required; images, sprites, MD2 and BSP |
 | W22 | Layout containers | Table, Container, HorizontalGroup and other groups | Shared layout mechanisms | Required; no independent standard style; backgrounds are Drawables |
-| W23 | Separator | Image/Drawable; horizontal and vertical variants | Conchars 29–31 available; not wired | Planned; static decoration, distinct from draggable W09 split pane |
+| W23 | Separator | Image/Drawable; horizontal and vertical variants | Derived conchars 29–31; engine uses an existing line primitive | Available in sample; static decoration, distinct from draggable W09 split pane |
 
 TextArea, multiline editing and spinner behaviour are not current requirements.
 Password masking is already used by Player Setup with `*` as the mask character.
@@ -412,7 +412,7 @@ interactive support.
 | W01–W11 required standard controls and tiles | Partial | Open | W01–W07 specimens available; W08–W11 tree/split/button variants/tiles remain planned |
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
-| D22 / W23 separator | Planned | Open | Conchars 29–31 verified; horizontal/rotated vertical variants and sample remain to implement |
+| D22 / W23 separator | Available | Open | Two horizontal lengths and a vertical specimen in both modes; game caps remain fixed; engine flat-line art can be refined later |
 | Themed split handle | Deferred | Open | Existing libGDX dragging and engine handle can be retained; separate from static separator work |
 | Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
 | Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× source panels displayed at 1/3 scale; both visible in sample |

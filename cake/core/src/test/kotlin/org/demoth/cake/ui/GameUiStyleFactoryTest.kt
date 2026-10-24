@@ -55,6 +55,7 @@ class GameUiStyleFactoryTest {
         )
         val emptyDrawable = TextureRegionDrawable(TextureRegion())
         return Skin().apply {
+            add("separatorHorizontal", emptyDrawable, Drawable::class.java)
             add("console-panel", emptyDrawable, Drawable::class.java)
             add("default-horizontal", Slider.SliderStyle(emptyDrawable, emptyDrawable))
             add("default", font, BitmapFont::class.java)

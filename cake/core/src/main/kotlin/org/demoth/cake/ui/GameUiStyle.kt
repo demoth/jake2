@@ -4,6 +4,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.BitmapFont
+import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.NinePatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.scenes.scene2d.ui.Label
@@ -16,8 +17,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
+import com.badlogic.gdx.scenes.scene2d.utils.BaseDrawable
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import com.badlogic.gdx.scenes.scene2d.utils.TransformDrawable
 import com.badlogic.gdx.utils.Disposable
 
 data class MenuWidgetStyles(
@@ -32,6 +35,8 @@ data class MenuWidgetStyles(
     val controlPanel: Drawable,
     val slider: Slider.SliderStyle,
     val progress: ProgressBar.ProgressBarStyle,
+    val separatorHorizontal: Drawable,
+    val separatorVertical: Drawable,
 )
 
 private val MENU_HOVER_TEXT_COLOR = Color(0.35f, 0.95f, 0.35f, 1f)
@@ -148,10 +153,13 @@ internal fun createEngineMenuWidgetStyles(skin: Skin): MenuWidgetStyles {
         }
         styles.slider.knobOver = styles.slider.knobOver?.scaled()
         styles.slider.knobDown = styles.slider.knobDown?.scaled()
+        val separator = styles.separatorHorizontal.scaled() as TransformDrawable
         styles.copy(
             containerPanel = styles.containerPanel.scaled(),
             controlPanel = styles.controlPanel.scaled(),
             progress = ProgressBar.ProgressBarStyle(styles.slider),
+            separatorHorizontal = separator,
+            separatorVertical = ClockwiseDrawable(separator),
         )
     }
 }
@@ -195,6 +203,19 @@ internal fun createMenuWidgetStyles(
     }
     // A read-only position indicator uses the same track and knob as the editable slider.
     val progress = ProgressBar.ProgressBarStyle(slider)
+    val separator = (if (concharsTexture != null) {
+        NinePatchDrawable(NinePatch(
+            null, null, null,
+            concharsGlyph(concharsTexture, 29), concharsGlyph(concharsTexture, 30), concharsGlyph(concharsTexture, 31),
+            null, null, null,
+        ))
+    } else {
+        // A flat engine line, authored in the same 3x source units as other engine menu drawables.
+        skin.newDrawable("separatorHorizontal").apply {
+            minWidth = 72f
+            minHeight = 3f
+        }
+    }) as TransformDrawable
     val contentSelectionDrawable = concharsTexture?.let { createConcharsFillDrawable(it, BOX_FILL, MENU_SELECTION_COLOR) }
     // ScrollPane stretches its track and proportional thumb vertically. A nine-patch keeps
     // their borders intact; the horizontal slider glyphs in conchars cannot be stretched this way.
@@ -273,7 +294,21 @@ internal fun createMenuWidgetStyles(
         controlPanel = contentControlDrawable ?: baseTextFieldStyle.background,
         slider = slider,
         progress = progress,
+        separatorHorizontal = separator,
+        separatorVertical = ClockwiseDrawable(separator),
     )
+}
+
+/** Rotate inside the supplied bounds without changing batch transforms or borrowing an Actor. */
+private class ClockwiseDrawable(private val source: TransformDrawable) : BaseDrawable() {
+    init {
+        minWidth = source.minHeight
+        minHeight = source.minWidth
+    }
+
+    override fun draw(batch: Batch, x: Float, y: Float, width: Float, height: Float) {
+        source.draw(batch, x, y + height, 0f, 0f, height, width, 1f, 1f, -90f)
+    }
 }
 
 private fun createConcharsPanelDrawable(texture: Texture, firstGlyph: Int): NinePatchDrawable =

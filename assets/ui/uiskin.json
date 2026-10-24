@@ -279,6 +279,10 @@
       name: square,
       color: down
     },
+    separatorHorizontal: {
+      name: line-h,
+      color: gray
+    },
     sliderHorizontal: {
       name: square,
       color: gray

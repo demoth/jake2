@@ -45,6 +45,9 @@ class ConcharsAtlasGlTest {
             fill()
             setColor(1f, 0f, 0f, 1f)
             fillRectangle(8, 8, 8, 8)
+            fillRectangle(13 * 8, 8, 8, 8) // Separator start, glyph 29.
+            setColor(0f, 0f, 1f, 1f)
+            fillRectangle(15 * 8, 8, 8, 8) // Separator end, glyph 31; middle stays green.
         }
         val texture = Texture(pixmap)
         pixmap.dispose()
@@ -76,7 +79,11 @@ class ConcharsAtlasGlTest {
                     assertEquals(4f, styles.controlPanel.topHeight, 0.001f)
                     assertEquals(16f, styles.controlPanel.minHeight, 0.001f)
                     assertEquals(8f, styles.slider.knob.minHeight, 0.001f)
+                    assertEquals(24f, styles.separatorHorizontal.minWidth, 0.001f)
+                    assertEquals(styles.separatorHorizontal.minHeight, styles.separatorVertical.minWidth)
+                    assertEquals(24f, styles.separatorVertical.minHeight, 0.001f)
                 }
+                verifySeparators(quake, batch, target)
                 engine.dispose()
             } finally {
                 skin.dispose()
@@ -124,6 +131,38 @@ class ConcharsAtlasGlTest {
             font.dispose()
             menuFont.dispose()
             texture.dispose()
+        }
+    }
+
+    private fun verifySeparators(styles: MenuWidgetStyles, batch: SpriteBatch, target: SceneFrameBuffer) {
+        target.renderTarget.begin()
+        Gdx.gl.glDisable(0x809D)
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        batch.projectionMatrix.setToOrtho2D(0f, 0f, 128f, 128f)
+        batch.begin()
+        styles.separatorHorizontal.draw(batch, 10f, 20f, 80f, 8f)
+        styles.separatorVertical.draw(batch, 110f, 20f, 8f, 80f)
+        batch.end()
+        target.renderTarget.end()
+        target.resolve()
+        target.resolved.begin()
+        val pixels = Pixmap.createFromFrameBuffer(0, 0, 256, 256)
+        try {
+            fun rgb(x: Int, y: Int) = pixels.getPixel(x * 2, y * 2).ushr(8)
+            assertEquals(0xff0000, rgb(17, 24), "Horizontal start cap remains eight units wide")
+            assertEquals(0x00ff00, rgb(19, 24))
+            assertEquals(0x00ff00, rgb(81, 24))
+            assertEquals(0x0000ff, rgb(83, 24), "Horizontal end cap remains eight units wide")
+            assertEquals(0xff0000, rgb(114, 99), "Rotation puts the start cap at the top")
+            assertEquals(0x00ff00, rgb(114, 91))
+            assertEquals(0x00ff00, rgb(114, 29))
+            assertEquals(0x0000ff, rgb(114, 21), "Rotation puts the end cap at the bottom")
+            assertEquals(0, rgb(109, 60), "Vertical separator stays inside its bounds")
+            assertEquals(0, rgb(119, 60))
+        } finally {
+            pixels.dispose()
+            target.resolved.end()
         }
     }
 }

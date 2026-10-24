@@ -7,6 +7,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.List as UiList
 import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar
 import com.badlogic.gdx.scenes.scene2d.ui.Slider
@@ -17,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
+import com.badlogic.gdx.utils.Scaling
 import org.demoth.cake.ui.EngineUiStyle
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.UiViewport
@@ -185,6 +187,13 @@ class UiSkinSample(
             }).growX().minWidth(0f)
             add(Label("", styles.label)).width(percentageWidth)
         }).row()
+        content.add(Table().apply {
+            defaults().left().pad(3f)
+            add(Label("Separators", styles.label)).colspan(3).row()
+            add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).width(120f).height(16f)
+            add(Image(styles.separatorHorizontal).apply { setScaling(Scaling.stretchX) }).growX().minWidth(24f).height(16f)
+            add(Image(styles.separatorVertical).apply { setScaling(Scaling.stretchY) }).width(16f).height(48f)
+        }).growX().row()
         root.add(content).growX().maxWidth(900f).minWidth(0f)
         root.validate()
         scroll!!.scrollY = scrollY

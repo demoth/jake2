@@ -49,7 +49,7 @@ Use **elements → styles → widgets → screens** throughout the sample. The
 [target widget list](../assets/ui/INVENTORY.md#target-widgets-for-cake-screens)
 defines its core scope: label, action button, checkbox, text input, selectable
 list, dropdown, scroll pane, tree, split pane, panel, content tile, image view,
-horizontal slider and horizontal progress indicator.
+horizontal slider, horizontal progress indicator and static separator.
 Composed and specialized widgets cover the browser, resource information,
 playback, console output, scene preview, diagnostics and HUD.
 
@@ -612,9 +612,8 @@ prerequisite. Revisit background composition/right-inset allocation when resumed
 
 ## Browser preparation before client embedding
 
-This is a readiness review and plan, not authorization to resume the paused
-viewer implementation or embed the browser yet. The arrow indicator is recorded
-as deferred. The existing ContentBrowser already implements folders, wrapping
+UI preparation proceeds in small slices; browser embedding remains a later
+slice. The dropdown arrow indicator is recorded as deferred. The existing ContentBrowser already implements folders, wrapping
 file tiles, thumbnail placeholders, selection metadata, scrolling and preview/Back
 callbacks. Reuse it rather than introducing another browser or UI framework.
 
@@ -623,7 +622,7 @@ callbacks. Reuse it rather than introducing another browser or UI framework.
 | Element / widget | Existing support | Work before client embedding |
 | --- | --- | --- |
 | Labels, action buttons, panels | Resolved engine/game menu styles; native Quake size restored | Reuse; preserve the standalone viewer's existing engine sizing |
-| Separator | Conchars row 2, cells 29–31: start/middle/end, verified against the actual sheet | Add horizontal drawable with fixed caps/stretch middle and a rotated vertical variant; expose in sample |
+| Separator | Both orientations implemented: conchars 29–31 and engine gray line, shown in sample | Available for browser use; static only, themed drag handle remains deferred |
 | Tree | Standard libGDX Tree; current browser obtains its engine TreeStyle and node labels directly from Skin | Resolve selection, hover and node labels; preferred expand/collapse candidate is conchars triangle 13, right when collapsed and rotated down when expanded; +/- remain an alternative |
 | Split pane | Standard libGDX SplitPane; browser uses left/right panes with a vertical handle | Themed handle artwork/interaction refinements are deferred; retain the existing engine handle as an explicit fallback when adapting the browser |
 | File/folder tile | Existing Button with transparent idle and locally assigned hover/selected fill | Resolve a tile ButtonStyle plus label/placeholder styling; retain flat idle and borrowed thumbnail textures |
@@ -641,7 +640,7 @@ independently.
 
 ### Small implementation slices
 
-1. **Static separators.** Add horizontal/vertical separator roles in both themes
+1. **Static separators — complete.** Add horizontal/vertical separator roles in both themes
    using existing engine line/split resources and conchars 29–31. Show both
    orientations in the sample; check fixed end caps, stretching and minimum
    size at native Quake sizing and current `cl_ui_size`. Themed drag handles are
@@ -690,3 +689,38 @@ is needed. The normal font's + and - glyphs (43/45) remain simple alternatives.
 This tree work is independent of the deferred dropdown indicator, whose widget
 has no dedicated icon slot. Confirm appearance in the sample as tree coverage
 is added; this is a working visual choice rather than a new asset requirement.
+
+
+### Static separator slice
+
+**Status: implemented.** MenuWidgetStyles now exposes horizontal and vertical
+separator Drawables. Game styling assembles conchars 29/30/31 as a horizontal
+nine-patch: 8-unit fixed end caps, stretchable middle, 24-unit minimum length and
+8-unit cell thickness. A clockwise Drawable wrapper swaps dimensions and draws
+inside the supplied vertical bounds, placing the start cap at the top. It borrows
+the same texture and does not alter batch transforms or allocate another image.
+
+Engine styling uses the existing `line-h` primitive tinted gray through the Skin's
+`separatorHorizontal` role. Its menu copy is 1 unit thick with minimum length 24;
+the vertical variant reuses the same rotation wrapper. Its flat-line appearance
+is an initial engine styling choice, not an attempt to copy Quake's border art.
+The sample centres these drawables in their cells using Image scaling: two
+horizontal lengths demonstrate stretching and a vertical specimen demonstrates
+orientation. No new UI widget, input behavior, texture asset or dependency is
+introduced. The themed drag handle and dropdown indicator remain deferred;
+right/down triangle tree styling remains the next browser coverage slice.
+
+
+Verification: client/fullgame compilation and the four focused style/viewport
+tests passed. The existing OpenGL atlas test now uses synthetic red/green/blue
+separator cells to check fixed eight-unit caps, stretched middle, clockwise
+start/end orientation and drawing bounds. The runtime sample probe checks
+interaction/state retention, theme/fallback switching, minimum-height fit and
+4K scaling; engine/game sample heights are 437/387 within 608 available at
+`cl_ui_size 640`. Both automatic captures were visually checked.
+
+Actual implementation scope: 48 added production lines (including the Skin
+resource), 40 added lines extending the existing tests/fixtures, and documentation;
+no moved code, new textures, dependency or separate widget class. This is within
+the approximate 50–80 production-line estimate; the rotation helper is local to
+the existing style builder.

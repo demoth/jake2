@@ -71,6 +71,9 @@ Two Drawable roles distinguish thick containers/action buttons from thin control
 IdTech2 thick panels use conchars cells 1–9, and control frames use 18–26 with
 half-cell content insets.
 Slider tracks use 128–130 with knob 131; progress shares the track and knob.
+Static separators use 29–31 with fixed caps and a stretchable middle, plus a
+clockwise vertical variant. Engine menus use a gray line from the existing atlas.
+Both orientations are Drawables shown through Image; they add no dragging behavior.
 The sample shows both panel roles and links slider changes to progress. Engine
 styles use separate thick/thin engine panel artwork and the existing slider art.
 
