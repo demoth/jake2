@@ -1,120 +1,85 @@
 # Content UI Styles
 
-## Responsibilities
+Shared styles and preview widgets for [menus](../stages/README.md),
+[HUD](../stages/ingame/hud/README.md), and CakeViewer.
+Configstring assets belong to [game configuration](../config/README.md).
 
-The internal `ui_sample [engine|game|off]` console command opens a widget gallery
-in client/fullgame. Engine and active-game modes share one layout and retain
-edited fixture state when switched. Escape or Close returns to the prior view;
-profile style changes close the sample before releasing borrowed resources.
-The compact sample fits one virtual screen and follows the vertical `cl_ui_size`
-setting live. Captions and controls all use the selected theme; fallback is
-identified explicitly.
-`ui_sample_capture <engine|game|both> <directory>` writes snapshots after rendering
-and exits. Launch with `+set cfg_autosave 0` to keep temporary settings unsaved;
-`+set vid_hidden 1` starts without a visible window. The usual `+set`/`+commands`
-startup syntax works in client/fullgame.
-See the [coverage inventory](../../../../../../../../../assets/ui/INVENTORY.md)
+## Ownership and lifetime
+
+| Component | Responsibility |
+|---|---|
+| `GameUiStyle` | HUD fonts, number glyphs, menu widgets, optional sounds; owns acquired asset references. |
+| `GameUiStyleFactory` | Tries IdTech2 assets through mod/base lookup for every mod; releases partial acquisitions and falls back to `EngineUiStyle` on failure. |
+| `Cake` | Caches style by base-directory/mod, closes samples before style disposal, rebuilds menus and supplies the HUD style. |
+| `MenuStages` | Owns menu stages; rebuilds them when the shared style changes. |
+| `UiSamplePreview` | Owns gallery stage, commands, mode selection, rendering, and capture sequence; Cake retains visibility, input, and pause policy. |
+
+- Styles acquire their own `AssetManager` references even for already-loaded textures.
+- HUD/menu font instances share a conchars texture but have independent metrics; dispose fonts before releasing the texture.
+- Hosts remove preview actors and dispose renderers/targets before releasing assets.
+
+## Fonts and widgets
+
+Both menu themes use the vertical `cl_ui_size` convention, 8-unit cap heights,
+and thick/thin insets of 8/4. Engine menu fonts and drawables use 1/3 scale;
+console, viewer, and diagnostics retain native sizing. Skin owns its raw/menu fonts.
+
+| Element | IdTech2 source / behavior |
+|---|---|
+| Text | `ConcharsFontLoader`: `pics/conchars.pcx`, fixed 16×16 grid with texture-derived cell size (128² or 256² atlases). Alpha comes from PCX decoding. |
+| Alternate HUD text | `char ^ 0x80`, preserving alternate glyphs/colors. |
+| HUD numbers | `HudNumberFont`: separate `num_*` / `anum_*` pictures. |
+| Thick panels / thin controls | Conchars cells 1–9 / 18–26; controls use half-cell insets. |
+| Sliders / progress | Track 128–130, knob 131. |
+| Separators / vertical scroll thumbs | Cells 29–31, fixed caps and stretchable middle; rotated for vertical use. ScrollPane handles dragging. |
+| Trees | Cell 13 right/down marks, square 11 selection/hover; labels use resolved styles. |
+
+`MenuWidgetStyles` covers labels, buttons, fields, lists, select boxes, scroll
+panes, sliders, progress, and trees. Engine styles use existing panel/slider/tree
+artwork and atlas lines; tree slots match the 8-unit game theme.
+
+## Content browser and previews
+
+| Component | Responsibility |
+|---|---|
+| `ContentBrowserStage` / `ContentBrowser` | Client layout; shared VFS browsing and back navigation. Hosts supply the root action. |
+| `ContentBrowserStyles` | Resolved menu styles; standalone Skin adapter preserves viewer sizing. |
+| `ImageThumbnails` | Progressive visible PCX/WAL/TGA loading; owns folder-scoped textures, released on folder change, exit, or profile change. |
+| `ContentPreview` | Client media loading, playback, and cleanup; owns converted sounds and a private preview AssetManager. |
+| `ImagePreviewPane` | Shared aspect-fit display, pointer-anchored zoom, and pan; borrows image textures. |
+| `SoundPlayback` / `SoundPreviewControls` | Shared audio playback and explicitly styled controls. |
+| `SpriteFrameImage`, `SpritePreview`, `FramePlayback`, `FramePlaybackControls` | Shared SP2 playback and controls; centered frames on a fixed maximum-size canvas. |
+| `SceneResourcePreview` / `PreviewResources` | Shared MD2/BSP setup, rendering, controls, and scoped resource ownership. |
+| `ScenePreviewPane` | Render target uses transformed screen dimensions to retain resolution under UI scaling and high-DPI displays. |
+
+- Preview content resolves within the profile; engine palette/shaders remain available.
+- Selection, navigation, profile changes, and failures clear preview resources without unloading shared game textures.
+- Back/Escape restores folder scroll, then ascends folders; only root exits the browser.
+
+| Media | Interaction |
+|---|---|
+| Images | Zoom/pan in the shared pane. |
+| WAV | Click auditions; double-click opens controls without restarting. Space toggles; S stops. |
+| SP2 | Click plays once; double-click opens controls without restarting. Space toggles; Left/Right step and pause. |
+| MD2 | Orbit/zoom, frame transport, skins. |
+| BSP | Focused fly input; static world/brush rendering. |
+
+## Menu sounds
+
+- Optional `misc/menu1.wav`, `menu2.wav`, and `menu3.wav` supply enter, hover, and exit sounds.
+- MenuController emits navigation-depth signals; Cake plays queued sounds.
+- Shared button helpers apply hover sound/text feedback and reset it on click or menu changes.
+
+## Developer gallery
+
+| Command / flag | Behavior |
+|---|---|
+| `ui_sample [engine\|game\|off]` | Switch themes while retaining fixture edits, tree state, and scroll; Escape/Close returns to the prior view. |
+| `ui_sample_capture <engine\|game\|both> <directory>` | Write PNGs after two rendered frames per mode, then exit. Capture failures propagate. |
+| `+set cfg_autosave 0` | Avoid persisting temporary settings. |
+| `+set vid_hidden 1` | Start with a hidden window. |
+
+The gallery follows `cl_ui_size` live and identifies engine fallback explicitly.
+`writeScreenshot` serves gallery captures and profile screenshots; callers choose
+paths and error handling. See the [coverage inventory](../../../../../../../../../assets/ui/INVENTORY.md)
 and [sample plan](../../../../../../../../../info/ui-skin-sample.md).
-
-`GameUiStyle` supplies shared HUD fonts, numeric glyphs, menu widget styles, and
-optional menu sounds. `GameUiStyleFactory` selects and loads the implementation:
-`IdTech2UiStyle` uses game content, while `EngineUiStyle` uses the default Scene2D
-skin as fallback.
-
-[Menu stages](../stages/README.md) consume these styles; [the HUD](../stages/ingame/hud/README.md)
-parses layouts and draws overlays. `Cake` owns shared style lifetime. Configstring
-resources belong to [game configuration](../config/README.md).
-
-## Selection and Lifetime
-
-The factory attempts IdTech2 HUD assets through mod/base lookup for every game/mod,
-rather than gating by game name. This lets content-only mods inherit base-game
-fonts and numeric glyphs. If style creation fails, acquired HUD assets are released
-and the factory returns `EngineUiStyle`. Menu sounds are optional.
-
-`Cake` caches the shared style for the current base-directory/mod resolver context.
-Startup, profile changes, and serverdata handling can resolve that style. When it
-changes, content-styled menu stages are rebuilt rather than restyled in place;
-the game screen receives the shared style for HUD rendering.
-
-Each style owns its acquired `AssetManager` references and releases them when
-`Cake` disposes it. Reusing an already-loaded texture still requires an ownership
-reference, so disposing one owner does not unload another owner's assets.
-
-## Fonts and Glyphs
-
-- `ConcharsFontLoader` builds a `BitmapFont` from `pics/conchars.pcx`. The atlas has
-  a fixed 16-by-16 glyph grid; cell dimensions come from the actual texture size,
-  supporting both 128-by-128 and 256-by-256 atlases.
-- HUD and menus use separate font instances and metrics over the same borrowed
-  conchars texture. The style disposes both fonts before releasing its texture
-  reference. Partial factory failures also dispose any fonts already created.
-- Quake menus and HUD retain native conchars metrics. Engine menus use the Skin's
-  `menu` font (source cap height 24 at 1/3 scale) and copies of engine drawables at
-  1/3 scale. Both menu themes have 8-unit cap heights, thick insets 8 and thin
-  insets 4. Engine glyph widths and line spacing remain natural.
-- The raw default font/panels used by console/viewer/diagnostics are unchanged.
-  Skin owns the independent raw/menu fonts. Both menu themes share the vertical
-  `cl_ui_size` viewport convention; there is no new scale cvar.
-- Transparency comes from PCX decoding; the font loader does not post-process alpha.
-- Alternate HUD text uses the glyph high-bit toggle (`char ^ 0x80`), preserving
-  mod-defined alternate glyphs and colours rather than applying a tint.
-- `HudNumberFont`, implemented by `IdTech2HudNumberFont`, draws dedicated `num_*`
-  and `anum_*` picture glyphs for layout number commands, including alternate/red
-  fields. These are separate from the conchars font.
-
-## Menus and Sounds
-
-`MenuWidgetStyles` provides content-styled labels, buttons, text fields, select
-boxes, lists, scroll panes, horizontal sliders, progress indicators and trees.
-Two Drawable roles distinguish thick containers/action buttons from thin controls:
-IdTech2 thick panels use conchars cells 1–9, and control frames use 18–26 with
-half-cell content insets.
-Slider tracks use 128–130 with knob 131; progress shares the track and knob.
-Static separators use 29–31 with fixed caps and a stretchable middle, plus a
-clockwise vertical variant. Engine menus use a gray line from the existing atlas.
-Both orientations are Drawables shown through Image. Game vertical scrollbar
-thumbs reuse the vertical separator; standard ScrollPane supplies dragging.
-TreeStyle uses conchars 13 right/down marks and square 11 for row selection/hover;
-engine menus use the existing tree shapes in matching 8-unit slots. Tree node
-labels use the resolved LabelStyle. The sample retains folder expansion, selection
-and scroll position when changing theme. ContentBrowser now adopts these resolved styles through ContentBrowserStyles;
-its standalone Skin adapter retains native engine sizing. The client host browses
-profile VFS metadata and loads visible PCX/WAL/TGA thumbnails progressively.
-ImageThumbnails owns folder-scoped textures independently of shared game assets;
-folder changes, browser exit and profile changes release them. Client full-image
-previews borrow these cached textures through shared ImagePreviewPane, with
-aspect fit, pointer-anchored zoom and pan. Back to folder / Escape restore the
-grid scroll position. Further Escape presses navigate to the parent folder,
-leaving the browser only at the root. Both hosts call ContentBrowser.navigateBack;
-the host supplies its root action. WAV audition and controls also work in both
-hosts: SoundPlayback lives in audio, and SoundPreviewControls borrows explicit
-label/button styles (or the viewer's native Skin). A single click auditions;
-double-click shows controls without restarting. ContentPreview owns
-one converted sound and stops/disposes it on selection, navigation and profile
-changes. Space toggles playback; S stops.
-
-SpriteFrameImage, SpritePreview, FramePlayback and FramePlaybackControls also
-serve both hosts. Click an SP2 tile to play once; double-click opens themed
-frame controls without restarting. Sprite frames use a fixed maximum-size
-canvas with per-frame centring, inside the shared zoom/pan pane. The client
-uses a private preview AssetManager with existing loaders and profile-only
-content resolution; engine palette/shaders remain available. Selection, Back,
-profile changes and failures clear it without unloading game textures. Space
-toggles playback; Left/Right step and pause.
-
-ContentBrowserStage handles layout and navigation. ContentPreview owns client
-media loading/playback and cleanup. SceneResourcePreview shares MD2/BSP setup,
-rendering, controls and disposal with CakeViewer; PreviewResources scopes root
-asset references and directly owned renderers/panes. MD2 supports orbit/zoom,
-frame transport and skins. BSP supports focused fly input and static world/brush
-rendering. ScenePreviewPane sizes its target from transformed screen coordinates,
-so cl_ui_size and high-resolution displays retain full 3D resolution. Hosts remove
-preview actors when navigating and dispose render targets/renderers before assets.
-The sample shows both panel roles and links slider changes to progress. Engine
-styles use separate thick/thin engine panel artwork and the existing slider art.
-
-`MenuSoundStyles` provides optional sounds from `misc/menu1.wav`, `misc/menu2.wav`,
-and `misc/menu3.wav`. The menu controller emits enter/exit signals for navigation
-depth changes. Shared stage button helpers trigger hover sound and text-colour
-feedback, resetting it on click or menu-view changes. Cake plays queued signals.

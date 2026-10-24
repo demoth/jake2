@@ -5,10 +5,7 @@ import org.demoth.cake.assets.bsp.BspMapAsset
 import com.badlogic.gdx.*
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
-import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Color
-import com.badlogic.gdx.graphics.Pixmap
-import com.badlogic.gdx.graphics.PixmapIO
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
@@ -62,7 +59,8 @@ import org.demoth.cake.stages.ingame.Game3dScreen
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.ui.UiViewport
-import org.demoth.cake.ui.sample.UiSkinSample
+import org.demoth.cake.ui.sample.UiSamplePreview
+import org.demoth.cake.ui.writeScreenshot
 import org.demoth.cake.ui.menu.*
 import java.nio.file.Path
 import java.time.LocalDateTime
@@ -115,10 +113,7 @@ class Cake(
 
     private val hostClock = HostFrameClock()
     private var applicationPaused = false
-    private var uiSample: UiSkinSample? = null
-    private data class UiSampleCapture(val directory: FileHandle, val modes: ArrayDeque<Boolean>, var frames: Int = 2)
-    private var uiSampleCapture: UiSampleCapture? = null
-    private var uiSampleGameMode = false
+    private val uiSample = UiSamplePreview(onOpen = ::openUiSample, onClose = ::closeUiSample)
     private var uiSampleReturnToMenu = true
     private var menuVisibleBeforeConsole = true
 
@@ -264,35 +259,7 @@ class Cake(
 
         // region COMMANDS
 
-        Cmd.AddCommand("ui_sample", "(internal) Preview UI styles: ui_sample [engine|game|off]") { args ->
-            if (args.size > 2) {
-                Com.Printf("Usage: ui_sample [engine|game|off]\n")
-                return@AddCommand
-            }
-            when (args.getOrNull(1)) {
-                null -> openUiSample(uiSampleGameMode)
-                "engine" -> openUiSample(false)
-                "game" -> openUiSample(true)
-                "off" -> closeUiSample()
-                else -> Com.Printf("Usage: ui_sample [engine|game|off]\n")
-            }
-        }
-
-        Cmd.AddCommand("ui_sample_capture", "Capture engine/game/both styles to a directory, then exit") { args ->
-            require(args.size == 3) { "Usage: ui_sample_capture <engine|game|both> <directory>" }
-            val modes = when (args[1]) {
-                "engine" -> listOf(false)
-                "game" -> listOf(true)
-                "both" -> listOf(false, true)
-                else -> throw IllegalArgumentException("Expected engine, game or both")
-            }
-            check(uiSampleCapture == null) { "UI capture already running" }
-            val directory = Gdx.files.absolute(Path.of(args[2]).toAbsolutePath().normalize().toString())
-            directory.mkdirs()
-            check(directory.isDirectory) { "Not a capture directory: $directory" }
-            openUiSample(modes.first())
-            uiSampleCapture = UiSampleCapture(directory, ArrayDeque(modes))
-        }
+        uiSample.registerCommands()
 
         Cmd.AddCommand("quit", "Exit Cake") {
             saveActiveProfileConfig()
@@ -718,12 +685,12 @@ class Cake(
     // whenever we change the visibility of the console or the menu, we should update the set of input handlers
     // (in other words, which components receive the input events and which don't)
     private fun updateInputHandlers(consoleVisible: Boolean, menuVisible: Boolean) {
-        Gdx.input.isCursorCatched = !menuVisible && !consoleVisible && uiSample == null
+        Gdx.input.isCursorCatched = !menuVisible && !consoleVisible && !uiSample.isOpen
         game3dScreen?.clearInputState()
 
         val inputProcessor: InputProcessor = when {
             consoleVisible -> consoleStage
-            uiSample != null -> uiSample!!
+            uiSample.isOpen -> requireNotNull(uiSample.inputProcessor)
             menuVisible -> menuStages.inputProcessor
 
             else -> {
@@ -741,28 +708,24 @@ class Cake(
 
     private fun openUiSample(game: Boolean) {
         val style = resolveCurrentGameUiStyle()
-        if (uiSample == null) {
+        if (!uiSample.isOpen) {
             uiSampleReturnToMenu = if (consoleVisible) menuVisibleBeforeConsole else menuVisible
-            uiSample = UiSkinSample(uiSize.typedValue, Scene2DSkin.defaultSkin, style,
-                onMode = ::openUiSample, onClose = ::closeUiSample)
         }
-        uiSampleGameMode = game
-        uiSample!!.showMode(game)
+        uiSample.open(game, uiSize.typedValue, Scene2DSkin.defaultSkin, style)
         consoleVisible = false
     }
 
     private fun closeUiSample() {
-        val sample = uiSample ?: return
-        uiSample = null
-        sample.dispose()
-        menuVisible = uiSampleReturnToMenu || game3dScreen == null
+        if (uiSample.close()) {
+            menuVisible = uiSampleReturnToMenu || game3dScreen == null
+        }
     }
 
     override fun resize(width: Int, height: Int) {
         if (width <= 0 || height <= 0 || !::viewport.isInitialized) return
         uiViewport.update(width, height, true)
         viewport.update(width, height, true)
-        uiSample?.resize(width, height)
+        uiSample.resize(width, height)
         game3dScreen?.resize(width, height)
         profileBackgroundBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
         transitionBackdropBatch?.projectionMatrix?.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
@@ -797,7 +760,7 @@ class Cake(
             Cbuf.Execute()
             // Commands may have started/stopped a map. Tick once on this thread before sending
             // new client input; the next frame reads server replies (no second command pump).
-            host.setPaused(menuVisible || consoleVisible || uiSample != null || applicationPaused)
+            host.setPaused(menuVisible || consoleVisible || uiSample.isOpen || applicationPaused)
             host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
                 Globals.fixedtime.typedValue, Globals.timescale.typedValue))
             if (awaitingNewGame && host.state == HostState.RUNNING) {
@@ -817,7 +780,7 @@ class Cake(
             if (!drawable) return
             if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
                 uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
-                uiSample?.setReferenceHeight(uiSize.typedValue)
+                uiSample.setReferenceHeight(uiSize.typedValue)
             }
             viewport.apply()
 
@@ -842,12 +805,8 @@ class Cake(
                 }
             }
 
-            if (uiSample != null) {
-                ScreenUtils.clear(0.08f, 0.08f, 0.08f, 1f)
-                uiSample!!.viewport.apply()
-                uiSample!!.act(deltaSeconds)
-                uiSample!!.draw()
-                captureUiSampleFrame()
+            if (uiSample.isOpen) {
+                uiSample.render(deltaSeconds)
             } else if (menuVisible) {
                 menuStages.render(deltaSeconds)
             }
@@ -993,7 +952,7 @@ class Cake(
             }
 
             Input.Keys.ESCAPE -> {
-                if (!consoleVisible && uiSample != null) {
+                if (!consoleVisible && uiSample.isOpen) {
                     closeUiSample()
                     return true
                 }
@@ -1030,7 +989,7 @@ class Cake(
     }
 
     private fun toggleConsoleVisibility() {
-        if (uiSample != null) {
+        if (uiSample.isOpen) {
             consoleVisible = !consoleVisible
             if (consoleVisible) consoleStage.focus()
             return
@@ -1056,13 +1015,12 @@ class Cake(
     override fun resume() {
         applicationPaused = false
         hostClock.reset()
-        host.setPaused(menuVisible || consoleVisible || uiSample != null)
+        host.setPaused(menuVisible || consoleVisible || uiSample.isOpen)
     }
 
     override fun dispose() {
         closeUiSample()
-        Cmd.RemoveCommand("ui_sample")
-        Cmd.RemoveCommand("ui_sample_capture")
+        uiSample.dispose()
         disconnect()
         saveActiveProfileConfig()
         menuStages.dispose()
@@ -1491,20 +1449,6 @@ class Cake(
         }
     }
 
-    private fun captureUiSampleFrame() {
-        val capture = uiSampleCapture ?: return
-        if (--capture.frames > 0) return
-        val mode = if (capture.modes.removeFirst()) "game" else "engine"
-        writeScreenshot(capture.directory.child("$mode.png"))
-        if (capture.modes.isEmpty()) {
-            uiSampleCapture = null
-            Gdx.app.exit()
-        } else {
-            capture.frames = 2
-            openUiSample(capture.modes.first())
-        }
-    }
-
     private fun takeScreenshot() {
         try {
             val filename = "cake_${LocalDateTime.now().format(SCREENSHOT_TIMESTAMP_FORMATTER)}.png"
@@ -1513,20 +1457,6 @@ class Cake(
             writeScreenshot(Gdx.files.absolute(screenshotPath))
         } catch (e: Exception) {
             Com.Warn("Failed to save screenshot: ${e.message}\n")
-        }
-    }
-
-    /** Called after drawing for automated captures; failures propagate so the process reports failure. */
-    private fun writeScreenshot(file: FileHandle) {
-        check(Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0) {
-            "Screenshot unavailable while the framebuffer is zero-sized"
-        }
-        val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
-        try {
-            PixmapIO.writePNG(file, pixmap, -1, true)
-            Com.Println("Screenshot saved: ${file.file().absolutePath}")
-        } finally {
-            pixmap.dispose()
         }
     }
 
