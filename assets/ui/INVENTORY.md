@@ -101,7 +101,7 @@ other numeric editors are unchanged.
 | Dropdown | Closed control, open list and disabled treatment | SelectBoxStyle with ListStyle and ScrollPaneStyle | Hosting/player/options choices, MD2 skin choice |
 | Scroll pane | Horizontal/vertical tracks and thumbs; optional surface | ScrollPaneStyle | Long forms, lists, browser and previews |
 | Tree | Expand/collapse controls, selection and row text | TreeStyle plus LabelStyle | Content Browser folders |
-| Split pane | Draggable divider and handle | SplitPaneStyle; left/right panes initially (vertical handle) | Content Browser tree/content division |
+| Split pane | Existing draggable divider; themed handle deferred | SplitPaneStyle; retain engine handle fallback initially | Content Browser tree/content division |
 | Separator | Decorative horizontal/vertical divider with fixed end caps | Image/Drawable or container background; no custom widget required | Section boundaries; artwork can also supply a split-pane handle |
 | Panel | Thick container frame and thin control frame, with content insets | Table/Container and Drawables; two Drawable roles, no custom Panel class required | Containers for groups; button/checkbox/field/dropdown chrome |
 | Horizontal slider | Start/middle/end track, knob and disabled treatment | SliderStyle; conchars mapping available | Sample and Sound options (`s_volume`, step 0.05) |
@@ -276,6 +276,7 @@ current style builder and the legacy menu drawing code.
 | Source | Glyph indices | Current coverage | Role |
 | --- | --- | --- | --- |
 | Panel 1, row 1 | Top: 1, 2, 3; middle: 4, 5, 6; bottom: 7, 8, 9 | Derived; container, scroll surface and action buttons | Thick frame for containers/groups and action buttons |
+| Tree direction mark, row 1 | 13: right-pointing triangle | Available source; not wired to TreeStyle yet | Preferred collapsed mark; rotate down for expanded; +/- (43/45) remain alternatives |
 | Panel 2, row 2 | Top: 18, 19, 20; middle: 21, 22, 23; bottom: 24, 25, 26 | Derived; control backgrounds | Thin frame for checkbox toggles, fields and dropdowns |
 | Separator, row 2 last three cells | Start: 29; middle: 30; end: 31 | Available source; not wired | Horizontal divider; reuse rotated for vertical divider/handle |
 | Slider, row 9 | Start: 128; middle: 129; end: 130; knob: 131 | Derived SliderStyle; also used by legacy Java menus | Horizontal slider track and knob |
@@ -337,8 +338,8 @@ skin to a widget still selects engine styles.
 | W05 | List / `ListStyle` | `default`, `background`, `list-nobg` | Mixed; conchars font/selection, engine text colour | Required; profiles and dropdown internals |
 | W06 | Dropdown / `SelectBoxStyle` | `default` | Mixed; includes resolved nested list and scroll styles | Required; forms and MD2 skin selector |
 | W07 | Scroll pane / `ScrollPaneStyle` | `default`, `clean`, `list`, `background` | Mixed; vertical chrome replaced, horizontal retained | Required; forms and browser |
-| W08 | Tree / `TreeStyle` | `default`, `background` | Engine only; no bundle field | Required; browser; node text uses separate LabelStyle |
-| W09 | Split pane / `SplitPaneStyle` | `default-horizontal`, `default-vertical` | Engine only; no bundle field | Required horizontal split in browser; vertical is an extension |
+| W08 | Tree / `TreeStyle` | `default`, `background` | Engine only; triangle 13 is preferred content candidate (right/down); +/- alternative | Required; browser; plus/minus slots accept marks and node text uses separate LabelStyle |
+| W09 | Split pane / `SplitPaneStyle` | `default-horizontal`, `default-vertical` | Engine only; keep explicit handle fallback; themed handle deferred | Existing browser behavior; no new grip required for preparation |
 | W10 | Button / `ButtonStyle` | `default`, `toggle`, `spinner-up`, `spinner-down` | Engine only | Required style class for browser tiles; stock variants are extensions |
 | W11 | Browser tile | Local ButtonStyle; no idle background | Engine only | Required; labels, thumbnail/placeholder, selection |
 | W12 | Checkbox / `CheckBoxStyle` | `default`, `radio` | Engine only | Extension; optional future replacement for W03 |
@@ -412,6 +413,7 @@ interactive support.
 | W20–W22 custom output, previews, layout | Planned | Open | Font metrics, padding and clipping |
 | W15–W16; D07, D14 horizontal slider/progress | Available | Open | Conchars 128–131; live slider, linked progress, disabled slider; visual review pending |
 | D22 / W23 separator | Planned | Open | Conchars 29–31 verified; horizontal/rotated vertical variants and sample remain to implement |
+| Themed split handle | Deferred | Open | Existing libGDX dragging and engine handle can be retained; separate from static separator work |
 | Dropdown triangle | Deferred | Open | No SelectBoxStyle arrow slot; background composition/right inset is supported; not a browser prerequisite |
 | Two panel roles | Available | Open | Quake: thick 1–9, thin 18–26 with half-cell insets. Engine: distinct 3× source panels displayed at 1/3 scale; both visible in sample |
 | W12–W14, W17–W19; D08–D09, D15, D17–D18 extensions | Planned | Open | Separate optional inspection area |
@@ -433,11 +435,13 @@ choosing a new design is not a completion condition for this inventory.
 
 See [the browser preparation plan](../../info/ui-skin-sample.md#browser-preparation-before-client-embedding)
 for the next slices. Basic controls are available. Remaining shell coverage is
-TreeStyle, SplitPaneStyle/handle, tile ButtonStyle, image/placeholder presentation
+TreeStyle, tile ButtonStyle, image/placeholder presentation
 and explicit browser background/style resolution. The current browser directly
 reads Skin for each of these; the menu style bundle does not yet cover the tree,
 split pane or tile roles. The separator is source artwork for a divider; it does
-not provide splitter dragging behavior by itself.
+not provide splitter dragging behavior by itself. The browser already has that
+behavior through libGDX SplitPane. A new themed handle is deferred; retain the
+existing engine handle as an explicit fallback when adapting styles.
 
 The dropdown indicator is explicitly deferred. It must not block the browser.
 Atlas cleanup, optional widgets and exact theme geometry matching are also not

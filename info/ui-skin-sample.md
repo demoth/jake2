@@ -624,8 +624,8 @@ callbacks. Reuse it rather than introducing another browser or UI framework.
 | --- | --- | --- |
 | Labels, action buttons, panels | Resolved engine/game menu styles; native Quake size restored | Reuse; preserve the standalone viewer's existing engine sizing |
 | Separator | Conchars row 2, cells 29–31: start/middle/end, verified against the actual sheet | Add horizontal drawable with fixed caps/stretch middle and a rotated vertical variant; expose in sample |
-| Tree | Standard libGDX Tree; current browser obtains its engine TreeStyle and node labels directly from Skin | Resolve expand/collapse, selection, hover and node label styles; choose simple conchars +/- or directional marks without new widget behavior |
-| Split pane | Standard libGDX SplitPane; browser uses left/right panes with a vertical handle | Resolve SplitPaneStyle; separator art can supply the handle. Keep a usable draggable width independently of visible line detail |
+| Tree | Standard libGDX Tree; current browser obtains its engine TreeStyle and node labels directly from Skin | Resolve selection, hover and node labels; preferred expand/collapse candidate is conchars triangle 13, right when collapsed and rotated down when expanded; +/- remain an alternative |
+| Split pane | Standard libGDX SplitPane; browser uses left/right panes with a vertical handle | Themed handle artwork/interaction refinements are deferred; retain the existing engine handle as an explicit fallback when adapting the browser |
 | File/folder tile | Existing Button with transparent idle and locally assigned hover/selected fill | Resolve a tile ButtonStyle plus label/placeholder styling; retain flat idle and borrowed thumbnail textures |
 | Image / placeholder | Existing Image/Container, aspect-fit thumbnails and unavailable placeholder | Include representative image, folder, unsupported and unavailable cases in a browser sample; no new ImageStyle is required |
 | Scroll panes and long text | Existing styles/behavior; grid is vertical-only, tree may overflow horizontally | Check tree/grid wheel focus, long/deep paths, ellipsis/wrapping and any engine horizontal-scroll fallback explicitly |
@@ -634,18 +634,24 @@ callbacks. Reuse it rather than introducing another browser or UI framework.
 Keep decorative separators separate from draggable split panes in the inventory.
 Reuse a drawable between them where useful. A horizontal bar assembled from
 29/30/31 can be presented vertically by rotating the drawable; no new PCX asset
-is needed. The browser's left/right split needs the vertical handle first.
+is needed. The browser already has libGDX SplitPane dragging behavior. A new
+themed drag handle or grip is not required now; defer that work and retain the
+existing engine handle as a fallback. Static separator coverage can proceed
+independently.
 
 ### Small implementation slices
 
-1. **Separator and split handle.** Add horizontal/vertical separator roles in both
-   themes using the existing engine line/split resources and conchars 29–31.
-   Show both orientations and a draggable left/right split in the sample. Check
-   fixed end caps, stretching, minimum size and pointer usability at native Quake
-   sizing and current `cl_ui_size` values. No general Separator class is needed.
+1. **Static separators.** Add horizontal/vertical separator roles in both themes
+   using existing engine line/split resources and conchars 29–31. Show both
+   orientations in the sample; check fixed end caps, stretching and minimum
+   size at native Quake sizing and current `cl_ui_size`. Themed drag handles are
+   deferred. No general Separator class is needed.
 2. **Browser style coverage and adoption.** Extend existing resolved styles with
-   TreeStyle, SplitPaneStyle, tile ButtonStyle and the shell background role;
-   reuse existing label/button/scroll styles. Replace ContentBrowser's direct
+   TreeStyle, tile ButtonStyle and the shell background role; reuse existing
+   label/button/scroll styles and retain the existing engine SplitPaneStyle as
+   an explicit fallback. TreeStyle already has plus/minus drawable slots: the
+   preferred candidate is triangle 13 (right collapsed, rotated down expanded),
+   matching the current engine marks; conchars +/- are available alternatives. Replace ContentBrowser's direct
    per-widget Skin lookups with these explicit styles. Preserve the standalone
    viewer's current engine presentation; the client will use menu-sized styles.
    No theme registry, extra skin loader or fallback framework is required.
@@ -663,7 +669,24 @@ is needed. The browser's left/right split needs the vertical handle first.
    adapting media preview ownership/toolbars and override inspection remain
    separate slices. Do not change UI theme merely by inspecting other content.
 
-Dropdown triangles, broad atlas cleanup, optional widgets and exact pixel/wrap
+Themed split handles, dropdown triangles, broad atlas cleanup, optional widgets and exact pixel/wrap
 matching are not gates. Broader console/HUD specimens are useful inventory work
 but are not prerequisites for this browser shell. Native viewer verification
 remains deferred as in its existing plan.
+
+
+### Follow-up scope: split handle deferred, tree marks
+
+A custom themed draggable handle is explicitly deferred. The first separator
+slice covers static horizontal/vertical decoration only. The existing SplitPane
+can retain its current engine-style handle; no new conchars grip artwork or
+changed dragging behavior is a prerequisite for the browser.
+
+The conchars sheet already contains a right-facing triangle at zero-based glyph
+13 (first row, column 14). Preferred tree presentation is right for collapsed and
+rotated down for expanded, resembling the engine's existing tree marks. libGDX
+TreeStyle provides plus/minus drawable slots for these states; no widget subclass
+is needed. The normal font's + and - glyphs (43/45) remain simple alternatives.
+This tree work is independent of the deferred dropdown indicator, whose widget
+has no dedicated icon slot. Confirm appearance in the sample as tree coverage
+is added; this is a working visual choice rather than a new asset requirement.
