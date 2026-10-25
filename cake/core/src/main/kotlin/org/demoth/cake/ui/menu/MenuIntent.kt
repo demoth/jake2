@@ -1,6 +1,12 @@
 package org.demoth.cake.ui.menu
 
+import java.nio.file.Path
+
 sealed interface MenuIntent {
+    data class OpenUiSample(val game: Boolean? = null) : MenuIntent
+    data object CloseUiSample : MenuIntent
+    data class CaptureUiSample(val modes: List<Boolean>, val directory: Path) : MenuIntent
+
     data object RequestStateSync : MenuIntent
     data object OpenProfileEditor : MenuIntent
     data object OpenMainMenu : MenuIntent

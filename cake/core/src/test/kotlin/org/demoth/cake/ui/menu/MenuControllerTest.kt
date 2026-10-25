@@ -11,6 +11,33 @@ import org.junit.jupiter.api.Test
 class MenuControllerTest {
 
     @Test
+    fun sampleRequestsEmitOrderedSignalsWithoutChangingNavigation() {
+        val bus = MenuEventBus()
+        val controller = MenuController(FakeMenuBackend(), bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenOptions)
+        controller.pumpIntents()
+        bus.drainSignals { }
+        val before = bus.latestState()
+        val directory = java.nio.file.Path.of("captures")
+        bus.postIntent(MenuIntent.OpenUiSample(true))
+        bus.postIntent(MenuIntent.OpenUiSample())
+        bus.postIntent(MenuIntent.CloseUiSample)
+        bus.postIntent(MenuIntent.CaptureUiSample(listOf(false, true), directory))
+        val signals = mutableListOf<MenuSignal>()
+        bus.drainSignals { signals += it }
+        assertTrue(signals.isEmpty(), "Requests wait for the intent pump")
+        controller.pumpIntents()
+        bus.drainSignals { signals += it }
+        assertEquals(listOf(
+            MenuSignal.OpenUiSample(true), MenuSignal.OpenUiSample(), MenuSignal.CloseUiSample,
+            MenuSignal.CaptureUiSample(listOf(false, true), directory),
+        ), signals)
+        assertEquals(before, bus.latestState())
+    }
+
+
+    @Test
     fun contentBrowserNavigationUsesMainMenuParentAndSounds() {
         val bus = MenuEventBus()
         val controller = MenuController(FakeMenuBackend(), bus)

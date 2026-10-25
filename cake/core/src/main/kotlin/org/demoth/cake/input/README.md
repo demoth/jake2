@@ -6,7 +6,8 @@
   and wheel events. It registers `bind`, `unbind`, `unbindall`, and `bindlist`.
 - `InputManager` tracks immediate actions, updates local view angles, and constructs
   `MoveMessage` packets containing movement commands.
-- `Cake` owns input-context routing and profile configuration persistence.
+- `Cake` owns input-context routing and activation order; `CakeProfilePersistence`
+  handles config/history persistence, autosave policy, and profile writable paths.
 
 ## Input Flow
 
@@ -45,14 +46,17 @@ and its input manager are replaced.
 
 Bindings and archived cvars persist in `$HOME/.cake/<profileId>/config.cfg`.
 Cake loads the selected profile configuration at startup. Switching profiles while
-disconnected saves the outgoing configuration and loads the selected one. The
-generated script uses `unbindall`, `bind`, and cvar assignments; loading executes
+disconnected saves outgoing configuration, persists selection, applies runtime
+content, then loads incoming configuration. Menu and console paths share this
+sequence; a rejected selection save leaves runtime content unchanged. The generated script uses `unbindall`, `bind`, and cvar assignments; loading executes
 it through the command buffer.
 
 Profiles select configurations; there is no separate binding table automatically
 keyed by mod. If a selected profile has no configuration file, loading leaves the
-existing runtime bindings unchanged. This is Cake-owned persistence rather than
-the full legacy `default.cfg -> config.cfg -> autoexec.cfg` startup sequence.
+existing runtime bindings unchanged. Persistence uses the selected profile ID,
+falling back to the active profile; server-selected game directories do not change
+that destination. `cfg_autosave` gates automatic config/history writes; explicit
+`writeconfig` bypasses it. This is not the full legacy `default.cfg -> config.cfg -> autoexec.cfg` startup sequence.
 
 ## Behaviour Guarantees
 

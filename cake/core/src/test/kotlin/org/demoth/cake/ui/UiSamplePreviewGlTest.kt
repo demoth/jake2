@@ -7,10 +7,17 @@ import com.badlogic.gdx.Graphics
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.Group
+import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.ui.sample.UiSamplePreview
+import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.MenuIntent
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -52,40 +59,67 @@ class UiSamplePreviewGlTest {
         }
         val skin = Skin(Gdx.files.internal("../../assets/ui/uiskin.json"))
         val style = EngineUiStyle(skin)
-        val modes = mutableListOf<Boolean>()
-        lateinit var preview: UiSamplePreview
-        preview = UiSamplePreview(
-            onOpen = { game -> modes += game; preview.open(game, 720f, skin, style) },
-            onClose = { preview.close() },
-        )
+        val bus = MenuEventBus()
+        val preview = UiSamplePreview(bus)
+        // MenuController's intent-to-signal forwarding is covered by its own test.
+        fun handleRequests() {
+            bus.drainIntents { intent ->
+                when (intent) {
+                    is MenuIntent.OpenUiSample -> preview.open(intent.game, 720f, skin, style)
+                    MenuIntent.CloseUiSample -> preview.close()
+                    is MenuIntent.CaptureUiSample -> {
+                        preview.open(intent.modes.first(), 720f, skin, style)
+                        preview.startCapture(intent.modes, intent.directory)
+                    }
+                    else -> error("Unexpected intent: $intent")
+                }
+            }
+        }
+        fun heading() = descendants((preview.inputProcessor as Stage).root)
+            .filterIsInstance<Label>().first().text.toString()
+        fun click(text: String) {
+            descendants((preview.inputProcessor as Stage).root).filterIsInstance<TextButton>()
+                .first { it.text.toString() == text }.fire(ChangeListener.ChangeEvent())
+        }
         try {
             preview.registerCommands()
             Cmd.ExecuteString("ui_sample engine")
+            assertFalse(preview.isOpen)
+            handleRequests()
             assertTrue(preview.isOpen)
             val first = preview.inputProcessor as Stage
-            Cmd.ExecuteString("ui_sample game")
+            click("Game")
+            assertTrue(heading().startsWith("Game:"))
+            bus.drainIntents { error("In-gallery mode switching must stay local: $it") }
             assertSame(first, preview.inputProcessor)
-            assertEquals(listOf(false, true), modes)
             preview.resize(800, 600)
             assertEquals(800, first.viewport.screenWidth)
             preview.setReferenceHeight(960f)
             assertEquals(960f, first.viewport.worldHeight)
-            Cmd.ExecuteString("ui_sample off")
+            click("Close")
+            assertTrue(preview.isOpen, "Close is deferred until the request is handled")
+            handleRequests()
             assertFalse(preview.isOpen)
             assertNull(preview.inputProcessor)
             assertFalse(preview.close())
             Cmd.ExecuteString("ui_sample")
-            assertTrue(modes.last(), "Reopening remembers game mode")
+            handleRequests()
+            assertTrue(heading().startsWith("Game:"), "Reopening remembers game mode")
             assertNotSame(first, preview.inputProcessor)
 
             val captures = temp.resolve("captures")
             Cmd.ExecuteString("ui_sample_capture both \"$captures\"")
-            assertFalse(modes.last())
+            // Rendering an already-open gallery before handling the request must not capture it.
+            repeat(3) { preview.render(1f / 60f) }
+            assertFalse(Files.exists(captures.resolve("engine.png")))
+            handleRequests()
+            assertEquals("Engine UI sample", heading())
             preview.render(1f / 60f)
             assertFalse(Files.exists(captures.resolve("engine.png")))
             preview.render(1f / 60f)
             assertTrue(Files.exists(captures.resolve("engine.png")))
-            assertTrue(modes.last())
+            assertTrue(heading().startsWith("Game:"))
+            bus.drainIntents { error("Capture mode switching must stay local: $it") }
             assertFalse(exitRequested)
             preview.render(1f / 60f)
             assertFalse(Files.exists(captures.resolve("game.png")))
@@ -106,9 +140,14 @@ class UiSamplePreviewGlTest {
             val failed = temp.resolve("failed")
             Files.createDirectories(failed.resolve("engine.png"))
             Cmd.ExecuteString("ui_sample_capture engine \"$failed\"")
+            handleRequests()
             preview.render(1f / 60f)
             assertThrows(RuntimeException::class.java) { preview.render(1f / 60f) }
             assertFalse(exitRequested)
+            preview.close()
+            preview.open(false, 720f, skin, style)
+            repeat(3) { preview.render(1f / 60f) }
+            assertFalse(exitRequested, "Closing cancels capture rather than resuming it with another style")
 
             val graphics = Gdx.graphics
             Gdx.graphics = object : Graphics by graphics {
@@ -128,4 +167,7 @@ class UiSamplePreviewGlTest {
             Gdx.app = application
         }
     }
+
+    private fun descendants(actor: Actor): List<Actor> =
+        listOf(actor) + if (actor is Group) actor.children.flatMap(::descendants) else emptyList()
 }

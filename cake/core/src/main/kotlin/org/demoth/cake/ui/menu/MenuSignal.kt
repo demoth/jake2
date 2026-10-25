@@ -1,5 +1,7 @@
 package org.demoth.cake.ui.menu
 
+import java.nio.file.Path
+
 enum class MenuUiSoundEffect {
     ENTER_SUBMENU,
     HOVER_BUTTON,
@@ -7,6 +9,10 @@ enum class MenuUiSoundEffect {
 }
 
 sealed interface MenuSignal {
+    data class OpenUiSample(val game: Boolean? = null) : MenuSignal
+    data object CloseUiSample : MenuSignal
+    data class CaptureUiSample(val modes: List<Boolean>, val directory: Path) : MenuSignal
+
     data class StateUpdated(val snapshot: MenuStateSnapshot) : MenuSignal
     data class PlayUiSound(val effect: MenuUiSoundEffect) : MenuSignal
     data class StatusMessage(val message: String) : MenuSignal

@@ -8,16 +8,17 @@ import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.ScreenUtils
 import jake2.qcommon.Com
 import jake2.qcommon.exec.Cmd
+import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.writeScreenshot
 import java.nio.file.Path
 
 /** Owns the developer gallery and capture sequence, borrowing its skin and game style.
- * Open/close requests go through the application so visibility and input policy stay there.
+ * Application transitions use the menu bus; in-gallery mode switches stay local.
  */
 class UiSamplePreview(
-    private val onOpen: (Boolean) -> Unit,
-    private val onClose: () -> Unit,
+    private val menuEventBus: MenuEventBus,
 ) : Disposable {
     private var sample: UiSkinSample? = null
     private data class Capture(val directory: FileHandle, val modes: ArrayDeque<Boolean>, var frames: Int = 2)
@@ -34,10 +35,10 @@ class UiSamplePreview(
                 return@AddCommand
             }
             when (args.getOrNull(1)) {
-                null -> onOpen(gameMode)
-                "engine" -> onOpen(false)
-                "game" -> onOpen(true)
-                "off" -> onClose()
+                null -> menuEventBus.postIntent(MenuIntent.OpenUiSample())
+                "engine" -> menuEventBus.postIntent(MenuIntent.OpenUiSample(false))
+                "game" -> menuEventBus.postIntent(MenuIntent.OpenUiSample(true))
+                "off" -> menuEventBus.postIntent(MenuIntent.CloseUiSample)
                 else -> Com.Printf("Usage: ui_sample [engine|game|off]\n")
             }
         }
@@ -50,24 +51,39 @@ class UiSamplePreview(
                 "both" -> listOf(false, true)
                 else -> throw IllegalArgumentException("Expected engine, game or both")
             }
-            check(capture == null) { "UI capture already running" }
-            val directory = Gdx.files.absolute(Path.of(args[2]).toAbsolutePath().normalize().toString())
-            directory.mkdirs()
-            check(directory.isDirectory) { "Not a capture directory: $directory" }
-            onOpen(modes.first())
-            capture = Capture(directory, ArrayDeque(modes))
+            val directory = Path.of(args[2]).toAbsolutePath().normalize()
+            menuEventBus.postIntent(MenuIntent.CaptureUiSample(modes, directory))
         }
     }
 
-    fun open(game: Boolean, referenceHeight: Float, skin: Skin, style: GameUiStyle) {
+    fun open(game: Boolean?, referenceHeight: Float, skin: Skin, style: GameUiStyle) {
         if (sample == null) {
-            sample = UiSkinSample(referenceHeight, skin, style, onMode = onOpen, onClose = onClose)
+            sample = UiSkinSample(referenceHeight, skin, style,
+                onMode = ::showMode,
+                onClose = { menuEventBus.postIntent(MenuIntent.CloseUiSample) })
         }
+        showMode(game ?: gameMode)
+    }
+
+    private fun showMode(game: Boolean) {
         gameMode = game
         sample!!.showMode(game)
     }
 
+    /** Called only after the application handles the capture request and opens the gallery. */
+    fun startCapture(modes: List<Boolean>, directory: Path) {
+        check(isOpen) { "Open the UI sample before starting capture" }
+        check(capture == null) { "UI capture already running" }
+        require(modes.isNotEmpty()) { "At least one capture mode is required" }
+        val target = Gdx.files.absolute(directory.toString())
+        target.mkdirs()
+        check(target.isDirectory) { "Not a capture directory: $target" }
+        showMode(modes.first())
+        capture = Capture(target, ArrayDeque(modes))
+    }
+
     fun close(): Boolean {
+        capture = null
         val active = sample ?: return false
         sample = null
         active.dispose()
@@ -101,7 +117,7 @@ class UiSamplePreview(
             Gdx.app.exit()
         } else {
             capture.frames = 2
-            onOpen(capture.modes.first())
+            showMode(capture.modes.first())
         }
     }
 

@@ -12,7 +12,7 @@ Configstring assets belong to [game configuration](../config/README.md).
 | `GameUiStyleFactory` | Tries IdTech2 assets through mod/base lookup for every mod; releases partial acquisitions and falls back to `EngineUiStyle` on failure. |
 | `Cake` | Caches style by base-directory/mod, closes samples before style disposal, rebuilds menus and supplies the HUD style. |
 | `MenuStages` | Owns menu stages; rebuilds them when the shared style changes. |
-| `UiSamplePreview` | Owns gallery stage, commands, mode selection, rendering, and capture sequence; Cake retains visibility, input, and pause policy. |
+| `UiSamplePreview` | Owns gallery, commands, local mode changes, and capture; requests application transitions through the menu bus. |
 
 - Styles acquire their own `AssetManager` references even for already-loaded textures.
 - HUD/menu font instances share a conchars texture but have independent metrics; dispose fonts before releasing the texture.
@@ -78,6 +78,13 @@ artwork and atlas lines; tree slots match the 8-unit game theme.
 | `ui_sample_capture <engine\|game\|both> <directory>` | Write PNGs after two rendered frames per mode, then exit. Capture failures propagate. |
 | `+set cfg_autosave 0` | Avoid persisting temporary settings. |
 | `+set vid_hidden 1` | Start with a hidden window. |
+
+- Open/close/capture requests follow `MenuIntent → MenuController → MenuSignal → Cake`;
+  console commands take effect on the next menu pump without changing menu navigation.
+- Engine/Game buttons and capture mode advances stay local. Capture timing starts
+  when the open request is handled; closing cancels active capture.
+- Cake retains visibility/input/pause policy and closes the gallery synchronously
+  before style disposal or shutdown.
 
 The gallery follows `cl_ui_size` live and identifies engine fallback explicitly.
 `writeScreenshot` serves gallery captures and profile screenshots; callers choose

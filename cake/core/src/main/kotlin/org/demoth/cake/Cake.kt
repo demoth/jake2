@@ -33,7 +33,6 @@ import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
-import jake2.qcommon.vfs.DefaultWritableFileSystem
 import jake2.qcommon.vfs.VfsDebugCommands
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
@@ -44,10 +43,9 @@ import org.demoth.cake.assets.*
 import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
-import org.demoth.cake.profile.CakeConsoleHistoryStore
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
-import org.demoth.cake.profile.CakeProfileConfigStore
+import org.demoth.cake.profile.CakeProfilePersistence
 import org.demoth.cake.stages.MenuStages
 import org.demoth.cake.stages.DebugGraphStage
 import org.demoth.cake.stages.console.ConsoleStage
@@ -58,7 +56,6 @@ import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.sample.UiSamplePreview
 import org.demoth.cake.ui.writeScreenshot
 import org.demoth.cake.ui.menu.*
-import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import org.demoth.cake.assets.md2.Md2Asset
@@ -109,7 +106,8 @@ class Cake(
 
     private val hostClock = HostFrameClock()
     private var applicationPaused = false
-    private val uiSample = UiSamplePreview(onOpen = ::openUiSample, onClose = ::closeUiSample)
+    private val menuEventBus = MenuEventBus()
+    private val uiSample = UiSamplePreview(menuEventBus)
     private var uiSampleReturnToMenu = true
     private var menuVisibleBeforeConsole = true
 
@@ -154,8 +152,9 @@ class Cake(
     }
     private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
-    private val profileConfigStore = CakeProfileConfigStore()
-    private val consoleHistoryStore = CakeConsoleHistoryStore()
+    private val profilePersistence = CakeProfilePersistence(
+        gameProfileStore, clientBindings, activeProfile = { activeGameProfile },
+    )
     private val downloads = CakeDownloadSession(sendReliable = { command ->
         netchan.reliablePending.add(StringCmdMessage(command))
     })
@@ -164,7 +163,6 @@ class Cake(
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
     private val playerSetup = PlayerSetup(fileResolver)
-    private val menuEventBus = MenuEventBus()
     private lateinit var menuController: MenuController
     private var currentGameUiStyle: GameUiStyle? = null
     private var currentGameUiStyleKey: Pair<String?, String?>? = null
@@ -227,7 +225,7 @@ class Cake(
         // and put into the console when it's ready
         consoleStage = ConsoleStage(
             viewport = viewport,
-            persistHistory = ::saveActiveConsoleHistory,
+            persistHistory = profilePersistence::saveHistory,
         )
         reloadActiveConsoleHistory()
         debugGraphStage = DebugGraphStage(viewport)
@@ -257,7 +255,7 @@ class Cake(
         uiSample.registerCommands()
 
         Cmd.AddCommand("quit", "Exit Cake") {
-            saveActiveProfileConfig()
+            profilePersistence.saveConfig()
             disconnect()
             Gdx.app.exit()
         }
@@ -417,7 +415,7 @@ class Cake(
         }
 
         Cmd.AddCommand("writeconfig", "Write profile-local config and bindings") {
-            saveActiveProfileConfig(explicit = true)
+            profilePersistence.saveConfig(explicit = true)
         }
 
         /*
@@ -616,7 +614,7 @@ class Cake(
         )
     }
 
-    private fun openUiSample(game: Boolean) {
+    private fun openUiSample(game: Boolean?) {
         val style = resolveCurrentGameUiStyle()
         if (!uiSample.isOpen) {
             uiSampleReturnToMenu = if (consoleVisible) menuVisibleBeforeConsole else menuVisible
@@ -863,7 +861,7 @@ class Cake(
 
             Input.Keys.ESCAPE -> {
                 if (!consoleVisible && uiSample.isOpen) {
-                    closeUiSample()
+                    menuEventBus.postIntent(MenuIntent.CloseUiSample)
                     return true
                 }
                 if (!consoleVisible && menuVisible && menuStages.activeScreen == MenuScreen.MAIN && game3dScreen != null) {
@@ -932,7 +930,7 @@ class Cake(
         closeUiSample()
         uiSample.dispose()
         disconnect()
-        saveActiveProfileConfig()
+        profilePersistence.saveConfig()
         menuStages.dispose()
         consoleStage.dispose()
         debugGraphStage.dispose()
@@ -975,6 +973,12 @@ class Cake(
     private fun drainMenuSignals(maxItems: Int = MenuEventBus.DEFAULT_DRAIN_LIMIT) {
         menuEventBus.drainSignals(maxItems) { signal ->
             when (signal) {
+                is MenuSignal.OpenUiSample -> openUiSample(signal.game)
+                MenuSignal.CloseUiSample -> closeUiSample()
+                is MenuSignal.CaptureUiSample -> {
+                    openUiSample(signal.modes.first())
+                    uiSample.startCapture(signal.modes, signal.directory)
+                }
                 is MenuSignal.PlayUiSound -> playMenuUiSound(signal.effect)
                 is MenuSignal.StateUpdated -> Unit
                 is MenuSignal.StatusMessage -> Unit
@@ -1360,7 +1364,7 @@ class Cake(
     private fun takeScreenshot() {
         try {
             val filename = "cake_${LocalDateTime.now().format(SCREENSHOT_TIMESTAMP_FORMATTER)}.png"
-            val screenshotPath = profileWritable().resolveWritePath("scrnshot/$filename")
+            val screenshotPath = profilePersistence.writable().resolveWritePath("scrnshot/$filename")
                 ?: error("Failed to resolve screenshot write path")
             writeScreenshot(Gdx.files.absolute(screenshotPath))
         } catch (e: Exception) {
@@ -1368,75 +1372,11 @@ class Cake(
         }
     }
 
-    private fun activeProfileId(): String =
-        persistedSelectedProfileId() ?: activeGameProfile?.id ?: CakeGameProfileStore.DEFAULT_PROFILE_ID
-
-    private fun currentConfigProfileId(): String? =
-        persistedSelectedProfileId()?.takeIf { it.isNotBlank() }
-            ?: activeGameProfile?.id?.takeIf { it.isNotBlank() }
-
-    private fun persistedSelectedProfileId(): String? = try {
-        gameProfileStore.readSelectedProfileId()
-    } catch (_: Exception) {
-        null
-    }
-
-    private fun profileWritable(): DefaultWritableFileSystem {
-        val home = Path.of(System.getProperty("user.home"))
-        return DefaultWritableFileSystem(home.resolve(".cake").resolve(activeProfileId()))
-    }
-
-    private fun loadActiveProfileConfig() {
-        val profileId = currentConfigProfileId() ?: return
-        try {
-            val configText = profileConfigStore.readConfig(profileId) ?: return
-            Cbuf.AddAndExecuteScript(configText)
-            Cvar.getInstance().updateLatchedVars()
-            Com.Printf("Loaded Cake profile config for '$profileId'\n")
-        } catch (e: Exception) {
-            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
-        }
-    }
-
-    private fun saveActiveProfileConfig(explicit: Boolean = false) {
-        if (!explicit && !Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return
-        val profileId = currentConfigProfileId() ?: return
-        try {
-            val path = profileConfigStore.writeConfig(
-                profileId = profileId,
-                bindings = clientBindings.listBindings(),
-            )
-            Com.Printf("Saved Cake profile config: $path\n")
-        } catch (e: Exception) {
-            Com.Warn("Failed to save Cake profile config for '$profileId': ${e.message}\n")
-        }
-    }
-
-    private fun loadActiveConsoleHistory(): List<String> {
-        val profileId = activeProfileId()
-        return try {
-            consoleHistoryStore.readHistory(profileId)
-        } catch (e: Exception) {
-            Com.Warn("Failed to load console history for '$profileId': ${e.message}\n")
-            emptyList()
-        }
-    }
-
-    private fun saveActiveConsoleHistory(commands: List<String>) {
-        if (!Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return
-        val profileId = activeProfileId()
-        try {
-            consoleHistoryStore.writeHistory(profileId, commands)
-        } catch (e: Exception) {
-            Com.Warn("Failed to save console history for '$profileId': ${e.message}\n")
-        }
-    }
-
     private fun reloadActiveConsoleHistory() {
         if (!this::consoleStage.isInitialized) {
             return
         }
-        consoleStage.replaceCommandHistory(loadActiveConsoleHistory())
+        consoleStage.replaceCommandHistory(profilePersistence.loadHistory())
     }
 
     private fun loadProfileById(profileId: String): CakeGameProfile? {
@@ -1497,10 +1437,9 @@ class Cake(
             return "Basedir must not be blank"
         }
         return try {
-            saveActiveProfileConfig()
-            gameProfileStore.upsertProfile(normalized, select = true)
-            applyGameProfile(normalized)
-            loadActiveProfileConfig()
+            activateGameProfile(normalized) {
+                gameProfileStore.upsertProfile(normalized, select = true)
+            }
             "Saved profile '${normalized.id}'"
         } catch (e: Exception) {
             "Failed to save profile: ${e.message}"
@@ -1522,10 +1461,9 @@ class Cake(
         }
 
         return try {
-            saveActiveProfileConfig()
-            gameProfileStore.selectProfile(profileId)
-            applyGameProfile(selected)
-            loadActiveProfileConfig()
+            activateGameProfile(selected) {
+                gameProfileStore.selectProfile(profileId)
+            }
             Com.Printf("Active profile switched to '$profileId'\n")
             "Applied profile '$profileId'"
         } catch (e: Exception) {
@@ -1535,6 +1473,17 @@ class Cake(
     }
 
     private fun autodetectSteamBasedir(): String? = CakeStartupBootstrap.autodetectSteamBasedir()
+
+    /** Switching is permitted only while disconnected with the local host stopped.
+     * Persist selection before changing runtime content so rejected saves leave it untouched.
+     */
+    private fun activateGameProfile(profile: CakeGameProfile, persistSelection: () -> String): String {
+        profilePersistence.saveConfig()
+        val path = persistSelection()
+        applyGameProfile(profile)
+        profilePersistence.loadConfig()
+        return path
+    }
 
     private fun applyGameProfile(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
@@ -1594,11 +1543,10 @@ class Cake(
             gamemod = args.getOrNull(3),
         ).normalized()
 
-        saveActiveProfileConfig()
-        applyGameProfile(profile)
         try {
-            val path = gameProfileStore.upsertProfile(profile, select = true)
-            loadActiveProfileConfig()
+            val path = activateGameProfile(profile) {
+                gameProfileStore.upsertProfile(profile, select = true)
+            }
             Com.Printf("Cake profile saved: $path\n")
         } catch (e: Exception) {
             Com.Warn("Failed to save Cake profile: ${e.message}\n")
@@ -1641,7 +1589,7 @@ class Cake(
             }
         }
 
-        override fun activeProfileId(): String = this@Cake.activeProfileId()
+        override fun activeProfileId(): String = profilePersistence.activeProfileId()
 
         override fun canDisconnect(): Boolean = networkState != DISCONNECTED || host.state != HostState.STOPPED
 
@@ -1651,7 +1599,7 @@ class Cake(
 
         override fun listProfileIds(): List<String> = listProfileIdsForMenu()
 
-        override fun selectedProfileId(): String? = persistedSelectedProfileId() ?: activeGameProfile?.id
+        override fun selectedProfileId(): String? = profilePersistence.selectedProfileId() ?: activeGameProfile?.id
 
         override fun profileFormById(profileId: String): ProfileFormState? =
             loadProfileById(profileId)?.toProfileFormState()
@@ -1680,7 +1628,7 @@ class Cake(
 
         override fun savePlayerSetup(form: PlayerSetupFormState): String {
             val normalized = playerSetup.apply(form)
-            saveActiveProfileConfig()
+            profilePersistence.saveConfig()
             return "Saved player setup for ${normalized.name}"
         }
 
@@ -1688,7 +1636,7 @@ class Cake(
 
         override fun saveOptionEntries(prefix: String, values: Map<String, Any>): String {
             val result = applyOptionEntries(prefix, values)
-            saveActiveProfileConfig()
+            profilePersistence.saveConfig()
             return result
         }
     }

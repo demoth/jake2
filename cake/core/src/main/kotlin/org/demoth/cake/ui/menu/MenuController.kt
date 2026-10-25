@@ -59,6 +59,10 @@ class MenuController(
 
     private fun handleIntent(intent: MenuIntent) {
         when (intent) {
+            is MenuIntent.OpenUiSample -> bus.postSignal(MenuSignal.OpenUiSample(intent.game))
+            MenuIntent.CloseUiSample -> bus.postSignal(MenuSignal.CloseUiSample)
+            is MenuIntent.CaptureUiSample ->
+                bus.postSignal(MenuSignal.CaptureUiSample(intent.modes, intent.directory))
             is MenuIntent.OpenHostingSetup -> {
                 state = if (intent.singleplayer) state.copy(singleplayer = state.singleplayer.copy(statusMessage = ""))
                     else state.copy(hostGame = state.hostGame.copy(statusMessage = ""))
