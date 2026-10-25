@@ -88,85 +88,22 @@ class Cake(
         private val CONSOLE_TOGGLE_CHARS = setOf('`', '§')
     }
 
-    private lateinit var menuStages: MenuStages
-    private var awaitingNewGame = false
-    private lateinit var consoleStage: ConsoleStage
-    private lateinit var debugGraphStage: DebugGraphStage
-    private lateinit var glProfiler: GLProfiler
-    private var glProfilerActive: Boolean = false
-    private var physicalConsoleToggleKeyDown: Boolean = false
-    private lateinit var viewport: ScreenViewport
-    private lateinit var uiViewport: UiViewport
-    private var profileBackgroundBatch: SpriteBatch? = null
-    private var profileBackgroundTexture: Texture? = null
-    private var transitionBackdropBatch: SpriteBatch? = null
-    private var transitionBackdropTexture: Texture? = null
-    private var transitionBackdropRegion: TextureRegion? = null
-    private var transitionBackdropActive = false
-
-    private val hostClock = HostFrameClock()
-    private var applicationPaused = false
-    private val menuEventBus = MenuEventBus()
-    private val uiSample = UiSamplePreview(menuEventBus)
-    private var uiSampleReturnToMenu = true
-    private var menuVisibleBeforeConsole = true
-
-    // whenever these are changed, input handlers should be updated
-    private var consoleVisible = false
-        set(value) {
-            field = value
-            updateInputHandlers(field, menuVisible)
-        }
-
-    private var menuVisible = true
-        set(value) {
-            field = value
-            updateInputHandlers(consoleVisible, field)
-        }
-
-    // network
-    private var networkState = DISCONNECTED
-    // Retain the last endpoint for manual reconnect; handshake replies also require CONNECTING.
-    private var connectionTarget: netadr_t? = null
-    private var localConnection = false
-    private var challenge = 0
-    private var reconnectTimeout = 0f // fire first connect attempt immediately
-    private val netchan = netchan_t()
-
-    private var game3dScreen: Game3dScreen? = null
-        set(value) {
-            field = value
-            // allow the game screen to receive the input
-            updateInputHandlers(consoleVisible, menuVisible)
-        }
-
-    // During map change, the previous screen is disposed first but its config assets are kept alive
-    // until the new screen finishes precache. This avoids unload->reload churn for shared assets.
-    private var deferredConfigUnloadScreen: Game3dScreen? = null
-
-    // Session-wide runtime bindings. Kept at app scope so reconnect/map transitions do not reset binds.
-    // Per-mod binding persistence is not implemented yet.
+    // Startup, profile selection, and session-wide bindings.
     private val startup = run {
         CakeStartupBootstrap.ensureInitialized()
         startupContext ?: CakeStartupBootstrap.bootstrap()
     }
+    // Reconnect/map transitions retain bindings; per-mod persistence is not implemented.
     private val clientBindings = startup.clientBindings
     private val gameProfileStore = CakeGameProfileStore()
+    private var activeGameProfile: CakeGameProfile? = null
     private val profilePersistence = CakeProfilePersistence(
         gameProfileStore, clientBindings, activeProfile = { activeGameProfile },
     )
-    private val downloads = CakeDownloadSession(sendReliable = { command ->
-        netchan.reliablePending.add(StringCmdMessage(command))
-    })
-    private val networkDebugSampler = NetworkDebugSampler()
-    private var clientCommandExtraMs = 0f
-    private var activeGameProfile: CakeGameProfile? = null
-    private var fileResolver = CakeFileResolver()
-    private val playerSetup = PlayerSetup(fileResolver)
-    private lateinit var menuController: MenuController
-    private var currentGameUiStyle: GameUiStyle? = null
-    private var currentGameUiStyleKey: Pair<String?, String?>? = null
 
+    // Content lookup and shared assets; borrowed by menus and the in-game runtime.
+    private val fileResolver = CakeFileResolver()
+    private val playerSetup = PlayerSetup(fileResolver)
     private val assetManager = AssetManager(fileResolver).apply {
         // for loading shaders and other text files
         setLoader(String::class.java, TextAssetLoader(fileResolver))
@@ -183,7 +120,82 @@ class Cake(
         setLoader(Model::class.java, "sky", SkyLoader(fileResolver))
 
     }
+
+    // Frame scheduling and local hosting.
+    private val hostClock = HostFrameClock()
+    private var applicationPaused = false
+    private var awaitingNewGame = false
+
+    // Connection and download protocol state.
+    private var networkState = DISCONNECTED
+    // Retain the last endpoint for manual reconnect; handshake replies also require CONNECTING.
+    private var connectionTarget: netadr_t? = null
+    private var localConnection = false
+    private var challenge = 0
+    private var reconnectTimeout = 0f // fire first connect attempt immediately
+    private val netchan = netchan_t()
+
+    private val downloads = CakeDownloadSession(sendReliable = { command ->
+        netchan.reliablePending.add(StringCmdMessage(command))
+    })
+    private val networkDebugSampler = NetworkDebugSampler()
+    private var clientCommandExtraMs = 0f
+
+    // Active game runtime and map-transition resource handover.
+    private var game3dScreen: Game3dScreen? = null
+        set(value) {
+            field = value
+            // allow the game screen to receive the input
+            updateInputHandlers(consoleVisible, menuVisible)
+        }
+
+    // During map change, the previous screen is disposed first but its config assets are kept alive
+    // until the new screen finishes precache. This avoids unload->reload churn for shared assets.
+    private var deferredConfigUnloadScreen: Game3dScreen? = null
+
+    // Menu navigation and developer gallery.
+    private val menuEventBus = MenuEventBus()
+    private val menuController = MenuController(createMenuBackend(), menuEventBus)
+    private val uiSample = UiSamplePreview(menuEventBus)
+    private var uiSampleReturnToMenu = true
+
+    // Visibility and global input routing.
+    private var physicalConsoleToggleKeyDown = false
+    private var menuVisibleBeforeConsole = true
+    // whenever these are changed, input handlers should be updated
+    private var consoleVisible = false
+        set(value) {
+            field = value
+            updateInputHandlers(field, menuVisible)
+        }
+
+    private var menuVisible = true
+        set(value) {
+            field = value
+            updateInputHandlers(consoleVisible, field)
+        }
+
+    // Required UI/GL resources: assigned in create(), before lifecycle callbacks use them.
+    private lateinit var viewport: ScreenViewport
+    private lateinit var uiViewport: UiViewport
+    private lateinit var menuStages: MenuStages
+    private lateinit var consoleStage: ConsoleStage
+    private lateinit var debugGraphStage: DebugGraphStage
+    private lateinit var glProfiler: GLProfiler
+    private var glProfilerActive = false
+
+    // Content styles and backgrounds; absent until resolved, or after retirement.
+    private var currentGameUiStyle: GameUiStyle? = null
+    private var currentGameUiStyleKey: Pair<String?, String?>? = null
     private var backgroundColor = Color.BLACK
+    private var profileBackgroundBatch: SpriteBatch? = null
+    private var profileBackgroundTexture: Texture? = null
+    private var transitionBackdropBatch: SpriteBatch? = null
+    private var transitionBackdropTexture: Texture? = null
+    private var transitionBackdropRegion: TextureRegion? = null
+    private var transitionBackdropActive = false
+
+    // Live cvar handles (startup bootstrap registers their defaults).
     private val clDebugStufftext = Cvar.getInstance().find<Boolean>("cl_debug_stufftext")
     private val clMaxfps = Cvar.getInstance().find<Float>("cl_maxfps")
     private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
@@ -194,7 +206,8 @@ class Cake(
 
     override fun create() {
         initializeShaderCompatibility()
-        applyGameProfile(startup.activeProfile)
+        configureProfileContent(startup.activeProfile)
+        reloadProfileBackground()
 
         // load sync resources - required immediately
         assetManager.load(cakeSkin, Skin::class.java)
@@ -216,11 +229,11 @@ class Cake(
         uiViewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         viewport = ScreenViewport()
         viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
-        menuController = MenuController(
-            backend = createMenuBackend(),
-            bus = menuEventBus,
-        )
-        rebuildContentStyledMenuStages(resolveCurrentGameUiStyle())
+        val initialStyle = resolveCurrentGameUiStyle()
+        menuStages = MenuStages(uiViewport, menuEventBus, assetManager, fileResolver,
+            showHosting = host.availability != HostAvailability.REMOTE_ONLY,
+            activeProfileId = { activeGameProfile?.id })
+        rebuildContentStyledMenuStages(initialStyle)
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready
         consoleStage = ConsoleStage(
@@ -516,7 +529,7 @@ class Cake(
             transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
         }
         game3dScreen?.stopAudio()
-        disposeGame3dScreen()
+        disposeGame3dScreen(true)
         releaseDeferredConfigUnload()
         clearTransitionBackdrop()
         netchan.clear()
@@ -615,7 +628,7 @@ class Cake(
     }
 
     private fun openUiSample(game: Boolean?) {
-        val style = resolveCurrentGameUiStyle()
+        val style = refreshContentStyledMenus()
         if (!uiSample.isOpen) {
             uiSampleReturnToMenu = if (consoleVisible) menuVisibleBeforeConsole else menuVisible
         }
@@ -630,7 +643,7 @@ class Cake(
     }
 
     override fun resize(width: Int, height: Int) {
-        if (width <= 0 || height <= 0 || !::viewport.isInitialized) return
+        if (width <= 0 || height <= 0) return
         uiViewport.update(width, height, true)
         viewport.update(width, height, true)
         uiSample.resize(width, height)
@@ -828,6 +841,8 @@ class Cake(
     private fun currentClientCommandMsec(): Int =
         currentClientCommandStepMs().toInt().coerceAtLeast(1)
 
+    // Cvar registration and edits still signal changes through Globals.userinfo_modified;
+    // no replacement sync API exists yet. Clear it only after queueing the reliable update.
     @Suppress("DEPRECATION")
     private fun queueUserInfoUpdateIfNeeded() {
         if (Globals.userinfo_modified) {
@@ -855,10 +870,6 @@ class Cake(
                 return true
             }
 
-            Input.Keys.F12 -> {
-                takeScreenshot()
-            }
-
             Input.Keys.ESCAPE -> {
                 if (!consoleVisible && uiSample.isOpen) {
                     menuEventBus.postIntent(MenuIntent.CloseUiSample)
@@ -882,7 +893,6 @@ class Cake(
 
             else -> return false
         }
-        return true
     }
 
     override fun keyTyped(character: Char): Boolean {
@@ -951,7 +961,7 @@ class Cake(
      * Dispose the active game screen. Config asset unloading is optional to support map transition
      * handover where old assets stay alive until new precache completes.
      */
-    private fun disposeGame3dScreen(unloadConfigAssets: Boolean = true): Game3dScreen? {
+    private fun disposeGame3dScreen(unloadConfigAssets: Boolean): Game3dScreen? {
         val screen = game3dScreen
         if (screen != null) {
             if (unloadConfigAssets) {
@@ -997,11 +1007,6 @@ class Cake(
     }
 
     private fun rebuildContentStyledMenuStages(style: GameUiStyle) {
-        if (!::menuStages.isInitialized) {
-            menuStages = MenuStages(uiViewport, menuEventBus, assetManager, fileResolver,
-                showHosting = host.availability != HostAvailability.REMOTE_ONLY,
-                activeProfileId = { activeGameProfile?.id })
-        }
         menuStages.rebuild(style)
         if (menuVisible) updateInputHandlers(consoleVisible, menuVisible)
     }
@@ -1019,10 +1024,15 @@ class Cake(
         val created = GameUiStyleFactory.create(gameName, assetManager, Scene2DSkin.defaultSkin)
         currentGameUiStyle = created
         currentGameUiStyleKey = key
-        if (::menuStages.isInitialized) {
-            rebuildContentStyledMenuStages(created)
-        }
         return created
+    }
+
+    /** Runtime style changes rebuild menus; initial construction is explicit in create(). */
+    private fun refreshContentStyledMenus(): GameUiStyle {
+        val previous = currentGameUiStyle
+        val style = resolveCurrentGameUiStyle()
+        if (style !== previous) rebuildContentStyledMenuStages(style)
+        return style
     }
 
     /**
@@ -1057,6 +1067,8 @@ class Cake(
         }
     }
 
+    // The connect payload already includes current userinfo, so consume the legacy dirty flag.
+    // Keep this suppression until the client/cvar sync replacement noted in Globals exists.
     @Suppress("DEPRECATION")
     private fun SendConnectPacket() {
         val adr = connectionTarget ?: return
@@ -1163,7 +1175,7 @@ class Cake(
 
                     menuStages.hideContentBrowser()
                     fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
-                    game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
+                    game3dScreen?.setHudStyle(refreshContentStyledMenus())
                     game3dScreen?.processServerDataMessage(msg)
                     // networkState = CONNECTED // fixme: required?
                     consoleVisible = false
@@ -1263,7 +1275,7 @@ class Cake(
         }
         if (game3dScreen == null) {
             game3dScreen = Game3dScreen(assetManager, InputManager(bindings = clientBindings), uiViewport, startup.videoMode)
-            game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
+            game3dScreen?.setHudStyle(refreshContentStyledMenus())
             debugGraphStage.resetMetrics()
         }
     }
@@ -1276,7 +1288,7 @@ class Cake(
         releaseDeferredConfigUnload()
         captureTransitionBackdropFromActiveScreen()
         game3dScreen?.stopAudio()
-        deferredConfigUnloadScreen = disposeGame3dScreen(unloadConfigAssets = false)
+        deferredConfigUnloadScreen = disposeGame3dScreen(false)
     }
 
     /**
@@ -1373,9 +1385,6 @@ class Cake(
     }
 
     private fun reloadActiveConsoleHistory() {
-        if (!this::consoleStage.isInitialized) {
-            return
-        }
         consoleStage.replaceCommandHistory(profilePersistence.loadHistory())
     }
 
@@ -1485,20 +1494,23 @@ class Cake(
         return path
     }
 
+    /** Live profile switch; startup configures content before constructing the UI. */
     private fun applyGameProfile(profile: CakeGameProfile?) {
+        menuStages.hideContentBrowser()
+        configureProfileContent(profile)
+        clearCurrentGameUiStyle()
+        reloadProfileBackground()
+        reloadActiveConsoleHistory()
+        refreshContentStyledMenus()
+    }
+
+    private fun configureProfileContent(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
-        if (::menuStages.isInitialized) menuStages.hideContentBrowser()
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
         resolveNewGameAlias()
-        clearCurrentGameUiStyle()
         playerSetup.invalidateCatalog()
-        reloadProfileBackground()
-        reloadActiveConsoleHistory()
-        if (::menuStages.isInitialized) {
-            resolveCurrentGameUiStyle()
-        }
     }
 
     /** Register only the content's newgame alias; profiles retain their bindings and settings. */
