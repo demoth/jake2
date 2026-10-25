@@ -6,7 +6,7 @@ View Quake II resources standalone, or open **Content browser** from the client/
 
 - **Standalone:** pass a file path at launch or drop a file onto the window; the first dropped file replaces the current preview.
 - **Client:** browse the active profile's resolved content, using its theme and `cl_ui_size`.
-- Supported files: **PAK, PCX, WAL, TGA, WAV, SP2, MD2 and BSP**.
+- Supported files: **PAK, PCX, WAL, TGA, WAV, SP2, MD2, BSP, CIN**, and text resources.
 
 ## Browser navigation
 
@@ -26,6 +26,8 @@ their surrounding navigation and styling differ.
 | Format | Behavior and controls |
 | --- | --- |
 | PCX / WAL / TGA | Aspect-fit preview; wheel zooms around the pointer, left-drag pans. Resize retains zoom/pan; reopening resets the fit. |
+| Text | Read-only, horizontally/vertically scrollable UTF-8 text; tabs expand to four spaces. Supports CFG, TXT, LOG, INI, CSV, JSON, XML, MD, SHADER, ENT and LST. Files larger than 1 MiB show a labelled excerpt; configs are never executed. |
+| CIN | Aspect-fit Quake II cinematic with audio at 14 fps. Opens paused; **Play / Pause / Stop**, **Space** toggles playback, **S** stops and returns to frame one. Play after completion restarts. |
 | WAV | Click a tile to play once; double-click opens controls without restarting. **Space** pauses/resumes; **S** stops. Supports Quake II's 8-bit PCM WAVs. |
 | SP2 | Click a tile to animate once; double-click opens controls without restarting. Frames stay centred on a fixed canvas; wheel zooms and left-drag pans. Playback runs at 10 fps. |
 | MD2 | Loose files and browser entries share an automatically framed preview: left-drag orbits and wheel zooms. Shows frame names and a skin selector; generated skins are labelled **Default skin**. |

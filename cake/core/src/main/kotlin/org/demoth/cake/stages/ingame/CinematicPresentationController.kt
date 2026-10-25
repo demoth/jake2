@@ -11,6 +11,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import ktx.graphics.use
 import org.demoth.cake.config.GameConfiguration
+import org.demoth.cake.assets.CinematicCinDecoder
 import org.demoth.cake.assets.tryResolveRaw
 
 /**

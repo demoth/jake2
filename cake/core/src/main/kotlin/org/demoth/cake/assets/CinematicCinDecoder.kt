@@ -1,10 +1,10 @@
-package org.demoth.cake.stages.ingame
+package org.demoth.cake.assets
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
- * Minimal IdTech2 `.cin` stream decoder (video frames only).
+ * IdTech2 `.cin` stream decoder shared by gameplay and resource previews.
  *
  * Legacy cross-reference:
  * - Jake2 `client/SCR.java`: `Huff1TableInit`, `Huff1Decompress`, `ReadNextFrame`.
@@ -12,7 +12,7 @@ import java.nio.ByteOrder
  *
  * Notes:
  * - Audio bytes are consumed and returned per frame to preserve stream alignment.
- * - Runtime playback is handled by `Game3dScreen` via a dedicated `AudioDevice`.
+ * - Hosts own playback timing, texture uploads, and audio output.
  */
 internal class CinematicCinDecoder(
     cinBytes: ByteArray,

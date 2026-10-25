@@ -48,10 +48,11 @@ import org.demoth.cake.assets.getLoaded
 import org.demoth.cake.ui.ImagePreviewPane
 import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ContentBrowser
+import org.demoth.cake.ui.FileResourcePreview
 import java.io.File
 import kotlin.system.measureTimeMillis
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2", ".pak")
+private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2", ".pak") + FileResourcePreview.extensions.map { ".$it" }
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var image: Texture? = null
@@ -65,6 +66,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var archiveEntryCount: Int? = null
     private lateinit var archiveThumbnails: ImageThumbnails
     private lateinit var previewResources: PreviewResources
+    private var filePreview: FileResourcePreview? = null
     private lateinit var scenePreview: SceneResourcePreview
     private lateinit var assetManager: AssetManager
     private lateinit var stage: Stage
@@ -178,7 +180,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             closeResourcePreview()
             return null
         }
-        if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2", "md2", "bsp")) return null
+        if (entry.normalizedPath.substringAfterLast('.') !in (listOf("pcx", "wal", "tga", "wav", "sp2", "md2", "bsp") + FileResourcePreview.extensions)) return null
         if (!loadArchiveResource(entry)) return null
         return createPreviewActor()
     }
@@ -194,6 +196,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             ?: sprite?.let { SpritePreview(it, playback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: scenePreview.actor
+            ?: filePreview?.actor
     }
 
     private fun loadArchiveResource(entry: VfsEntry): Boolean {
@@ -244,12 +247,14 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 playback = scenePreview.animation
             }
             "bsp" -> scenePreview.openBsp(path)
+            in FileResourcePreview.extensions -> checkNotNull(filePreview).open(path)
         }
     }
 
     private fun createStage() {
         val skin = assetManager.getLoaded<Skin>(cakeSkin)
         scenePreview = SceneResourcePreview(assetManager, ContentBrowserStyles.fromSkin(skin))
+        filePreview = FileResourcePreview(assetManager, ContentBrowserStyles.fromSkin(skin))
         stage = Stage(ScreenViewport())
         stage.viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         resourceInfo = Label("", skin)
@@ -265,6 +270,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             override fun keyDown(event: InputEvent, keycode: Int): Boolean {
                 if (event.isHandled) return false
                 if (browser?.keyDown(keycode) == true) return true
+                if (filePreview?.keyDown(keycode) == true) return true
                 return when (keycode) {
                     Input.Keys.ESCAPE -> {
                         if (browser?.navigateBack() != true) Gdx.app.exit()
@@ -378,6 +384,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     }
 
     private fun closeResourcePreview() {
+        filePreview?.close()
         soundPlayback?.stop()
         // Loose widgets must detach before their borrowed textures are released.
         if (::previewHost.isInitialized && archiveEntryCount == null) previewHost.actor = null

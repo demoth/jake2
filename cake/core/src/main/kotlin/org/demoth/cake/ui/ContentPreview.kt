@@ -23,6 +23,7 @@ internal class ContentPreview(
 ) : Disposable {
     var contentPaths: List<String> = emptyList()
 
+    private val filePreview = FileResourcePreview(previewAssets, styles)
     private val scene = SceneResourcePreview(previewAssets, styles)
     private var sound: Sound? = null
     private var soundPlayback: SoundPlayback? = null
@@ -76,6 +77,17 @@ internal class ContentPreview(
                 Label(if (entry.normalizedPath.endsWith(".bsp")) "Could not load map." else "Could not load model.", styles.label)
             }
         }
+        if (entry.normalizedPath.substringAfterLast('.') in FileResourcePreview.extensions) {
+            clearSound()
+            clearVisualPreview()
+            return try {
+                filePreview.open(entry.normalizedPath)
+            } catch (error: Exception) {
+                clearVisualPreview()
+                Gdx.app.error("Content browser", "Could not preview ${entry.displayPath}", error)
+                Label("Could not load resource.", styles.label)
+            }
+        }
         return previewImage(entry)
     }
 
@@ -125,6 +137,7 @@ internal class ContentPreview(
     }
 
     private fun clearVisualPreview() {
+        filePreview.close()
         scene.close()
         spritePlayback?.stop()
         sprite = null
@@ -153,6 +166,7 @@ internal class ContentPreview(
     }
 
     fun keyDown(keycode: Int): Boolean {
+        if (filePreview.keyDown(keycode)) return true
         val playback = soundPlayback
         if (playback != null) {
             when (keycode) {

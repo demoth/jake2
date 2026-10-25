@@ -7,6 +7,7 @@ It does **not** own gameplay selection rules (for example which player model/ski
 
 ## Key Types
 - `CakeFileResolver` - thin resolver that delegates game-data lookup to qcommon VFS layers and keeps classpath/internal fallbacks, including synthetic player MD2 variant keys.
+- `CinematicCinDecoder` - shared CIN video/palette/PCM decoding; gameplay and preview hosts own playback and output.
 - `ResourceKind` / `MissingResourceException` - asset-kind policy and typed missing-resource failure contract for Cake runtime.
 - `CakeVfsAssetSource` - Cake adapter over qcommon VFS that materializes packaged entries as temp files for libGDX loaders.
 - `CakeShaderProvider` - shared dispatch between MD2, lightmapped BSP, and default shaders.

@@ -74,6 +74,10 @@ class CakeViewerPreviewGlTest {
         entries["testbox.bsp"] = mapBytes
         entries["sprite.sp2"] = sprite()
         entries["sound.wav"] = wav()
+        entries["settings.cfg"] = ("// literal [red] text\r\nset name preview\n" +
+            (1..150).joinToString("\n") { "// line $it " + "long text ".repeat(40) }).toByteArray()
+        entries["intro.cin"] = cinematic()
+        entries["broken.cin"] = byteArrayOf(0)
         map.textures.forEach { entries["textures/${it.name}.wal"] = wal() }
         entries.forEach { (name, bytes) ->
             val target = temp.resolve(name)
@@ -186,6 +190,7 @@ class CakeViewerPreviewGlTest {
                     app.render()
                     assertEquals(1, actors((Gdx.input.inputProcessor as Stage).root)
                         .count { it.javaClass.simpleName == "Md2PreviewPane" })
+                    verifyFilePreviews(app, pak)
                     verifyProfilePlayerPreview(app, pak)
                     assertEquals(0, Gdx.gl.glGetError())
                 } catch (error: Throwable) {
@@ -204,6 +209,88 @@ class CakeViewerPreviewGlTest {
             setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
         })
         failure?.let { throw it }
+    }
+
+    private fun verifyFilePreviews(app: CakeViewer, pak: Path) {
+        for (archive in listOf(false, true)) {
+            fun open(name: String): Stage {
+                app.openFile(if (archive) pak.toString() else temp.resolve(name).toString())
+                app.render()
+                val stage = Gdx.input.inputProcessor as Stage
+                if (archive) { openTile(stage, name); app.render() }
+                return Gdx.input.inputProcessor as Stage
+            }
+            val textStage = open("settings.cfg")
+            assertTrue(labels(textStage).any { it.contains("set name preview") && it.contains("[red]") })
+            verifyTextScrolling(textStage)
+            val stage = open("intro.cin")
+            val cinematic = actors(stage.root).single { it.javaClass.simpleName == "CinematicPreview" }
+            verifyCinematic(cinematic)
+            open("settings.cfg")
+            assertNull(cinematic.stage)
+            assertNull((field(cinematic, "picture") as Image).drawable, "Leaving releases the frame texture")
+            val brokenStage = open("broken.cin")
+            assertTrue(labels(brokenStage).any { it.contains("Could not") })
+            assertTrue(labels(open("settings.cfg")).any { it.contains("set name preview") })
+        }
+    }
+
+    private fun verifyTextScrolling(stage: Stage) {
+        val pane = actors(stage.root).filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>()
+            .single { (it.actor as? Label)?.text?.contains("set name preview") == true }
+        val point = pane.localToStageCoordinates(Vector2(pane.width / 2, pane.height / 2))
+        stage.stageToScreenCoordinates(point)
+        stage.mouseMoved(point.x.toInt(), point.y.toInt())
+        val beforeY = pane.scrollY
+        stage.scrolled(0f, 0.5f)
+        assertTrue(pane.scrollY > beforeY, "Text vertical scrolling: pane=${pane.width}x${pane.height}, maxY=${pane.maxY}, focus=${stage.scrollFocus}")
+        val beforeX = pane.scrollX
+        stage.scrolled(0.5f, 0f)
+        assertTrue(pane.scrollX > beforeX, "Text horizontal touchpad scrolling")
+    }
+
+    private fun verifyCinematic(cinematic: Actor) {
+        fun click(name: String) {
+            val button = actors(cinematic).filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.TextButton>()
+                .single { it.text.toString() == name }
+            button.listeners.filterIsInstance<ClickListener>().forEach { it.clicked(InputEvent(), 0f, 0f) }
+        }
+        fun status() = actors(cinematic).filterIsInstance<Label>().map { it.text.toString() }
+        assertTrue(status().any { it.contains("Frame 1") && it.contains("Paused") })
+        assertEquals(0xff0000ff.toInt(), (field(cinematic, "pixmap") as com.badlogic.gdx.graphics.Pixmap).getPixel(0, 0))
+        click("Play")
+        cinematic.act(0.08f)
+        assertTrue(status().any { it.contains("Frame 2") && it.contains("Playing") })
+        assertEquals(0x00ff00ff, (field(cinematic, "pixmap") as com.badlogic.gdx.graphics.Pixmap).getPixel(0, 0),
+            "Cinematic palette changes are applied to the displayed frame")
+        click("Pause")
+        cinematic.act(1f)
+        assertTrue(status().any { it.contains("Frame 2") && it.contains("Paused") })
+        click("Play")
+        cinematic.act(0.08f)
+        assertTrue(status().any { it.contains("Finished") })
+        click("Play")
+        assertTrue(status().any { it.contains("Frame 1") && it.contains("Playing") })
+        click("Stop")
+        assertTrue(status().any { it.contains("Frame 1") && it.contains("Paused") })
+    }
+
+    /** Two palette-changing 2x2 frames with one unsigned PCM sample each. */
+    private fun cinematic(): ByteArray {
+        val buffer = ByteBuffer.allocate(20 + 65536 + 2 * (4 + 768 + 4 + 5 + 1) + 4)
+            .order(ByteOrder.LITTLE_ENDIAN)
+        buffer.putInt(2).putInt(2).putInt(14).putInt(1).putInt(1)
+        repeat(256) {
+            buffer.put(1).put(1)
+            repeat(254) { buffer.put(0) }
+        }
+        repeat(2) { frame ->
+            buffer.putInt(1)
+            repeat(256) { buffer.put(if (frame == 0) 255.toByte() else 0).put(if (frame == 1) 255.toByte() else 0).put(0) }
+            buffer.putInt(5).putInt(4).put(0).put(128.toByte())
+        }
+        buffer.putInt(2)
+        return buffer.array()
     }
 
     private fun verifyProfilePlayerPreview(app: CakeViewer, pak: Path) {
@@ -237,8 +324,20 @@ class CakeViewerPreviewGlTest {
             selector.selectedIndex = 13
             menus.render(0f)
             val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
-            menus.select(org.demoth.cake.ui.menu.MenuScreen.MAIN)
+            menus.select(MenuScreen.MAIN)
             assertNull(pane.stage, "Leaving the profile browser releases its preview")
+            menus.select(MenuScreen.CONTENT_BROWSER); menus.render(0f)
+            openTile(stage, "settings.cfg"); menus.render(0f)
+            assertTrue(labels(stage).any { it.contains("set name preview") })
+            verifyTextScrolling(stage)
+            menus.select(MenuScreen.MAIN)
+            menus.select(MenuScreen.CONTENT_BROWSER); menus.render(0f)
+            openTile(stage, "intro.cin"); menus.render(0f)
+            val cinematic = actors(stage.root).single { it.javaClass.simpleName == "CinematicPreview" }
+            verifyCinematic(cinematic)
+            menus.select(MenuScreen.MAIN)
+            assertNull(cinematic.stage)
+            assertNull((field(cinematic, "picture") as Image).drawable)
             var draft = PlayerSetupFormState(model = "test", skin = "skin00")
             fun publish() {
                 bus.postState(bus.latestState().copy(playerSetup = PlayerSetupState(
