@@ -39,7 +39,7 @@ object CakeDesktopLauncher {
         val displayMode = modes.firstOrNull { it.toCakeMode() == selected && it.bitsPerPixel == desktop.bitsPerPixel }
             ?: modes.firstOrNull { it.toCakeMode() == selected } ?: desktop
         return Lwjgl3ApplicationConfiguration().apply {
-            setTitle("Cake Engine v1.2.3")
+            setTitle("Cake Engine v1.2.4")
             setInitialVisible(!videoMode.hidden)
             setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
             setBackBufferConfig(
