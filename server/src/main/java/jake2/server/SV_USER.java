@@ -305,9 +305,11 @@ class SV_USER {
 
         client.download = EngineVfs.loadBytes(name);
         
-        // rst: this handles loading errors, no message yet visible 
+        // The client waits for either data or an explicit refusal. Silently
+        // returning here leaves precache stuck waiting for a download forever.
         if (client.download == null) {
-        	return;
+            client.netchan.reliablePending.add(new DownloadMessage());
+            return;
         }
         
         client.downloadsize = client.download.length;

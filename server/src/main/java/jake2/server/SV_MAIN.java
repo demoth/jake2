@@ -1265,6 +1265,13 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         } else
             clientIndex = 0;
 
+        // default.cfg may start a session with "killserver; gamemap *...".
+        // Shutdown clears the client slots, so gamemap must initialize a fresh
+        // server just as map does, while preserving clients on level transitions.
+        if (games.isEmpty()) {
+            initializeServerSession();
+        }
+
         Com.DPrintf("SV_GameMap(" + mapName + ")\n");
 
         EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"));
@@ -1473,7 +1480,15 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         SV_WipeSavegame("current");
 
-        // init mode & maxclients cvar
+        // A running server needs its clients reset for map. For a fresh server,
+        // gamemap performs this initialization itself.
+        if (!games.isEmpty()) {
+            initializeServerSession();
+        }
+        SV_GameMap_f(args);
+    }
+
+    private void initializeServerSession() {
         if (games.isEmpty()) {
             realtime = 0;
             frameNum = 0;
@@ -1485,7 +1500,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return;
         }
         resetClients();
-        SV_GameMap_f(args);
     }
 
 }

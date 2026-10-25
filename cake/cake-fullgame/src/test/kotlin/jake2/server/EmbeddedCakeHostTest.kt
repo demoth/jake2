@@ -8,7 +8,12 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.messages.server.DownloadMessage
+import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.vfs.EngineWriteRoot
+import org.demoth.cake.download.CakeDownloadCache
+import org.demoth.cake.download.CakeDownloadManager
+import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.fullgame.EmbeddedCakeHost
 import org.demoth.cake.hosting.*
 import org.demoth.cake.profile.CakeGameProfile
@@ -49,6 +54,50 @@ class EmbeddedCakeHostTest {
     }
 
     private fun game() = SV_MAIN.games.getValue("default").gameExports as GameExportsImpl
+
+    @Test
+    fun `missing download receives failure for fresh and resumed requests`() {
+        assertEquals(HostStartResult.Started, host.start(request()))
+        val path = "models/missing/tris.md2"
+        val cache = temp.resolve("downloads")
+        val partial = cache.resolve("baseq2/models/missing/tris.tmp")
+        for (resume in listOf(false, true)) {
+            if (resume) {
+                Files.createDirectories(partial.parent)
+                Files.write(partial, byteArrayOf(1, 2, 3))
+            }
+            val client = ClientNetworkInfo()
+            val downloads = CakeDownloadSession(
+                sendReliable = { command ->
+                    SV_USER.userCommands.getValue("download").execute(
+                        Cmd.TokenizeString(command, false), SV_MAIN.games.getValue("default"), client)
+                },
+                downloadManager = CakeDownloadManager(CakeDownloadCache(cache), cvars),
+            )
+            assertTrue(downloads.requestMissingResource(path, null, 1))
+            assertEquals(1, client.netchan.reliablePending.size,
+                "Missing files must receive a reply instead of leaving the client waiting")
+            val buffer = sizebuf_t(64)
+            client.netchan.reliablePending.single().writeTo(buffer)
+            val reply = ServerMessage.parseFromBuffer(buffer) as DownloadMessage
+            assertNull(reply.data)
+            assertEquals(CakeDownloadSession.Result.MissingOnServer, downloads.handle(reply))
+            assertFalse(Files.exists(cache.resolve("baseq2/$path")))
+            if (resume) assertArrayEquals(byteArrayOf(1, 2, 3), Files.readAllBytes(partial))
+            downloads.reset()
+        }
+    }
+
+    @Test
+    fun `newgame killserver gamemap sequence restores client slots`() {
+        assertEquals(HostStartResult.Started, host.prepareNewGame(profile, 1))
+        Cmd.ExecuteString("killserver")
+        Cmd.ExecuteString("gamemap *testbox")
+        host.update(100)
+        assertEquals(HostState.RUNNING, host.state)
+        assertEquals(1, SV_MAIN.games.getValue("default").serverMain.clients.size)
+        assertTrue(NET.ip_sockets.all { it == null })
+    }
 
     @Test
     fun `missing selected mod cannot silently fall back to base content`() {
