@@ -40,6 +40,9 @@ class MenuStages(
     private val contentBrowserStage: ContentBrowserStage
         get() = stages.getValue(MenuScreen.CONTENT_BROWSER) as ContentBrowserStage
 
+    private val playerSetupStage: PlayerSetupStage
+        get() = stages.getValue(MenuScreen.PLAYER_SETUP) as PlayerSetupStage
+
     fun rebuild(style: GameUiStyle) {
         dispose()
         for (screen in MenuScreen.entries) {
@@ -50,12 +53,12 @@ class MenuStages(
                 MenuScreen.SINGLEPLAYER -> HostingSetupStage(viewport, menuEventBus, style, true)
                 MenuScreen.HOST_GAME -> HostingSetupStage(viewport, menuEventBus, style, false)
                 MenuScreen.JOIN_GAME -> JoinGameStage(viewport, menuEventBus, style)
-                MenuScreen.PLAYER_SETUP -> PlayerSetupStage(viewport, menuEventBus, style)
+                MenuScreen.PLAYER_SETUP -> PlayerSetupStage(viewport, menuEventBus, style, createPreviewAssets())
                 MenuScreen.OPTIONS -> OptionsMenuStage(viewport, menuEventBus, style)
                 MenuScreen.OPTIONS_SECTION -> OptionsSectionStage(viewport, menuEventBus, style)
                 MenuScreen.CONTENT_BROWSER -> ContentBrowserStage(viewport, menuEventBus, style,
                     ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent)),
-                    createBrowserPreviewAssets()) { entry ->
+                    createPreviewAssets()) { entry ->
                     val file = requireNotNull(fileResolver.resolveContent(entry.normalizedPath)) { "Missing profile sound" }
                     // Preview sounds are owned separately from the shared asset manager.
                     ConvertingSoundLoader(fileResolver).loadSync(assetManager, entry.normalizedPath, file, null)
@@ -63,20 +66,24 @@ class MenuStages(
             }
         }
         if (activeScreen == MenuScreen.CONTENT_BROWSER) refreshContentBrowser()
+        if (activeScreen == MenuScreen.PLAYER_SETUP) playerSetupStage.show()
     }
 
     /** Returns whether input routing needs to be refreshed. */
     fun select(screen: MenuScreen): Boolean {
         if (screen == activeScreen) return false
-        if (activeScreen == MenuScreen.CONTENT_BROWSER) hideContentBrowser()
+        if (activeScreen == MenuScreen.CONTENT_BROWSER) contentBrowserStage.hide()
+        if (activeScreen == MenuScreen.PLAYER_SETUP) playerSetupStage.hide()
         activeStage.resetMenuInteractionState()
         activeScreen = screen
         if (activeScreen == MenuScreen.CONTENT_BROWSER) refreshContentBrowser()
+        if (activeScreen == MenuScreen.PLAYER_SETUP) playerSetupStage.show()
         activeStage.resetMenuInteractionState()
         return true
     }
 
     fun render(deltaSeconds: Float) {
+        if (activeScreen == MenuScreen.PLAYER_SETUP) playerSetupStage.show()
         viewport.apply()
         // Preserve Stage.act()'s capped delta for the main menu.
         if (activeScreen == MenuScreen.MAIN) activeStage.act() else activeStage.act(deltaSeconds)
@@ -84,8 +91,9 @@ class MenuStages(
     }
 
     /** Stop previews before replacing the profile or effective server game directory. */
-    fun hideContentBrowser() {
+    fun hideContentPreviews() {
         contentBrowserStage.hide()
+        playerSetupStage.hide()
     }
 
     override fun dispose() {
@@ -107,7 +115,7 @@ class MenuStages(
         }
     }
 
-    private fun createBrowserPreviewAssets(): AssetManager {
+    private fun createPreviewAssets(): AssetManager {
         val resolver = FileHandleResolver { path ->
             // Engine palette/shaders remain available; content dependencies stay within the active profile.
             if (path == "q2palette.bin" || path.startsWith("shaders/")) fileResolver.resolve(path)

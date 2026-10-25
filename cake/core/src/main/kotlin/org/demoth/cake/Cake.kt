@@ -1173,7 +1173,7 @@ class Cake(
                     resetClientStateForServerData()
                     netchan.reliablePending.clear()
 
-                    menuStages.hideContentBrowser()
+                    menuStages.hideContentPreviews()
                     fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
                     game3dScreen?.setHudStyle(refreshContentStyledMenus())
                     game3dScreen?.processServerDataMessage(msg)
@@ -1496,7 +1496,7 @@ class Cake(
 
     /** Live profile switch; startup configures content before constructing the UI. */
     private fun applyGameProfile(profile: CakeGameProfile?) {
-        menuStages.hideContentBrowser()
+        menuStages.hideContentPreviews()
         configureProfileContent(profile)
         clearCurrentGameUiStyle()
         reloadProfileBackground()

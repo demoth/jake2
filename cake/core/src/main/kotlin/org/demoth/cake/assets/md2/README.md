@@ -18,8 +18,8 @@ AssetManager request (model path or <skinPath>|<modelPath>)
 ```
 
 `Md2Asset` contains the model, frame count and stored names, ordered skin textures, and bounds
-covering decoded vertex positions across all frames. The viewer uses these bounds
-for camera framing; ordinary mesh bounds cannot represent the VAT geometry,
+covering decoded vertex positions in the first frame. All MD2 previews use these
+bounds for initial camera framing and keep the camera stable during playback; ordinary mesh bounds cannot represent the VAT geometry,
 whose mesh contains animation indices rather than position attributes. The model
 viewer and transient model effects use the same loader/shader pipeline as gameplay
 entities. The shared `CakeShaderProvider` dispatches MD2, BSP, and default shaders;

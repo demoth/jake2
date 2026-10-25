@@ -44,6 +44,10 @@ and active-stage drawing/input selection; navigation decisions stay in `MenuCont
   userinfo cvars through `ui.menu.PlayerSetup`, including derived gender; Cake
   then saves profile configuration. `PlayerSetup` owns the cached model/skin
   catalog, which Cake invalidates when applying a profile.
+- Player Setup previews the draft model/skin on frame zero with orbit/zoom, using
+  the shared MD2 pane. It loads on entry and releases its private assets on exit,
+  stage rebuild, or profile/game-directory changes. Skin edits preserve the camera;
+  failed loads show a local error. Inputs and controls stay on the left, with the preview on the right.
 - Sound volume uses the shared horizontal slider over 0–1 in steps of 0.05, with
   a numeric readout. Changes are staged until Apply; other numeric options use
   text fields.

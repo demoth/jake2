@@ -45,7 +45,7 @@ import org.demoth.cake.assets.ResourceKind
  * [frameNames] retains stored names in the same order as the animation frames.
  * [skins] contains resolved skin textures in MD2 skin index order when available.
  * [skinNames] retains their resolved paths; it is empty for the generated fallback skin.
- * [bounds] encloses decoded positions across all frames; the VAT mesh has no position attribute.
+ * [bounds] encloses decoded positions in the first frame for preview fitting; the VAT mesh has no position attribute.
  *
  * This allows future runtime skin switching (for example normal/injured monster skin)
  * without replacing model geometry.
@@ -172,7 +172,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
             bounds = BoundingBox().apply {
                 inf()
                 val positions = vertexData.vertexPositions
-                for (i in positions.indices step 3) ext(positions[i], positions[i + 1], positions[i + 2])
+                for (i in 0 until vertexData.vertices * 3 step 3) ext(positions[i], positions[i + 1], positions[i + 2])
             },
         )
     }

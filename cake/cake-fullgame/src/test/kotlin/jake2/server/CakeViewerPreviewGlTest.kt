@@ -22,6 +22,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import org.demoth.cake.viewer.CakeViewer
+import org.demoth.cake.ui.menu.MenuEventBus
+import org.demoth.cake.ui.menu.MenuScreen
+import org.demoth.cake.ui.menu.PlayerSetupState
+import org.demoth.cake.ui.menu.PlayerSetupFormState
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -46,6 +50,16 @@ class CakeViewerPreviewGlTest {
         for ((index, name) in listOf("a.pcx", "b.pcx").withIndex()) {
             model.fill(0, 68 + index * 64, 68 + (index + 1) * 64)
             name.toByteArray().copyInto(model, 68 + index * 64)
+        }
+        // An extreme later pose must not enlarge or shift the initial preview framing.
+        val header = ByteBuffer.wrap(model).order(ByteOrder.LITTLE_ENDIAN)
+        val lastFrame = header.getInt(56) + (header.getInt(40) - 1) * header.getInt(16)
+        header.putFloat(lastFrame + 12, 1000f)
+        val firstPoints = jake2.qcommon.filesystem.Md2Model(
+            ByteBuffer.wrap(model).order(ByteOrder.LITTLE_ENDIAN)).frames.first().points
+        val firstBounds = com.badlogic.gdx.math.collision.BoundingBox().apply {
+            inf()
+            firstPoints.forEach { ext(it.position.x, it.position.y, it.position.z) }
         }
         val player = model.copyOf().also { ByteBuffer.wrap(it).order(ByteOrder.LITTLE_ENDIAN).putInt(20, 0) }
         val entries = linkedMapOf("model.md2" to model, "a.pcx" to pcx(0xff0000), "b.pcx" to pcx(0x00ff00))
@@ -84,6 +98,10 @@ class CakeViewerPreviewGlTest {
                     val stage = Gdx.input.inputProcessor as Stage // No fly-camera multiplexer for MD2.
                     val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
                     assertTrue(pane.width > 0 && pane.height > 0)
+                    val loadedModel = field(field(app, "scenePreview"), "md2") as Md2Asset
+                    assertEquals(firstBounds.min, loadedModel.bounds.min)
+                    assertEquals(firstBounds.max, loadedModel.bounds.max,
+                        "Later animation poses must not affect MD2 preview bounds")
                     val selector = actors(stage.root).filterIsInstance<SelectBox<*>>().single()
                     assertEquals(2, selector.items.size)
                     selector.selectedIndex = 1
@@ -200,10 +218,14 @@ class CakeViewerPreviewGlTest {
         ktx.scene2d.Scene2DSkin.defaultSkin = skin
         val style = org.demoth.cake.ui.EngineUiStyle(skin)
         val viewport = org.demoth.cake.ui.UiViewport().apply { update(1024, 768, true) }
-        val menus = org.demoth.cake.stages.MenuStages(viewport, org.demoth.cake.ui.menu.MenuEventBus(),
+        val bus = MenuEventBus()
+        val menus = org.demoth.cake.stages.MenuStages(viewport, bus,
             assets, resolver, false) { "test" }
         try {
             menus.rebuild(style)
+            val playerStage = (field(menus, "stages") as Map<*, *>)[MenuScreen.PLAYER_SETUP] as Stage
+            val playerAssets = field(playerStage, "previewAssets") as AssetManager
+            assertEquals(0, playerAssets.loadedAssets, "Eager stage construction must not load player assets")
             menus.select(org.demoth.cake.ui.menu.MenuScreen.CONTENT_BROWSER)
             menus.render(0f)
             val stage = menus.inputProcessor as Stage
@@ -217,6 +239,71 @@ class CakeViewerPreviewGlTest {
             val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
             menus.select(org.demoth.cake.ui.menu.MenuScreen.MAIN)
             assertNull(pane.stage, "Leaving the profile browser releases its preview")
+            var draft = PlayerSetupFormState(model = "test", skin = "skin00")
+            fun publish() {
+                bus.postState(bus.latestState().copy(playerSetup = PlayerSetupState(
+                    availableModels = listOf("test", "missing"),
+                    availableSkins = listOf("skin00", "skin13", "zzbroken"), form = draft)))
+            }
+            publish()
+            menus.select(MenuScreen.PLAYER_SETUP)
+            menus.render(0f)
+            val scene = field(playerStage, "preview")
+            val instance = field(scene, "instance") as ModelInstance
+            fun bound() = (instance.materials.first().get(Md2SkinTexturesAttribute.Type)
+                as Md2SkinTexturesAttribute).textures.single()
+            val firstTexture = bound()
+            val playerPane = actors(playerStage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
+            val position = camera(playerPane).position.cpy()
+            assertEquals(3, actors(playerStage.root).filterIsInstance<SelectBox<*>>().size,
+                "Only the form's model, skin and hand selectors are shown")
+            draft = draft.copy(skin = "skin13")
+            publish(); menus.render(1f)
+            assertSame(instance, field(scene, "instance"))
+            assertNotSame(firstTexture, bound())
+            assertEquals(position, camera(playerPane).position)
+            val selectedTexture = bound()
+            draft = draft.copy(name = "changed", password = "secret", hand = 1)
+            publish(); menus.render(1f)
+            assertSame(instance, field(scene, "instance"))
+            assertSame(selectedTexture, bound())
+            val frame = instance.userData as org.demoth.cake.assets.md2.Md2CustomData
+            assertEquals(0, frame.frame1, "The setup preview remains on the first frame")
+            assertEquals(0f, frame.interpolation)
+            draft = draft.copy(skin = "zzbroken")
+            publish(); menus.render(0f)
+            assertSame(selectedTexture, bound())
+            assertTrue(labels(playerStage).any { it.contains("Preview skin unchanged") })
+            draft = draft.copy(skin = "skin00")
+            publish(); menus.render(0f)
+            assertNotSame(selectedTexture, bound())
+            viewport.setReferenceHeight(640f)
+            viewport.update(640, 480, true)
+            menus.render(0f)
+            assertTrue(playerPane.width > 0f && playerPane.height > 0f)
+            val formTable = field(playerStage, "formTable") as Actor
+            val previewPanel = field(playerStage, "previewPanel") as Actor
+            assertTrue(previewPanel.x >= formTable.x + formTable.width,
+                "The preview stays to the right of the form on narrow menu canvases")
+            assertTrue(previewPanel.x + previewPanel.width <= previewPanel.parent.width,
+                "Both columns fit within the form container")
+            assertTrue(previewPanel.parent.width <= kotlin.math.ceil(viewport.minWorldWidth - 32f),
+                "Container=${previewPanel.parent.width}, form=${formTable.width}, preview=${previewPanel.width}, canvas=${viewport.minWorldWidth}")
+            menus.select(MenuScreen.MAIN)
+            assertNull(playerPane.stage)
+            assertEquals(0, playerAssets.loadedAssets)
+            menus.select(MenuScreen.PLAYER_SETUP); menus.render(0f)
+            assertNotSame(instance, field(scene, "instance"))
+            menus.hideContentPreviews()
+            assertEquals(0, playerAssets.loadedAssets, "Release before changing profile resolution")
+            draft = draft.copy(model = "missing")
+            publish(); menus.render(0f)
+            assertTrue(labels(playerStage).contains("Player preview unavailable."))
+            menus.render(0f) // A failed preview must leave the menu usable.
+            draft = draft.copy(model = "test")
+            publish(); menus.render(0f)
+            assertTrue(actors(playerStage.root).any { it.javaClass.simpleName == "Md2PreviewPane" })
+
         } finally {
             menus.dispose()
             style.dispose()

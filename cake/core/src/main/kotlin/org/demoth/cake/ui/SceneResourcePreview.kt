@@ -73,11 +73,14 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
         }
     }
 
-    fun openMd2(path: String, externalSkins: List<String>? = null): Actor {
+    /** Compact player presentation; the host supplies model/skin controls and keeps frame zero. */
+    fun openPlayerModel(path: String): Actor = loadMd2Pane(path, embeddedSkins = false)
+
+    private fun loadMd2Pane(path: String, embeddedSkins: Boolean): Actor {
         close()
         try {
             val model = resources.load(path, Md2Asset::class.java, Md2Loader.Parameters(
-                loadEmbeddedSkins = externalSkins == null, useDefaultSkinIfMissing = true))
+                loadEmbeddedSkins = embeddedSkins, useDefaultSkinIfMissing = true))
             md2 = model
             val data = Md2CustomData.empty()
             val modelInstance = ModelInstance(model.model).apply { userData = data }
@@ -88,7 +91,19 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
                 assets.getLoaded(md2VertexShader), assets.getLoaded(md2FragmentShader)))
             batch = resources.own(ModelBatch(CakeShaderProvider(shader)))
             shader.init()
-            val pane = resources.own(Md2PreviewPane(model.bounds, ::render))
+            return resources.own(Md2PreviewPane(model.bounds, ::render)).also { actor = it }
+        } catch (error: Exception) {
+            close()
+            throw error
+        }
+    }
+
+    fun openMd2(path: String, externalSkins: List<String>? = null): Actor {
+        try {
+            val pane = loadMd2Pane(path, embeddedSkins = externalSkins == null)
+            val model = checkNotNull(md2)
+            val playback = checkNotNull(animation)
+            val data = checkNotNull(instance).userData as Md2CustomData
             return Table().apply {
                 add(pane).grow().row()
                 if (externalSkins == null) {
