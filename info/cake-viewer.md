@@ -11,7 +11,7 @@ View Quake II resources standalone, or open **Content browser** from the client/
 ## Browser navigation
 
 - Select a tree folder or double-click its tile to enter it; files show path and size, plus the winning source in the client.
-- Image thumbnails load as they become visible; double-click a file for its full preview.
+- Image and first-frame CIN thumbnails load as they become visible; double-click a file for its full preview.
 - **Back to folder** restores the grid and scroll position.
 - **Escape:** close preview → parent folder → leave at root (close viewer / return to client menu).
 - The client's top **Back** button returns directly to the menu; Escape closes loose-resource and empty standalone views directly.
@@ -27,7 +27,7 @@ their surrounding navigation and styling differ.
 | --- | --- |
 | PCX / WAL / TGA | Aspect-fit preview; wheel zooms around the pointer, left-drag pans. Resize retains zoom/pan; reopening resets the fit. |
 | Text | Read-only, horizontally/vertically scrollable UTF-8 text; tabs expand to four spaces. Supports CFG, TXT, LOG, INI, CSV, JSON, XML, MD, SHADER, ENT and LST. Files larger than 1 MiB show a labelled excerpt; configs are never executed. |
-| CIN | Aspect-fit Quake II cinematic with audio at 14 fps. Opens paused; **Play / Pause / Stop**, **Space** toggles playback, **S** stops and returns to frame one. Play after completion restarts. |
+| CIN | Aspect-fit Quake II cinematic with audio at 14 fps. Streams from disk/archive; thumbnails decode only the first frame without audio playback. Opens paused; **Play / Pause / Stop**, **Space** toggles playback, **S** stops and returns to frame one. Play after completion restarts. |
 | WAV | Click a tile to play once; double-click opens controls without restarting. **Space** pauses/resumes; **S** stops. Supports Quake II's 8-bit PCM WAVs. |
 | SP2 | Click a tile to animate once; double-click opens controls without restarting. Frames stay centred on a fixed canvas; wheel zooms and left-drag pans. Playback runs at 10 fps. |
 | MD2 | Loose files and browser entries share an automatically framed preview: left-drag orbits and wheel zooms. Shows frame names and a skin selector; generated skins are labelled **Default skin**. |

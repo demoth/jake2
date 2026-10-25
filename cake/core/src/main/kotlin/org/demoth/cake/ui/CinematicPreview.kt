@@ -19,12 +19,17 @@ import org.demoth.cake.assets.DecodedCinFrame
 
 /** Owns the decoded frame, texture and audio device; stage act drives 14 FPS playback. */
 internal class CinematicPreview(
-    private val bytes: ByteArray,
+    private val file: com.badlogic.gdx.files.FileHandle,
     private val palette: IntArray,
     styles: ContentBrowserStyles,
 ) : Table(), Disposable {
-    private var decoder = CinematicCinDecoder(bytes, palette)
-    private var frame = requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
+    private var decoder = CinematicCinDecoder(file.read(), palette)
+    private var frame = try {
+        requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
+    } catch (error: Exception) {
+        decoder.close()
+        throw error
+    }
     private var pixmap: Pixmap? = null
     private var texture: Texture? = null
     private var audio: AudioDevice? = null
@@ -74,7 +79,7 @@ internal class CinematicPreview(
     }
 
     private fun play() {
-        if (ended) stop()
+        if (ended && !stop()) return
         playing = true
         updateStatus()
     }
@@ -86,15 +91,25 @@ internal class CinematicPreview(
         updateStatus()
     }
 
-    private fun stop() {
+    private fun stop(): Boolean {
         pause()
-        decoder = CinematicCinDecoder(bytes, palette)
-        frame = requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
-        elapsed = 0f
-        ended = false
-        audioSubmitted = false
-        upload(frame)
-        updateStatus()
+        decoder.close()
+        return try {
+            decoder = CinematicCinDecoder(file.read(), palette)
+            frame = requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
+            elapsed = 0f
+            ended = false
+            audioSubmitted = false
+            upload(frame)
+            updateStatus()
+            true
+        } catch (error: Exception) {
+            decoder.close()
+            ended = true
+            status.setText("Could not reopen cinematic.")
+            Gdx.app.error("Cinematic preview", "Restart failed", error)
+            false
+        }
     }
 
     override fun act(delta: Float) {
@@ -117,6 +132,7 @@ internal class CinematicPreview(
             }
             updateStatus()
         } catch (error: Exception) {
+            decoder.close()
             pause()
             ended = true
             status.setText("Could not play cinematic. Stop to retry.")
@@ -157,6 +173,7 @@ internal class CinematicPreview(
     }
 
     override fun dispose() {
+        decoder.close()
         playing = false
         audio?.dispose()
         audio = null

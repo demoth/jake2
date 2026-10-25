@@ -19,7 +19,7 @@ internal class FileResourcePreview(private val assets: AssetManager, private val
             val file = requireNotNull(assets.fileHandleResolver.resolve(path)) { "Missing resource: $path" }
             actor = if (path.substringAfterLast('.').lowercase() == "cin") {
                 val palette = resources.load("q2palette.bin", Any::class.java) as IntArray
-                resources.own(CinematicPreview(file.readBytes(), palette, styles))
+                resources.own(CinematicPreview(file, palette, styles))
             } else {
                 // Bound label layout work even for unexpectedly large configuration/log files.
                 val bytes = file.read().use { it.readNBytes(MAX_TEXT_BYTES + 1) }

@@ -13,6 +13,7 @@ import java.nio.file.Path
  *
  * It resolves game-data assets from basedir/mod layers and materializes package entries
  * to temporary files so libGDX loaders can consume standard [FileHandle]s.
+ * CIN files use stream-backed handles to avoid extracting entire movies for previews.
  */
 internal class CakeVfsAssetSource {
     private var vfs = DefaultVirtualFileSystem()
@@ -96,6 +97,23 @@ internal class CakeVfsAssetSource {
             }
 
             VfsSourceType.PACKAGE_ENTRY -> {
+                if (path.endsWith(".cin", ignoreCase = true)) {
+                    // CIN consumers stream sequentially; extracting the whole movie defeats thumbnails.
+                    val source = vfs
+                    val size = lookup.entry.size
+                    return object : FileHandle(path) {
+                        override fun exists() = true
+                        override fun length() = size
+                        override fun read(): java.io.InputStream {
+                            val result = source.openRead(path, jake2.qcommon.vfs.VfsOpenOptions.DEFAULT)
+                            val handle = checkNotNull(result.value) { "Could not open cinematic: $path" }
+                            return object : java.io.FilterInputStream(handle.inputStream()) {
+                                override fun close() = handle.close()
+                            }
+                        }
+                    }
+                }
+
                 val cacheKey = buildString {
                     append(lookup.entry.source.containerPath.toAbsolutePath().normalize())
                     append('|')

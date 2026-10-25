@@ -6,6 +6,8 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.vfs.VfsEntry
+import org.demoth.cake.assets.CinematicCinDecoder
+import com.badlogic.gdx.graphics.Pixmap
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
@@ -29,6 +31,19 @@ class ImageThumbnails(
                 "pcx" -> PcxLoader(resolver).load(assets, path, file, null)
                 "wal" -> WalLoader(resolver).load(assets, path, file, WalLoader.Parameters(
                     externalPalette = assets.getLoaded<Any>("q2palette.bin") as IntArray))
+                "cin" -> CinematicCinDecoder(file.read(), assets.getLoaded<Any>("q2palette.bin") as IntArray).use { decoder ->
+                    val frame = requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
+                    val pixels = Pixmap(decoder.width, decoder.height, Pixmap.Format.RGBA8888)
+                    try {
+                        val palette = decoder.currentPalette()
+                        for (y in 0 until decoder.height) for (x in 0 until decoder.width) {
+                            pixels.drawPixel(x, y, palette[frame.indexedFrame[y * decoder.width + x].toInt() and 255])
+                        }
+                        Texture(pixels)
+                    } finally {
+                        pixels.dispose()
+                    }
+                }
                 else -> Texture(file)
             }
             textures[path] = texture

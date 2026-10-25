@@ -217,7 +217,10 @@ class CakeViewerPreviewGlTest {
                 app.openFile(if (archive) pak.toString() else temp.resolve(name).toString())
                 app.render()
                 val stage = Gdx.input.inputProcessor as Stage
-                if (archive) { openTile(stage, name); app.render() }
+                if (archive) {
+                    if (name == "settings.cfg") verifyCinematicThumbnail(stage) { app.render() }
+                    openTile(stage, name); app.render()
+                }
                 return Gdx.input.inputProcessor as Stage
             }
             val textStage = open("settings.cfg")
@@ -233,6 +236,26 @@ class CakeViewerPreviewGlTest {
             assertTrue(labels(brokenStage).any { it.contains("Could not") })
             assertTrue(labels(open("settings.cfg")).any { it.contains("set name preview") })
         }
+    }
+
+    private fun verifyCinematicThumbnail(stage: Stage, render: () -> Unit) {
+        val label = actors(stage.root).filterIsInstance<Label>().single { it.text.toString() == "intro.cin" }
+        val tile = generateSequence<Actor>(label) { it.parent }.filterIsInstance<Button>().first()
+        val scroll = generateSequence<Actor>(tile) { it.parent }
+            .filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>().first()
+        val position = tile.localToActorCoordinates(scroll.actor, Vector2())
+        scroll.scrollTo(position.x, position.y, tile.width, tile.height)
+        scroll.updateVisualScroll()
+        repeat(5) { render() }
+        val image = actors(tile).filterIsInstance<Image>().single()
+        val drawable = image.drawable as com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+        assertEquals(2, drawable.region.texture.width)
+        assertEquals(2, drawable.region.texture.height)
+        assertFalse(actors(stage.root).any { it.javaClass.simpleName == "CinematicPreview" },
+            "A thumbnail does not create a playback widget")
+        val first = image.drawable
+        render()
+        assertSame(first, image.drawable, "Visible thumbnails reuse the folder cache")
     }
 
     private fun verifyTextScrolling(stage: Stage) {
@@ -299,6 +322,9 @@ class CakeViewerPreviewGlTest {
         val resolver = org.demoth.cake.assets.CakeFileResolver(profile.parent.toString())
         val assets = AssetManager(resolver).apply {
             setLoader(com.badlogic.gdx.graphics.Texture::class.java, "pcx", org.demoth.cake.assets.PcxLoader(resolver))
+            setLoader(Any::class.java, org.demoth.cake.assets.ObjectLoader(resolver))
+            load("q2palette.bin", Any::class.java)
+            finishLoading()
         }
         val skin = (field(app, "assetManager") as AssetManager)
             .get(org.demoth.cake.cakeSkin, com.badlogic.gdx.scenes.scene2d.ui.Skin::class.java)
@@ -327,6 +353,7 @@ class CakeViewerPreviewGlTest {
             menus.select(MenuScreen.MAIN)
             assertNull(pane.stage, "Leaving the profile browser releases its preview")
             menus.select(MenuScreen.CONTENT_BROWSER); menus.render(0f)
+            verifyCinematicThumbnail(stage) { menus.render(0f) }
             openTile(stage, "settings.cfg"); menus.render(0f)
             assertTrue(labels(stage).any { it.contains("set name preview") })
             verifyTextScrolling(stage)

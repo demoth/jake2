@@ -53,7 +53,13 @@ class CinematicPresentationController(
     }
 
     fun render(currentTimeMs: Int, spriteBatch: SpriteBatch, screenWidth: Float, screenHeight: Float) {
-        advanceStream(currentTimeMs)
+        try {
+            advanceStream(currentTimeMs)
+        } catch (error: Exception) {
+            releaseMedia()
+            autoAdvancePending = true
+            Com.Warn("Cinematic stream failed: ${error.message}\n")
+        }
         renderStaticImage(spriteBatch, screenWidth, screenHeight)
         logDiagnostics(currentTimeMs)
     }
@@ -121,20 +127,22 @@ class CinematicPresentationController(
             ?: IntArray(PALETTE_COLOR_COUNT) { 0xFF }
 
         try {
-            val decoder = CinematicCinDecoder(streamHandle.readBytes(), defaultPalette)
+            val decoder = CinematicCinDecoder(streamHandle.read(), defaultPalette)
+            streamDecoder = decoder
             prepareAudioDevice(decoder)
             val firstFrame = decoder.readNextFrame()
             if (firstFrame == null) {
+                releaseMedia()
                 autoAdvancePending = true
                 return
             }
-            streamDecoder = decoder
             uploadFrame(
                 width = decoder.width,
                 height = decoder.height,
                 indexedFrame = firstFrame.indexedFrame,
                 palette = decoder.currentPalette(),
             ) || run {
+                streamDecoder?.close()
                 streamDecoder = null
                 autoAdvancePending = true
                 audioDevice?.dispose()
@@ -145,7 +153,8 @@ class CinematicPresentationController(
                 pcmBytes = firstFrame.audioPcmBytes,
                 sampleWidth = decoder.sampleWidth,
             )
-        } catch (ex: RuntimeException) {
+        } catch (ex: Exception) {
+            releaseMedia()
             Com.Warn("Failed to open cinematic stream $streamPath: ${ex.message}\n")
             autoAdvancePending = true
         }
@@ -167,6 +176,7 @@ class CinematicPresentationController(
         val targetFrame = elapsedMs * CINEMATIC_FPS / 1000
         while (decoder.decodedFrameCount <= targetFrame) {
             val decodedFrame = decoder.readNextFrame() ?: run {
+                streamDecoder?.close()
                 streamDecoder = null
                 autoAdvancePending = true
                 audioDevice?.dispose()
@@ -179,6 +189,7 @@ class CinematicPresentationController(
                 indexedFrame = decodedFrame.indexedFrame,
                 palette = decoder.currentPalette(),
             ) || run {
+                streamDecoder?.close()
                 streamDecoder = null
                 autoAdvancePending = true
                 audioDevice?.dispose()
@@ -313,6 +324,7 @@ class CinematicPresentationController(
     }
 
     private fun releaseMedia() {
+        streamDecoder?.close()
         streamDecoder = null
         autoAdvancePending = false
         audioDevice?.dispose()
