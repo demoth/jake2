@@ -21,6 +21,8 @@ internal class ContentPreview(
     private val previewAssets: AssetManager,
     private val loadSound: (VfsEntry) -> Sound,
 ) : Disposable {
+    var contentPaths: List<String> = emptyList()
+
     private val scene = SceneResourcePreview(previewAssets, styles)
     private var sound: Sound? = null
     private var soundPlayback: SoundPlayback? = null
@@ -67,7 +69,7 @@ internal class ContentPreview(
         if (entry.normalizedPath.substringAfterLast('.') in setOf("md2", "bsp")) {
             return try {
                 if (entry.normalizedPath.endsWith(".bsp")) scene.openBsp(entry.normalizedPath)
-                else scene.openMd2(entry.normalizedPath)
+                else scene.openMd2(entry.normalizedPath, playerModelSkinPaths(entry.normalizedPath, contentPaths))
             } catch (error: Exception) {
                 clearVisualPreview()
                 Gdx.app.error("Content browser", "Could not preview ${entry.displayPath}", error)

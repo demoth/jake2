@@ -3,6 +3,10 @@ package jake2.server
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.g3d.ModelInstance
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.md2.Md2SkinTexturesAttribute
+import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.Image
@@ -43,7 +47,14 @@ class CakeViewerPreviewGlTest {
             model.fill(0, 68 + index * 64, 68 + (index + 1) * 64)
             name.toByteArray().copyInto(model, 68 + index * 64)
         }
+        val player = model.copyOf().also { ByteBuffer.wrap(it).order(ByteOrder.LITTLE_ENDIAN).putInt(20, 0) }
         val entries = linkedMapOf("model.md2" to model, "a.pcx" to pcx(0xff0000), "b.pcx" to pcx(0x00ff00))
+        entries["players/test/tris.md2"] = player
+        repeat(14) { entries["players/test/skin%02d.pcx".format(it)] = pcx(if (it == 0) 0xff0000 else 0x00ff00) }
+        entries["players/test/skin00_i.pcx"] = pcx(0)
+        entries["players/test/weapon.pcx"] = pcx(0)
+        entries["players/test/disguise.pcx"] = pcx(0)
+        entries["players/test/zzbroken.pcx"] = byteArrayOf(0)
         val mapBytes = javaClass.getResourceAsStream("/baseq2/maps/testbox.bsp")!!.use { it.readBytes() }
         val map = Bsp(ByteBuffer.wrap(mapBytes))
         entries["testbox.bsp"] = mapBytes
@@ -141,12 +152,23 @@ class CakeViewerPreviewGlTest {
                     assertTrue(actors(stage.root).any { it.javaClass.simpleName == "SoundPreviewControls" })
                     assertTrue(stage.keyDown(Input.Keys.S))
 
+                    app.openFile(temp.resolve("players/test/tris.md2").toString())
+                    app.render()
+                    verifyExternalSkins(app, stage)
+                    app.openFile(pak.toString())
+                    app.render()
+                    openTile(stage, "players"); app.render()
+                    openTile(stage, "test"); app.render()
+                    openTile(stage, "tris.md2"); app.render()
+                    verifyExternalSkins(app, stage)
+
                     app.openFile(broken.toString())
                     app.render()
                     app.openFile(temp.resolve("model.md2").toString())
                     app.render()
                     assertEquals(1, actors((Gdx.input.inputProcessor as Stage).root)
                         .count { it.javaClass.simpleName == "Md2PreviewPane" })
+                    verifyProfilePlayerPreview(app, pak)
                     assertEquals(0, Gdx.gl.glGetError())
                 } catch (error: Throwable) {
                     failure = error
@@ -166,9 +188,89 @@ class CakeViewerPreviewGlTest {
         failure?.let { throw it }
     }
 
+    private fun verifyProfilePlayerPreview(app: CakeViewer, pak: Path) {
+        val profile = Files.createDirectories(temp.resolve("profile/baseq2"))
+        Files.copy(pak, profile.resolve("pak0.pak"))
+        val resolver = org.demoth.cake.assets.CakeFileResolver(profile.parent.toString())
+        val assets = AssetManager(resolver).apply {
+            setLoader(com.badlogic.gdx.graphics.Texture::class.java, "pcx", org.demoth.cake.assets.PcxLoader(resolver))
+        }
+        val skin = (field(app, "assetManager") as AssetManager)
+            .get(org.demoth.cake.cakeSkin, com.badlogic.gdx.scenes.scene2d.ui.Skin::class.java)
+        ktx.scene2d.Scene2DSkin.defaultSkin = skin
+        val style = org.demoth.cake.ui.EngineUiStyle(skin)
+        val viewport = org.demoth.cake.ui.UiViewport().apply { update(1024, 768, true) }
+        val menus = org.demoth.cake.stages.MenuStages(viewport, org.demoth.cake.ui.menu.MenuEventBus(),
+            assets, resolver, false) { "test" }
+        try {
+            menus.rebuild(style)
+            menus.select(org.demoth.cake.ui.menu.MenuScreen.CONTENT_BROWSER)
+            menus.render(0f)
+            val stage = menus.inputProcessor as Stage
+            openTile(stage, "players"); menus.render(0f)
+            openTile(stage, "test"); menus.render(0f)
+            openTile(stage, "tris.md2"); menus.render(0f)
+            val selector = actors(stage.root).filterIsInstance<SelectBox<*>>().single()
+            assertEquals(15, selector.items.size)
+            selector.selectedIndex = 13
+            menus.render(0f)
+            val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
+            menus.select(org.demoth.cake.ui.menu.MenuScreen.MAIN)
+            assertNull(pane.stage, "Leaving the profile browser releases its preview")
+        } finally {
+            menus.dispose()
+            style.dispose()
+            assets.dispose()
+        }
+    }
+
+    private fun verifyExternalSkins(app: CakeViewer, stage: Stage) {
+        val selector = actors(stage.root).filterIsInstance<SelectBox<*>>().single()
+        assertEquals(15, selector.items.size, "All body skins, including >12 choices, excluding icons/auxiliary textures")
+        val scene = field(app, "scenePreview")
+        val instance = field(scene, "instance") as ModelInstance
+        val model = field(scene, "md2") as Md2Asset
+        fun bound() = instance.materials.first().get(Md2SkinTexturesAttribute.Type) as Md2SkinTexturesAttribute
+        val originalTexture = bound().textures.single()
+        assertNotSame(model.skins.single(), originalTexture)
+        val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
+        stage.keyboardFocus = pane
+        stage.keyDown(Input.Keys.RIGHT)
+        app.render()
+        val position = camera(pane).position.cpy()
+        selector.selectedIndex = 13
+        app.render()
+        val selectedTexture = bound().textures.single()
+        assertNotSame(originalTexture, selectedTexture)
+        assertSame(instance, field(scene, "instance"))
+        assertEquals(position, camera(pane).position)
+        assertTrue(labels(stage).any { it.startsWith("Frame 2/200") })
+        assertSame(model.skins.single(),
+            (model.model.materials.first().get(Md2SkinTexturesAttribute.Type) as Md2SkinTexturesAttribute).textures.single(),
+            "External selection only changes the preview instance's material")
+        selector.selectedIndex = 14 // corrupt texture
+        app.render()
+        assertEquals(13, selector.selectedIndex)
+        assertSame(selectedTexture, bound().textures.single())
+        assertTrue(labels(stage).any { it.contains("Keeping previous skin") })
+        selector.selectedIndex = 0 // a failed load must not prevent later selection
+        app.render()
+        assertEquals(0, selector.selectedIndex)
+        assertNotSame(selectedTexture, bound().textures.single())
+        val assets = field(app, "assetManager") as AssetManager
+        assertTrue(assets.isLoaded(field(scene, "resources").let { resources ->
+            resources.javaClass.getMethod("getPath").invoke(resources) as String
+        }))
+    }
+
+    private fun field(owner: Any, name: String): Any = owner.javaClass.getDeclaredField(name).let {
+        it.isAccessible = true
+        it.get(owner)
+    }
+
     private fun openTile(stage: Stage, name: String) {
-        var tile: Actor = actors(stage.root).filterIsInstance<Label>().first { it.text.toString() == name }
-        while (tile !is Button) tile = tile.parent
+        val tile = actors(stage.root).filterIsInstance<Label>().filter { it.text.toString().removeSuffix("/") == name }
+            .firstNotNullOf { label -> generateSequence<Actor>(label) { it.parent }.filterIsInstance<Button>().firstOrNull() }
         tile.listeners.filterIsInstance<ClickListener>().forEach {
             it.tapCount = 2
             it.clicked(InputEvent(), 0f, 0f)

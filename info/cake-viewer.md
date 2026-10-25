@@ -33,6 +33,7 @@ their surrounding navigation and styling differ.
 
 - **WAV/SP2/MD2 controls:** Play, Pause, Loop and Stop; sprite/model previews also have Previous/Next.
 - **SP2/MD2 keyboard:** Space toggles playback; Left/Right step, pause and wrap. Stop resets to frame one; completed playback can restart.
+- **Player skins:** `players/<model>/tris.md2` offers sibling PCX body skins, excluding icons, weapon, and disguise textures. A loose skinless `tris.md2` also works in an extracted folder. Skin changes retain camera/animation; missing skins use white fallback and failed selections keep the previous skin with an error message.
 - **Loose files:** WAV plays on opening; SP2/MD2 start paused. BSP views start near a player spawn (or the map bounds when none exists); click the pane to fly. No grid or origin overlays.
 - **BSP limits:** static world/brush geometry only; no collision, gameplay entities or sky. Trigger and area-portal brushes are hidden.
 - Metadata includes image/frame dimensions, sound duration, model skin counts and map surface/brush counts.

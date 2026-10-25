@@ -9,6 +9,11 @@ import jake2.qcommon.vfs.VfsConfig
 import jake2.qcommon.vfs.VfsEntry
 import jake2.qcommon.vfs.VfsSourceType
 import org.demoth.cake.assets.CakeVfsAssetSource
+import org.demoth.cake.ui.playerModelSkinPaths
+import org.demoth.cake.ui.playerSkinName
+import jake2.qcommon.filesystem.IDALIASHEADER
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.io.File
 import java.nio.file.Path
 import java.util.LinkedHashSet
@@ -68,6 +73,30 @@ class ViewerFileResolver(
         val entries = gameDataVfs.configureArchive(archivePath)
         archiveContext = true
         return entries
+    }
+
+    /** Discover external body skins without changing resolver context or loading any textures. */
+    internal fun playerSkinPaths(modelPath: String): List<String>? {
+        if (archiveContext) return playerModelSkinPaths(modelPath, gameDataVfs.listEntries().map { it.normalizedPath })
+        val model = File(modelPath)
+        if (!model.isAbsolute || !model.name.equals("tris.md2", ignoreCase = true)) return null
+        val normalized = model.absolutePath.replace('\\', '/')
+        val logical = Regex("(?:^|/)(players/[^/]+/tris\\.md2)$", RegexOption.IGNORE_CASE)
+            .find(normalized)?.groupValues?.get(1)
+        if (logical == null) {
+            // An extracted player folder has no players/ prefix. Do not override embedded monster skins.
+            val header = model.inputStream().use { it.readNBytes(24) }
+            if (header.size != 24) return null
+            val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
+            if (buffer.getInt(0) != IDALIASHEADER || buffer.getInt(4) != 8 || buffer.getInt(20) != 0) return null
+        }
+        val siblings = model.parentFile.listFiles().orEmpty()
+            .filter { it.isFile && playerSkinName(it.name) != null }.map { it.absolutePath }
+        val fallback = if (logical != null && basedir != null)
+            playerModelSkinPaths(logical, gameDataVfs.listEntries().map { it.normalizedPath }).orEmpty()
+        else emptyList()
+        return (siblings + fallback).distinctBy { it.substringAfterLast('/').lowercase() }
+            .sortedBy { it.substringAfterLast('/').lowercase() }
     }
 
     override fun resolve(fileName: String): FileHandle? {

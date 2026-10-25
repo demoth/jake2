@@ -45,6 +45,7 @@ class ContentBrowserStage(
 
     fun show(entries: List<VfsEntry>, profileName: String, message: String? = null) {
         hide()
+        media.contentPaths = entries.map { it.normalizedPath }
         title.setText("Content: $profileName (${entries.size} files)")
         content.actor = if (entries.isEmpty()) {
             Label(message ?: "No content found in this profile.", styles.label)
@@ -73,6 +74,7 @@ class ContentBrowserStage(
         unfocusAll()
         content.actor = null
         media.clear()
+        media.contentPaths = emptyList()
         thumbnails.clear()
     }
 

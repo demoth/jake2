@@ -1,5 +1,7 @@
 package org.demoth.cake.ui.menu
 
+import org.demoth.cake.ui.playerSkinName
+
 data class PlayerSetupCatalog(
     val models: List<String>,
     val skinsByModel: Map<String, List<String>>,
@@ -33,7 +35,6 @@ data class PlayerSetupCatalog(
     companion object {
         private const val DEFAULT_MODEL = "male"
         private const val DEFAULT_SKIN = "grunt"
-        private val NON_SELECTABLE_SKINS = setOf("weapon", "disguise")
 
         fun fromResolvedFiles(paths: List<String>): PlayerSetupCatalog {
             val modelDirs = mutableSetOf<String>()
@@ -53,17 +54,7 @@ data class PlayerSetupCatalog(
                     continue
                 }
 
-                if (!fileName.endsWith(".pcx")) {
-                    continue
-                }
-
-                val skinName = fileName.removeSuffix(".pcx")
-                if (skinName.endsWith("_i")) {
-                    continue
-                }
-                if (skinName in NON_SELECTABLE_SKINS) {
-                    continue
-                }
+                val skinName = playerSkinName(fileName) ?: continue
 
                 skinsByModel.getOrPut(model) { linkedSetOf() }.add(skinName)
             }

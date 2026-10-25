@@ -32,8 +32,16 @@ MD2 skin paths if enabled; otherwise an optional generated white 1-by-1 skin.
 The viewer enables `useDefaultSkinIfMissing` for models with no selected skin
 paths. That option does not recover arbitrary failures to load a referenced file.
 `Md2Asset.skinNames` retains the resolved paths in texture order, or an empty list
-for the generated fallback. The viewer uses these names in its skin selector and
-changes the preview instance's `skinIndex` without reloading assets.
+for the generated fallback. For embedded skins, the viewer uses these names in
+its selector and changes the preview instance's `skinIndex` without reloading assets.
+
+Player previews disable embedded skins and use the white fallback for geometry
+loading. `SceneResourcePreview` acquires the selected external PCX separately,
+replaces only the instance's `Md2SkinTexturesAttribute`, then releases the old
+texture reference. Model materials, geometry, camera, and animation remain intact.
+Only one external skin is bound at a time, so the twelve-slot shader limit does
+not limit the selectable player skins. Matching uses the current loose folder,
+isolated archive, or profile entry snapshot; it does not change gameplay variant keys.
 
 Player variants use keys such as
 `players/male/grunt.pcx|players/male/tris.md2`. `PlayerConfiguration` selects the

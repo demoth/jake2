@@ -252,6 +252,38 @@ class ViewerFileResolverTest {
         resolver.configure(openedFile.absolutePath)
     }
 
+    @Test
+    fun playerSkinDiscoveryKeepsArchiveIsolationAndLooseOverrides() {
+        val model = createFile("baseq2/players/male/tris.md2")
+        val local = createFile("baseq2/players/male/Local.PCX")
+        createFile("baseq2/players/male/local_i.pcx")
+        val pak = temp.resolve("baseq2/pak0.pak")
+        writePak(pak, linkedMapOf("players/male/tris.md2" to byteArrayOf(0),
+            "players/male/local.pcx" to byteArrayOf(1), "players/male/packed.pcx" to byteArrayOf(2),
+            "players/female/other.pcx" to byteArrayOf(3)))
+        val resolver = ViewerFileResolver(model.absolutePath, temp.toString())
+        assertEquals(listOf(local.absolutePath, "players/male/packed.pcx"), resolver.playerSkinPaths(model.absolutePath))
+        resolver.configureArchive(pak.toString())
+        assertEquals(listOf("players/male/local.pcx", "players/male/packed.pcx"),
+            resolver.playerSkinPaths("players/male/tris.md2"))
+        assertNull(resolver.playerSkinPaths("models/monsters/soldier/tris.md2"))
+    }
+
+    @Test
+    fun extractedPlayerFoldersUseSiblingSkinsButEmbeddedModelsRemainUnchanged() {
+        val model = createFile("bundle/tris.md2")
+        val skin = createFile("bundle/body.pcx")
+        val bytes = ByteBuffer.allocate(24).order(ByteOrder.LITTLE_ENDIAN).apply {
+            putInt(jake2.qcommon.filesystem.IDALIASHEADER); putInt(8)
+        }.array()
+        model.writeBytes(bytes)
+        val resolver = ViewerFileResolver(model.absolutePath)
+        assertEquals(listOf(skin.absolutePath), resolver.playerSkinPaths(model.absolutePath))
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putInt(20, 1)
+        model.writeBytes(bytes)
+        assertNull(resolver.playerSkinPaths(model.absolutePath))
+    }
+
     private fun createFile(relativePath: String): File {
         val file = temp.resolve(relativePath).toFile()
         file.parentFile.mkdirs()

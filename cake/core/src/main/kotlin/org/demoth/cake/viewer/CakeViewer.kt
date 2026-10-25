@@ -240,7 +240,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 image = previewResources.load(path, Texture::class.java)
             }
             "md2" -> {
-                scenePreview.openMd2(path)
+                scenePreview.openMd2(path, fileResolver.playerSkinPaths(path))
                 playback = scenePreview.animation
             }
             "bsp" -> scenePreview.openBsp(path)
