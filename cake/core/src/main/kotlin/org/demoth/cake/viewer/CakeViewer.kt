@@ -10,10 +10,8 @@ import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
-import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
@@ -57,9 +55,6 @@ import org.demoth.cake.ui.ContentBrowser
 import java.io.File
 import kotlin.system.measureTimeMillis
 
-private const val GRID_SIZE = 16f
-private const val GRID_DIVISIONS = 8
-
 private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2", ".pak")
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
@@ -81,7 +76,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var cameraInputController: CameraInputController
     // rendered with the default libgdx shader
     private lateinit var stage: Stage
-    private lateinit var browserHost: Container<ContentBrowser>
+    private lateinit var previewHost: Container<Actor>
+    private val browser: ContentBrowser? get() = previewHost.actor as? ContentBrowser
     private lateinit var filenameLabel: Label
     private lateinit var controlsLabel: Label
     private lateinit var errorLabel: Label
@@ -90,8 +86,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var emptyState: Table
     private lateinit var infoPanel: Table
     private var frameTime = 0f // to have an idea of the fps
-
-    // md2 related stuff
 
     override fun create() {
         initializeShaderCompatibility()
@@ -153,16 +147,16 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             if (file.extension.equals("pak", ignoreCase = true)) {
                 val entries = fileResolver.configureArchive(file.absolutePath)
                 archiveEntryCount = entries.size
-                browserHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
+                previewHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
                     ::previewArchiveResource, archiveThumbnails::load, archiveThumbnails::clear, ::selectArchiveResource)
-                browserHost.isVisible = true
+                previewHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
                 fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
                 loadPreview(file.absolutePath)
-                if (scenePreview.md2 != null || scenePreview.map != null) {
-                    scenePreview.addOverlay(createOriginArrows(GRID_SIZE))
-                    scenePreview.addOverlay(createGrid(GRID_SIZE, GRID_DIVISIONS))
+                if (scenePreview.md2 != null) {
+                    previewHost.actor = scenePreview.actor
+                    previewHost.isVisible = true
                 }
                 if (sound != null) replaySound()
             }
@@ -265,6 +259,13 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "bsp" -> scenePreview.openBsp(path)
         }
+        updateInputHandlers()
+    }
+
+    private fun updateInputHandlers() {
+        // Only loose BSP viewing uses the standalone fly camera; panes handle their own input.
+        Gdx.input.inputProcessor = if (archiveEntryCount == null && scenePreview.map != null)
+            InputMultiplexer(stage, cameraInputController) else stage
     }
 
     private fun resetCamera() {
@@ -273,7 +274,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         camera.direction.set(0f, 1f, 0f)
         camera.update()
         cameraInputController = FlyingCameraController(camera)
-        if (::stage.isInitialized) Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
     }
 
     private fun createStage() {
@@ -286,13 +286,34 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         filenameLabel = Label("No resource", skin).apply { setWrap(true) }
         controlsLabel = Label("Drop a resource to view | Escape: close", skin).apply { setWrap(true) }
         errorLabel = Label("", skin).apply { setWrap(true) }
-        browserHost = Container<ContentBrowser>().apply {
+        previewHost = Container<Actor>().apply {
             fill()
             isVisible = false
         }
         stage.addListener(object : InputListener() {
-            override fun keyDown(event: InputEvent, keycode: Int): Boolean =
-                browserHost.isVisible && browserHost.actor?.keyDown(keycode) == true
+            override fun keyDown(event: InputEvent, keycode: Int): Boolean {
+                if (event.isHandled) return false
+                if (browser?.keyDown(keycode) == true) return true
+                return when (keycode) {
+                    Input.Keys.ESCAPE -> {
+                        if (browser?.navigateBack() != true) Gdx.app.exit()
+                        true
+                    }
+                    Input.Keys.SPACE -> {
+                        if (sound != null) soundPlayback?.toggle() else playback?.toggle()
+                        sound != null || playback != null
+                    }
+                    Input.Keys.S -> {
+                        soundPlayback?.stop()
+                        soundPlayback != null
+                    }
+                    Input.Keys.RIGHT, Input.Keys.LEFT -> {
+                        playback?.step(if (keycode == Input.Keys.RIGHT) 1 else -1)
+                        playback != null
+                    }
+                    else -> false
+                }
+            }
         })
         emptyState = Table().apply {
             setFillParent(true)
@@ -313,10 +334,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             setFillParent(true)
             top().left().pad(12f)
             add(infoPanel).growX().row()
-            add(browserHost).grow()
+            add(previewHost).grow()
         })
         updateResourceInfo()
-        Gdx.input.inputProcessor = InputMultiplexer(stage, cameraInputController)
+        updateInputHandlers()
     }
 
     private fun updateResourceInfo() {
@@ -353,18 +374,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         }
 
         soundPlayback?.update()
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            if (sound != null) soundPlayback?.toggle() else playback?.toggle()
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            if (!browserHost.isVisible || browserHost.actor?.navigateBack() != true) Gdx.app.exit()
-        } else if (sound != null && Gdx.input.isKeyJustPressed(Input.Keys.S)) {
-            soundPlayback?.stop()
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT)) {
-            playback?.step(1)
-        } else if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT)) {
-            playback?.step(-1)
-        }
-
         if (scenePreview.animation == null) playback?.update(Gdx.graphics.deltaTime)
         scenePreview.act(Gdx.graphics.deltaTime)
         if (playback != null) updateResourceInfo()
@@ -374,7 +383,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
             camera.update()
 
-            if (archiveEntryCount == null) scenePreview.render(camera)
+            if (archiveEntryCount == null && scenePreview.map != null) scenePreview.render(camera)
 
             batch.use {
                 val currentFrame = if (archiveEntryCount == null) spriteFrame else null
@@ -390,7 +399,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
             }
 
-            cameraInputController.update()
+            if (archiveEntryCount == null && scenePreview.map != null) cameraInputController.update()
             emptyState.isVisible = currentFile == null
             infoPanel.isVisible = currentFile != null || errorLabel.text.isNotEmpty()
             frameTimeLabel.setText("Frame time ms: $frameTime")
@@ -418,9 +427,9 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         closeResourcePreview()
         archiveThumbnails.clear()
         archiveEntryCount = null
-        if (::browserHost.isInitialized) {
-            browserHost.actor = null
-            browserHost.isVisible = false
+        if (::previewHost.isInitialized) {
+            previewHost.actor = null
+            previewHost.isVisible = false
         }
         currentFile = null
     }
@@ -428,7 +437,12 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private fun closeResourcePreview() {
         soundPlayback?.stop()
         if (::previewResources.isInitialized) previewResources.close()
-        if (::scenePreview.isInitialized) scenePreview.close()
+        if (::scenePreview.isInitialized) {
+            // Detach borrowed actors before disposing their render targets and model resources.
+            scenePreview.actor?.remove()
+            scenePreview.close()
+        }
+        if (::stage.isInitialized) Gdx.input.inputProcessor = stage
         image = null
         sound = null
         soundPlayback = null
@@ -446,21 +460,6 @@ internal fun expandTildePath(path: String): String {
         return System.getProperty("user.home") + path.substring(1)
     }
     return path
-}
-
-fun createGrid(size: Float, divisions: Int): ModelInstance {
-    val modelBuilder = ModelBuilder()
-    // grid is in XZ plane
-    val lineGrid = modelBuilder.createLineGrid(
-        divisions, divisions, size, size, Material(
-            ColorAttribute.createDiffuse(Color.GREEN)
-        ), (Usage.Position or Usage.ColorUnpacked).toLong()
-    )
-    val modelInstance = ModelInstance(lineGrid).apply {
-        // rotate into XY plane
-        transform.rotate(Vector3.X, -90f)
-    }
-    return modelInstance
 }
 
 fun createOriginArrows(size: Float): ModelInstance {

@@ -25,12 +25,12 @@ View Quake II resources standalone, or open **Content browser** from the client/
 | PCX / WAL / TGA | Aspect-fit preview; wheel zooms around the pointer, left-drag pans. Resize retains zoom/pan; reopening resets the fit. |
 | WAV | Click a tile to play once; double-click opens controls without restarting. **Space** pauses/resumes; **S** stops. Supports Quake II's 8-bit PCM WAVs. |
 | SP2 | Click a tile to animate once; double-click opens controls without restarting. Frames stay centred on a fixed canvas; wheel zooms and left-drag pans. Playback runs at 10 fps. |
-| MD2 | Double-click to open; left-drag orbits and wheel zooms. Shows frame names and a skin selector; generated skins are labelled **Default skin**. |
+| MD2 | Loose files and browser entries share an automatically framed preview: left-drag orbits and wheel zooms. Shows frame names and a skin selector; generated skins are labelled **Default skin**. |
 | BSP | Double-click to open; click the pane to focus, **WASD** flies, **Q/E** moves down/up, left-drag looks around. Click outside to release movement focus. |
 
 - **WAV/SP2/MD2 controls:** Play, Pause, Loop and Stop; sprite/model previews also have Previous/Next.
 - **SP2/MD2 keyboard:** Space toggles playback; Left/Right step, pause and wrap. Stop resets to frame one; completed playback can restart.
-- **Loose files:** WAV plays on opening; SP2/MD2 start paused. Models/maps retain the standalone grid and axes.
+- **Loose files:** WAV plays on opening; SP2/MD2 start paused. Fly navigation is reserved for BSP maps; grid and origin overlays are removed.
 - **BSP limits:** static world/brush geometry only; no collision, gameplay entities or sky. Trigger and area-portal brushes are hidden.
 - Metadata includes image/frame dimensions, sound duration, model skin counts and map surface/brush counts.
 

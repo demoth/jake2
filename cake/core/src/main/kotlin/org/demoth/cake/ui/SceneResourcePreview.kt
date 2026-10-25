@@ -120,11 +120,6 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
         world?.renderTranslucent(camera, visibleSurfaces, currentTime)
     }
 
-    fun addOverlay(instance: ModelInstance) {
-        resources.own(instance.model)
-        instances += instance
-    }
-
     fun close() {
         actor = null
         resources.close()
