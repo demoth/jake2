@@ -10,6 +10,15 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
+import org.demoth.cake.stages.HostingSetupStage
+import org.demoth.cake.ui.menu.HostMap
+import org.demoth.cake.ui.menu.HostGameFormState
+import org.demoth.cake.ui.menu.HostingSetupState
+import org.demoth.cake.ui.menu.MenuStateSnapshot
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.assets.CakeFileResolver
@@ -55,6 +64,7 @@ class MenuStagesGlTest {
         val viewport = UiViewport().apply { update(640, 480, true) }
         val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false) { null }
         try {
+            verifyHostMapSelection(viewport, style)
             menus.rebuild(style)
             val main = menus.inputProcessor
             assertFalse(menus.select(MenuScreen.MAIN))
@@ -95,6 +105,45 @@ class MenuStagesGlTest {
             skin.dispose()
         }
     }
+
+    private fun verifyHostMapSelection(viewport: UiViewport, style: GameUiStyle) {
+        val maps = listOf(HostMap("arena", "Arena title"), HostMap("custom"))
+        val bus = MenuEventBus(MenuStateSnapshot(canHostGame = true,
+            hostGame = HostingSetupState(form = HostGameFormState(map = "custom"), maps = maps)))
+        val stage = HostingSetupStage(viewport, bus, style, false)
+        try {
+            stage.act(0f)
+            val actors = descendants(stage.root)
+            @Suppress("UNCHECKED_CAST")
+            val dropdown = actors.filterIsInstance<SelectBox<*>>().first() as SelectBox<HostMap>
+            val start = actors.filterIsInstance<TextButton>().first { it.text.toString() == "Start Server" }
+            assertEquals("custom", dropdown.selected.name)
+            assertFalse(start.isDisabled)
+            dropdown.selectedIndex = 0
+            stage.act(0f)
+            bus.drainIntents { }
+            start.listeners.filterIsInstance<ClickListener>().forEach {
+                it.clicked(InputEvent(), 0f, 0f)
+            }
+            val intents = mutableListOf<MenuIntent>()
+            bus.drainIntents { intents += it }
+            assertEquals("arena", intents.filterIsInstance<MenuIntent.StartHosting>().single().form.map)
+            assertEquals("arena — Arena title", dropdown.selected.toString())
+            dropdown.showScrollPane()
+            assertTrue(dropdown.scrollPane.hasParent())
+            dropdown.hideScrollPane()
+            bus.postState(bus.latestState().copy(hostGame = HostingSetupState()))
+            stage.act(0f)
+            assertTrue(start.isDisabled)
+            assertTrue(dropdown.isDisabled)
+            assertTrue(labels(stage.root).contains("No maps found"))
+        } finally {
+            stage.dispose()
+        }
+    }
+
+    private fun descendants(actor: Actor): List<Actor> =
+        listOf(actor) + if (actor is Group) actor.children.flatMap(::descendants) else emptyList()
 
     private fun labels(actor: Actor): List<String> = when (actor) {
         is Label -> listOf(actor.text.toString())

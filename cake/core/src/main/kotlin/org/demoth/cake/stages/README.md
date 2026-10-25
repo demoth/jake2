@@ -37,6 +37,9 @@ and active-stage drawing/input selection; navigation decisions stay in `MenuCont
 - `cake-client` hides Singleplayer and Host Game entries. `cake-fullgame` exposes
   them and enables hosting when the current profile and session state allow it.
 - Join Game validates host/port before using Cake's existing connection path.
+- Host Game lists profile BSP maps as `name — title`, reading titles from worldspawn
+  metadata and falling back to names. Choices refresh on entry/profile changes;
+  no maps disables Start. Deathmatch and Coop share the list.
 - Player Setup writes on Save; Back discards staged edits. The backend writes
   userinfo cvars through `ui.menu.PlayerSetup`, including derived gender; Cake
   then saves profile configuration. `PlayerSetup` owns the cached model/skin

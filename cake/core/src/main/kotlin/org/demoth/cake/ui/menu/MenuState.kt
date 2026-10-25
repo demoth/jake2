@@ -96,4 +96,5 @@ data class HostGameFormState(
 data class HostingSetupState(
     val form: HostGameFormState = HostGameFormState(),
     val statusMessage: String = "",
+    val maps: List<HostMap> = emptyList(),
 )

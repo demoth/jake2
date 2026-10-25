@@ -4,6 +4,7 @@ import jake2.qcommon.Defines.PORT_SERVER
 import jake2.qcommon.network.netadr_t
 
 interface MenuBackend {
+    fun hostMaps(): List<HostMap> = emptyList()
     fun hostingUnavailableReason(): String? = "Hosting requires the Cake fullgame application."
     fun startHosting(singleplayer: Boolean, form: HostGameFormState): String =
         "Hosting requires the Cake fullgame application."
@@ -32,6 +33,20 @@ class MenuController(
     private var state: MenuStateSnapshot = MenuStateSnapshot()
     private var editingExistingProfileId: String? = null
     private var draftProfileId: String? = null
+    private var hostingMapsDirty = true
+
+    fun invalidateHostingMaps() {
+        hostingMapsDirty = true
+    }
+
+    private fun refreshHostingMaps() {
+        val maps = backend.hostMaps()
+        val selected = maps.firstOrNull { it.name == state.hostGame.form.map } ?: maps.firstOrNull()
+        state = state.copy(hostGame = state.hostGame.copy(
+            maps = maps, form = state.hostGame.form.copy(map = selected?.name.orEmpty()),
+        ))
+        hostingMapsDirty = false
+    }
 
     fun initialize() {
         editingExistingProfileId = backend.selectedProfileId()?.trim()?.takeIf { it.isNotEmpty() }
@@ -50,6 +65,7 @@ class MenuController(
     }
 
     fun refreshExternalState() {
+        if (hostingMapsDirty && state.activeScreen == MenuScreen.HOST_GAME) refreshHostingMaps()
         refreshState(
             activeScreen = state.activeScreen,
             formOverride = state.profileEditor.form,
@@ -64,6 +80,7 @@ class MenuController(
             is MenuIntent.CaptureUiSample ->
                 bus.postSignal(MenuSignal.CaptureUiSample(intent.modes, intent.directory))
             is MenuIntent.OpenHostingSetup -> {
+                if (!intent.singleplayer) refreshHostingMaps()
                 state = if (intent.singleplayer) state.copy(singleplayer = state.singleplayer.copy(statusMessage = ""))
                     else state.copy(hostGame = state.hostGame.copy(statusMessage = ""))
                 refreshState(activeScreen = if (intent.singleplayer) MenuScreen.SINGLEPLAYER else MenuScreen.HOST_GAME)
@@ -74,7 +91,8 @@ class MenuController(
             }
             is MenuIntent.StartHosting -> {
                 val status = backend.startHosting(intent.singleplayer, intent.form)
-                val setup = HostingSetupState(intent.form, status)
+                val setup = (if (intent.singleplayer) state.singleplayer else state.hostGame)
+                    .copy(form = intent.form, statusMessage = status)
                 state = if (intent.singleplayer) state.copy(singleplayer = setup) else state.copy(hostGame = setup)
                 refreshState()
             }

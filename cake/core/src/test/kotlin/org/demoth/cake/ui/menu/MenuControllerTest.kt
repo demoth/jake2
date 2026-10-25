@@ -11,6 +11,34 @@ import org.junit.jupiter.api.Test
 class MenuControllerTest {
 
     @Test
+    fun hostingMapsRefreshOnEntryAndInvalidationButNotEveryFrame() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        backend.maps = listOf(HostMap("a", "Arena"), HostMap("b"))
+        controller.initialize()
+        assertEquals(0, backend.mapReads)
+        bus.postIntent(MenuIntent.OpenHostingSetup(false))
+        controller.pumpIntents()
+        assertEquals("a", bus.latestState().hostGame.form.map)
+        repeat(3) { controller.refreshExternalState() }
+        assertEquals(1, backend.mapReads)
+        bus.postIntent(MenuIntent.UpdateHostingDraft(false, HostGameFormState(map = "b")))
+        bus.postIntent(MenuIntent.OpenHostingSetup(false))
+        controller.pumpIntents()
+        assertEquals("b", bus.latestState().hostGame.form.map)
+        backend.maps = listOf(HostMap("new"))
+        controller.invalidateHostingMaps()
+        controller.refreshExternalState()
+        assertEquals("new", bus.latestState().hostGame.form.map)
+        backend.maps = emptyList()
+        controller.invalidateHostingMaps()
+        controller.refreshExternalState()
+        assertEquals("", bus.latestState().hostGame.form.map)
+        assertTrue(bus.latestState().hostGame.maps.isEmpty())
+    }
+
+    @Test
     fun sampleRequestsEmitOrderedSignalsWithoutChangingNavigation() {
         val bus = MenuEventBus()
         val controller = MenuController(FakeMenuBackend(), bus)
@@ -419,6 +447,12 @@ class MenuControllerTest {
     }
 
     private class FakeMenuBackend : MenuBackend {
+        var maps = emptyList<HostMap>()
+        var mapReads = 0
+        override fun hostMaps(): List<HostMap> {
+            mapReads++
+            return maps
+        }
         val joinedAddresses = mutableListOf<String>()
         val savedPlayerSetupForms = mutableListOf<PlayerSetupFormState>()
         val savedOptionsValues = mutableMapOf<String, Any>()

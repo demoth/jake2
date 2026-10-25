@@ -17,7 +17,10 @@ class HostingSetupStage(
 ) : BackNavigableMenuStage(viewport, menuEventBus,
     if (singleplayer) MenuIntent.OpenMainMenu else MenuIntent.OpenMultiplayerMenu) {
     private val initial = (if (singleplayer) menuEventBus.latestState().singleplayer else menuEventBus.latestState().hostGame).form
-    private val map = TextField(initial.map, style.menuWidgets.textField)
+    private val map = SelectBox<HostMap>(style.menuWidgets.selectBox).apply {
+        maxListCount = 12
+    }
+    private var displayedMaps: List<HostMap>? = null
     private val hostname = TextField(initial.hostname, style.menuWidgets.textField)
     private val clients = TextField(initial.maxClients, style.menuWidgets.textField)
     private val mode = SelectBox<String>(style.menuWidgets.selectBox).apply {
@@ -53,18 +56,33 @@ class HostingSetupStage(
         menuEventBus.postIntent(MenuIntent.RequestStateSync)
     }
 
-    private fun form() = HostGameFormState(map.text, mode.selectedIndex == 1, clients.text, hostname.text, difficulty.selectedIndex)
+    private fun form() = HostGameFormState(
+        map = if (singleplayer) initial.map else map.selected?.name.orEmpty(),
+        coop = mode.selectedIndex == 1,
+        maxClients = clients.text,
+        hostname = hostname.text,
+        skill = difficulty.selectedIndex,
+    )
 
     override fun act(delta: Float) {
         super.act(delta)
+        val snapshot = menuEventBus.latestState()
+        val setup = if (singleplayer) snapshot.singleplayer else snapshot.hostGame
+        if (!singleplayer && displayedMaps !== setup.maps) {
+            displayedMaps = setup.maps
+            map.hideScrollPane()
+            map.setItems(*setup.maps.toTypedArray())
+            setup.maps.firstOrNull { it.name == setup.form.map }?.let { map.selected = it }
+            map.isDisabled = setup.maps.isEmpty()
+        }
         val form = form()
         if (form != previousForm) {
             menuEventBus.postIntent(MenuIntent.UpdateHostingDraft(singleplayer, form))
             previousForm = form
         }
-        val snapshot = menuEventBus.latestState()
-        start.isDisabled = !snapshot.canHostGame
-        val setup = if (singleplayer) snapshot.singleplayer else snapshot.hostGame
-        status.setText(setup.statusMessage)
+        start.isDisabled = !snapshot.canHostGame || (!singleplayer && setup.maps.isEmpty())
+        status.setText(setup.statusMessage.ifEmpty {
+            if (!singleplayer && setup.maps.isEmpty()) "No maps found" else ""
+        })
     }
 }

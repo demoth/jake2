@@ -1511,6 +1511,7 @@ class Cake(
         fileResolver.gamemod = normalized?.gamemod
         resolveNewGameAlias()
         playerSetup.invalidateCatalog()
+        menuController.invalidateHostingMaps()
     }
 
     /** Register only the content's newgame alias; profiles retain their bindings and settings. */
@@ -1572,6 +1573,8 @@ class Cake(
             networkState != DISCONNECTED || host.state != HostState.STOPPED -> "Disconnect before starting a new game."
             else -> null
         }
+
+        override fun hostMaps(): List<HostMap> = loadHostMaps(activeGameProfile)
 
         override fun startHosting(singleplayer: Boolean, form: HostGameFormState): String {
             val reason = hostingUnavailableReason()
