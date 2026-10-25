@@ -15,6 +15,8 @@ import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.scenes.scene2d.Stage
+import com.badlogic.gdx.scenes.scene2d.InputEvent
+import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -288,6 +290,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             fill()
             isVisible = false
         }
+        stage.addListener(object : InputListener() {
+            override fun keyDown(event: InputEvent, keycode: Int): Boolean =
+                browserHost.isVisible && browserHost.actor?.keyDown(keycode) == true
+        })
         emptyState = Table().apply {
             setFillParent(true)
             add(Label("Drop a resource to view", skin))

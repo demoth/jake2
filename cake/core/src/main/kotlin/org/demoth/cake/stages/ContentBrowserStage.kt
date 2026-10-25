@@ -64,7 +64,9 @@ class ContentBrowserStage(
         super.act(delta)
     }
 
-    override fun keyDown(keycode: Int): Boolean = media.keyDown(keycode) || super.keyDown(keycode)
+    override fun keyDown(keycode: Int): Boolean =
+        (content.actor as? ContentBrowser)?.keyDown(keycode) == true ||
+            media.keyDown(keycode) || super.keyDown(keycode)
 
     /** Detach actors before releasing their borrowed textures; reopening supplies a new snapshot. */
     fun hide() {

@@ -1,5 +1,6 @@
 package org.demoth.cake.ui
 
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -86,12 +87,21 @@ class ContentBrowser(
         }
         val picture = Container<Actor>(placeholder).apply { fill() }
         var attempted = false
+        private val filename = Label(
+            directory?.let { "${it.name}/" } ?: entry!!.displayPath.replace('\\', '/').substringAfterLast('/'),
+            styles.label,
+        ).apply { setEllipsis(true) }
 
         init {
-            val name = directory?.let { "${it.name}/" } ?: entry!!.displayPath.replace('\\', '/').substringAfterLast('/')
-            add(picture).size(128f, 96f).row()
-            add(Label(name, styles.label).apply { setEllipsis(true) }).width(128f).padTop(4f)
+            add(picture).row()
+            add(filename).padTop(4f)
             pad(6f)
+        }
+
+        fun resizePreview(width: Float) {
+            getCell(picture).size(width, width * 0.75f)
+            getCell(filename).width(width)
+            invalidateHierarchy()
         }
     }
 
@@ -108,6 +118,9 @@ class ContentBrowser(
     private val gridScroll = scrollPane(grid).apply { setScrollingDisabled(true, false) }
     private val content = Container<Actor>(gridScroll).apply { fill() }
     private val backButton = TextButton("Back to folder", styles.button).apply { isVisible = false }
+    private var thumbnailWidth = 128f
+    private val smallerButton = TextButton("-", styles.button)
+    private val largerButton = TextButton("+", styles.button)
 
     init {
         background = styles.background
@@ -119,6 +132,8 @@ class ContentBrowser(
             add(Table().apply {
                 add(pathLabel).growX().left()
                 add(backButton).padLeft(8f)
+                add(smallerButton).padLeft(8f)
+                add(largerButton).padLeft(4f)
             }).pad(8f).row()
             add(content).grow().row()
             // Reserve metadata lines before selection, keeping tiles under the pointer.
@@ -140,7 +155,37 @@ class ContentBrowser(
                 closePreview()
             }
         })
+        smallerButton.addListener(object : ChangeListener() {
+            override fun changed(event: ChangeEvent, actor: Actor) = resizeThumbnails(-32f)
+        })
+        largerButton.addListener(object : ChangeListener() {
+            override fun changed(event: ChangeEvent, actor: Actor) = resizeThumbnails(32f)
+        })
         tree.selection.set(root)
+    }
+
+    private fun resizeThumbnails(delta: Float) {
+        thumbnailWidth = (thumbnailWidth + delta).coerceIn(64f, 256f)
+        tiles.forEach { it.resizePreview(thumbnailWidth) }
+        updateSizeButtons()
+    }
+
+    /** Hosts forward keys here so shortcuts work even without keyboard focus on a tile. */
+    fun keyDown(keycode: Int): Boolean {
+        if (content.actor !== gridScroll) return false
+        val delta = when (keycode) {
+            Input.Keys.MINUS -> -32f
+            Input.Keys.EQUALS -> 32f
+            else -> return false
+        }
+        resizeThumbnails(delta)
+        return true
+    }
+
+    private fun updateSizeButtons() {
+        val previewOpen = content.actor !== gridScroll
+        smallerButton.isDisabled = previewOpen || thumbnailWidth <= 64f
+        largerButton.isDisabled = previewOpen || thumbnailWidth >= 256f
     }
 
     /** Return to the retained folder grid; false when no full preview is open. */
@@ -150,6 +195,7 @@ class ContentBrowser(
         previewSelection(null)
         content.actor = gridScroll
         backButton.isVisible = false
+        updateSizeButtons()
         stage?.scrollFocus = gridScroll
         return true
     }
@@ -202,6 +248,7 @@ class ContentBrowser(
         clearThumbnails()
         content.actor = gridScroll
         backButton.isVisible = false
+        updateSizeButtons()
         pathLabel.setText(if (directory.path.isEmpty()) "/" else "/${directory.path}/")
         directory.folders.values.forEach { addTile(it, null) }
         directory.files.forEach { addTile(null, it) }
@@ -212,6 +259,7 @@ class ContentBrowser(
 
     private fun addTile(directory: ContentDirectory?, entry: VfsEntry?) {
         val tile = Tile(directory, entry, styles, loadThumbnail != null)
+        tile.resizePreview(thumbnailWidth)
         tiles += tile
         grid.addActor(tile)
         tile.addListener(object : ClickListener() {
@@ -238,6 +286,7 @@ class ContentBrowser(
                     val preview = previewSelection(entry) ?: return
                     content.actor = scrollPane(preview)
                     backButton.isVisible = true
+                    updateSizeButtons()
                 }
             }
         })
