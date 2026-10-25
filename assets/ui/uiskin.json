@@ -133,7 +133,11 @@
   TintedDrawable: {
     console-panel: {
       name: panel-thick,
-      color: gray
+      color: { r: 0.5, g: 0.5, b: 0.5, a: 0.5 }
+    },
+    console-input: {
+      name: control-panel,
+      color: { r: 0.5, g: 0.5, b: 0.5, a: 0.5 }
     },
     split: {
       name: white
@@ -656,6 +660,19 @@
     }
   },
   TextFieldStyle: {
+    console: {
+      font: default,
+      messageFont: default,
+      fontColor: font,
+      focusedFontColor: fontOver,
+      disabledFontColor: fontDisabled,
+      messageFontColor: fontDown,
+      background: console-input,
+      focusedBackground: console-input,
+      disabledBackground: console-input,
+      cursor: textFieldCursor,
+      selection: selection
+    },
     default: {
       font: default,
       messageFont: default,

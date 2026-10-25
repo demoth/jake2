@@ -27,7 +27,7 @@ import ktx.scene2d.*
  * - [consoleOutput] and [consoleInput] are initialized in `init` before stage usage.
  * - Command execution is Enter-key driven and occurs on the render thread.
  * - Console chrome relies on skin drawable names from `assets/ui/uiskin.json`
- *   (`console-panel`).
+ *   (`console-panel`) and the `console` text field style.
  * - `Stack` child order is visual-order sensitive (last child is drawn on top).
  */
 class ConsoleStage(
@@ -95,15 +95,11 @@ class ConsoleStage(
                 }
                 row()
                 container {
-                    stack {
-                        image("console-panel")
-                        consoleInput = textField()
-                        // Reject tabs at the widget level so completion never leaves a literal tab in the buffer.
-                        consoleInput.setTextFieldFilter { _, character -> character != '\t' }
-                        consoleInput.setFocusTraversal(false)
-                        consoleInput.addListener(inputController)
-                        add(consoleInput)
-                    }
+                    consoleInput = textField(style = "console")
+                    // Reject tabs at the widget level so completion never leaves a literal tab in the buffer.
+                    consoleInput.setTextFieldFilter { _, character -> character != '\t' }
+                    consoleInput.setFocusTraversal(false)
+                    consoleInput.addListener(inputController)
                     fill()
                 }
             }
