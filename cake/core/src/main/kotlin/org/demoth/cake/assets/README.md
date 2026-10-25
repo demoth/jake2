@@ -42,6 +42,15 @@ Runtime shader text is loaded through `AssetManager` and `TextAssetLoader`, usin
 
 ## Application Integration
 
+- During precache, `CakeDownloadSession` coordinates missing-resource downloads:
+  queue policy (`CakeDownloadManager`), resumable files (`CakeDownloadTransfer`),
+  reliable `download`/`nextdl` commands, and progress logging.
+- After the queue drains, Cake queues the returned precache retry in `Cbuf`;
+  successful precache releases deferred assets and clears the retry token.
+- Missing-on-server results let Cake disconnect and show the console. Disconnect
+  and fresh serverdata reset download state, preserving partial files for resume;
+  network statistics are reset separately by Cake.
+
 A missing-resource failure that reaches `Cake.render()` is recovered by
 disconnecting, disposing the game screen, and showing the console. This includes
 missing-resource exceptions wrapped in another runtime exception; unrelated runtime

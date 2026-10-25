@@ -46,7 +46,8 @@ and active-stage drawing/input selection; navigation decisions stay in `MenuCont
   text fields.
 - Options collect edits and submit `SaveOptionsSection` on Apply through the
   controller/backend. Only opted-in canonical cvars are exposed; player identity
-  stays in Player Setup. Latched values are shown as pending restart values.
+  stays in Player Setup. `OptionsSections.kt` enumerates and applies cvar edits;
+  Cake saves the profile afterward. Latched values are shown as pending restart values.
 - The controller emits submenu enter/exit sounds according to navigation depth.
   Shared button helpers handle hover feedback; Cake plays the sound signals.
 

@@ -41,11 +41,7 @@ import ktx.assets.TextAssetLoader
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.*
-import org.demoth.cake.download.CakeDownloadManager
-import org.demoth.cake.download.CakeDownloadQueueResult
-import org.demoth.cake.download.CakeDownloadRejectReason
-import org.demoth.cake.download.CakeDownloadTransfer
-import org.demoth.cake.download.CakeDownloadTransferResult
+import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeConsoleHistoryStore
@@ -160,12 +156,11 @@ class Cake(
     private val gameProfileStore = CakeGameProfileStore()
     private val profileConfigStore = CakeProfileConfigStore()
     private val consoleHistoryStore = CakeConsoleHistoryStore()
-    private val downloadManager = CakeDownloadManager()
-    private val downloadTransfer = CakeDownloadTransfer()
+    private val downloads = CakeDownloadSession(sendReliable = { command ->
+        netchan.reliablePending.add(StringCmdMessage(command))
+    })
     private val networkDebugSampler = NetworkDebugSampler()
     private var clientCommandExtraMs = 0f
-    private var pendingPrecacheSpawnCount: Int? = null
-    private var lastDownloadProgressPercent: Int = -1
     private var activeGameProfile: CakeGameProfile? = null
     private var fileResolver = CakeFileResolver()
     private val playerSetup = PlayerSetup(fileResolver)
@@ -460,13 +455,15 @@ class Cake(
                 activeScreen.precache()
             } catch (error: RuntimeException) {
                 val missingResource = findMissingResourceFailure(error)
-                if (missingResource != null && beginMissingResourceDownload(missingResource, precache_spawncount)) {
+                if (missingResource != null && downloads.requestMissingResource(
+                        missingResource.path, fileResolver.gamemod, precache_spawncount,
+                    )) {
                     return@AddCommand
                 }
                 throw error
             }
             releaseDeferredConfigUnload()
-            pendingPrecacheSpawnCount = null
+            downloads.precacheCompleted()
 
             // we are ready to start the game!
             netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
@@ -530,95 +527,8 @@ class Cake(
         challenge = 0
         reconnectTimeout = 0f
         clientCommandExtraMs = 0f
-        resetDownloadState()
-    }
-
-    private fun beginMissingResourceDownload(error: MissingResourceException, spawnCount: Int): Boolean {
-        pendingPrecacheSpawnCount = spawnCount
-        return when (val result = downloadManager.enqueue(error.path, fileResolver.gamemod)) {
-            is CakeDownloadQueueResult.Enqueued -> {
-                startQueuedDownloadIfIdle()
-                true
-            }
-
-            is CakeDownloadQueueResult.Rejected -> {
-                when (result.reason) {
-                    CakeDownloadRejectReason.ALREADY_QUEUED -> true
-                    CakeDownloadRejectReason.DOWNLOADS_DISABLED,
-                    CakeDownloadRejectReason.CATEGORY_DISABLED -> {
-                        Com.Warn("Autodownload disabled for missing resource '${error.path}'\n")
-                        false
-                    }
-
-                    CakeDownloadRejectReason.INVALID_PATH -> {
-                        Com.Warn("Refusing to autodownload invalid path '${error.path}'\n")
-                        false
-                    }
-
-                    CakeDownloadRejectReason.UNSUPPORTED_CATEGORY -> {
-                        Com.Warn("No Cake autodownload support yet for '${error.path}'\n")
-                        false
-                    }
-                }
-            }
-        }
-    }
-
-    private fun startQueuedDownloadIfIdle(): Boolean {
-        if (downloadTransfer.activeRequest() != null) {
-            return false
-        }
-        val request = downloadManager.pollPending() ?: return false
-        val offset = downloadTransfer.begin(request)
-        lastDownloadProgressPercent = -1
-        if (offset > 0L) {
-            Com.Printf("Resuming ${request.logicalPath}\n")
-            netchan.reliablePending.add(StringCmdMessage("${StringCmdMessage.DOWNLOAD} ${request.logicalPath} $offset"))
-        } else {
-            Com.Printf("Downloading ${request.logicalPath}\n")
-            netchan.reliablePending.add(StringCmdMessage("${StringCmdMessage.DOWNLOAD} ${request.logicalPath}"))
-        }
-        return true
-    }
-
-    private fun processDownloadMessage(message: DownloadMessage) {
-        if (downloadTransfer.activeRequest() == null) {
-            Com.Warn("Received download data without an active request\n")
-            return
-        }
-
-        when (val result = downloadTransfer.handle(message)) {
-            is CakeDownloadTransferResult.Continue -> {
-                maybeLogDownloadProgress(result.request.logicalPath, result.percent)
-                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEXT_DOWNLOAD))
-            }
-
-            is CakeDownloadTransferResult.Completed -> {
-                maybeLogDownloadProgress(result.request.logicalPath, 100)
-                Com.Printf("Downloaded ${result.request.logicalPath}\n")
-                if (!startQueuedDownloadIfIdle()) {
-                    pendingPrecacheSpawnCount?.let { spawnCount ->
-                        Cbuf.AddText("${StringCmdMessage.PRECACHE} $spawnCount\n")
-                    }
-                }
-            }
-
-            is CakeDownloadTransferResult.MissingOnServer -> {
-                Com.Warn("Server does not have ${result.request.logicalPath}\n")
-                dropToConsole()
-            }
-        }
-    }
-
-    private fun maybeLogDownloadProgress(logicalPath: String, percent: Int) {
-        if (percent <= lastDownloadProgressPercent) {
-            return
-        }
-        val crossedBucket = lastDownloadProgressPercent < 0 || percent / 5 > lastDownloadProgressPercent / 5
-        if (crossedBucket || percent == 100) {
-            Com.Printf("Downloading ${logicalPath}... ${percent}%\n")
-        }
-        lastDownloadProgressPercent = percent
+        downloads.reset()
+        networkDebugSampler.clear()
     }
 
     private fun transmitAndRecord(unreliable: Collection<NetworkMessage>?) {
@@ -1270,7 +1180,12 @@ class Cake(
                     msg.data?.size?.takeIf { it > 0 }?.let { bytes ->
                         networkDebugSampler.recordDownload(bytes, Globals.curtime)
                     }
-                    processDownloadMessage(msg)
+                    when (val result = downloads.handle(msg)) {
+                        CakeDownloadSession.Result.Continue -> Unit
+                        is CakeDownloadSession.Result.RetryPrecache ->
+                            Cbuf.AddText("${StringCmdMessage.PRECACHE} ${result.spawnCount}\n")
+                        CakeDownloadSession.Result.MissingOnServer -> dropToConsole()
+                    }
                 }
 
                 is SoundMessage -> {
@@ -1335,7 +1250,8 @@ class Cake(
      * for reconnect-based map changes (e.g. `rcon map`).
      */
     private fun resetClientStateForServerData() {
-        resetDownloadState()
+        downloads.reset()
+        networkDebugSampler.clear()
         game3dScreen?.stopAudio()
         // If serverdata arrives while a screen is still active, stage transition first.
         if (game3dScreen != null) {
@@ -1346,14 +1262,6 @@ class Cake(
             game3dScreen?.setHudStyle(resolveCurrentGameUiStyle())
             debugGraphStage.resetMetrics()
         }
-    }
-
-    private fun resetDownloadState() {
-        downloadManager.clear()
-        downloadTransfer.reset()
-        networkDebugSampler.clear()
-        pendingPrecacheSpawnCount = null
-        lastDownloadProgressPercent = -1
     }
 
     /**
@@ -1529,43 +1437,6 @@ class Cake(
             return
         }
         consoleStage.replaceCommandHistory(loadActiveConsoleHistory())
-    }
-
-    private fun optionSections(): List<OptionsSection> {
-        val cvars = Cvar.getInstance()
-        return DEFAULT_OPTIONS_SECTIONS.map { section ->
-            section.copy(entries = cvars.listByPrefixAndFlags(section.prefix, CVAR_OPTIONS))
-        }
-    }
-
-    private fun saveOptionEntries(prefix: String, values: Map<String, Any>): String {
-        val cvars = Cvar.getInstance()
-        var updatedCount = 0
-        var latchedCount = 0
-        val errors = mutableListOf<String>()
-        values.forEach { (name, value) ->
-            val cvar = cvars.find(name) ?: return@forEach
-            if (!name.startsWith(prefix) || (cvar.flags and CVAR_OPTIONS) == 0) {
-                return@forEach
-            }
-            val result = if (value is String) cvars.setResult(cvar.name, value)
-            else cvars.setNativeResult(cvar.name, value)
-            if (!result.accepted) {
-                errors += result.diagnostic ?: "Rejected $name"
-                return@forEach
-            }
-            updatedCount++
-            if (cvar.rawPendingString != null) {
-                latchedCount++
-            }
-        }
-        saveActiveProfileConfig()
-        val summary = if (latchedCount > 0) {
-            "Saved $updatedCount option(s). $latchedCount pending restart."
-        } else {
-            "Saved $updatedCount option(s)."
-        }
-        return (listOf(summary) + errors).joinToString("\n")
     }
 
     private fun loadProfileById(profileId: String): CakeGameProfile? {
@@ -1813,10 +1684,13 @@ class Cake(
             return "Saved player setup for ${normalized.name}"
         }
 
-        override fun optionSections(): List<OptionsSection> = this@Cake.optionSections()
+        override fun optionSections(): List<OptionsSection> = currentOptionSections()
 
-        override fun saveOptionEntries(prefix: String, values: Map<String, Any>): String =
-            this@Cake.saveOptionEntries(prefix, values)
+        override fun saveOptionEntries(prefix: String, values: Map<String, Any>): String {
+            val result = applyOptionEntries(prefix, values)
+            saveActiveProfileConfig()
+            return result
+        }
     }
 
     private fun CakeGameProfile.toProfileFormState(): ProfileFormState = ProfileFormState(
