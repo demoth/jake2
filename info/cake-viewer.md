@@ -20,6 +20,9 @@ View Quake II resources standalone, or open **Content browser** from the client/
 
 ## Previews and controls
 
+Loose files, archive entries, and profile browsing use the same preview widgets;
+their surrounding navigation and styling differ.
+
 | Format | Behavior and controls |
 | --- | --- |
 | PCX / WAL / TGA | Aspect-fit preview; wheel zooms around the pointer, left-drag pans. Resize retains zoom/pan; reopening resets the fit. |
@@ -30,7 +33,7 @@ View Quake II resources standalone, or open **Content browser** from the client/
 
 - **WAV/SP2/MD2 controls:** Play, Pause, Loop and Stop; sprite/model previews also have Previous/Next.
 - **SP2/MD2 keyboard:** Space toggles playback; Left/Right step, pause and wrap. Stop resets to frame one; completed playback can restart.
-- **Loose files:** WAV plays on opening; SP2/MD2 start paused. Fly navigation is reserved for BSP maps; grid and origin overlays are removed.
+- **Loose files:** WAV plays on opening; SP2/MD2 start paused. BSP views start near a player spawn (or the map bounds when none exists); click the pane to fly. No grid or origin overlays.
 - **BSP limits:** static world/brush geometry only; no collision, gameplay entities or sky. Trigger and area-portal brushes are hidden.
 - Metadata includes image/frame dimensions, sound duration, model skin counts and map surface/brush counts.
 

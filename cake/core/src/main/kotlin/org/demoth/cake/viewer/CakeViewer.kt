@@ -3,14 +3,11 @@ package org.demoth.cake.viewer
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
-import com.badlogic.gdx.InputMultiplexer
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.*
 import com.badlogic.gdx.graphics.VertexAttributes.Usage
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g3d.*
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder
 import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -25,7 +22,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.badlogic.gdx.utils.Scaling
 import jake2.qcommon.vfs.VfsEntry
 import ktx.assets.TextAssetLoader
-import ktx.graphics.use
 import org.demoth.cake.ByteArrayLoader
 import org.demoth.cake.cakeSkin
 import org.demoth.cake.audio.SoundDurationRegistry
@@ -58,7 +54,6 @@ import kotlin.system.measureTimeMillis
 private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2", ".pak")
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
-    private lateinit var batch: SpriteBatch
     private var image: Texture? = null
     private var sprite: Sp2Asset? = null
     private var playback: FramePlayback? = null
@@ -72,9 +67,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private lateinit var previewResources: PreviewResources
     private lateinit var scenePreview: SceneResourcePreview
     private lateinit var assetManager: AssetManager
-    private lateinit var camera: Camera
-    private lateinit var cameraInputController: CameraInputController
-    // rendered with the default libgdx shader
     private lateinit var stage: Stage
     private lateinit var previewHost: Container<Actor>
     private val browser: ContentBrowser? get() = previewHost.actor as? ContentBrowser
@@ -116,13 +108,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
         archiveThumbnails = ImageThumbnails(assetManager, fileResolver)
         previewResources = PreviewResources(assetManager)
-        batch = SpriteBatch()
-
-        camera = PerspectiveCamera(90f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat())
-        camera.near = 1f
-        camera.far = 4096f
-        resetCamera()
-
         createStage()
         if (file != null) openFile(file.absolutePath)
     }
@@ -141,7 +126,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         }
 
         closePreview()
-        resetCamera()
         try {
             currentFile = file
             if (file.extension.equals("pak", ignoreCase = true)) {
@@ -154,10 +138,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 val hints = detectViewerStartupHints(file.absolutePath)
                 fileResolver.configure(file.absolutePath, hints.basedir, hints.gamemod)
                 loadPreview(file.absolutePath)
-                if (scenePreview.md2 != null) {
-                    previewHost.actor = scenePreview.actor
-                    previewHost.isVisible = true
-                }
+                previewHost.actor = createPreviewActor()
+                previewHost.isVisible = true
                 if (sound != null) replaySound()
             }
             filenameLabel.setText(file.name)
@@ -198,7 +180,11 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         }
         if (entry.normalizedPath.substringAfterLast('.') !in listOf("pcx", "wal", "tga", "wav", "sp2", "md2", "bsp")) return null
         if (!loadArchiveResource(entry)) return null
-        // Presentation borrows the active resource; opening controls does not start playback.
+        return createPreviewActor()
+    }
+
+    /** Both entry paths borrow the loaded resources through the same presentation widgets. */
+    private fun createPreviewActor(): Actor? {
         return sound?.let { SoundPreviewControls(it, soundPlayback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
             ?: image?.let {
                 Table().apply {
@@ -259,21 +245,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             }
             "bsp" -> scenePreview.openBsp(path)
         }
-        updateInputHandlers()
-    }
-
-    private fun updateInputHandlers() {
-        // Only loose BSP viewing uses the standalone fly camera; panes handle their own input.
-        Gdx.input.inputProcessor = if (archiveEntryCount == null && scenePreview.map != null)
-            InputMultiplexer(stage, cameraInputController) else stage
-    }
-
-    private fun resetCamera() {
-        camera.position.setZero()
-        camera.up.set(0f, 0f, 1f)
-        camera.direction.set(0f, 1f, 0f)
-        camera.update()
-        cameraInputController = FlyingCameraController(camera)
     }
 
     private fun createStage() {
@@ -337,7 +308,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             add(previewHost).grow()
         })
         updateResourceInfo()
-        updateInputHandlers()
+        Gdx.input.inputProcessor = stage
     }
 
     private fun updateResourceInfo() {
@@ -360,16 +331,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     override fun resize(width: Int, height: Int) {
         if (width <= 0 || height <= 0) return
         if (::stage.isInitialized) stage.viewport.update(width, height, true)
-        if (::batch.isInitialized) batch.projectionMatrix.setToOrtho2D(0f, 0f, width.toFloat(), height.toFloat())
-        if (::camera.isInitialized) {
-            camera.viewportWidth = width.toFloat()
-            camera.viewportHeight = height.toFloat()
-            camera.update()
-        }
     }
 
     override fun render() {
-        if (!::camera.isInitialized || !::batch.isInitialized || !::stage.isInitialized) {
+        if (!::stage.isInitialized) {
             return
         }
 
@@ -381,25 +346,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         frameTime = measureTimeMillis {
             Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
-            camera.update()
-
-            if (archiveEntryCount == null && scenePreview.map != null) scenePreview.render(camera)
-
-            batch.use {
-                val currentFrame = if (archiveEntryCount == null) spriteFrame else null
-                val currentImage = if (archiveEntryCount == null) currentFrame?.texture ?: image else null
-                if (currentImage != null) {
-                    // draw image in the center of the screen
-                    val width = (currentFrame?.width ?: currentImage.width).toFloat()
-                    val height = (currentFrame?.height ?: currentImage.height).toFloat()
-                    val x = (Gdx.graphics.width - width) / 2f
-                    val y = (Gdx.graphics.height - height) / 2f
-                    it.draw(currentImage, x, y, width, height)
-                }
-
-            }
-
-            if (archiveEntryCount == null && scenePreview.map != null) cameraInputController.update()
             emptyState.isVisible = currentFile == null
             infoPanel.isVisible = currentFile != null || errorLabel.text.isNotEmpty()
             frameTimeLabel.setText("Frame time ms: $frameTime")
@@ -414,9 +360,6 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         if (::stage.isInitialized) {
             Gdx.input.inputProcessor = null
             stage.dispose()
-        }
-        if (::batch.isInitialized) {
-            batch.dispose()
         }
         if (::assetManager.isInitialized) {
             assetManager.dispose()
@@ -436,6 +379,8 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun closeResourcePreview() {
         soundPlayback?.stop()
+        // Loose widgets must detach before their borrowed textures are released.
+        if (::previewHost.isInitialized && archiveEntryCount == null) previewHost.actor = null
         if (::previewResources.isInitialized) previewResources.close()
         if (::scenePreview.isInitialized) {
             // Detach borrowed actors before disposing their render targets and model resources.
