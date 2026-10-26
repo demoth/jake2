@@ -29,7 +29,6 @@ import jake2.qcommon.exec.CvarType;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.MulticastTypes;
-import jake2.qcommon.network.NET;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.PrintCenterMessage;
@@ -63,7 +62,7 @@ import static jake2.qcommon.Defines.CS_MODELS;
 public class GameImportsImpl implements GameImports {
 
     String name;
-    final SV_MAIN serverMain;
+    final ServerHost serverMain;
     public GameExports gameExports;
 
     // Per-game map state. The routing name above is independent of the loaded map name.
@@ -113,11 +112,11 @@ public class GameImportsImpl implements GameImports {
     final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
-    public GameImportsImpl(SV_MAIN serverMain, ChangeMapInfo changeMapInfo) {
+    public GameImportsImpl(ServerHost serverMain, ChangeMapInfo changeMapInfo) {
         this(serverMain, changeMapInfo, null);
     }
 
-    GameImportsImpl(SV_MAIN serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+    GameImportsImpl(ServerHost serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         this.serverMain = serverMain;
         this.name = serverMain.allocateGameName();
         if (previous != null && !changeMapInfo.isLoadgame)
@@ -180,7 +179,7 @@ public class GameImportsImpl implements GameImports {
     }
 
     /** Allocate the gameplay module after engine services and latched settings are ready. */
-    static GameImportsImpl create(SV_MAIN host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+    static GameImportsImpl create(ServerHost host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         GameImportsImpl game = new GameImportsImpl(host, changeMapInfo, previous);
         game.gameExports = game.createGameModInstance();
         if (changeMapInfo.isLoadgame)

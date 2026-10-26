@@ -10,7 +10,7 @@ import jake2.qcommon.network.NET
 import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.vfs.VfsConfig
-import jake2.server.SV_MAIN
+import jake2.server.ServerHost
 import org.demoth.cake.hosting.*
 import org.demoth.cake.profile.CakeGameProfile
 import java.io.IOException
@@ -21,7 +21,7 @@ import java.nio.file.Path
 class EmbeddedCakeHost(
     private val profilesRoot: Path = Path.of(System.getProperty("user.home"), ".cake"),
 ) : CakeHost {
-    internal var server: SV_MAIN? = null
+    internal var server: ServerHost? = null
         private set
     private var starting = false
     private var ownerThread: Thread? = null
@@ -63,7 +63,7 @@ class EmbeddedCakeHost(
                 return HostStartResult.Rejected("Map not found: ${request.map}")
             }
             val cvars = Cvar.getInstance()
-            val manager = SV_MAIN()
+            val manager = ServerHost()
             server = manager
             cvars.find<Boolean>("deathmatch").forceSet(request.mode == HostMode.DEATHMATCH)
             cvars.find<Boolean>("coop").forceSet(request.mode == HostMode.COOP)
@@ -129,7 +129,7 @@ class EmbeddedCakeHost(
         server = null
         starting = false
         try {
-            manager?.SV_Shutdown("$reason\n", false)
+            manager?.stop("$reason\n", false)
         } finally {
             try {
                 manager?.close()

@@ -28,7 +28,7 @@ class GameCvarInitializationTest {
             cvars.setResult("maxclients", "3.5");
             cvars.setResult("timeout", "0.5");
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
             cvar_t<Integer> maxclients = cvars.find("maxclients", Integer.class);
             cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
@@ -62,7 +62,7 @@ class GameCvarInitializationTest {
         try {
             cvars.setResult("skill", "2");
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
             var skill = first.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, CVAR_LATCH, null);
             var gravity = first.registerCvar("sv_gravity", CvarTypes.FLOAT, 800f, 0, null);
@@ -98,7 +98,7 @@ class GameCvarInitializationTest {
             cvars.setResult("skill", "4");
             cvars.setResult("sv_gravity", "600.5");
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             GameImportsImpl first = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, false));
             GameImportsImpl second = new GameImportsImpl(server, new ChangeMapInfo("second.pcx", false, false));
             var skillType = new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3));
@@ -132,7 +132,7 @@ class GameCvarInitializationTest {
         try {
             MainCommon.registerCvars(false);
             var globalSetting = cvars.register("test_setting", CvarTypes.STRING, "client-secret", CVAR_USERINFO | CVAR_ARCHIVE);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
             assertSame(globalSetting, imports.findCvar("test_setting", String.class));
             var localSetting = imports.registerCvar("test_setting", CvarTypes.STRING, "", CVAR_USERINFO, null);
@@ -159,7 +159,7 @@ class GameCvarInitializationTest {
         EngineWriteRoot.setRoot(temp);
         try {
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             GameImportsImpl other = new GameImportsImpl(server, new ChangeMapInfo("other.pcx", false, false));
             cvar_t<Integer> otherSkill = other.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 1, CVAR_LATCH, null);
             ServerSaveJsonStore.forWriteDir(temp.toString()).writeLatchedCvars("current", List.of(
@@ -189,7 +189,7 @@ class GameCvarInitializationTest {
             cvars.setResult("maxspectators", "8");
             cvars.setResult("spectator_password", "secret");
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             // A picture transition constructs real game imports without loading a BSP or opening sockets.
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
 

@@ -10,7 +10,7 @@ import jake2.qcommon.longjmpException;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
-import jake2.server.SV_MAIN;
+import jake2.server.ServerHost;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +33,7 @@ public class Jake2Dedicated {
         if (argc > 1) {
             System.arraycopy(args, 0, c_args, 1, argc - 1);
         }
-        SV_MAIN serverMain = null;
+        ServerHost serverMain = null;
         try {
 
             // prepare enough of the subsystems to handle
@@ -59,7 +59,7 @@ public class Jake2Dedicated {
             // init commands and vars
 
             Netchan.Netchan_Init();
-            serverMain = new SV_MAIN();	//ok
+            serverMain = new ServerHost();	//ok
 
             // add + commands from command line
             if (Cbuf.AddLateCommands(args1)) {
