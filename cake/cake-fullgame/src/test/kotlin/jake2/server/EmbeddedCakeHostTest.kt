@@ -71,7 +71,7 @@ class EmbeddedCakeHostTest {
             val downloads = CakeDownloadSession(
                 sendReliable = { command ->
                     client.gameName = "default"
-                    host.server!!.SV_ExecuteUserCommand(client, command)
+                    host.server!!.executeClientCommand(client, command)
                 },
                 downloadManager = CakeDownloadManager(CakeDownloadCache(cache), cvars),
             )

@@ -21,7 +21,6 @@
 package jake2.server
 
 import jake2.qcommon.*
-import jake2.qcommon.Com.RD_Flusher
 import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
 import jake2.qcommon.network.NET
@@ -33,24 +32,28 @@ import jake2.qcommon.network.messages.client.*
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.util.Lib
-import jake2.qcommon.util.Vargs
 import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.server.save.ServerSaveFiles
 import jake2.server.save.ServerSaveJsonStore
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
-@Suppress("deprecation")
 class ServerHost : AutoCloseable {
     private val commands = ServerCommands()
     val isRunning: Boolean
-        get() = !games.isEmpty()
+        get() = games.isNotEmpty()
+
+    /** Bridge for client loading state and cvar latching until shared-global cleanup. */
+    @Suppress("DEPRECATION")
+    private fun publishLegacyServerState(state: ServerStates) {
+        Globals.server_state = state
+    }
 
     /** Typed entrypoint for an embedded host; uses the same map path as the console.  */
     fun startMap(mapName: String): Boolean {
         val previous = games["default"]
-        SV_Map_f(java.util.List.of<String>("map", mapName))
-        return games.get("default") != null && games.get("default") !== previous
+        map(listOf("map", mapName))
+        return games["default"] != null && games["default"] !== previous
     }
 
     /** Release this manager's console hooks after ending its last session.  */
@@ -76,63 +79,51 @@ class ServerHost : AutoCloseable {
         }.toMutableList()
     }
 
-
     // prevent invalid IPs from connecting
     private val challenges = Array(Defines.MAX_CHALLENGES) { challenge_t() }
 
-    var clients: MutableList<ClientNetworkInfo> = ArrayList<ClientNetworkInfo>()
+    var clients: MutableList<ClientNetworkInfo> = mutableListOf()
         private set
 
     private var realtime: Long = 0
     private var frameNum = 0
-    private var fixedtime = 1000
+    private var nextFrameTime = 1000
     private var gameCounter = 0
 
     fun allocateGameName(): String {
-        return "jake2_" + gameCounter++
+        return "jake2_${gameCounter++}"
     }
 
     val isPaused: Boolean
-        get() = sv_paused.getTypedValue()
+        get() = paused.typedValue
 
-    private val sv_paused: cvar_t<Boolean>
+    private val paused: cvar_t<Boolean>
 
-    private val sv_timedemo: cvar_t<Boolean>
-
-    private val sv_enforcetime: cvar_t<Boolean>
+    private val enforceMoveTime: cvar_t<Boolean>
 
     @JvmField
     val timeout: cvar_t<Float> // seconds without any message
 
-    private val zombietime: cvar_t<Float> // seconds to sink messages after
+    private val zombieTimeout: cvar_t<Float> // seconds to sink messages after
 
-    // disconnect
-    private val allow_download: cvar_t<Boolean>
+    private val allowDownload: cvar_t<Boolean>
 
-    private val allow_download_players: cvar_t<Boolean>
+    private val allowPlayerDownloads: cvar_t<Boolean>
 
-    private val allow_download_models: cvar_t<Boolean>
+    private val allowModelDownloads: cvar_t<Boolean>
 
-    private val allow_download_sounds: cvar_t<Boolean>
+    private val allowSoundDownloads: cvar_t<Boolean>
 
-    private val allow_download_maps: cvar_t<Boolean>
-
-    private val sv_airaccelerate: cvar_t<Float>
-
-    private val sv_showclamp: cvar_t<Boolean>
+    private val allowMapDownloads: cvar_t<Boolean>
 
     private val hostname: cvar_t<String>
 
-    private val public_server: cvar_t<Boolean> // should heartbeats be sent
+    private val reconnectLimit: cvar_t<Float> // minimum seconds between connect
 
-    private val sv_reconnect_limit: cvar_t<Float> // minimum seconds between connect
-
-
-    // messages
     /**
      * Builds the string that is sent as heartbeats and status replies.
      */
-    private fun SV_StatusString(): String {
+    private fun buildStatusResponse(): String {
         var status = Cvar.getInstance().Serverinfo() + "\n"
 
         for (cl in clients) {
@@ -145,7 +136,6 @@ class ServerHost : AutoCloseable {
 
                 if (statusLength + playerLength >= 1024) break // can't hold any more
 
-
                 status += player
             }
         }
@@ -157,20 +147,19 @@ class ServerHost : AutoCloseable {
      * SVC_Info, responds with short info for broadcast scans The second parameter should
      * be the current protocol version number.
      */
-    private fun SVC_Info(args: MutableList<String>, from: netadr_t?): String? {
+    private fun buildInfoResponse(args: List<String>): String? {
         if (clients.size == 1) return null // ignore in single player
 
-
-        val version = if (args.size < 2) 0 else Lib.atoi(args.get(1))
+        val version = if (args.size < 2) 0 else Lib.atoi(args[1])
 
         val info: String
-        if (version != Defines.PROTOCOL_VERSION) info = hostname.getTypedValue() + ": wrong version\n"
+        if (version != Defines.PROTOCOL_VERSION) info = hostname.typedValue + ": wrong version\n"
         else {
             var players = 0
             for (cl in clients) if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) players++
 
             info =
-                hostname.getTypedValue() + " " + games.get("default")!!.mapName + " " + players + "/" + clients.size + "\n"
+                hostname.typedValue + " " + games["default"]!!.mapName + " " + players + "/" + clients.size + "\n"
         }
 
         return info
@@ -182,7 +171,7 @@ class ServerHost : AutoCloseable {
      * that flood the server with invalid connection IPs. With a challenge, they
      * must give a valid IP address.
      */
-    private fun SVC_GetChallenge(from: netadr_t): Int {
+    private fun getChallenge(from: netadr_t): Int {
         var oldest = 0
         var oldestTime = 0x7fffffff
 
@@ -212,10 +201,10 @@ class ServerHost : AutoCloseable {
     /**
      * A connection request that did not come from the master.
      */
-    private fun SVC_DirectConnect(args: MutableList<String>, adr: netadr_t) {
+    private fun connectClient(args: List<String>, adr: netadr_t) {
         Com.DPrintf("SVC_DirectConnect ()\n")
 
-        val version = if (args.size >= 2) Lib.atoi(args.get(1)) else 0
+        val version = if (args.size >= 2) Lib.atoi(args[1]) else 0
 
         if (version != Defines.PROTOCOL_VERSION) {
             Netchan.sendConnectionlessPacket(
@@ -226,24 +215,12 @@ class ServerHost : AutoCloseable {
             return
         }
 
-        val qport = if (args.size >= 3) Lib.atoi(args.get(2)) else 0
-        val challenge = if (args.size >= 4) Lib.atoi(args.get(3)) else 0
-        var userinfo = if (args.size >= 5) args.get(4) else ""
+        val qport = if (args.size >= 3) Lib.atoi(args[2]) else 0
+        val challenge = if (args.size >= 4) Lib.atoi(args[3]) else 0
+        var userinfo = if (args.size >= 5) args[4] else ""
 
         // force the IP key/value pair so the game can filter based on ip
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", adr.toString())
-
-
-        /*
-        if (gameImports.isDemo) {
-            if (!adr.IsLocalAddress()) {
-                Com.Printf("Remote connect in attract loop.  Ignored.\n");
-                Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.print, "\nConnection refused.\n");
-                return;
-            }
-        }
-*/
-
 
         // see if the challenge is valid
         var j: Int
@@ -281,13 +258,13 @@ class ServerHost : AutoCloseable {
             if (adr.CompareBaseAdr(cl.netchan.remote_address)
                 && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)
             ) {
-                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (sv_reconnect_limit.getTypedValue() * 1000)) {
+                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (reconnectLimit.typedValue * 1000)) {
                     Com.DPrintf(adr.toString() + ":reconnect rejected : too soon\n")
                     return
                 }
                 Com.Printf(adr.toString() + ":reconnect\n")
 
-                gotnewcl(i, challenge, userinfo, adr, qport)
+                initializeClientConnection(i, challenge, userinfo, adr, qport)
                 return
             }
             i++
@@ -308,19 +285,19 @@ class ServerHost : AutoCloseable {
             Com.DPrintf("Rejected a connection.\n")
             return
         }
-        gotnewcl(index, challenge, userinfo, adr, qport)
+        initializeClientConnection(index, challenge, userinfo, adr, qport)
     }
 
     /**
      * Initializes player structures after successfull connection.
      */
-    private fun gotnewcl(i: Int, challenge: Int, userinfo: String?, adr: netadr_t, qport: Int) {
+    private fun initializeClientConnection(i: Int, challenge: Int, userinfo: String?, adr: netadr_t, qport: Int) {
         // build a new connection
         // accept the new client
         // this is the only place a ClientNetworkInfo is ever initialized
 
-        val client = clients.get(i)
-        val gameImports: GameImportsImpl = games.get("default")!!
+        val client = clients[i]
+        val gameImports: GameImportsImpl = games["default"]!!
         client.gameName = "default"
 
         val ent = gameImports.gameExports.getEdict(i + 1)
@@ -353,7 +330,7 @@ class ServerHost : AutoCloseable {
 
         // parse some info from the info strings
         client.userinfo = userinfo
-        SV_UserinfoChanged(client)
+        updateClientUserinfo(client)
 
         Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.client_connect, "")
 
@@ -371,7 +348,7 @@ class ServerHost : AutoCloseable {
      * it from a game channel. Clients that are in the game can still send
      * connectionless packets. It is used also by rcon commands.
      */
-    fun SV_ConnectionlessPacket(from: netadr_t, messageLine: String?) {
+    fun handleConnectionlessPacket(from: netadr_t, messageLine: String?) {
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
@@ -379,7 +356,7 @@ class ServerHost : AutoCloseable {
             return
         }
 
-        val c = args.get(0)
+        val c = args[0]
         val cmd = ConnectionlessCommand.fromString(c)
 
         when (cmd) {
@@ -394,11 +371,11 @@ class ServerHost : AutoCloseable {
                     Defines.NS_SERVER,
                     from,
                     ConnectionlessCommand.print,
-                    "\n" + SV_StatusString()
+                    "\n" + buildStatusResponse()
                 )
 
             ConnectionlessCommand.info -> {
-                val info = SVC_Info(args, from)
+                val info = buildInfoResponse(args)
                 if (info != null) Netchan.sendConnectionlessPacket(
                     Defines.NS_SERVER,
                     from,
@@ -408,7 +385,7 @@ class ServerHost : AutoCloseable {
             }
 
             ConnectionlessCommand.getchallenge -> {
-                val challenge = SVC_GetChallenge(from)
+                val challenge = getChallenge(from)
                 Netchan.sendConnectionlessPacket(
                     Defines.NS_SERVER,
                     from,
@@ -417,8 +394,8 @@ class ServerHost : AutoCloseable {
                 )
             }
 
-            ConnectionlessCommand.connect -> SVC_DirectConnect(args, from)
-            ConnectionlessCommand.rcon -> SVC_RemoteCommand(args, from)
+            ConnectionlessCommand.connect -> connectClient(args, from)
+            ConnectionlessCommand.rcon -> executeRemoteCommand(args, from)
             else -> Com.Printf("Unknown ClientConnectionlessCommand: " + c + '\n')
         }
     }
@@ -440,18 +417,18 @@ class ServerHost : AutoCloseable {
         Lib.rand()
 
         // check timeouts
-        SV_CheckTimeouts()
+        checkTimeouts()
 
         // get packets from clients
-        SV_ReadPackets()
+        readPackets()
 
         // identify if we need to update the game or it's too early (sleep or skip this update).
         // fixedtime - the time of the next scheduled game update.
-        var delay = fixedtime - realtime
+        var delay = nextFrameTime - realtime
         if (delay > 0) {
             // never let the time get too far off
             if (delay > 100) { // how is it even possible?
-                for (game in games.values) game.realtime = (fixedtime - 100)
+                for (game in games.values) game.realtime = (nextFrameTime - 100)
                 delay = 100
             }
             NET.Sleep(delay.toInt())
@@ -460,25 +437,23 @@ class ServerHost : AutoCloseable {
 
         // move autonomous things around if enough time has passed
         frameNum++
-        fixedtime = 100 * frameNum
+        nextFrameTime = 100 * frameNum
 
         // update ping based on the last known frame from all clients
-        SV_CalcPings()
+        updateClientPings()
 
         // give the clients some timeslices
-        SV_GiveMsec()
+        replenishClientMoveBudgets()
 
         // let everything in the world think and move
         for (game in games.values) {
-            game.SV_RunGameFrame(fixedtime.toLong())
+            game.SV_RunGameFrame(nextFrameTime.toLong())
         }
 
         // send messages back to the clients that had packets read this frame
-        SV_SendClientMessages()
-
+        sendClientMessages()
 
         // send a heartbeat to the master if needed
-        //Master_Heartbeat();
 
         // clear teleport flags, etc for next frame
         for (game in games.values) {
@@ -486,22 +461,22 @@ class ServerHost : AutoCloseable {
         }
     }
 
-    fun SV_SendClientMessages() {
+    fun sendClientMessages() {
         // send a message to each connected client
 
         for (c in clients) {
             if (c.state == ClientStates.CS_FREE) continue
 
-            val game: GameImportsImpl = games.get(c.gameName)!!
+            val game: GameImportsImpl = games[c.gameName]!!
             // if the reliable message overflowed,
             // drop the client
             val pendingReliableSize =
-                c.netchan.reliablePending.stream().mapToInt { obj: NetworkMessage? -> obj!!.getSize() }.sum()
+                c.netchan.reliablePending.sumOf { it.size }
             if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
                 c.netchan.reliablePending.clear()
                 c.unreliable.clear()
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName)
-                SV_DropClient(c)
+                broadcastPrint(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName)
+                dropClient(c)
             }
 
             if (game.state == ServerStates.SS_CINEMATIC || game.state == ServerStates.SS_DEMO || game.state == ServerStates.SS_PIC) {
@@ -509,12 +484,12 @@ class ServerHost : AutoCloseable {
                 c.netchan.transmit(null)
             } else if (c.state == ClientStates.CS_SPAWNED) {
                 // don't overrun bandwidth
-                if (SV_RateDrop(c)) continue
+                if (shouldRateLimit(c)) continue
 
                 sendClientDatagram(c, game)
             } else {
                 // just update reliable	if needed
-                if (c.netchan.reliablePending.size != 0 || Globals.curtime - c.netchan.last_sent > 1000) c.netchan.transmit(
+                if (c.netchan.reliablePending.isNotEmpty() || Globals.curtime - c.netchan.last_sent > 1000) c.netchan.transmit(
                     null
                 )
             }
@@ -526,14 +501,14 @@ class ServerHost : AutoCloseable {
      * unwillingly. This is NOT called if the entire server is quiting or
      * crashing.
      */
-    fun SV_DropClient(client: ClientNetworkInfo) {
+    fun dropClient(client: ClientNetworkInfo) {
         // add the disconnect
         client.netchan.reliablePending.add(DisconnectMessage())
 
         if (client.state == ClientStates.CS_SPAWNED) {
             // call the prog function for removing a client
             // this will remove the body, among other things
-            games.get(client.gameName)!!.gameExports.ClientDisconnect(client.edict)
+            games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
         }
 
         if (client.download != null) {
@@ -547,10 +522,10 @@ class ServerHost : AutoCloseable {
     /**
      * Sends text to all active clients
      */
-    fun SV_BroadcastPrintf(level: Int, message: String?, gameName: String?) {
+    fun broadcastPrint(level: Int, message: String?, gameName: String?) {
         // echo to console
 
-        if (Globals.dedicated.getTypedValue()) {
+        if (Globals.dedicated.typedValue) {
             Com.Printf(message)
         }
 
@@ -568,7 +543,7 @@ class ServerHost : AutoCloseable {
      * Returns true if the client is over its current
      * bandwidth estimation and should not be sent another packet
      */
-    fun SV_RateDrop(c: ClientNetworkInfo): Boolean {
+    fun shouldRateLimit(c: ClientNetworkInfo): Boolean {
         // never drop over the loopback
 
         if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK) return false
@@ -591,7 +566,7 @@ class ServerHost : AutoCloseable {
     /**
      * Reads packets from the network or loopback.
      */
-    fun SV_ReadPackets() {
+    fun readPackets() {
         while (true) {
             val networkPacket = NET.receiveNetworkPacket(
                 NET.ip_sockets[Defines.NS_SERVER],
@@ -602,8 +577,8 @@ class ServerHost : AutoCloseable {
 
             if (networkPacket == null) break
 
-            if (networkPacket.isConnectionless()) {
-                SV_ConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage)
+            if (networkPacket.isConnectionless) {
+                handleConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage)
                 continue
             }
 
@@ -621,10 +596,10 @@ class ServerHost : AutoCloseable {
                 if (cl.netchan.accept(networkPacket)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
-                        cl.lastmessage = games.get(cl.gameName)!!.realtime // don't timeout
+                        cl.lastmessage = games[cl.gameName]!!.realtime // don't timeout
                         val body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence)
-                        if (body == null) SV_DropClient(cl)
-                        else SV_ExecuteClientMessage(cl, body)
+                        if (body == null) dropClient(cl)
+                        else handleClientMessages(cl, body)
                     }
                 }
                 break
@@ -632,50 +607,39 @@ class ServerHost : AutoCloseable {
         }
     }
 
-    /*
-     * =================== SV_ExecuteClientMessage
-     *
-     * The current net_message is parsed for the given client
-     * ===================
-     */
-    fun SV_ExecuteClientMessage(cl: ClientNetworkInfo, clientMessages: MutableCollection<ClientMessage>) {
+    fun handleClientMessages(cl: ClientNetworkInfo, clientMessages: Collection<ClientMessage>) {
         // only allow one move command
 
-        var move_issued = false
+        var moveIssued = false
         var stringCmdCount = 0
-
 
         for (msg in clientMessages) {
             if (msg is EndOfClientPacketMessage) {
                 break
             } else if (msg is StringCmdMessage) {
-                val m = msg
                 // malicious users may try using too many string commands
                 if (++stringCmdCount < MAX_STRINGCMDS) {
-                    SV_ExecuteUserCommand(cl, m.command)
+                    executeClientCommand(cl, msg.command)
                 }
 
                 if (cl.state == ClientStates.CS_ZOMBIE) {
                     return  // disconnect command
                 }
             } else if (msg is UserInfoMessage) {
-                val m = msg
-                cl.userinfo = m.userInfo
-                SV_UserinfoChanged(cl)
+                cl.userinfo = msg.userInfo
+                updateClientUserinfo(cl)
             } else if (msg is MoveMessage) {
-                val m = msg
-                if (move_issued) return  // someone is trying to cheat...
+                if (moveIssued) return  // someone is trying to cheat...
 
-
-                move_issued = true
-                val lastReceivedFrame = m.lastReceivedFrame
+                moveIssued = true
+                val lastReceivedFrame = msg.lastReceivedFrame
 
                 if (lastReceivedFrame != cl.lastReceivedFrame) {
                     cl.lastReceivedFrame = lastReceivedFrame
                     if (cl.lastReceivedFrame > 0) {
-                        val framaLatency =
-                            games.get(cl.gameName)!!.realtime - cl.frames[cl.lastReceivedFrame and Defines.UPDATE_MASK].senttime
-                        cl.frame_latency[cl.lastReceivedFrame and (Defines.LATENCY_COUNTS - 1)] = framaLatency
+                        val frameLatency =
+                            games[cl.gameName]!!.realtime - cl.frames[cl.lastReceivedFrame and Defines.UPDATE_MASK].senttime
+                        cl.frame_latency[cl.lastReceivedFrame and (Defines.LATENCY_COUNTS - 1)] = frameLatency
                     }
                 }
 
@@ -685,91 +649,87 @@ class ServerHost : AutoCloseable {
                 }
 
                 // if the checksum fails, ignore the rest of the packet
-                if (!m.valid) {
+                if (!msg.valid) {
                     Com.Printf("Invalid crc\n")
                     return
                 }
 
+                if (!paused.typedValue) {
+                    var droppedPackets = cl.netchan.dropped
+                    if (droppedPackets < 20) {
+                        //if (droppedPackets > 2)
 
-                if (!sv_paused.getTypedValue()) {
-                    var net_drop = cl.netchan.dropped
-                    if (net_drop < 20) {
-                        //if (net_drop > 2)
+                        //	Com.Printf ("drop %i\n", droppedPackets);
 
-                        //	Com.Printf ("drop %i\n", net_drop);
+                        while (droppedPackets > 2) {
+                            processClientMove(cl, cl.lastcmd)
 
-                        while (net_drop > 2) {
-                            SV_ClientThink(cl, cl.lastcmd)
-
-                            net_drop--
+                            droppedPackets--
                         }
-                        if (net_drop > 1) SV_ClientThink(cl, m.oldestCmd)
+                        if (droppedPackets > 1) processClientMove(cl, msg.oldestCmd)
 
-                        if (net_drop > 0) SV_ClientThink(cl, m.oldCmd)
+                        if (droppedPackets > 0) processClientMove(cl, msg.oldCmd)
                     }
-                    SV_ClientThink(cl, m.newCmd)
+                    processClientMove(cl, msg.newCmd)
                 }
 
                 // copy.
-                cl.lastcmd.set(m.newCmd)
+                cl.lastcmd.set(msg.newCmd)
             } else {
                 Com.Printf("SV_ReadClientMessage: unknown command: " + msg.type + "\n")
-                SV_DropClient(cl)
+                dropClient(cl)
             }
         }
     }
 
-    fun SV_ClientThink(cl: ClientNetworkInfo, cmd: usercmd_t) {
+    fun processClientMove(cl: ClientNetworkInfo, cmd: usercmd_t) {
         cl.commandMsec -= cmd.msec.toInt() and 0xFF
 
-        if (cl.commandMsec < 0 && sv_enforcetime.getTypedValue()) {
+        if (cl.commandMsec < 0 && enforceMoveTime.typedValue) {
             Com.DPrintf("commandMsec underflow from " + cl.name + "\n")
             return
         }
 
-        games.get(cl.gameName)!!.gameExports.ClientThink(cl.edict, cmd)
+        games[cl.gameName]!!.gameExports.ClientThink(cl.edict, cmd)
     }
 
     /**
      * Pull specific info from a newly changed userinfo string into a more C
      * freindly form.
      */
-    fun SV_UserinfoChanged(cl: ClientNetworkInfo) {
+    fun updateClientUserinfo(cl: ClientNetworkInfo) {
         // call prog code to allow overrides
-        games.get(cl.gameName)!!.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo)
+        games[cl.gameName]!!.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo)
 
         // name for C code
         cl.name = Info.Info_ValueForKey(cl.userinfo, "name")
 
         // mask off high bit
-        //TODO: masking for german umlaute
-        //for (i=0 ; i<sizeof(cl.name) ; i++)
-        //	cl.name[i] &= 127;
 
         // rate command
-        var `val` = Info.Info_ValueForKey(cl.userinfo, "rate")
-        if (`val`.length > 0) {
-            cl.rate = Lib.atoi(`val`)
+        var userinfoValue = Info.Info_ValueForKey(cl.userinfo, "rate")
+        if (userinfoValue.isNotEmpty()) {
+            cl.rate = Lib.atoi(userinfoValue)
             if (cl.rate < 100) cl.rate = 100
             if (cl.rate > 15000) cl.rate = 15000
         } else cl.rate = 5000
 
         // msg command
-        `val` = Info.Info_ValueForKey(cl.userinfo, "msg")
-        if (`val`.length > 0) {
-            cl.messagelevel = Lib.atoi(`val`)
+        userinfoValue = Info.Info_ValueForKey(cl.userinfo, "msg")
+        if (userinfoValue.isNotEmpty()) {
+            cl.messagelevel = Lib.atoi(userinfoValue)
         }
     }
 
-    fun SV_ExecuteUserCommand(cl: ClientNetworkInfo, command: String?) {
+    fun executeClientCommand(cl: ClientNetworkInfo, command: String?) {
         Com.dprintln("SV_ExecuteUserCommand:" + command)
 
         val args = Cmd.TokenizeString(command, true)
         if (args.isEmpty()) return
 
-        val game: GameImportsImpl = games.get(cl.gameName)!!
-        if (userCommands.containsKey(args.get(0))) {
-            userCommands.get(args.get(0))!!.execute(args, game, cl)
+        val game: GameImportsImpl = games[cl.gameName]!!
+        if (userCommands.containsKey(args[0])) {
+            userCommands[args[0]]!!.execute(args, game, cl)
             return
         }
 
@@ -785,13 +745,13 @@ class ServerHost : AutoCloseable {
      * for a few seconds to make sure any final reliable message gets resent if
      * necessary.
      */
-    fun SV_CheckTimeouts() {
+    fun checkTimeouts() {
         for (cl in clients) {
             if (cl.state == ClientStates.CS_FREE) continue
 
-            val game: GameImportsImpl = games.get(cl.gameName)!!
-            val droppoint = (game.realtime - 1000 * timeout.getTypedValue()).toInt()
-            val zombiepoint = (game.realtime - 1000 * zombietime.getTypedValue()).toInt()
+            val game: GameImportsImpl = games[cl.gameName]!!
+            val droppoint = (game.realtime - 1000 * timeout.typedValue).toInt()
+            val zombiepoint = (game.realtime - 1000 * zombieTimeout.typedValue).toInt()
 
             // message times may be wrong across a changelevel
             if (cl.lastmessage > game.realtime) cl.lastmessage = game.realtime
@@ -801,8 +761,8 @@ class ServerHost : AutoCloseable {
                 continue
             }
             if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) && cl.lastmessage < droppoint) {
-                SV_BroadcastPrintf(Defines.PRINT_HIGH, cl.name + " timed out\n", cl.gameName)
-                SV_DropClient(cl)
+                broadcastPrint(Defines.PRINT_HIGH, cl.name + " timed out\n", cl.gameName)
+                dropClient(cl)
                 cl.state = ClientStates.CS_FREE // don't bother with zombie state
             }
         }
@@ -811,7 +771,7 @@ class ServerHost : AutoCloseable {
     /**
      * Updates the cl.ping variables.
      */
-    fun SV_CalcPings() {
+    fun updateClientPings() {
         for (cl in clients) {
             if (cl.state != ClientStates.CS_SPAWNED) continue
 
@@ -835,14 +795,14 @@ class ServerHost : AutoCloseable {
      * Every few frames, gives all clients an allotment of milliseconds for
      * their command moves. If they exceed it, assume cheating.
      */
-    fun SV_GiveMsec() {
+    fun replenishClientMoveBudgets() {
         // why *1111
         if ((frameNum and 15) != 0) return
 
         for (cl in clients) {
             if (cl.state == ClientStates.CS_FREE) continue
 
-            if ((games.get(cl.gameName)!!.frameNum and 15) != 0) continue
+            if ((games[cl.gameName]!!.frameNum and 15) != 0) continue
 
             cl.commandMsec = 1800 // 1600 + some slop
         }
@@ -854,8 +814,8 @@ class ServerHost : AutoCloseable {
      * stuck on the outgoing message list, because the server is going to
      * totally exit after returning from this function.
      */
-    private fun SV_FinalMessage(message: String?, reconnect: Boolean) {
-        val msgs: MutableCollection<NetworkMessage> = ArrayList<NetworkMessage>()
+    private fun sendFinalMessage(message: String?, reconnect: Boolean) {
+        val msgs: MutableCollection<NetworkMessage> = ArrayList()
         msgs.add(PrintMessage(Defines.PRINT_HIGH, message))
 
         if (reconnect) msgs.add(ReconnectMessage())
@@ -877,17 +837,17 @@ class ServerHost : AutoCloseable {
      */
     fun stop(finalmsg: String?, reconnect: Boolean) {
         try {
-            if (!games.isEmpty()) {
-                if (!clients.isEmpty()) SV_FinalMessage(finalmsg, reconnect)
+            if (games.isNotEmpty()) {
+                if (clients.isNotEmpty()) sendFinalMessage(finalmsg, reconnect)
                 Com.Printf("==== ShutdownGame ====\n")
             }
         } finally {
             games.clear()
             clients.clear()
-            Globals.server_state = ServerStates.SS_DEAD
+            publishLegacyServerState(ServerStates.SS_DEAD)
             realtime = 0
             frameNum = 0
-            fixedtime = 100
+            nextFrameTime = 100
         }
     }
 
@@ -895,15 +855,12 @@ class ServerHost : AutoCloseable {
      * Resets the clients when maxclients changes
      */
     fun resetClients() {
-        SV_FinalMessage("Server restarted", true)
-        val max = Cvar.getInstance().find<Int>("maxclients", Int::class.java).getTypedValue()
+        sendFinalMessage("Server restarted", true)
+        val max = Cvar.getInstance().find<Int>("maxclients").typedValue
 
         // Clear all clients
-        clients = ArrayList<ClientNetworkInfo>(max)
-        for (i in 0..<max) {
-            val cl = ClientNetworkInfo()
-            cl.lastcmd = usercmd_t()
-            clients.add(cl)
+        clients = MutableList(max) {
+            ClientNetworkInfo().apply { lastcmd = usercmd_t() }
         }
     }
 
@@ -921,38 +878,37 @@ class ServerHost : AutoCloseable {
      */
     private fun initializeServerCvars(): Boolean {
         val cvars = Cvar.getInstance()
-        val coop = cvars.find<Boolean>("coop", Boolean::class.java)
-        val deathmatch = cvars.find<Boolean>("deathmatch", Boolean::class.java)
-        val maxclients = cvars.find<Int>("maxclients", Int::class.java)
+        val coop = cvars.find<Boolean>("coop")
+        val deathmatch = cvars.find<Boolean>("deathmatch")
+        val maxclients = cvars.find<Int>("maxclients")
 
         // get any latched variable changes (maxclients, etc)
         cvars.updateLatchedVars()
 
-        if (coop.getTypedValue() && deathmatch.getTypedValue()) {
+        if (coop.typedValue && deathmatch.typedValue) {
             Com.Printf("Deathmatch and Coop both set, disabling Coop\n")
             coop.forceSet(false)
         }
 
         // dedicated servers are can't be single player and are usually DM
         // so unless they explicity set coop, force it to deathmatch
-        if (Globals.dedicated.getTypedValue()) {
-            if (!coop.getTypedValue()) deathmatch.forceSet(true)
+        if (Globals.dedicated.typedValue) {
+            if (!coop.typedValue) deathmatch.forceSet(true)
         }
 
-
         // set max clients based on game mode
-        if (deathmatch.getTypedValue()) {
-            if (maxclients.getTypedValue() <= 1) maxclients.forceSet(8)
-        } else if (coop.getTypedValue()) {
-            if (maxclients.getTypedValue() <= 1 || maxclients.getTypedValue() > 4) maxclients.forceSet(4)
+        if (deathmatch.typedValue) {
+            if (maxclients.typedValue <= 1) maxclients.forceSet(8)
+        } else if (coop.typedValue) {
+            if (maxclients.typedValue !in 2..4) maxclients.forceSet(4)
         } else {
             // non-deathmatch, non-coop is one player
             maxclients.forceSet(1)
         }
-        return maxclients.getTypedValue() > 1
+        return maxclients.typedValue > 1
     }
 
-    fun SV_Loadgame_f(args: MutableList<String>) {
+    fun loadGame(args: List<String>) {
         if (args.size != 2) {
             Com.Printf("USAGE: load <directory>\n")
             return
@@ -962,8 +918,8 @@ class ServerHost : AutoCloseable {
 
         val saveGame: String
         try {
-            saveGame = ServerSaveJsonStore.normalizeSlot(args.get(1))
-        } catch (e: IllegalArgumentException) {
+            saveGame = ServerSaveJsonStore.normalizeSlot(args[1])
+        } catch (_: IllegalArgumentException) {
             Com.Printf("Bad save name.\n")
             return
         }
@@ -982,15 +938,15 @@ class ServerHost : AutoCloseable {
 
         ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
 
-        val mapCommand = SV_ReadMapCommand()
+        val mapCommand = readSavedMapCommand()
 
         // go to the map
         val loaded = spawnServerInstance(ChangeMapInfo(mapCommand, false, true), 0)
         loaded.name = "default"
-        games.put("default", loaded)
+        games["default"] = loaded
     }
 
-    private fun SV_ReadMapCommand(): String {
+    private fun readSavedMapCommand(): String {
         Com.DPrintf("SV_ReadMapCommand()\n")
 
         try {
@@ -1026,19 +982,19 @@ goes to map jail.bsp.
 
 Spins up a new game instance, to be used with either `map` or `join` (TBD)
 */
-    fun SV_GameMap_f(args: MutableList<String>) {
+    fun changeMap(args: List<String>) {
         if (args.size < 2) {
             Com.Printf("USAGE: gamemap <map>\n <client>")
             return
         }
 
-        val mapName = args.get(1)
+        val mapName = args[1]
 
         val clientIndex: Int
-        if (args.size > 2 && !args.get(2).isBlank()) {
+        if (args.size > 2 && args[2].isNotBlank()) {
             try {
-                clientIndex = args.get(2).toInt()
-            } catch (e: NumberFormatException) {
+                clientIndex = args[2].toInt()
+            } catch (_: NumberFormatException) {
                 Com.Printf("USAGE: gamemap <map>\n <client>\n")
                 return
             }
@@ -1056,12 +1012,12 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
 
         // check for clearing the current savegame
-        if (mapName.get(0) == '*') {
+        if (mapName[0] == '*') {
             // wipe all the *.sav files
             ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
         } else { // save the map just exited
             // note: only applicable to the default instance (subject to change in future)
-            val gameImports = games.get("default")
+            val gameImports = games["default"]
             if (gameImports != null && gameImports.state == ServerStates.SS_GAME) {
                 // clear all the client inuse flags before saving so that
                 // when the level is re-entered, the clients will spawn
@@ -1096,21 +1052,21 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             // server just started, `map` cmd was used
             // start up the next map
             game.name = "default"
-            games.put(game.name, game)
+            games[game.name] = game
             for (cl in clients) {
                 cl.gameName = "default"
             }
         } else {
             // preview of the multi instance mode
-            val cl = clients.get(clientIndex - 1)
-            val previousGame: GameImportsImpl = games.get(cl.gameName)!!
+            val cl = clients[clientIndex - 1]
+            val previousGame: GameImportsImpl = games[cl.gameName]!!
             previousGame.gameExports.ClientDisconnect(cl.edict)
-            games.put(game.name, game)
+            games[game.name] = game
             cl.gameName = game.name
         }
 
         // copy off the level to the autosave slot
-        if (!Globals.dedicated.getTypedValue()) {
+        if (!Globals.dedicated.typedValue) {
             game.SV_WriteServerFile(true)
             ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
         }
@@ -1119,7 +1075,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // when playing the regular flow, multi instances are not requried
         if (clientIndex == 0) {
             games.clear()
-            games.put("default", game)
+            games["default"] = game
         }
     }
 
@@ -1127,17 +1083,17 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
      * SV_Map
      */
     fun spawnServerInstance(changeMapInfo: ChangeMapInfo, clientIndex: Int): GameImportsImpl {
-        Globals.server_state = ServerStates.SS_DEAD //fixme: used by the client code
+        publishLegacyServerState(ServerStates.SS_DEAD)
 
         val previous = if (clientIndex != 0)
-            games.get(clients.get(clientIndex - 1).gameName)
+            games[clients[clientIndex - 1].gameName]
         else
-            games.get("default")
-        if (previous != null) previous.prepareLevelTransition()
+            games["default"]
+        previous?.prepareLevelTransition()
 
         val gameImports = createGameInstance(changeMapInfo, previous)
 
-        Cvar.getInstance().find<String>("nextserver", String::class.java)
+        Cvar.getInstance().find<String>("nextserver")
             .set("gamemap \"" + changeMapInfo.nextServer + "\"")
 
         Cmd.ExecuteFunction("loading") // for local system
@@ -1151,25 +1107,23 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             }
             gameImports.SV_BroadcastCommand("changing")
         } else {
-            val cl = clients.get(clientIndex - 1)
+            val cl = clients[clientIndex - 1]
             if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
             cl.lastReceivedFrame = -1
             gameImports.unicastMessage(clientIndex, StuffTextMessage("changing"), true)
         }
 
-        SV_SendClientMessages()
-
+        sendClientMessages()
 
         // precache and static commands can be issued during
         // map initialization
-        Globals.server_state = gameImports.state // LOADING
+        publishLegacyServerState(gameImports.state)
 
         gameImports.initializeLevel(changeMapInfo, previous)
-        Globals.server_state = gameImports.state
-
+        publishLegacyServerState(gameImports.state)
 
         // set serverinfo variable
-        Cvar.getInstance().find<String>("mapname", String::class.java).forceSet(gameImports.mapName)
+        Cvar.getInstance().find<String>("mapname").forceSet(gameImports.mapName)
         Com.Println("mapname: " + gameImports.mapName)
 
         if (changeMapInfo.state == ServerStates.SS_GAME) Cbuf.CopyToDefer()
@@ -1192,15 +1146,15 @@ For development work
 
 Resets server to host a given map, moves all clients to it (via reconnect)
 */
-    fun SV_Map_f(args: MutableList<String>) {
-        //char expanded[MAX_QPATH];
-        if (args.size < 2 || args.get(1).isBlank()) {
+    fun map(args: List<String>) {
+
+        if (args.size < 2 || args[1].isBlank()) {
             Com.Printf("usage: map <map_name>\n")
             return
         }
 
         // if not a pcx, demo, or cinematic, check to make sure the level exists
-        val mapName = args.get(1)
+        val mapName = args[1]
         val target = ChangeMapInfo(mapName, false, false)
         if (target.state == ServerStates.SS_GAME) {
             val mapPath = "maps/" + target.mapName + ".bsp"
@@ -1209,26 +1163,25 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 return
             }
         }
-        val game = games.get("default")
+        val game = games["default"]
 
         if (game != null) game.state = ServerStates.SS_DEAD // don't save current level when changing
-
 
         ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
 
         // A running server needs its clients reset for map. For a fresh server,
         // gamemap performs this initialization itself.
-        if (!games.isEmpty()) {
+        if (games.isNotEmpty()) {
             initializeServerSession()
         }
-        SV_GameMap_f(args)
+        changeMap(args)
     }
 
     private fun initializeServerSession() {
         if (games.isEmpty()) {
             realtime = 0
             frameNum = 0
-            fixedtime = 100
+            nextFrameTime = 100
         }
         val multiplayer = initializeServerCvars()
         if (!NET.configureServer(multiplayer)) {
@@ -1242,7 +1195,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun sendClientDatagram(client: ClientNetworkInfo, gameImports: GameImportsImpl) {
         // send over all the relevant entity_state_t
         // and the player_state_t
-        val unreliable: MutableCollection<NetworkMessage?> = ArrayList<NetworkMessage?>()
+        val unreliable: MutableList<NetworkMessage> = mutableListOf()
         unreliable.addAll(gameImports.buildClientFrameMessages(client)) // 3 messages
 
         // copy the accumulated multicast datagram
@@ -1256,19 +1209,19 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // record the size for rate estimation
         client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] =
-            unreliable.stream().mapToInt { obj: NetworkMessage? -> obj!!.getSize() }.sum()
+            unreliable.sumOf { it.size }
     }
 
     private val userCommands = mapOf(
-        StringCmdMessage.NEW to ServerUserCommand(::SV_New_f),
-        StringCmdMessage.CONFIG_STRINGS to ServerUserCommand(::SV_Configstrings_f),
-        StringCmdMessage.BASELINES to ServerUserCommand(::SV_Baselines_f),
-        StringCmdMessage.BEGIN to ServerUserCommand(::SV_Begin_f),
-        StringCmdMessage.NEXT_SERVER to ServerUserCommand(::SV_Nextserver_f),
-        StringCmdMessage.DISCONNECT to ServerUserCommand(::SV_Disconnect_f),
-        StringCmdMessage.INFO to ServerUserCommand(::SV_ShowServerinfo_f),
-        StringCmdMessage.DOWNLOAD to ServerUserCommand(::SV_BeginDownload_f),
-        StringCmdMessage.NEXT_DOWNLOAD to ServerUserCommand(::SV_NextDownload_f),
+        StringCmdMessage.NEW to ServerUserCommand { _, game, client -> sendInitialGameData(game, client) },
+        StringCmdMessage.CONFIG_STRINGS to ServerUserCommand(::sendConfigstrings),
+        StringCmdMessage.BASELINES to ServerUserCommand(::sendBaselines),
+        StringCmdMessage.BEGIN to ServerUserCommand(::beginClient),
+        StringCmdMessage.NEXT_SERVER to ServerUserCommand(::finishCinematic),
+        StringCmdMessage.DISCONNECT to ServerUserCommand { _, _, client -> dropClient(client) },
+        StringCmdMessage.INFO to ServerUserCommand { _, _, _ -> Info.Print(Cvar.getInstance().Serverinfo()) },
+        StringCmdMessage.DOWNLOAD to ServerUserCommand { args, _, client -> beginDownload(args, client) },
+        StringCmdMessage.NEXT_DOWNLOAD to ServerUserCommand { _, _, client -> sendNextDownloadChunk(client) },
     )
 
     /**
@@ -1276,53 +1229,53 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      */
     init {
         val cvars = Cvar.getInstance()
-        cvars.register<String>(
+        cvars.register(
             "spectator_password", CvarTypes.STRING, "", Defines.CVAR_USERINFO,
             "Spectator admission password; empty or none allows access"
         )
-        cvars.register<Int>(
+        cvars.register(
             "needpass", NEEDPASS_TYPE, 0, Defines.CVAR_SERVERINFO,
             "Required passwords: 0 none, 1 player, 2 spectator, 3 both"
         )
-        cvars.register<Boolean>("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
-        cvars.register<Boolean>("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
-        cvars.register<Int>(
+        cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
+        cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
+        cvars.register(
             "dmflags",
             CvarTypes.INTEGER,
             Defines.DF_INSTANT_ITEMS,
             Defines.CVAR_SERVERINFO,
             "Deathmatch rule bitmask; combine DF_* flags"
         )
-        cvars.register<Int>(
+        cvars.register(
             "fraglimit",
             CvarTypes.IntegerType(0, null),
             0,
             Defines.CVAR_SERVERINFO,
             "End a deathmatch level at this score; 0 disables the limit"
         )
-        cvars.register<Float>(
+        cvars.register(
             "timelimit",
             CvarTypes.FloatType(0f, null),
             0f,
             Defines.CVAR_SERVERINFO,
             "Deathmatch level time limit in minutes; 0 disables the limit"
         )
-        cvars.register<Boolean>("cheats", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
-        cvars.register<Int>(
+        cvars.register("cheats", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
+        cvars.register(
             "protocol",
             CvarTypes.INTEGER,
             Defines.PROTOCOL_VERSION,
             Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET
         )
-        cvars.register<String>("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET)
-        cvars.register<String>(
+        cvars.register("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET)
+        cvars.register(
             "nextserver",
             CvarTypes.STRING,
             "",
             0,
             "Console command to execute after a cinematic or picture"
         )
-        cvars.register<Int>(
+        cvars.register(
             "maxclients",
             CvarTypes.IntegerType(1, Defines.MAX_CLIENTS),
             1,
@@ -1330,42 +1283,42 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             "Client slot limit; single-player and coop mode also restrict the count"
         )
 
-        hostname = cvars.register<String>(
+        hostname = cvars.register(
             "hostname",
             CvarTypes.STRING,
             "noname",
             Defines.CVAR_SERVERINFO or Defines.CVAR_ARCHIVE
         )
-        timeout = cvars.register<Float>(
+        timeout = cvars.register(
             "timeout",
             CvarTypes.FloatType(0f, null),
             125f,
             0,
             "Seconds without a client message before disconnection"
         )
-        zombietime = cvars.register<Float>(
+        zombieTimeout = cvars.register(
             "zombietime",
             CvarTypes.FloatType(0f, null),
             2f,
             0,
             "Seconds to retain a disconnected client slot for final reliable messages"
         )
-        sv_showclamp = cvars.register<Boolean>(
+        cvars.register(
             "showclamp",
             CvarTypes.BOOLEAN,
             false,
             0,
             "Legacy frame-time clamp diagnostics; unused by the current server and Cake"
         )
-        sv_paused = cvars.register<Boolean>("paused", CvarTypes.BOOLEAN, false, 0)
-        sv_timedemo = cvars.register<Boolean>(
+        paused = cvars.register("paused", CvarTypes.BOOLEAN, false, 0)
+        cvars.register(
             "timedemo",
             CvarTypes.BOOLEAN,
             false,
             0,
             "Legacy demo benchmarking switch; unused by the current server and Cake"
         )
-        sv_enforcetime = cvars.register<Boolean>(
+        enforceMoveTime = cvars.register(
             "sv_enforcetime",
             CvarTypes.BOOLEAN,
             false,
@@ -1374,34 +1327,34 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         )
 
         // come from MainCommon
-        allow_download = cvars.find<Boolean>("allow_download", Boolean::class.java)
-        allow_download_players = cvars.find<Boolean>("allow_download_players", Boolean::class.java)
-        allow_download_models = cvars.find<Boolean>("allow_download_models", Boolean::class.java)
-        allow_download_sounds = cvars.find<Boolean>("allow_download_sounds", Boolean::class.java)
-        allow_download_maps = cvars.find<Boolean>("allow_download_maps", Boolean::class.java)
+        allowDownload = cvars.find<Boolean>("allow_download")
+        allowPlayerDownloads = cvars.find<Boolean>("allow_download_players")
+        allowModelDownloads = cvars.find<Boolean>("allow_download_models")
+        allowSoundDownloads = cvars.find<Boolean>("allow_download_sounds")
+        allowMapDownloads = cvars.find<Boolean>("allow_download_maps")
 
-        cvars.register<Boolean>(
+        cvars.register(
             "sv_noreload",
             CvarTypes.BOOLEAN,
             false,
             0,
             "Start revisited levels fresh instead of restoring their saved state"
         )
-        sv_airaccelerate = cvars.register<Float>(
+        cvars.register(
             "sv_airaccelerate",
             CvarTypes.FLOAT,
             0f,
             Defines.CVAR_LATCH,
             "Controls air acceleration (currently only for deathmatch)"
         )
-        public_server = cvars.register<Boolean>(
+        cvars.register(
             "public",
             CvarTypes.BOOLEAN,
             false,
             0,
             "Legacy master-server advertising switch; currently unused"
         )
-        sv_reconnect_limit = cvars.register<Float>(
+        reconnectLimit = cvars.register(
             "sv_reconnect_limit",
             CvarTypes.FloatType(0f, null),
             3f,
@@ -1411,71 +1364,64 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         resetClients()
 
         // Publish Host callbacks only after initialization succeeds. They survive Game replacement.
-        commands.add("heartbeat", true, Command { agrs: MutableList<String> -> this.SV_Heartbeat_f(agrs) })
-        commands.add("kick", true, Command { args: MutableList<String> -> this.SV_Kick_f(args) })
-        commands.add("status", true, Command { args: MutableList<String> -> this.SV_Status_f(args) })
-        commands.add("serverinfo", true, Command { args: MutableList<String> -> this.SV_Serverinfo_f(args) })
-        commands.add("dumpuser", true, Command { args: MutableList<String> -> this.SV_DumpUser_f(args) })
-        commands.add("say", true, Command { args: MutableList<String> -> this.SV_ConSay_f(args) })
-        commands.add("save", true, Command { args: MutableList<String> -> this.saveGame(args) })
+        // Retained for console compatibility; master-server advertising is not implemented.
+        commands.add("heartbeat", true) {}
+        commands.add("kick", true, Command(::kickClient))
+        commands.add("status", true) { printStatus() }
+        commands.add("serverinfo", true) { printServerInfo() }
+        commands.add("dumpuser", true, Command(::dumpUser))
+        commands.add("say", true, Command(::say))
+        commands.add("save", true, Command(::saveGame))
 
-        commands.add("killserver", Command { args: MutableList<String> ->
+        commands.add("killserver") {
             stop("Server was killed.\n", false)
             NET.configureServer(false)
-        })
-        commands.add("map", Command { args: MutableList<String> -> this.SV_Map_f(args) })
-        commands.add("gamemap", Command { args: MutableList<String> -> this.SV_GameMap_f(args) })
-        commands.add("load", Command { args: MutableList<String> -> this.SV_Loadgame_f(args) })
-        commands.add("sv_shutdown", Command { args: MutableList<String> ->
+        }
+        commands.add("map", Command(::map))
+        commands.add("gamemap", Command(::changeMap))
+        commands.add("load", Command(::loadGame))
+        commands.add("sv_shutdown") { args ->
             val reason: String?
             if (args.size > 1) {
-                reason = args.get(1)
+                reason = args[1]
             } else {
                 reason = "Server is shut down"
             }
-            stop(reason + "\n", args.size > 2 && args.get(2).toBoolean())
-        })
+            stop(reason + "\n", args.size > 2 && args[2].toBoolean())
+        }
 
-        commands.add("listmaps", Command { args: MutableList<String> ->
+        commands.add("listmaps") {
             val bytes = EngineVfs.loadBytes("maps.lst")
             if (bytes == null) {
                 Com.Error(Defines.ERR_DROP, "Could not read maps.lst")
-                return@Command
+                return@add
             }
             for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
                 Com.Printf(Defines.PRINT_ALL, line.trim { it <= ' ' } + "\n")
             }
-        })
-        commands.add("jvm_memory", Command { args: MutableList<String> ->
+        }
+        commands.add("jvm_memory") {
             val runtime = Runtime.getRuntime()
             Com.Printf("vm memory:" + (runtime.totalMemory() - runtime.freeMemory()) + "\n")
-        })
-        commands.add("games", Command { args: MutableList<String> ->
+        }
+        commands.add("games") {
             for (game in games.values) {
                 Com.Printf(game.name + " - " + game.mapcmd + "\n")
             }
             Com.Printf("Total " + games.size + " games\n")
-        })
-        commands.add("spamgames", Command { args: MutableList<String> ->
-            val total = args.get(1).toInt()
-            for (i in 0..<total) {
-                SV_GameMap_f(mutableListOf<String>("gamemap", "base1", "1"))
+        }
+        commands.add("spamgames") { args ->
+            val total = args[1].toInt()
+            repeat(total) {
+                changeMap(listOf("gamemap", "base1", "1"))
             }
-        })
+        }
     }
 
     private fun interface ServerUserCommand {
-        fun execute(args: MutableList<String>, game: GameImportsImpl, client: ClientNetworkInfo)
+        fun execute(args: List<String>, game: GameImportsImpl, client: ClientNetworkInfo)
     }
 
-    /*
-     * ============================================================
-     *
-     * USER STRINGCMD EXECUTION
-     *
-     * sv_client and sv_player will be valid.
-     * ============================================================
-     */
     /*
      * ================ SV_New_f
      *
@@ -1483,7 +1429,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * be sent on the initial connection and upon each server load.
      * ================
      */
-    private fun SV_New_f(args: MutableList<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
+    private fun sendInitialGameData(gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         Com.DPrintf("New() from " + client.name + "\n")
 
         if (client.state != ClientStates.CS_CONNECTED) {
@@ -1495,14 +1441,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // serverdata needs to go over for all types of servers
         // to make sure the protocol is right, and to set the gamedir
         //
-        val gamedir = Cvar.getInstance().find<String>("gamedir", String::class.java).getTypedValue()
+        val gamedir = Cvar.getInstance().find<String>("gamedir").typedValue
 
         // send the serverdata
         // send full levelname
         val clientIndex: Int
         if (gameImports.state == ServerStates.SS_CINEMATIC || gameImports.state == ServerStates.SS_PIC) clientIndex = -1
         else clientIndex = client.edict.index - 1
-
 
         client.netchan.reliablePending.add(
             ServerDataMessage(
@@ -1537,11 +1482,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
     }
 
-    /*
-     * ================== SV_Configstrings_f ==================
-     */
-    private fun SV_Configstrings_f(
-        args: MutableList<String>,
+    private fun sendConfigstrings(
+        args: List<String>,
         gameImports: GameImportsImpl,
         client: ClientNetworkInfo
     ) {
@@ -1553,22 +1495,22 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         // handle the case of a level changing while a client was connecting
-        val spawnCount = if (args.size >= 2) Lib.atoi(args.get(1)) else 0
+        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
             Com.Printf("SV_Configstrings_f from different level\n")
-            SV_New_f(args, gameImports, client)
+            sendInitialGameData(gameImports, client)
             return
         }
 
-        var start = if (args.size >= 3) Lib.atoi(args.get(2)) else 0
+        var start = if (args.size >= 3) Lib.atoi(args[2]) else 0
 
         // write a packet full of data
         var currentReliableSize =
-            client.netchan.reliablePending.stream().mapToInt { obj: NetworkMessage? -> obj!!.getSize() }.sum()
+            client.netchan.reliablePending.sumOf { it.size }
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
-            if (gameImports.configstrings[start] != null && gameImports.configstrings[start].length != 0) {
+            if (gameImports.configstrings[start] != null && gameImports.configstrings[start].isNotEmpty()) {
                 val config = ConfigStringMessage(start, gameImports.configstrings[start])
-                currentReliableSize += config.getSize()
+                currentReliableSize += config.size
                 client.netchan.reliablePending.add(config)
             }
             start++
@@ -1585,10 +1527,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
     }
 
-    /*
-     * ================== SV_Baselines_f ==================
-     */
-    private fun SV_Baselines_f(args: MutableList<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
+    private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         Com.DPrintf("Baselines() from " + client.name + "\n")
 
         if (client.state != ClientStates.CS_CONNECTED) {
@@ -1597,24 +1536,24 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         // handle the case of a level changing while a client was connecting
-        val spawnCount = if (args.size >= 2) Lib.atoi(args.get(1)) else 0
+        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
             Com.Printf("SV_Baselines_f from different level\n")
-            SV_New_f(args, gameImports, client)
+            sendInitialGameData(gameImports, client)
             return
         }
 
         // todo: validate argument
-        var start = if (args.size >= 3) Lib.atoi(args.get(2)) else 0
+        var start = if (args.size >= 3) Lib.atoi(args[2]) else 0
 
         // write a packet full of data
         var currentReliableSize =
-            client.netchan.reliablePending.stream().mapToInt { obj: NetworkMessage? -> obj!!.getSize() }.sum()
+            client.netchan.reliablePending.sumOf { it.size }
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             val base = gameImports.baselines[start]
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 val spawn = SpawnBaselineMessage(base)
-                currentReliableSize += spawn.getSize()
+                currentReliableSize += spawn.size
                 client.netchan.reliablePending.add(spawn)
             }
             start++
@@ -1632,17 +1571,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
     }
 
-    /*
-     * ================== SV_Begin_f ==================
-     */
-    private fun SV_Begin_f(args: MutableList<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
+    private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         Com.DPrintf("Begin() from " + client.name + "\n")
 
         // handle the case of a level changing while a client was connecting
-        val spawnCount = if (args.size >= 2) Lib.atoi(args.get(1)) else 0
+        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
             Com.Printf("SV_Begin_f from different level\n")
-            SV_New_f(args, gameImports, client)
+            sendInitialGameData(gameImports, client)
             return
         }
 
@@ -1654,15 +1590,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Cbuf.InsertFromDefer()
     }
 
-    //=============================================================================
-    /*
-     * ================== SV_NextDownload_f ==================
-     */
-    private fun SV_NextDownload_f(
-        args: MutableList<String>,
-        gameImports: GameImportsImpl?,
-        client: ClientNetworkInfo
-    ) {
+    private fun sendNextDownloadChunk(client: ClientNetworkInfo) {
         if (client.download == null) return
 
         var packet = client.downloadsize - client.downloadcount
@@ -1682,36 +1610,31 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
     }
 
-    /*
-     * ================== SV_BeginDownload_f ==================
-     */
-    private fun SV_BeginDownload_f(
-        args: MutableList<String>,
-        gameImports: GameImportsImpl?,
+    private fun beginDownload(
+        args: List<String>,
         client: ClientNetworkInfo
     ) {
         var offset = 0
 
         if (args.size < 2) return
 
-        val name = args.get(1)
+        val name = args[1]
 
-        if (args.size > 2) offset = Lib.atoi(args.get(2)) // downloaded offset
-
+        if (args.size > 2) offset = Lib.atoi(args[2]) // downloaded offset
 
         // hacked by zoid to allow more conrol over download
         // first off, no .. or global allow check
         if (name.contains("..")
-            || !allow_download.getTypedValue() // leading dot is no good
-            || name.get(0) == '.' // leading slash bad as well, must be
+            || !allowDownload.typedValue // leading dot is no good
+            || name[0] == '.' // leading slash bad as well, must be
             // in subdir
-            || name.get(0) == '/' // next up, skin check
-            || (name.startsWith("players/") && !allow_download_players.getTypedValue()) // now
+            || name[0] == '/' // next up, skin check
+            || (name.startsWith("players/") && !allowPlayerDownloads.typedValue) // now
             // models
-            || (name.startsWith("models/") && !allow_download_models.getTypedValue()) // now
+            || (name.startsWith("models/") && !allowModelDownloads.typedValue) // now
             // sounds
-            || (name.startsWith("sound/") && !allow_download_sounds.getTypedValue()) // now maps (note special case for maps, must not be in pak)
-            || (name.startsWith("maps/") && !allow_download_maps.getTypedValue()) // MUST
+            || (name.startsWith("sound/") && !allowSoundDownloads.typedValue) // now maps (note special case for maps, must not be in pak)
+            || (name.startsWith("maps/") && !allowMapDownloads.typedValue) // MUST
             // be
             // in a
             // subdirectory
@@ -1751,53 +1674,27 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return
         }
 
-        SV_NextDownload_f(args, gameImports, client)
+        sendNextDownloadChunk(client)
         Com.DPrintf("Downloading " + name + " to " + client.name + "\n")
     }
 
-    //============================================================================
-    /*
-     * ================= SV_Disconnect_f
-     *
-     * The client is going to disconnect, so remove the connection immediately
-     * =================
-     */
-    private fun SV_Disconnect_f(args: MutableList<String>, gameImports: GameImportsImpl?, client: ClientNetworkInfo) {
-        //	SV_EndRedirect ();
-        SV_DropClient(client)
-    }
-
-    /*
-     * ================== SV_ShowServerinfo_f
-     *
-     * Dumps the serverinfo info string ==================
-     */
-    private fun SV_ShowServerinfo_f(
-        args: MutableList<String>,
-        gameImports: GameImportsImpl?,
-        client: ClientNetworkInfo?
-    ) {
-        Info.Print(Cvar.getInstance().Serverinfo())
-    }
-
-    private fun SV_Nextserver(gameImports: GameImportsImpl) {
+    private fun advanceCinematic(gameImports: GameImportsImpl) {
         //ZOID, ss_pic can be nextserver'd in coop mode
 
         if (gameImports.state == ServerStates.SS_GAME
             || (gameImports.state == ServerStates.SS_PIC && !Cvar.getInstance()
-                .find<Boolean>("coop", Boolean::class.java).getTypedValue())
+                .find<Boolean>("coop").typedValue)
         ) return  // can't nextserver while playing a normal game
 
-
         gameImports.spawncount++ // make sure another doesn't sneak in
-        val v = Cvar.getInstance().find<String>("nextserver", String::class.java).getTypedValue()
-        //if (!v[0])
-        if (v.length == 0) Cbuf.AddText("killserver\n")
+        val v = Cvar.getInstance().find<String>("nextserver").typedValue
+
+        if (v.isEmpty()) Cbuf.AddText("killserver\n")
         else {
             Cbuf.AddText(v)
             Cbuf.AddText("\n")
         }
-        Cvar.getInstance().find<String>("nextserver", String::class.java).set("")
+        Cvar.getInstance().find<String>("nextserver").set("")
     }
 
     /*
@@ -1806,32 +1703,30 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * A cinematic has completed or been aborted by a client, so move to the
      * next server, ==================
      */
-    private fun SV_Nextserver_f(args: MutableList<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        val spawnCount = if (args.size >= 2) Lib.atoi(args.get(1)) else 0
+    private fun finishCinematic(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
+        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
             Com.DPrintf("Nextserver() from wrong level, from " + client.name + "\n")
             return  // leftover from last server
         }
 
         Com.DPrintf("Nextserver() from " + client.name + "\n")
-        SV_Nextserver(gameImports)
+        advanceCinematic(gameImports)
     }
 
     /** Resolve a Game at execution time; creating another Game never replaces these callbacks.  */
-    private fun saveGame(args: MutableList<String>) {
+    private fun saveGame(args: List<String>) {
         var target = "default"
-        var command: MutableList<String> = args
-        if (args.size > 1 && args.get(1) == "--game") {
+        var command = args
+        if (args.size > 1 && args[1] == "--game") {
             if (args.size < 4) {
-                Com.Printf("Usage: " + args.get(0) + " --game <id> <arguments>\n")
+                Com.Printf("Usage: " + args[0] + " --game <id> <arguments>\n")
                 return
             }
-            target = args.get(2)
-            command = ArrayList<String>()
-            command.add(args.get(0))
-            command.addAll(args.subList(3, args.size))
+            target = args[2]
+            command = listOf(args[0]) + args.drop(3)
         }
-        val game = games.get(target)
+        val game = games[target]
         if (game == null) {
             Com.Printf("No running game: " + target + "\n")
             return
@@ -1839,35 +1734,22 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         game.saveGame(command)
     }
 
-    /*
-	==================
-	SV_Kick_f
-
-	Kick a user off of the server
-	==================
-	*/
-    private fun SV_Kick_f(args: MutableList<String>) {
+    private fun kickClient(args: List<String>) {
         if (args.size != 2) {
             Com.Printf("Usage: kick <userid>\n")
             return
         }
-        val client = SV_SetPlayer(args)
-        if (client == null) return
+        val client = findClient(args) ?: return
 
-        SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n", client.gameName)
+        broadcastPrint(Defines.PRINT_HIGH, client.name + " was kicked\n", client.gameName)
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n")
-        SV_DropClient(client)
-        client.lastmessage = games.get(client.gameName)!!.realtime // min case there is a funny zombie
+        dropClient(client)
+        client.lastmessage = games[client.gameName]!!.realtime // min case there is a funny zombie
     }
 
-    /*
-    ================
-    SV_Status_f
-    ================
-    */
-    private fun SV_Status_f(args: MutableList<String>) {
+    private fun printStatus() {
         // todo: check
         if (games.isEmpty()) {
             Com.Printf("No server running.\n")
@@ -1879,59 +1761,38 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n")
 
         for (i in clients.indices) {
-            val cl = clients.get(i)
+            val cl = clients[i]
             if (ClientStates.CS_FREE == cl.state) continue
 
-            Com.Printf("%3i ", Vargs().add(i))
-            Com.Printf("%5i ", Vargs().add(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]))
+            Com.Printf(i.toString().padStart(3) + " ")
+            Com.Printf(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS].toString().padStart(5) + " ")
 
             if (cl.state == ClientStates.CS_CONNECTED) Com.Printf("CNCT ")
             else if (cl.state == ClientStates.CS_ZOMBIE) Com.Printf("ZMBI ")
             else {
                 val ping = if (cl.ping < 9999) cl.ping else 9999
-                Com.Printf("%4i ", Vargs().add(ping))
+                Com.Printf(ping.toString().padStart(4) + " ")
             }
 
-            Com.Printf("%s", Vargs().add(cl.name))
-            var l = 16 - cl.name.length
-            var j: Int
-            j = 0
-            while (j < l) {
-                Com.Printf(" ")
-                j++
-            }
-
-            Com.Printf("%7i ", Vargs().add(games.get(cl.gameName)!!.realtime - cl.lastmessage))
-
-            val s = cl.netchan.remote_address.toString()
-            Com.Printf(s)
-            l = 22 - s.length
-            j = 0
-            while (j < l) {
-                Com.Printf(" ")
-                j++
-            }
-
-            Com.Printf("%5i", Vargs().add(cl.netchan.qport))
+            Com.Printf(cl.name.padEnd(16))
+            val lastMessageAge = games[cl.gameName]!!.realtime - cl.lastmessage
+            Com.Printf(lastMessageAge.toString().padStart(7) + " ")
+            Com.Printf(cl.netchan.remote_address.toString().padEnd(22))
+            Com.Printf(cl.netchan.qport.toString().padStart(5))
 
             Com.Printf("\n")
         }
         Com.Printf("\n")
     }
 
-    /*
-    ==================
-    SV_ConSay_f
-    ==================
-    */
-    private fun SV_ConSay_f(args: MutableList<String>) {
+    private fun say(args: List<String>) {
         if (args.size < 2) return
 
         // char[1024];
         var text = "console: "
         var p = Cmd.getArguments(args)
 
-        if (!p.isEmpty() && p.get(0) == '"') {
+        if (p.isNotEmpty() && p[0] == '"') {
             p = p.substring(1, p.length - 1)
         }
 
@@ -1943,40 +1804,17 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
     }
 
-    /*
-    ==================
-    SV_Heartbeat_f
-    ==================
-    */
-    private fun SV_Heartbeat_f(agrs: MutableList<String>) {
-    }
-
-    /*
-    ===========
-    SV_Serverinfo_f
-
-      Examine or change the serverinfo string
-    ===========
-    */
-    private fun SV_Serverinfo_f(args: MutableList<String>) {
+    private fun printServerInfo() {
         Com.Printf("Server info settings:\n")
         Info.Print(Cvar.getInstance().Serverinfo())
     }
 
-    /*
-    ===========
-    SV_DumpUser_f
-
-    Examine all a users info strings
-    ===========
-    */
-    private fun SV_DumpUser_f(args: MutableList<String>) {
+    private fun dumpUser(args: List<String>) {
         if (args.size != 2) {
             Com.Printf("Usage: info <userid>\n")
             return
         }
-        val client = SV_SetPlayer(args)
-        if (client == null) return
+        val client = findClient(args) ?: return
 
         Com.Printf("userinfo\n")
         Com.Printf("--------\n")
@@ -1986,21 +1824,21 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     /**
      * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
      */
-    private fun SV_SetPlayer(args: MutableList<String>): ClientNetworkInfo? {
+    private fun findClient(args: List<String>): ClientNetworkInfo? {
         if (args.size < 2) return null
 
-        val idOrName = args.get(1)
+        val idOrName = args[1]
 
         // numeric values are just slot numbers
         // fixme: player name cannot start with a number?
-        if (!idOrName.isEmpty() && idOrName.get(0) >= '0' && idOrName.get(0) <= '9') {
+        if (idOrName.isNotEmpty() && idOrName[0] >= '0' && idOrName[0] <= '9') {
             val id = Lib.atoi(idOrName)
             if (id < 0 || id >= clients.size) {
                 Com.Printf("Bad client slot: " + id + "\n")
                 return null
             }
 
-            val result = clients.get(id)
+            val result = clients[id]
             if (ClientStates.CS_FREE == result.state) {
                 Com.Printf("Client " + id + " is not active\n")
                 return null
@@ -2022,26 +1860,26 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     companion object {
         // Recreating an embedded manager must reuse the same choice declaration.
-        private val NEEDPASS_TYPE = ChoiceType<Int>(mutableListOf<Int>(0, 1, 2, 3))
+        private val NEEDPASS_TYPE = ChoiceType(listOf(0, 1, 2, 3))
 
         private const val MAX_STRINGCMDS = 8
 
         /**
          * Checks if the rcon password is corect.
          */
-        private fun Rcon_Validate(args: MutableList<String>): Boolean {
-            val rconPassword = Cvar.getInstance().find<String>("rcon_password", String::class.java).getTypedValue()
+        private fun isRconAuthorized(args: List<String>): Boolean {
+            val rconPassword = Cvar.getInstance().find<String>("rcon_password").typedValue
             if (rconPassword.isEmpty()) return false
 
-            return args.size >= 2 && args.get(1) == rconPassword
+            return args.size >= 2 && args[1] == rconPassword
         }
 
         /**
          * A client issued an rcon command. Shift down the remaining args Redirect
          * all printfs from the server to the client.
          */
-        private fun SVC_RemoteCommand(args: MutableList<String>, from: netadr_t?) {
-            val rconIsValid: Boolean = Rcon_Validate(args)
+        private fun executeRemoteCommand(args: List<String>, from: netadr_t?) {
+            val rconIsValid: Boolean = isRconAuthorized(args)
 
             if (rconIsValid) {
                 Com.Printf("Rcon from " + from + ":\n" + args + "\n")
@@ -2049,15 +1887,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 Com.Printf("Bad rcon from " + from + ":\n" + args + "\n")
             }
 
-
-            Com.BeginRedirect(RD_Flusher { buffer: StringBuilder? ->
+            Com.BeginRedirect { buffer ->
                 Netchan.sendConnectionlessPacket(
                     Defines.NS_SERVER,
                     from,
                     ConnectionlessCommand.print,
                     "\n" + buffer.toString()
                 )
-            })
+            }
             if (rconIsValid) {
                 Cmd.ExecuteString(Cmd.getArguments(args, 2))
             } else {

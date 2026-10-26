@@ -279,7 +279,7 @@ public class GameImportsImpl implements GameImports {
     // special messages
     @Override
     public void bprintf(int printlevel, String s) {
-        serverMain.SV_BroadcastPrintf(printlevel, s, name);
+        serverMain.broadcastPrint(printlevel, s, name);
     }
 
     @Override

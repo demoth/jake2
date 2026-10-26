@@ -364,14 +364,14 @@ public class GameImportsTest {
         secondClient.edict = second.gameExports.getEdict(2);
         firstClient.state = secondClient.state = ClientStates.CS_CONNECTED;
         try {
-            manager.SV_ExecuteUserCommand(firstClient, "new");
-            manager.SV_ExecuteUserCommand(secondClient, "new");
+            manager.executeClientCommand(firstClient, "new");
+            manager.executeClientCommand(secondClient, "new");
             Assertions.assertEquals("first game",
                     ((ServerDataMessage) firstClient.netchan.reliablePending.iterator().next()).levelString);
             Assertions.assertEquals("second game",
                     ((ServerDataMessage) secondClient.netchan.reliablePending.iterator().next()).levelString);
             firstClient.netchan.reliablePending.clear();
-            manager.SV_ExecuteUserCommand(firstClient, "configstrings " + first.spawncount + " 0");
+            manager.executeClientCommand(firstClient, "configstrings " + first.spawncount + " 0");
             Assertions.assertTrue(firstClient.netchan.reliablePending.contains(
                     new ConfigStringMessage(Defines.CS_NAME, "first game")));
         } finally {
