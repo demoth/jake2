@@ -1085,7 +1085,10 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 Com.Printf(PRINT_ALL, line.trim() + "\n");
             }
         });
-        commands.add("jvm_memory", SV_CCMDS::VM_Mem_f);
+        commands.add("jvm_memory", args -> {
+            Runtime runtime = Runtime.getRuntime();
+            Com.Printf("vm memory:" + (runtime.totalMemory() - runtime.freeMemory()) + "\n");
+        });
         commands.add("games", args -> {
             for (GameImportsImpl game : games.values()) {
                 Com.Printf(game.name + " - " + game.mapcmd + "\n");

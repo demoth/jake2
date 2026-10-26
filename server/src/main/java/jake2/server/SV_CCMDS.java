@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.server;
 
 import jake2.qcommon.Com;
-import jake2.qcommon.Defines;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.server.save.ServerSaveJsonStore;
@@ -33,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
-import java.util.List;
 
 public class SV_CCMDS {
 	/*
@@ -203,16 +201,5 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 	}
-
-	//=========================================================
-
-	/** Print the memory used by the java vm. */
-	static void VM_Mem_f(List<String> args)
-	{
-		Com.Printf("vm memory:" + 
-				(Runtime.getRuntime().totalMemory() - 
-						Runtime.getRuntime().freeMemory()) + "\n" );
-	}
-	
 
 }
