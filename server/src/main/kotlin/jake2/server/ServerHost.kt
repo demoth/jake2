@@ -18,6 +18,7 @@
  *
  */
 // Created on 13.01.2004 by RST.
+// former SV_MAIN
 package jake2.server
 
 import jake2.qcommon.*
@@ -58,10 +59,8 @@ class ServerHost : AutoCloseable {
 
     /** Release this manager's console hooks after ending its last session.  */
     override fun close() {
-        try {
+        commands.use {
             stop("Server stopped\n", false)
-        } finally {
-            commands.close()
         }
     }
 
@@ -71,7 +70,7 @@ class ServerHost : AutoCloseable {
     fun getClientsForInstance(gameName: String?): MutableList<ClientNetworkInfo?> {
         if (!games.containsKey(gameName)) {
             // happens during the game instance creation, while the instance has random name
-            Com.Printf("Game " + gameName + " is not found!\n")
+            Com.Printf("Game $gameName is not found!\n")
         }
         // nullify unrelated clients
         return clients.map { client ->
@@ -211,7 +210,7 @@ class ServerHost : AutoCloseable {
                 Defines.NS_SERVER, adr, ConnectionlessCommand.print,
                 "\nServer is version " + Globals.VERSION + "\n"
             )
-            Com.DPrintf("    rejected connect from version " + version + "\n")
+            Com.DPrintf("    rejected connect from version $version\n")
             return
         }
 
@@ -259,10 +258,10 @@ class ServerHost : AutoCloseable {
                 && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)
             ) {
                 if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (reconnectLimit.typedValue * 1000)) {
-                    Com.DPrintf(adr.toString() + ":reconnect rejected : too soon\n")
+                    Com.DPrintf("$adr:reconnect rejected : too soon\n")
                     return
                 }
-                Com.Printf(adr.toString() + ":reconnect\n")
+                Com.Printf("$adr:reconnect\n")
 
                 initializeClientConnection(i, challenge, userinfo, adr, qport)
                 return
@@ -352,7 +351,7 @@ class ServerHost : AutoCloseable {
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
-            Com.Printf("empty connectionless packet: " + messageLine)
+            Com.Printf("empty connectionless packet: $messageLine")
             return
         }
 
@@ -364,7 +363,7 @@ class ServerHost : AutoCloseable {
                 Netchan.sendConnectionlessPacket(Defines.NS_SERVER, from, ConnectionlessCommand.ack, "")
 
             ConnectionlessCommand.ack ->                 //SVC_Ack
-                Com.Printf("Ping acknowledge from " + from + "\n")
+                Com.Printf("Ping acknowledge from $from\n")
 
             ConnectionlessCommand.status ->                 // SVC_Status, Responds with all the info that qplug or qspy can see
                 Netchan.sendConnectionlessPacket(
@@ -390,13 +389,13 @@ class ServerHost : AutoCloseable {
                     Defines.NS_SERVER,
                     from,
                     ConnectionlessCommand.challenge,
-                    " " + challenge
+                    " $challenge"
                 )
             }
 
             ConnectionlessCommand.connect -> connectClient(args, from)
             ConnectionlessCommand.rcon -> executeRemoteCommand(args, from)
-            else -> Com.Printf("Unknown ClientConnectionlessCommand: " + c + '\n')
+            else -> Com.Printf("Unknown ClientConnectionlessCommand: $c\n")
         }
     }
 
@@ -722,7 +721,7 @@ class ServerHost : AutoCloseable {
     }
 
     fun executeClientCommand(cl: ClientNetworkInfo, command: String?) {
-        Com.dprintln("SV_ExecuteUserCommand:" + command)
+        Com.dprintln("SV_ExecuteUserCommand:$command")
 
         val args = Cmd.TokenizeString(command, true)
         if (args.isEmpty()) return
@@ -931,8 +930,8 @@ class ServerHost : AutoCloseable {
         // make sure the server metadata file exists
         val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
         if (!store.hasMapCommand(saveGame)) {
-            val name = EngineWriteRoot.resolve("save/" + saveGame + "/server_mapcmd.ssv.json").toString()
-            Com.Printf("No such savegame: " + name + "\n")
+            val name = EngineWriteRoot.resolve("save/$saveGame/server_mapcmd.ssv.json").toString()
+            Com.Printf("No such savegame: $name\n")
             return
         }
 
@@ -989,16 +988,14 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         }
 
         val mapName = args[1]
-
-        val clientIndex: Int
-        if (args.size > 2 && args[2].isNotBlank()) {
+        val clientIndex: Int = if (args.size > 2 && args[2].isNotBlank()) {
             try {
-                clientIndex = args[2].toInt()
+                args[2].toInt()
             } catch (_: NumberFormatException) {
                 Com.Printf("USAGE: gamemap <map>\n <client>\n")
                 return
             }
-        } else clientIndex = 0
+        } else 0
 
         // default.cfg may start a session with "killserver; gamemap *...".
         // Shutdown clears the client slots, so gamemap must initialize a fresh
@@ -1007,7 +1004,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             initializeServerSession()
         }
 
-        Com.DPrintf("SV_GameMap(" + mapName + ")\n")
+        Com.DPrintf("SV_GameMap($mapName)\n")
 
         EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
 
@@ -1159,7 +1156,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (target.state == ServerStates.SS_GAME) {
             val mapPath = "maps/" + target.mapName + ".bsp"
             if (!EngineVfs.exists(mapPath)) {
-                Com.Printf("Can't find " + mapPath + "\n")
+                Com.Printf("Can't find $mapPath\n")
                 return
             }
         }
@@ -1381,11 +1378,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         commands.add("gamemap", Command(::changeMap))
         commands.add("load", Command(::loadGame))
         commands.add("sv_shutdown") { args ->
-            val reason: String?
-            if (args.size > 1) {
-                reason = args[1]
+            val reason: String? = if (args.size > 1) {
+                args[1]
             } else {
-                reason = "Server is shut down"
+                "Server is shut down"
             }
             stop(reason + "\n", args.size > 2 && args[2].toBoolean())
         }
@@ -1445,9 +1441,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // send the serverdata
         // send full levelname
-        val clientIndex: Int
-        if (gameImports.state == ServerStates.SS_CINEMATIC || gameImports.state == ServerStates.SS_PIC) clientIndex = -1
-        else clientIndex = client.edict.index - 1
+        val clientIndex: Int = if (gameImports.state == ServerStates.SS_CINEMATIC || gameImports.state == ServerStates.SS_PIC) {
+            -1
+        } else {
+            client.edict.index - 1
+        }
 
         client.netchan.reliablePending.add(
             ServerDataMessage(
@@ -1517,12 +1515,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         // send next command
-        val nextCmd: String
-
-        if (start == Defines.MAX_CONFIGSTRINGS) {
-            nextCmd = String.format("cmd %s %d 0", StringCmdMessage.BASELINES, gameImports.spawncount)
+        val nextCmd: String = if (start == Defines.MAX_CONFIGSTRINGS) {
+            String.format("cmd %s %d 0", StringCmdMessage.BASELINES, gameImports.spawncount)
         } else {
-            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start)
+            String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start)
         }
         client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
     }
@@ -1560,13 +1556,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         // send next command
-        val nextCmd: String
-        if (start == Defines.MAX_EDICTS) {
+        val nextCmd: String = if (start == Defines.MAX_EDICTS) {
             // finished sending baselines
-            nextCmd = String.format("%s %d", StringCmdMessage.PRECACHE, gameImports.spawncount)
+            String.format("%s %d", StringCmdMessage.PRECACHE, gameImports.spawncount)
         } else {
             // continue from where we finished
-            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start)
+            String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start)
         }
         client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
     }
@@ -1728,7 +1723,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
         val game = games[target]
         if (game == null) {
-            Com.Printf("No running game: " + target + "\n")
+            Com.Printf("No running game: $target\n")
             return
         }
         game.saveGame(command)
@@ -1767,11 +1762,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             Com.Printf(i.toString().padStart(3) + " ")
             Com.Printf(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS].toString().padStart(5) + " ")
 
-            if (cl.state == ClientStates.CS_CONNECTED) Com.Printf("CNCT ")
-            else if (cl.state == ClientStates.CS_ZOMBIE) Com.Printf("ZMBI ")
-            else {
-                val ping = if (cl.ping < 9999) cl.ping else 9999
-                Com.Printf(ping.toString().padStart(4) + " ")
+            when (cl.state) {
+                ClientStates.CS_CONNECTED -> Com.Printf("CNCT ")
+                ClientStates.CS_ZOMBIE -> Com.Printf("ZMBI ")
+                else -> {
+                    val ping = if (cl.ping < 9999) cl.ping else 9999
+                    Com.Printf(ping.toString().padStart(4) + " ")
+                }
             }
 
             Com.Printf(cl.name.padEnd(16))
@@ -1834,13 +1831,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (idOrName.isNotEmpty() && idOrName[0] >= '0' && idOrName[0] <= '9') {
             val id = Lib.atoi(idOrName)
             if (id < 0 || id >= clients.size) {
-                Com.Printf("Bad client slot: " + id + "\n")
+                Com.Printf("Bad client slot: $id\n")
                 return null
             }
 
             val result = clients[id]
             if (ClientStates.CS_FREE == result.state) {
-                Com.Printf("Client " + id + " is not active\n")
+                Com.Printf("Client $id is not active\n")
                 return null
             }
             return result
@@ -1854,7 +1851,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
         }
 
-        Com.Printf("Userid " + idOrName + " is not on the server\n")
+        Com.Printf("Userid $idOrName is not on the server\n")
         return null
     }
 
@@ -1882,9 +1879,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             val rconIsValid: Boolean = isRconAuthorized(args)
 
             if (rconIsValid) {
-                Com.Printf("Rcon from " + from + ":\n" + args + "\n")
+                Com.Printf("Rcon from $from:\n$args\n")
             } else {
-                Com.Printf("Bad rcon from " + from + ":\n" + args + "\n")
+                Com.Printf("Bad rcon from $from:\n$args\n")
             }
 
             Com.BeginRedirect { buffer ->
