@@ -96,8 +96,8 @@ public class GameImportsTest {
         manager.resetClients();
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
-        SV_MAIN.games.put(first.name, first);
-        SV_MAIN.games.put(second.name, second);
+        manager.games.put(first.name, first);
+        manager.games.put(second.name, second);
         ClientNetworkInfo firstClient = manager.getClients().get(0);
         ClientNetworkInfo secondClient = manager.getClients().get(1);
         firstClient.gameName = first.name;
@@ -289,7 +289,7 @@ public class GameImportsTest {
         Assertions.assertEquals(ServerStates.SS_GAME, first.state);
         Assertions.assertEquals(2, firstGameplay.level.framenum);
         firstGameplay.game.serverflags = 7;
-        SV_MAIN.games.put("default", first);
+        manager.games.put("default", first);
 
         GameImportsImpl next = manager.spawnServerInstance(new ChangeMapInfo("testbox2", false, false), 0);
         GameExportsImpl nextGameplay = (GameExportsImpl) next.gameExports;
@@ -325,7 +325,7 @@ public class GameImportsTest {
         original.SV_WriteLevelFile();
         original.SV_WriteServerFile(false);
         originalGameplay.game.serverflags = 99;
-        SV_MAIN.games.put("default", original);
+        manager.games.put("default", original);
 
         GameImportsImpl loaded = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, true), 0);
         GameExportsImpl loadedGameplay = (GameExportsImpl) loaded.gameExports;
@@ -342,6 +342,52 @@ public class GameImportsTest {
         GameImportsImpl revisited = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         Assertions.assertEquals(savedFrame + 100, ((GameExportsImpl) revisited.gameExports).level.framenum);
         Assertions.assertEquals(ServerStates.SS_GAME, revisited.state);
+    }
+
+    @Test
+    public void hostProtocolDispatchAndShutdownUseTheirOwnGameRegistry() {
+        manager = new SV_MAIN();
+        Cvar.getInstance().register("gamedir", jake2.qcommon.exec.CvarTypes.STRING, "", 0, "Test mod directory");
+        Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
+        manager.resetClients();
+        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
+        manager.games.put(first.name, first);
+        manager.games.put(second.name, second);
+        first.configstrings[Defines.CS_NAME] = "first game";
+        second.configstrings[Defines.CS_NAME] = "second game";
+        ClientNetworkInfo firstClient = manager.getClients().get(0);
+        ClientNetworkInfo secondClient = manager.getClients().get(1);
+        firstClient.gameName = first.name;
+        secondClient.gameName = second.name;
+        firstClient.edict = first.gameExports.getEdict(1);
+        secondClient.edict = second.gameExports.getEdict(2);
+        firstClient.state = secondClient.state = ClientStates.CS_CONNECTED;
+        try {
+            manager.SV_ExecuteUserCommand(firstClient, "new");
+            manager.SV_ExecuteUserCommand(secondClient, "new");
+            Assertions.assertEquals("first game",
+                    ((ServerDataMessage) firstClient.netchan.reliablePending.iterator().next()).levelString);
+            Assertions.assertEquals("second game",
+                    ((ServerDataMessage) secondClient.netchan.reliablePending.iterator().next()).levelString);
+            firstClient.netchan.reliablePending.clear();
+            manager.SV_ExecuteUserCommand(firstClient, "configstrings " + first.spawncount + " 0");
+            Assertions.assertTrue(firstClient.netchan.reliablePending.contains(
+                    new ConfigStringMessage(Defines.CS_NAME, "first game")));
+        } finally {
+            firstClient.state = secondClient.state = ClientStates.CS_FREE;
+        }
+
+        // A separate idle Host must not inherit or clear the running Host's registry.
+        // Global console/cvar/network isolation is outside this ownership test.
+        try (SV_MAIN other = new SV_MAIN()) {
+            Assertions.assertFalse(other.isRunning());
+            Assertions.assertEquals(first.name, other.allocateGameName());
+        }
+        Assertions.assertSame(first, manager.games.get(first.name));
+        Assertions.assertSame(second, manager.games.get(second.name));
+        Assertions.assertEquals(2, manager.getClients().size());
+        Assertions.assertTrue(manager.isRunning());
     }
 
     @Test

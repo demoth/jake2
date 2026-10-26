@@ -33,7 +33,7 @@ class GameCvarInitializationTest {
             cvar_t<Integer> maxclients = cvars.find("maxclients", Integer.class);
             cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
             assertEquals(1, maxclients.getTypedValue());
-            assertEquals(0.5f, SV_MAIN.timeout.getTypedValue());
+            assertEquals(0.5f, server.timeout.getTypedValue());
             assertSame(deathmatch, imports.findCvar("deathmatch", Boolean.class));
 
             Globals.server_state = ServerStates.SS_GAME;

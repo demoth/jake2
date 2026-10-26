@@ -66,7 +66,7 @@ import static jake2.qcommon.exec.Cmd.getArguments;
 public class GameImportsImpl implements GameImports {
 
     String name;
-    final JakeServer serverMain;
+    final SV_MAIN serverMain;
     public GameExports gameExports;
 
     // Per-game map state. The routing name above is independent of the loaded map name.
@@ -116,13 +116,13 @@ public class GameImportsImpl implements GameImports {
     final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
-    public GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo) {
+    public GameImportsImpl(SV_MAIN serverMain, ChangeMapInfo changeMapInfo) {
         this(serverMain, changeMapInfo, null);
     }
 
-    GameImportsImpl(JakeServer serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+    GameImportsImpl(SV_MAIN serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         this.serverMain = serverMain;
-        this.name = "jake2_" + SV_MAIN.gameCounter++;
+        this.name = serverMain.allocateGameName();
         if (previous != null && !changeMapInfo.isLoadgame)
             previous.localCvars.copyValuesTo(localCvars);
 
@@ -184,7 +184,7 @@ public class GameImportsImpl implements GameImports {
     }
 
     /** Allocate the gameplay module after engine services and latched settings are ready. */
-    static GameImportsImpl create(JakeServer host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+    static GameImportsImpl create(SV_MAIN host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
         GameImportsImpl game = new GameImportsImpl(host, changeMapInfo, previous);
         game.gameExports = game.createGameModInstance();
         if (changeMapInfo.isLoadgame)
@@ -872,7 +872,7 @@ public class GameImportsImpl implements GameImports {
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n");
-        SV_MAIN.SV_DropClient(client);
+        serverMain.SV_DropClient(client);
         client.lastmessage = realtime; // min case there is a funny zombie
     }
     /*
@@ -1046,7 +1046,7 @@ public class GameImportsImpl implements GameImports {
         // has the "current" frame
         frameNum++;
 
-        if (SV_MAIN.sv_paused != null && SV_MAIN.sv_paused.getTypedValue() && serverMain.getClients().size() <= 1) {
+        if (serverMain.isPaused() && serverMain.getClients().size() <= 1) {
             return;
         }
 

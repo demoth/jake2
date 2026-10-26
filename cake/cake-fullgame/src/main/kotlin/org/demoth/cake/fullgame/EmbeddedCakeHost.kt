@@ -21,7 +21,8 @@ import java.nio.file.Path
 class EmbeddedCakeHost(
     private val profilesRoot: Path = Path.of(System.getProperty("user.home"), ".cake"),
 ) : CakeHost {
-    private var server: SV_MAIN? = null
+    internal var server: SV_MAIN? = null
+        private set
     private var starting = false
     private var ownerThread: Thread? = null
 

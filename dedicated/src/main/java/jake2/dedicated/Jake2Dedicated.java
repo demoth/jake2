@@ -10,7 +10,6 @@ import jake2.qcommon.longjmpException;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
-import jake2.server.JakeServer;
 import jake2.server.SV_MAIN;
 
 import java.util.Arrays;
@@ -34,7 +33,7 @@ public class Jake2Dedicated {
         if (argc > 1) {
             System.arraycopy(args, 0, c_args, 1, argc - 1);
         }
-        JakeServer serverMain = null;
+        SV_MAIN serverMain = null;
         try {
 
             // prepare enough of the subsystems to handle

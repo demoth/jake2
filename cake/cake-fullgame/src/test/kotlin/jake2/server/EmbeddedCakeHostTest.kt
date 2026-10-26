@@ -54,7 +54,7 @@ class EmbeddedCakeHostTest {
         cvars.clear()
     }
 
-    private fun game() = SV_MAIN.games.getValue("default").gameExports as GameExportsImpl
+    private fun game() = host.server!!.games.getValue("default").gameExports as GameExportsImpl
 
     @Test
     fun `missing download receives failure for fresh and resumed requests`() {
@@ -70,8 +70,8 @@ class EmbeddedCakeHostTest {
             val client = ClientNetworkInfo()
             val downloads = CakeDownloadSession(
                 sendReliable = { command ->
-                    SV_USER.userCommands.getValue("download").execute(
-                        Cmd.TokenizeString(command, false), SV_MAIN.games.getValue("default"), client)
+                    client.gameName = "default"
+                    host.server!!.SV_ExecuteUserCommand(client, command)
                 },
                 downloadManager = CakeDownloadManager(CakeDownloadCache(cache), cvars),
             )
@@ -96,7 +96,7 @@ class EmbeddedCakeHostTest {
         Cmd.ExecuteString("gamemap *testbox")
         host.update(100)
         assertEquals(HostState.RUNNING, host.state)
-        assertEquals(1, SV_MAIN.games.getValue("default").serverMain.clients.size)
+        assertEquals(1, host.server!!.games.getValue("default").serverMain.clients.size)
         assertTrue(NET.ip_sockets.all { it == null })
     }
 
@@ -154,7 +154,7 @@ class EmbeddedCakeHostTest {
         host.stop("done")
         host.stop("again")
         assertEquals(HostState.STOPPED, host.state)
-        assertTrue(SV_MAIN.games.isEmpty())
+        assertNull(host.server)
         assertNull(Cmd.FindCommand("map"))
         assertNull(Cmd.FindCommand("save"))
         assertEquals(previousRoot, EngineWriteRoot.path())

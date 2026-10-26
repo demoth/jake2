@@ -76,7 +76,7 @@ class CakeProfileSaveGlTest {
                 private fun state() = Cake::class.java.getDeclaredField("networkState").apply {
                     isAccessible = true
                 }.get(cake).toString()
-                private fun player() = (SV_MAIN.games.getValue("default").gameExports as GameExportsImpl).getEdict(1) as GameEntity
+                private fun player() = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).getEdict(1) as GameEntity
 
                 override fun render() {
                     if (failure != null) return

@@ -37,10 +37,7 @@ import jake2.qcommon.network.messages.ConnectionlessCommand;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.messages.client.*;
-import jake2.qcommon.network.messages.server.DisconnectMessage;
-import jake2.qcommon.network.messages.server.PrintMessage;
-import jake2.qcommon.network.messages.server.ReconnectMessage;
-import jake2.qcommon.network.messages.server.StuffTextMessage;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
 import jake2.server.save.ServerSaveJsonStore;
@@ -50,10 +47,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static jake2.qcommon.Defines.*;
-import static jake2.server.SV_USER.userCommands;
 
 @SuppressWarnings("deprecation")
-public class SV_MAIN implements JakeServer, AutoCloseable {
+public class SV_MAIN implements AutoCloseable {
 
     // Recreating an embedded manager must reuse the same choice declaration.
     private static final CvarTypes.ChoiceType<Integer> NEEDPASS_TYPE =
@@ -62,7 +58,6 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
     private final ServerCommands commands = new ServerCommands();
     private final ServerCommands gameCommands = new ServerCommands();
 
-    @Override
     public void registerGameCommand(String name, jake2.qcommon.exec.Command command) {
         gameCommands.add(name, true, command);
     }
@@ -88,16 +83,14 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
         }
     }
 
-    @Override
     public List<ClientNetworkInfo> getClients() {
         return clients;
     }
 
     private static final int MAX_STRINGCMDS = 8;
 
-    public static Map<String, GameImportsImpl> games = new HashMap<>();
+    final Map<String, GameImportsImpl> games = new HashMap<>();
 
-    @Override
     public List<ClientNetworkInfo> getClientsForInstance(final String gameName) {
         if (!games.containsKey(gameName)) {
             // happens during the game instance creation, while the instance has random name
@@ -108,11 +101,6 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
     }
 
 
-    /**
-     * Addess of group servers.
-     */
-    static netadr_t master_adr[] = new netadr_t[Defines.MAX_MASTERS];
-
     // prevent invalid IPs from connecting
     private final challenge_t[] challenges = new challenge_t[Defines.MAX_CHALLENGES]; // to
 
@@ -121,45 +109,46 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
     private long realtime = 0;
     private int frameNum = 0;
     private int fixedtime = 1000;
-    public static int gameCounter = 0;
+    private int gameCounter;
 
-    static {
-        for (int i = 0; i < Defines.MAX_MASTERS; i++) {
-            master_adr[i] = new netadr_t();
-        }
-
+    String allocateGameName() {
+        return "jake2_" + gameCounter++;
     }
 
-    static cvar_t<Boolean> sv_paused;
+    boolean isPaused() {
+        return sv_paused.getTypedValue();
+    }
 
-    static cvar_t<Boolean> sv_timedemo;
+    final cvar_t<Boolean> sv_paused;
 
-    static cvar_t<Boolean> sv_enforcetime;
+    final cvar_t<Boolean> sv_timedemo;
 
-    static cvar_t<Float> timeout; // seconds without any message
+    final cvar_t<Boolean> sv_enforcetime;
 
-    static cvar_t<Float> zombietime; // seconds to sink messages after
+    final cvar_t<Float> timeout; // seconds without any message
+
+    final cvar_t<Float> zombietime; // seconds to sink messages after
                                      // disconnect
 
-    static cvar_t<Boolean> allow_download;
+    final cvar_t<Boolean> allow_download;
 
-    static cvar_t<Boolean> allow_download_players;
+    final cvar_t<Boolean> allow_download_players;
 
-    static cvar_t<Boolean> allow_download_models;
+    final cvar_t<Boolean> allow_download_models;
 
-    static cvar_t<Boolean> allow_download_sounds;
+    final cvar_t<Boolean> allow_download_sounds;
 
-    static cvar_t<Boolean> allow_download_maps;
+    final cvar_t<Boolean> allow_download_maps;
 
-    static cvar_t<Float> sv_airaccelerate;
+    final cvar_t<Float> sv_airaccelerate;
 
-    static cvar_t<Boolean> sv_showclamp;
+    final cvar_t<Boolean> sv_showclamp;
 
-    static cvar_t<String> hostname;
+    final cvar_t<String> hostname;
 
-    static cvar_t<Boolean> public_server; // should heartbeats be sent
+    final cvar_t<Boolean> public_server; // should heartbeats be sent
 
-    static cvar_t<Float> sv_reconnect_limit; // minimum seconds between connect
+    final cvar_t<Float> sv_reconnect_limit; // minimum seconds between connect
                                              // messages
 
 
@@ -200,14 +189,14 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
 
         String info;
         if (version != Defines.PROTOCOL_VERSION)
-            info = SV_MAIN.hostname.getTypedValue() + ": wrong version\n";
+            info = hostname.getTypedValue() + ": wrong version\n";
         else {
             int players = 0;
             for (ClientNetworkInfo cl: clients)
                 if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     players++;
 
-            info = SV_MAIN.hostname.getTypedValue() + " " + games.get("default").mapName + " " + players + "/" + clients.size() + "\n";
+            info = hostname.getTypedValue() + " " + games.get("default").mapName + " " + players + "/" + clients.size() + "\n";
         }
 
         return info;
@@ -305,7 +294,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 continue;
             if (adr.CompareBaseAdr(cl.netchan.remote_address)
                     && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)) {
-                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (SV_MAIN.sv_reconnect_limit.getTypedValue() * 1000)) {
+                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (sv_reconnect_limit.getTypedValue() * 1000)) {
                     Com.DPrintf(adr.toString() + ":reconnect rejected : too soon\n");
                     return;
                 }
@@ -574,7 +563,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
      * unwillingly. This is NOT called if the entire server is quiting or
      * crashing.
      */
-    static void SV_DropClient(ClientNetworkInfo client) {
+    void SV_DropClient(ClientNetworkInfo client) {
         // add the disconnect
         client.netchan.reliablePending.add(new DisconnectMessage());
 
@@ -694,7 +683,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
      * The current net_message is parsed for the given client
      * ===================
      */
-    static void SV_ExecuteClientMessage(ClientNetworkInfo cl, Collection<ClientMessage> clientMessages) {
+    void SV_ExecuteClientMessage(ClientNetworkInfo cl, Collection<ClientMessage> clientMessages) {
 
         // only allow one move command
         boolean move_issued = false;
@@ -746,7 +735,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 }
 
 
-                if (!SV_MAIN.sv_paused.getTypedValue()) {
+                if (!sv_paused.getTypedValue()) {
                     int net_drop = cl.netchan.dropped;
                     if (net_drop < 20) {
 
@@ -777,10 +766,10 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
         }
     }
 
-    static void SV_ClientThink(ClientNetworkInfo cl, usercmd_t cmd) {
+    void SV_ClientThink(ClientNetworkInfo cl, usercmd_t cmd) {
         cl.commandMsec -= cmd.msec & 0xFF;
 
-        if (cl.commandMsec < 0 && SV_MAIN.sv_enforcetime.getTypedValue()) {
+        if (cl.commandMsec < 0 && sv_enforcetime.getTypedValue()) {
             Com.DPrintf("commandMsec underflow from " + cl.name + "\n");
             return;
         }
@@ -792,7 +781,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
      * Pull specific info from a newly changed userinfo string into a more C
      * freindly form.
      */
-    static void SV_UserinfoChanged(ClientNetworkInfo cl) {
+    void SV_UserinfoChanged(ClientNetworkInfo cl) {
         // call prog code to allow overrides
         games.get(cl.gameName).gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo);
 
@@ -823,7 +812,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
 
     }
 
-    private static void SV_ExecuteUserCommand(ClientNetworkInfo cl, String command) {
+    void SV_ExecuteUserCommand(ClientNetworkInfo cl, String command) {
 
         Com.dprintln("SV_ExecuteUserCommand:" + command );
 
@@ -857,8 +846,8 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 continue;
 
             final GameImportsImpl game = games.get(cl.gameName);
-            int droppoint = (int) (game.realtime - 1000 * SV_MAIN.timeout.getTypedValue());
-            int zombiepoint = (int) (game.realtime - 1000 * SV_MAIN.zombietime.getTypedValue());
+            int droppoint = (int) (game.realtime - 1000 * timeout.getTypedValue());
+            int zombiepoint = (int) (game.realtime - 1000 * zombietime.getTypedValue());
 
             // message times may be wrong across a changelevel
             if (cl.lastmessage > game.realtime)
@@ -955,7 +944,6 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
      * Called when each game quits, before Sys_Quit or Sys_Error.
      * todo: shutdown a particular instance, not the whole server
      */
-    @Override
     public void SV_Shutdown(String finalmsg, boolean reconnect) {
         try {
             if (!games.isEmpty()) {
@@ -994,9 +982,6 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
      * One manager per dedicated process or embedded session; map changes reuse it.
      */
     public SV_MAIN() {
-
-        // long gone
-        SV_MAIN.master_adr[0] = netadr_t.fromString("192.246.40.37", Defines.PORT_MASTER);
 
         for (int n = 0; n < Defines.MAX_CHALLENGES; n++) {
             challenges[n] = new challenge_t();
@@ -1449,4 +1434,365 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // record the size for rate estimation
         client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
     }
+    private final Map<String, ServerUserCommand> userCommands;
+
+    {
+        Map<String, ServerUserCommand> handlers = new HashMap<>();
+        // auto issued
+        handlers.put(StringCmdMessage.NEW, this::SV_New_f);
+        handlers.put(StringCmdMessage.CONFIG_STRINGS, this::SV_Configstrings_f);
+        handlers.put(StringCmdMessage.BASELINES, this::SV_Baselines_f);
+        handlers.put(StringCmdMessage.BEGIN, this::SV_Begin_f);
+        handlers.put(StringCmdMessage.NEXT_SERVER, this::SV_Nextserver_f);
+        handlers.put(StringCmdMessage.DISCONNECT, this::SV_Disconnect_f);
+
+        // issued by hand at client consoles
+        handlers.put(StringCmdMessage.INFO, this::SV_ShowServerinfo_f);
+        handlers.put(StringCmdMessage.DOWNLOAD, this::SV_BeginDownload_f);
+        handlers.put(StringCmdMessage.NEXT_DOWNLOAD, this::SV_NextDownload_f);
+
+        userCommands = Map.copyOf(handlers);
+    }
+
+    @FunctionalInterface
+    private interface ServerUserCommand {
+        void execute(List<String> args, GameImportsImpl game, ClientNetworkInfo client);
+    }
+
+    /*
+     * ============================================================
+     *
+     * USER STRINGCMD EXECUTION
+     *
+     * sv_client and sv_player will be valid.
+     * ============================================================
+     */
+
+    /*
+     * ================ SV_New_f
+     *
+     * Sends the first message from the server to a connected client. This will
+     * be sent on the initial connection and upon each server load.
+     * ================
+     */
+    private void SV_New_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+
+        Com.DPrintf("New() from " + client.name + "\n");
+
+        if (client.state != ClientStates.CS_CONNECTED) {
+            Com.Printf("New not valid -- already spawned\n");
+            return;
+        }
+
+        //
+        // serverdata needs to go over for all types of servers
+        // to make sure the protocol is right, and to set the gamedir
+        //
+        String gamedir = Cvar.getInstance().find("gamedir", String.class).getTypedValue();
+
+        // send the serverdata
+        // send full levelname
+
+        final int clientIndex;
+        if (gameImports.state == ServerStates.SS_CINEMATIC || gameImports.state == ServerStates.SS_PIC)
+            clientIndex = -1;
+        else
+            clientIndex = client.edict.index - 1;
+
+
+        client.netchan.reliablePending.add(
+                new ServerDataMessage(
+                        Defines.PROTOCOL_VERSION,
+                        gameImports.spawncount,
+                        gameImports.isDemo,
+                        gamedir,
+                        clientIndex,
+                        gameImports.configstrings[Defines.CS_NAME]
+                ));
+        //
+        // game server
+        //
+        if (gameImports.state == ServerStates.SS_GAME) {
+            // set up the entity for the client
+            ServerEntity ent = gameImports.gameExports.getEdict(clientIndex + 1);
+            ent.s.index = clientIndex + 1;
+            client.edict = ent;
+            client.lastcmd = new usercmd_t();
+
+            // begin fetching configstrings
+            client.netchan.reliablePending.add(new StuffTextMessage(String.format("cmd %s %d 0", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount)));
+        }
+    }
+
+    /*
+     * ================== SV_Configstrings_f ==================
+     */
+    private void SV_Configstrings_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+
+        Com.DPrintf("Configstrings() from " + client.name + "\n");
+
+        if (client.state != ClientStates.CS_CONNECTED) {
+            Com.Printf("configstrings not valid -- already spawned\n");
+            return;
+        }
+
+        // handle the case of a level changing while a client was connecting
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != gameImports.spawncount) {
+            Com.Printf("SV_Configstrings_f from different level\n");
+            SV_New_f(args, gameImports, client);
+            return;
+        }
+
+        int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
+
+        // write a packet full of data
+        int currentReliableSize = client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
+        while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
+            if (gameImports.configstrings[start] != null && gameImports.configstrings[start].length() != 0) {
+                final ConfigStringMessage config = new ConfigStringMessage(start, gameImports.configstrings[start]);
+                currentReliableSize += config.getSize();
+                client.netchan.reliablePending.add(config);
+            }
+            start++;
+        }
+
+        // send next command
+        final String nextCmd;
+
+        if (start == Defines.MAX_CONFIGSTRINGS) {
+            nextCmd = String.format("cmd %s %d 0", StringCmdMessage.BASELINES, gameImports.spawncount);
+        } else {
+            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start);
+        }
+        client.netchan.reliablePending.add(new StuffTextMessage(nextCmd));
+    }
+
+    /*
+     * ================== SV_Baselines_f ==================
+     */
+    private void SV_Baselines_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+
+        Com.DPrintf("Baselines() from " + client.name + "\n");
+
+        if (client.state != ClientStates.CS_CONNECTED) {
+            Com.Printf("baselines not valid -- already spawned\n");
+            return;
+        }
+
+        // handle the case of a level changing while a client was connecting
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != gameImports.spawncount) {
+            Com.Printf("SV_Baselines_f from different level\n");
+            SV_New_f(args, gameImports, client);
+            return;
+        }
+
+        // todo: validate argument
+        int start = args.size() >= 3 ? Lib.atoi(args.get(2)) : 0;
+
+        // write a packet full of data
+        int currentReliableSize = client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
+        while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
+            entity_state_t base = gameImports.baselines[start];
+            if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
+                final SpawnBaselineMessage spawn = new SpawnBaselineMessage(base);
+                currentReliableSize += spawn.getSize();
+                client.netchan.reliablePending.add(spawn);
+            }
+            start++;
+        }
+
+        // send next command
+        final String nextCmd;
+        if (start == Defines.MAX_EDICTS) {
+            // finished sending baselines
+            nextCmd = String.format("%s %d", StringCmdMessage.PRECACHE,gameImports.spawncount);
+        } else {
+            // continue from where we finished
+            nextCmd = String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start);
+        }
+        client.netchan.reliablePending.add(new StuffTextMessage(nextCmd));
+    }
+
+    /*
+     * ================== SV_Begin_f ==================
+     */
+    private void SV_Begin_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+        Com.DPrintf("Begin() from " + client.name + "\n");
+
+        // handle the case of a level changing while a client was connecting
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != gameImports.spawncount) {
+            Com.Printf("SV_Begin_f from different level\n");
+            SV_New_f(args, gameImports, client);
+            return;
+        }
+
+        client.state = ClientStates.CS_SPAWNED;
+
+        // call the jake2.game begin function
+        gameImports.gameExports.ClientBegin(client.edict);
+
+        Cbuf.InsertFromDefer();
+    }
+
+    //=============================================================================
+
+    /*
+     * ================== SV_NextDownload_f ==================
+     */
+    private void SV_NextDownload_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+
+        if (client.download == null)
+            return;
+
+        int packet = client.downloadsize - client.downloadcount;
+        if (packet > 1024)
+            packet = 1024;
+
+        client.downloadcount += packet;
+        int size = client.downloadsize;
+        if (size == 0)
+            size = 1;
+        byte percent = (byte) (client.downloadcount * 100 / size);
+
+        byte[] data = new byte[packet];
+        System.arraycopy(client.download, client.downloadcount - packet, data, 0, packet);
+        client.netchan.reliablePending.add(new DownloadMessage(data, percent));
+
+        if (client.downloadcount == client.downloadsize) {
+            client.download = null;
+        }
+    }
+
+    /*
+     * ================== SV_BeginDownload_f ==================
+     */
+    private void SV_BeginDownload_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+        int offset = 0;
+
+        if (args.size() < 2)
+            return;
+
+        String name = args.get(1);
+
+        if (args.size() > 2)
+            offset = Lib.atoi(args.get(2)); // downloaded offset
+
+        // hacked by zoid to allow more conrol over download
+        // first off, no .. or global allow check
+
+        if (name.contains("..")
+                || !allow_download.getTypedValue() // leading dot is no good
+                || name.charAt(0) == '.' // leading slash bad as well, must be
+                                         // in subdir
+                || name.charAt(0) == '/' // next up, skin check
+                || (name.startsWith("players/") && !allow_download_players.getTypedValue()) // now
+                                                                                              // models
+                || (name.startsWith("models/") && !allow_download_models.getTypedValue()) // now
+                                                                                            // sounds
+                || (name.startsWith("sound/") && !allow_download_sounds.getTypedValue())
+                // now maps (note special case for maps, must not be in pak)
+                || (name.startsWith("maps/") && !allow_download_maps.getTypedValue()) // MUST
+                                                                                        // be
+                                                                                        // in a
+                                                                                        // subdirectory
+                || name.indexOf('/') == -1) { // don't allow anything with ..
+                                              // path
+
+            // refuse
+            client.netchan.reliablePending.add(new DownloadMessage());
+            return;
+        }
+
+        client.download = EngineVfs.loadBytes(name);
+
+        // The client waits for either data or an explicit refusal. Silently
+        // returning here leaves precache stuck waiting for a download forever.
+        if (client.download == null) {
+            client.netchan.reliablePending.add(new DownloadMessage());
+            return;
+        }
+
+        client.downloadsize = client.download.length;
+        client.downloadcount = offset;
+
+        if (offset > client.downloadsize)
+            client.downloadcount = client.downloadsize;
+
+        // special check for maps, if it came from a pak file, don't allow download ZOID
+        if (name.startsWith("maps/") && EngineVfs.isFromPack(name)) {
+            Com.DPrintf("Couldn't download " + name + " to " + client.name + "\n");
+            if (client.download != null) {
+                client.download = null;
+            }
+
+            // refuse
+            client.netchan.reliablePending.add(new DownloadMessage());
+            return;
+        }
+
+        SV_NextDownload_f(args, gameImports, client);
+        Com.DPrintf("Downloading " + name + " to " + client.name + "\n");
+    }
+
+    //============================================================================
+
+    /*
+     * ================= SV_Disconnect_f
+     *
+     * The client is going to disconnect, so remove the connection immediately
+     * =================
+     */
+    private void SV_Disconnect_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+        //	SV_EndRedirect ();
+        SV_DropClient(client);
+    }
+
+    /*
+     * ================== SV_ShowServerinfo_f
+     *
+     * Dumps the serverinfo info string ==================
+     */
+    private void SV_ShowServerinfo_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+        Info.Print(Cvar.getInstance().Serverinfo());
+    }
+
+    private void SV_Nextserver(GameImportsImpl gameImports) {
+
+        //ZOID, ss_pic can be nextserver'd in coop mode
+        if (gameImports.state == ServerStates.SS_GAME
+                || (gameImports.state == ServerStates.SS_PIC && !Cvar.getInstance().find("coop", Boolean.class).getTypedValue()))
+            return; // can't nextserver while playing a normal game
+
+        gameImports.spawncount++; // make sure another doesn't sneak in
+        String v = Cvar.getInstance().find("nextserver", String.class).getTypedValue();
+        //if (!v[0])
+        if (v.length() == 0)
+            Cbuf.AddText("killserver\n");
+        else {
+            Cbuf.AddText(v);
+            Cbuf.AddText("\n");
+        }
+        Cvar.getInstance().find("nextserver", String.class).set("");
+    }
+
+    /*
+     * ================== SV_Nextserver_f
+     *
+     * A cinematic has completed or been aborted by a client, so move to the
+     * next server, ==================
+     */
+    private void SV_Nextserver_f(List<String> args, GameImportsImpl gameImports, ClientNetworkInfo client) {
+        int spawnCount = args.size() >= 2 ? Lib.atoi(args.get(1)) : 0;
+        if (spawnCount != gameImports.spawncount) {
+            Com.DPrintf("Nextserver() from wrong level, from " + client.name + "\n");
+            return; // leftover from last server
+        }
+
+        Com.DPrintf("Nextserver() from " + client.name + "\n");
+        SV_Nextserver(gameImports);
+    }
+
 }
