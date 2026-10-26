@@ -340,18 +340,26 @@ class ServerHost : AutoCloseable {
         }
     }
 
-    private fun initializeServerSession() {
+    /** Prepare Host resources before allocating a Game; ordinary transitions retain client slots. */
+    private fun prepareServerSession(restart: Boolean = false, savedMaxClients: Int? = null) {
+        if (!restart && games.isNotEmpty()) return
         if (games.isEmpty()) {
             realtime = 0
             frameNum = 0
             nextFrameTime = 100
         }
-        val multiplayer = initializeServerCvars()
+        val multiplayer = if (savedMaxClients == null) {
+            initializeServerCvars()
+        } else {
+            // Saved capacity is authoritative. Host mode defaults must not resize a loaded Game.
+            Cvar.getInstance().find<Int>("maxclients").forceSet(savedMaxClients)
+            savedMaxClients > 1
+        }
         if (!NET.configureServer(multiplayer)) {
             Com.Error(Defines.ERR_DROP, "Could not open the server UDP port")
             return
         }
-        resetClients()
+        if (savedMaxClients == null || clients.size != savedMaxClients) resetClients()
     }
 
     /**
@@ -452,30 +460,31 @@ class ServerHost : AutoCloseable {
             return
         }
 
+        // Read Host allocation inputs before touching the current workspace or running Game.
+        val mapCommand: String
+        val savedMaxClients: Int
+        try {
+            mapCommand = store.readMapCommand(saveGame).mapCommand()
+            savedMaxClients = store.readLatchedCvars(saveGame).cvars()
+                .last { it.name() == "maxclients" }.value().toInt()
+            require(savedMaxClients in 1..Defines.MAX_CLIENTS) { "Invalid saved maxclients" }
+        } catch (e: Exception) {
+            Com.Printf("Couldn't read save metadata: ${e.message}\n")
+            return
+        }
+        if (games.keys.any { it != "default" } && clients.size != savedMaxClients) {
+            Com.Printf("Can't change saved client capacity while other Games are running\n")
+            return
+        }
+        val target = ChangeMapInfo(mapCommand, false, true)
         ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
+        prepareServerSession(restart = true, savedMaxClients = savedMaxClients)
 
-        val mapCommand = readSavedMapCommand()
-
-        // go to the map
-        val loaded = spawnServerInstance(ChangeMapInfo(mapCommand, false, true), 0)
+        val transitionClients = clients.filter { it.gameName == null || it.gameName == "default" }
+        val loaded = spawnServerInstance(target, games["default"], transitionClients)
         loaded.name = "default"
         games["default"] = loaded
-    }
-
-    private fun readSavedMapCommand(): String {
-        Com.DPrintf("SV_ReadMapCommand()\n")
-
-        try {
-            val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
-            val snapshot = store.readMapCommand("current")
-            // read the comment field
-            Com.DPrintf("SV_ReadMapCommand: Loading save: " + snapshot.comment + "\n")
-
-            // read the mapcmd
-            return snapshot.mapCommand
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
+        transitionClients.forEach { it.gameName = loaded.name }
     }
 
     /*
@@ -498,7 +507,9 @@ goes to map jail.bsp.
 
 Spins up a new game instance, to be used with either `map` or `join` (TBD)
 */
-    fun changeMap(args: List<String>) {
+    fun changeMap(args: List<String>) = changeMap(args, sessionPrepared = false)
+
+    private fun changeMap(args: List<String>, sessionPrepared: Boolean) {
         if (args.size < 2) {
             Com.Printf("USAGE: gamemap <map>\n <client>")
             return
@@ -517,9 +528,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // default.cfg may start a session with "killserver; gamemap *...".
         // Shutdown clears the client slots, so gamemap must initialize a fresh
         // server just as map does, while preserving clients on level transitions.
-        if (games.isEmpty()) {
-            initializeServerSession()
-        }
+        if (!sessionPrepared) prepareServerSession()
 
         Com.DPrintf("SV_GameMap($mapName)\n")
 
@@ -658,12 +667,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
 
-        // A running server needs its clients reset for map. For a fresh server,
-        // gamemap performs this initialization itself.
-        if (games.isNotEmpty()) {
-            initializeServerSession()
-        }
-        changeMap(args)
+        prepareServerSession(restart = true)
+        changeMap(args, sessionPrepared = true)
     }
 
     /** Resolve a Game at execution time; creating another Game never replaces these callbacks.  */
