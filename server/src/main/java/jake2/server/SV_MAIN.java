@@ -46,7 +46,6 @@ import jake2.qcommon.util.Lib;
 import jake2.server.save.ServerSaveJsonStore;
 import jake2.server.save.ServerSaveFiles;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -470,19 +469,6 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
     }
 
     /**
-     * SV_PrepWorldFrame
-     * 
-     * This has to be done before the world logic, because player processing
-     * happens outside RunWorldFrame.
-     */
-    private static void clearEntityStateEvents(GameExports gameExports) {
-        for (int i = 0; i < gameExports.getNumEdicts(); i++) {
-            // events only last for a single message
-            gameExports.getEdict(i).s.event = 0;
-        }
-    }
-
-    /**
      * SV_Frame.
      */
     public void update(long msec) {
@@ -543,7 +529,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
 
         // clear teleport flags, etc for next frame
         for (GameImportsImpl game : games.values()) {
-            clearEntityStateEvents(game.gameExports);
+            game.clearEntityStateEvents();
         }
     }
 
@@ -1107,11 +1093,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
      * A brand new game has been started.
      */
     GameImportsImpl createGameInstance(ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
-        GameImportsImpl gameImports = new GameImportsImpl(this, changeMapInfo, previous);
-        gameImports.gameExports = createGameModInstance(gameImports);
-        if (changeMapInfo.isLoadgame)
-            gameImports.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
-        return gameImports;
+        return GameImportsImpl.create(this, changeMapInfo, previous);
     }
 
     /**
@@ -1153,22 +1135,6 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
             maxclients.forceSet(1);
         }
         return maxclients.getTypedValue() > 1;
-    }
-
-    /**
-     * Find and create an instance of the game subsystem
-     */
-    private static GameExports createGameModInstance(GameImportsImpl gameImports) {
-        // todo: introduce proper Dependency Injection
-        try {
-            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
-            Constructor<?> constructor = game.getConstructor(GameImports.class);
-            return (GameExports) constructor.newInstance(gameImports);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Com.Error(ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
-            return null;
-        }
     }
 
     void SV_Loadgame_f(List<String> args) {
@@ -1352,21 +1318,13 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
     GameImportsImpl spawnServerInstance(ChangeMapInfo changeMapInfo, int clientIndex) {
         Globals.server_state = ServerStates.SS_DEAD; //fixme: used by the client code
 
-        GameExports oldGame = null;
-        GameImportsImpl gameImports;
+        GameImportsImpl previous = clientIndex != 0
+                ? games.get(clients.get(clientIndex - 1).gameName)
+                : games.get("default");
+        if (previous != null)
+            previous.prepareLevelTransition();
 
-        if (clientIndex != 0)
-            gameImports = games.get(clients.get(clientIndex - 1).gameName);
-        else
-            gameImports = games.get("default");
-
-        if (gameImports != null) { //todo
-            // store some entity data into gclient_t struct, will be restored in the next game
-            oldGame = gameImports.gameExports;
-            oldGame.SaveClientData();
-        }
-
-        gameImports = createGameInstance(changeMapInfo, gameImports);
+        GameImportsImpl gameImports = createGameInstance(changeMapInfo, previous);
 
         Cvar.getInstance().find("nextserver", String.class).set("gamemap \"" + changeMapInfo.nextServer + "\"");
 
@@ -1397,38 +1355,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // map initialization
         Globals.server_state = gameImports.state; // LOADING
 
-        if (oldGame != null && !changeMapInfo.isLoadgame) {
-            // copy persistent data between instances.
-            // after a 'map' command the persistent state will be empty
-            gameImports.gameExports.fromPrevious(oldGame, changeMapInfo.spawnPoint);
-        }
-
-
-        // spawn fresh entities
-        gameImports.gameExports.SpawnEntities(gameImports.mapName, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
-
-        if (gameImports.isPreviousLevel()) {
-            // fixme: need to spawn all entities and then remove them,
-            //  because otherwise precaching will not work properly - configstrings will not match.
-            gameImports.clearWorld();
-
-            // loads a stored game, runs 100 frames afterwards
-            gameImports.restorePreviousGame();
-        } else {
-            // run two frames to allow everything to settle
-            gameImports.gameExports.G_RunFrame();
-            gameImports.gameExports.G_RunFrame();
-
-        }
-        // create a baseline for more efficient communications
-        gameImports.createBaselines();
-
-
-        // Level restoration may replace configstrings, including saves from before air movement was published.
-        gameImports.configstrings[CS_AIRACCEL] = Float.toString(gameImports.airAcceleration);
-
-        // all precaches are complete
-        gameImports.state = changeMapInfo.state;
+        gameImports.initializeLevel(changeMapInfo, previous);
         Globals.server_state = gameImports.state;
 
 

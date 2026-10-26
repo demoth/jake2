@@ -57,7 +57,7 @@ public class entity_state_t {
 	// 8*(bits 5-9) is z down distance, 8(bits10-15) is z up
 	// gi.linkentity sets this properly
 	public int sound; // for looping sounds, to guarantee shutoff
-	public int event; // impulse events -- muzzle flashes, footsteps, etc
+	public int event; // impulse events -- muzzle flashes, footsteps, etc. cleared each frame
 	// events only go out for a single frame, they
 	// are automatically cleared each frame
 

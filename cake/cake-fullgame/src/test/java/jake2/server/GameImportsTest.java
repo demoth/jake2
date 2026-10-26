@@ -1,6 +1,7 @@
 package jake2.server;
 
 import jake2.game.GameEntity;
+import jake2.game.GameExportsImpl;
 import jake2.game.GamePlayerInfo;
 import jake2.game.monsters.M_Gunner;
 import jake2.qcommon.GameExports;
@@ -278,6 +279,69 @@ public class GameImportsTest {
         Assertions.assertEquals(List.of(new PrintMessage(Defines.PRINT_HIGH, "visible")),
                 List.copyOf(client.netchan.reliablePending));
         Assertions.assertTrue(client.unreliable.isEmpty());
+    }
+
+    @Test
+    public void levelInitializationTransfersPersistentStateAndKeepsEventsGameLocal() {
+        manager = new SV_MAIN();
+        GameImportsImpl first = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+        GameExportsImpl firstGameplay = (GameExportsImpl) first.gameExports;
+        Assertions.assertEquals(ServerStates.SS_GAME, first.state);
+        Assertions.assertEquals(2, firstGameplay.level.framenum);
+        firstGameplay.game.serverflags = 7;
+        SV_MAIN.games.put("default", first);
+
+        GameImportsImpl next = manager.spawnServerInstance(new ChangeMapInfo("testbox2", false, false), 0);
+        GameExportsImpl nextGameplay = (GameExportsImpl) next.gameExports;
+        Assertions.assertEquals(7, nextGameplay.game.serverflags);
+        Assertions.assertNotSame(firstGameplay.game, nextGameplay.game);
+        Assertions.assertEquals(ServerStates.SS_GAME, next.state);
+        Assertions.assertEquals(2, nextGameplay.level.framenum);
+
+        first.gameExports.getEdict(1).s.event = 1;
+        next.gameExports.getEdict(1).s.event = 2;
+        first.clearEntityStateEvents();
+        Assertions.assertEquals(0, first.gameExports.getEdict(1).s.event);
+        Assertions.assertEquals(2, next.gameExports.getEdict(1).s.event);
+    }
+
+    @Test
+    public void levelInitializationRestoresSavesAndOnlySettlesRevisitedLevels() {
+        manager = new SV_MAIN();
+        GameImportsImpl original = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+        GameExportsImpl originalGameplay = (GameExportsImpl) original.gameExports;
+        originalGameplay.game.serverflags = 9;
+        int entityIndex = -1;
+        for (int i = 1; i < original.gameExports.getNumEdicts(); i++) {
+            GameEntity entity = (GameEntity) original.gameExports.getEdict(i);
+            if ("monster_gunner".equals(entity.classname)) {
+                entity.health = 73;
+                entityIndex = i;
+                break;
+            }
+        }
+        Assertions.assertTrue(entityIndex > 0);
+        int savedFrame = originalGameplay.level.framenum;
+        original.SV_WriteLevelFile();
+        original.SV_WriteServerFile(false);
+        originalGameplay.game.serverflags = 99;
+        SV_MAIN.games.put("default", original);
+
+        GameImportsImpl loaded = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, true), 0);
+        GameExportsImpl loadedGameplay = (GameExportsImpl) loaded.gameExports;
+        Assertions.assertEquals(9, loadedGameplay.game.serverflags);
+        Assertions.assertEquals(savedFrame, loadedGameplay.level.framenum);
+        Assertions.assertEquals(73, ((GameEntity) loaded.gameExports.getEdict(entityIndex)).health);
+        Assertions.assertEquals(ServerStates.SS_GAME, loaded.state);
+        Assertions.assertEquals(loaded.gameExports.getEdict(entityIndex).s.modelindex,
+                loaded.baselines[entityIndex].modelindex);
+        Assertions.assertArrayEquals(loaded.gameExports.getEdict(entityIndex).s.origin,
+                loaded.baselines[entityIndex].origin);
+        Assertions.assertEquals(Float.toString(loaded.airAcceleration), loaded.configstrings[Defines.CS_AIRACCEL]);
+
+        GameImportsImpl revisited = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+        Assertions.assertEquals(savedFrame + 100, ((GameExportsImpl) revisited.gameExports).level.framenum);
+        Assertions.assertEquals(ServerStates.SS_GAME, revisited.state);
     }
 
     @Test

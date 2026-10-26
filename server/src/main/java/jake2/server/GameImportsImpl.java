@@ -50,6 +50,7 @@ import jake2.server.save.ServerSaveJsonStore;
 import jake2.server.save.ServerSaveFiles;
 
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -180,6 +181,78 @@ public class GameImportsImpl implements GameImports {
 
         SV_InitOperatorCommands();
 
+    }
+
+    /** Allocate the gameplay module after engine services and latched settings are ready. */
+    static GameImportsImpl create(JakeServer host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+        GameImportsImpl game = new GameImportsImpl(host, changeMapInfo, previous);
+        game.gameExports = game.createGameModInstance();
+        if (changeMapInfo.isLoadgame)
+            game.gameExports.readGameLocals(EngineWriteRoot.resolve("save/current/game.ssv.json").toString());
+        return game;
+    }
+
+    /**
+     * Find and create an instance of the game subsystem
+     */
+    private GameExports createGameModInstance() {
+        // todo: introduce proper Dependency Injection
+        try {
+            Class<?> game = Class.forName("jake2.game.GameExportsImpl");
+            Constructor<?> constructor = game.getConstructor(GameImports.class);
+            return (GameExports) constructor.newInstance(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Com.Error(Defines.ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
+            return null;
+        }
+    }
+
+    /** Capture persistent player data before allocating the replacement Game. */
+    void prepareLevelTransition() {
+        gameExports.SaveClientData();
+    }
+
+    /** Populate and settle this level while the Host keeps clients in the loading handshake. */
+    void initializeLevel(ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+        if (previous != null && !changeMapInfo.isLoadgame) {
+            // copy persistent data between instances.
+            // after a 'map' command the persistent state will be empty
+            gameExports.fromPrevious(previous.gameExports, changeMapInfo.spawnPoint);
+        }
+
+
+        // spawn fresh entities
+        gameExports.SpawnEntities(mapName, cm.CM_EntityString(), changeMapInfo.spawnPoint);
+
+        if (isPreviousLevel()) {
+            // fixme: need to spawn all entities and then remove them,
+            //  because otherwise precaching will not work properly - configstrings will not match.
+            clearWorld();
+
+            // loads a stored game, runs 100 frames afterwards
+            restorePreviousGame();
+        } else {
+            // run two frames to allow everything to settle
+            gameExports.G_RunFrame();
+            gameExports.G_RunFrame();
+
+        }
+        // create a baseline for more efficient communications
+        createBaselines();
+
+
+        // Level restoration may replace configstrings, including saves from before air movement was published.
+        configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
+
+        // all precaches are complete
+        state = changeMapInfo.state;
+    }
+
+    /** Entity events last for one transmission; the Host calls this after sending snapshots. */
+    void clearEntityStateEvents() {
+        for (int i = 0; i < gameExports.getNumEdicts(); i++)
+            gameExports.getEdict(i).s.event = 0;
     }
 
     /**
