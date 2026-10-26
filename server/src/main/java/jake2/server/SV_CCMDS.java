@@ -27,7 +27,6 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.sys.Sys;
 import jake2.qcommon.vfs.EngineWriteRoot;
-import jake2.server.save.ServerLevelJsonStore;
 import jake2.server.save.ServerSaveJsonStore;
 
 import java.io.File;
@@ -204,28 +203,6 @@ public class SV_CCMDS {
 		}
 		Sys.FindClose();
 	}
-
-	/**
-	 * SV_ReadLevelFile
-	 * Read: config strings, portal state, read level_locals and entities
-	 */
-	static void SV_ReadLevelFile(String saveName, GameImportsImpl gameImports) {
-
-		Com.DPrintf("SV_ReadLevelFile()\n");
-
-		try {
-			ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
-			store.applyLevelState(store.readLevelState("current", saveName), gameImports.sv.configstrings, gameImports.cm);
-		}
-		catch (Exception e1) {
-			Com.Printf("Failed to open current level state for " + saveName + "\n");
-			e1.printStackTrace();
-		}
-
-		String name = EngineWriteRoot.resolve("save/current/" + saveName + ".sav.json").toString();
-		gameImports.gameExports.ReadLevel(name);
-	}
-
 
 	//=========================================================
 

@@ -643,6 +643,22 @@ public class GameImportsImpl implements GameImports {
         }
     }
 
+    /** Restore this game's configstrings, portals and gameplay state from the current save. */
+    void readLevelFile() {
+        Com.DPrintf("SV_ReadLevelFile()\n");
+
+        try {
+            ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
+            store.applyLevelState(store.readLevelState("current", sv.name), sv.configstrings, cm);
+        } catch (Exception e) {
+            Com.Printf("Failed to open current level state for " + sv.name + "\n");
+            e.printStackTrace();
+        }
+
+        String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();
+        gameExports.ReadLevel(name);
+    }
+
     void SV_WriteLevelFile() {
 
         Com.DPrintf("SV_WriteLevelFile()\n");

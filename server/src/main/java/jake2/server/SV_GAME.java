@@ -266,7 +266,7 @@ public class SV_GAME {
 
         // get configstrings and areaportals
         // then read game enitites
-        SV_CCMDS.SV_ReadLevelFile(sv.name, gameImports);
+        gameImports.readLevelFile();
 
         if (!sv.loadgame) {
             // coming back to a level after being in a different
