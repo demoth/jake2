@@ -3,6 +3,7 @@ package jake2.server;
 import jake2.game.GameEntity;
 import jake2.game.monsters.M_Gunner;
 import jake2.qcommon.GameExports;
+import jake2.qcommon.ServerEntity;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.MainCommon;
 import jake2.qcommon.Globals;
@@ -122,6 +123,44 @@ public class GameImportsTest {
             // These clients exercise message queues without establishing network channels.
             firstClient.state = secondClient.state = ClientStates.CS_FREE;
         }
+    }
+
+    @Test
+    public void spatialQueriesAndClearingStayWithTheirGame() {
+        manager = new SV_MAIN();
+        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        ServerEntity firstEntity = first.gameExports.getEdict(1);
+        ServerEntity secondEntity = second.gameExports.getEdict(1);
+        for (ServerEntity entity : new ServerEntity[]{firstEntity, secondEntity}) {
+            entity.inuse = true;
+            entity.solid = Defines.SOLID_BBOX;
+            entity.s.origin[2] = 64;
+            java.util.Arrays.fill(entity.mins, -8);
+            java.util.Arrays.fill(entity.maxs, 8);
+        }
+        first.linkentity(firstEntity);
+        second.linkentity(secondEntity);
+        float[] mins = {-16, -16, 48};
+        float[] maxs = {16, 16, 80};
+        ServerEntity[] found = new ServerEntity[8];
+        Assertions.assertEquals(1, first.BoxEdicts(mins, maxs, found, found.length, Defines.AREA_SOLID));
+        Assertions.assertSame(firstEntity, found[0]);
+        Assertions.assertEquals(1, second.BoxEdicts(mins, maxs, found, found.length, Defines.AREA_SOLID));
+        Assertions.assertSame(secondEntity, found[0]);
+
+        float[] start = {-64, 0, 64};
+        float[] end = {64, 0, 64};
+        Assertions.assertSame(firstEntity, first.trace(start, null, null, end, null, Defines.MASK_PLAYERSOLID).ent);
+        Assertions.assertSame(secondEntity, second.trace(start, null, null, end, null, Defines.MASK_PLAYERSOLID).ent);
+        first.unlinkentity(firstEntity);
+        Assertions.assertEquals(0, first.BoxEdicts(mins, maxs, found, found.length, Defines.AREA_SOLID));
+        first.linkentity(firstEntity);
+        first.clearWorld();
+        Assertions.assertEquals(0, first.BoxEdicts(mins, maxs, found, found.length, Defines.AREA_SOLID));
+        Assertions.assertEquals(1, second.BoxEdicts(mins, maxs, found, found.length, Defines.AREA_SOLID));
+        Assertions.assertSame(secondEntity, found[0]);
+        Assertions.assertSame(secondEntity, second.trace(start, null, null, end, null, Defines.MASK_PLAYERSOLID).ent);
     }
 
     @Test

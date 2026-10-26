@@ -1411,7 +1411,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         if (gameImports.isPreviousLevel()) {
             // fixme: need to spawn all entities and then remove them,
             //  because otherwise precaching will not work properly - configstrings will not match.
-            SV_WORLD.SV_ClearWorld(gameImports);
+            gameImports.clearWorld();
 
             // loads a stored game, runs 100 frames afterwards
             gameImports.restorePreviousGame();

@@ -80,7 +80,20 @@ public class GameImportsImpl implements GameImports {
 
     String mapcmd = ""; // ie: *intro.cin+base
 
-    SV_WORLD world;
+    // Spatial indexing and query scratch state belong to this Game.
+    private static final int MAX_TOTAL_ENT_LEAFS = 128;
+    private areanode_t[] areaNodes;
+    private int areaNodeCount;
+    private float[] areaMins;
+    private float[] areaMaxs;
+    private ServerEntity[] areaEntities;
+    private int areaCount;
+    private int areaMaxCount;
+    private int areaType;
+    private final ServerEntity[] pointContentsTouches = new ServerEntity[Defines.MAX_EDICTS];
+    private final ServerEntity[] traceTouches = new ServerEntity[Defines.MAX_EDICTS];
+    private final int[] entityLeafs = new int[MAX_TOTAL_ENT_LEAFS];
+    private final int[] entityClusters = new int[MAX_TOTAL_ENT_LEAFS];
 
     private final Cvar localCvars = new Cvar();
 
@@ -104,8 +117,6 @@ public class GameImportsImpl implements GameImports {
             previous.localCvars.copyValuesTo(localCvars);
 
         spawncount = Lib.rand();
-
-        world = new SV_WORLD();
 
         cm = new CM();
         sv_ents = new SV_ENTS(this, serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64);
@@ -155,7 +166,7 @@ public class GameImportsImpl implements GameImports {
 
         // clear physics interaction links
         // Q: is it required? the instance was just created
-        SV_WORLD.SV_ClearWorld(this);
+        clearWorld();
 
         SV_InitOperatorCommands();
 
@@ -320,7 +331,7 @@ public class GameImportsImpl implements GameImports {
             cmodel_t mod = cm.InlineModel(name);
             Math3D.VectorCopy(mod.mins, ent.mins);
             Math3D.VectorCopy(mod.maxs, ent.maxs);
-            SV_WORLD.SV_LinkEdict(ent, this);
+            linkentity(ent);
         }
     }
 
@@ -328,7 +339,31 @@ public class GameImportsImpl implements GameImports {
     @Override
     public trace_t trace(float[] start, float[] mins, float[] maxs,
                          float[] end, ServerEntity passent, int contentmask) {
-        return SV_WORLD.SV_Trace(start, mins, maxs, end, passent, contentmask, this);
+        moveclip_t clip = new moveclip_t();
+        if (mins == null)
+            mins = Globals.vec3_origin;
+        if (maxs == null)
+            maxs = Globals.vec3_origin;
+
+        // clip to world
+        clip.trace = cm.BoxTrace(start, end, mins, maxs, 0, contentmask);
+        clip.trace.ent = gameExports.getEdict(0);
+        if (clip.trace.fraction == 0)
+            return clip.trace; // blocked by the world
+        clip.contentmask = contentmask;
+        clip.start = start;
+        clip.end = end;
+        clip.mins = mins;
+        clip.maxs = maxs;
+        clip.passedict = passent;
+        Math3D.VectorCopy(mins, clip.mins2);
+        Math3D.VectorCopy(maxs, clip.maxs2);
+        // create the bounding box of the entire move
+        traceBounds(start, clip.mins2, clip.maxs2, end, clip.boxmins,
+                clip.boxmaxs);
+        // clip to other solid entities
+        clipMoveToEntities(clip);
+        return clip.trace;
     }
 
     @Override
@@ -375,19 +410,171 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void linkentity(ServerEntity ent) {
-        SV_WORLD.SV_LinkEdict(ent, this);
+        areanode_t node;
+        int num_leafs;
+        int j, k;
+        int area;
+        int topnode = 0;
+        if (ent.area.prev != null)
+            unlinkentity(ent); // unlink from old position
+        if (ent == gameExports.getEdict(0))
+            return; // don't add the world
+        if (!ent.inuse)
+            return;
+        // set the size
+        Math3D.VectorSubtract(ent.maxs, ent.mins, ent.size);
+        // encode the size into the entity_state for client prediction
+        if (ent.solid == Defines.SOLID_BBOX
+                && 0 == (ent.svflags & Defines.SVF_DEADMONSTER)) {
+            // assume that x/y are equal and symetric
+            int i = (int) (ent.maxs[0] / 8);
+            if (i < 1)
+                i = 1;
+            if (i > 31)
+                i = 31;
+            // z is not symetric
+            j = (int) ((-ent.mins[2]) / 8);
+            if (j < 1)
+                j = 1;
+            if (j > 31)
+                j = 31;
+            // and z maxs can be negative...
+            k = (int) ((ent.maxs[2] + 32) / 8);
+            if (k < 1)
+                k = 1;
+            if (k > 63)
+                k = 63;
+            ent.s.solid = (k << 10) | (j << 5) | i;
+        } else if (ent.solid == Defines.SOLID_BSP) {
+            ent.s.solid = 31; // a solid_bbox will never create this value
+        } else
+            ent.s.solid = 0;
+        // set the abs box
+        if (ent.solid == Defines.SOLID_BSP
+                && (ent.s.angles[0] != 0 || ent.s.angles[1] != 0 || ent.s.angles[2] != 0)) {
+            // expand for rotation
+            float max, v;
+            max = 0;
+            for (int i = 0; i < 3; i++) {
+                v = Math.abs(ent.mins[i]);
+                if (v > max)
+                    max = v;
+                v = Math.abs(ent.maxs[i]);
+                if (v > max)
+                    max = v;
+            }
+            for (int i = 0; i < 3; i++) {
+                ent.absmin[i] = ent.s.origin[i] - max;
+                ent.absmax[i] = ent.s.origin[i] + max;
+            }
+        } else {
+            // normal
+            Math3D.VectorAdd(ent.s.origin, ent.mins, ent.absmin);
+            Math3D.VectorAdd(ent.s.origin, ent.maxs, ent.absmax);
+        }
+        // because movement is clipped an epsilon away from an actual edge,
+        // we must fully check even when bounding boxes don't quite touch
+        ent.absmin[0]--;
+        ent.absmin[1]--;
+        ent.absmin[2]--;
+        ent.absmax[0]++;
+        ent.absmax[1]++;
+        ent.absmax[2]++;
+        // link to PVS leafs
+        ent.num_clusters = 0;
+        ent.areanum = 0;
+        ent.areanum2 = 0;
+        // get all leafs, including solids
+        int iw[] = { topnode };
+        num_leafs = cm.CM_BoxLeafnums(ent.absmin, ent.absmax, this.entityLeafs, MAX_TOTAL_ENT_LEAFS, iw);
+        topnode = iw[0];
+        // set areas
+        for (int i = 0; i < num_leafs; i++) {
+            this.entityClusters[i] = cm.CM_LeafCluster(this.entityLeafs[i]);
+            area = cm.CM_LeafArea(this.entityLeafs[i]);
+            if (area != 0) {
+                // doors may legally straggle two areas,
+                // but nothing should ever need more than that
+                if (ent.areanum != 0 && ent.areanum != area) {
+                    if (ent.areanum2 != 0 && ent.areanum2 != area
+                            && state == ServerStates.SS_LOADING)
+                        Com.DPrintf("Object touching 3 areas at "
+                                + ent.absmin[0] + " " + ent.absmin[1] + " "
+                                + ent.absmin[2] + "\n");
+                    ent.areanum2 = area;
+                } else
+                    ent.areanum = area;
+            }
+        }
+        if (num_leafs >= MAX_TOTAL_ENT_LEAFS) {
+            // assume we missed some leafs, and mark by headnode
+            ent.num_clusters = -1;
+            ent.headnode = topnode;
+        } else {
+            ent.num_clusters = 0;
+            for (int i = 0; i < num_leafs; i++) {
+                if (this.entityClusters[i] == -1)
+                    continue; // not a visible leaf
+                for (j = 0; j < i; j++)
+                    if (this.entityClusters[j] == this.entityClusters[i])
+                        break;
+                if (j == i) {
+                    if (ent.num_clusters == Defines.MAX_ENT_CLUSTERS) {
+                        // assume we missed some leafs, and mark by headnode
+                        ent.num_clusters = -1;
+                        ent.headnode = topnode;
+                        break;
+                    }
+                    ent.clusternums[ent.num_clusters++] = this.entityClusters[i];
+                }
+            }
+        }
+        // if first time, make sure old_origin is valid
+        if (0 == ent.linkcount) {
+            Math3D.VectorCopy(ent.s.origin, ent.s.old_origin);
+        }
+        ent.linkcount++;
+        if (ent.solid == Defines.SOLID_NOT)
+            return;
+        // find the first node that the ent's box crosses
+        node = this.areaNodes[0];
+        while (true) {
+            if (node.axis == -1)
+                break;
+            if (ent.absmin[node.axis] > node.dist)
+                node = node.children[0];
+            else if (ent.absmax[node.axis] < node.dist)
+                node = node.children[1];
+            else
+                break; // crosses the node
+        }
+        // link it in
+        if (ent.solid == Defines.SOLID_TRIGGER)
+            insertLinkBefore(ent.area, node.trigger_edicts);
+        else
+            insertLinkBefore(ent.area, node.solid_edicts);
     }
 
     @Override
     public void unlinkentity(ServerEntity ent) {
-        SV_WORLD.SV_UnlinkEdict(ent);
+        if (null == ent.area.prev)
+            return; // not linked in anywhere
+        removeLink(ent.area);
+        ent.area.prev = ent.area.next = null;
     }
 
-    /* call before removing an interactive edict */
+    /** Collect linked entities overlapping the supplied bounds in this Game. */
     @Override
     public int BoxEdicts(float[] mins, float[] maxs, ServerEntity list[],
                          int maxcount, int areatype) {
-        return SV_WORLD.SV_AreaEdicts(mins, maxs, list, maxcount, areatype, this);
+        this.areaMins = mins;
+        this.areaMaxs = maxs;
+        this.areaEntities = list;
+        this.areaCount = 0;
+        this.areaMaxCount = maxcount;
+        this.areaType = areatype;
+        collectAreaEntities(this.areaNodes[0]);
+        return this.areaCount;
     }
 
     @Override
@@ -424,7 +611,25 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public int getPointContents(float[] p) {
-        return SV_WORLD.SV_PointContents(p, this);
+        ServerEntity hit;
+        int i, num;
+        int contents, c2;
+        int headnode;
+        // get base contents from world
+        contents = cm.PointContents(p, models[1].headnode);
+        // or in contents from all the other entities
+        num = BoxEdicts(p, p, this.pointContentsTouches, Defines.MAX_EDICTS, Defines.AREA_SOLID);
+        for (i = 0; i < num; i++) {
+            hit = this.pointContentsTouches[i];
+            // might intersect, so do an exact clip
+            headnode = hullForEntity(hit);
+            if (hit.solid != Defines.SOLID_BSP) {
+	    }
+            c2 = cm.TransformedPointContents(p, headnode, hit.s.origin,
+                    hit.s.angles);
+            contents |= c2;
+        }
+        return contents;
     }
 
     private void SV_Savegame_f(List<String> args) {
@@ -708,6 +913,179 @@ public class GameImportsImpl implements GameImports {
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
                 continue;
             client.netchan.reliablePending.add(new StuffTextMessage(s));
+        }
+    }
+
+    /** Reset this Game's spatial index before spawning or restoring entities. */
+    void clearWorld() {
+        areaNodeCount = 0;
+        areaNodes = new areanode_t[Defines.AREA_NODES];
+        for (int i = 0; i < areaNodes.length; i++) areaNodes[i] = new areanode_t();
+        createAreaNode(0, models[1].mins, models[1].maxs);
+    }
+
+    private static void clearLink(link_t l) {
+        l.prev = l.next = l;
+    }
+
+    private static void removeLink(link_t l) {
+        l.next.prev = l.prev;
+        l.prev.next = l.next;
+    }
+
+    private static void insertLinkBefore(link_t l, link_t before) {
+        l.next = before;
+        l.prev = before.prev;
+        l.prev.next = l;
+        l.next.prev = l;
+    }
+
+    private areanode_t createAreaNode(int depth, float[] mins, float[] maxs) {
+        areanode_t anode;
+        float[] size = { 0, 0, 0 };
+        float[] mins1 = { 0, 0, 0 }, maxs1 = { 0, 0, 0 }, mins2 = { 0, 0, 0 }, maxs2 = {
+                0, 0, 0 };
+        anode = this.areaNodes[this.areaNodeCount];
+        // just for debugging (rst)
+//        Math3D.VectorCopy(mins, anode.mins_rst);
+//        Math3D.VectorCopy(maxs, anode.maxs_rst);
+        this.areaNodeCount++;
+        clearLink(anode.trigger_edicts);
+        clearLink(anode.solid_edicts);
+        if (depth == Defines.AREA_DEPTH) {
+            anode.axis = -1;
+            anode.children[0] = anode.children[1] = null;
+            return anode;
+        }
+        Math3D.VectorSubtract(maxs, mins, size);
+        if (size[0] > size[1])
+            anode.axis = 0;
+        else
+            anode.axis = 1;
+        anode.dist = 0.5f * (maxs[anode.axis] + mins[anode.axis]);
+        Math3D.VectorCopy(mins, mins1);
+        Math3D.VectorCopy(mins, mins2);
+        Math3D.VectorCopy(maxs, maxs1);
+        Math3D.VectorCopy(maxs, maxs2);
+        maxs1[anode.axis] = mins2[anode.axis] = anode.dist;
+        anode.children[0] = createAreaNode(depth + 1, mins2, maxs2);
+        anode.children[1] = createAreaNode(depth + 1, mins1, maxs1);
+        return anode;
+    }
+
+    private void collectAreaEntities(areanode_t node) {
+        link_t l, next, start;
+        ServerEntity check;
+        // touch linked edicts
+        if (this.areaType == Defines.AREA_SOLID)
+            start = node.solid_edicts;
+        else
+            start = node.trigger_edicts;
+        for (l = start.next; l != start; l = next) {
+            next = l.next;
+            check = (ServerEntity) l.o;
+            if (check.solid == Defines.SOLID_NOT)
+                continue; // deactivated
+            if (check.absmin[0] > this.areaMaxs[0]
+                    || check.absmin[1] > this.areaMaxs[1]
+                    || check.absmin[2] > this.areaMaxs[2]
+                    || check.absmax[0] < this.areaMins[0]
+                    || check.absmax[1] < this.areaMins[1]
+                    || check.absmax[2] < this.areaMins[2])
+                continue; // not touching
+            if (this.areaCount == this.areaMaxCount) {
+                Com.Printf("BoxEdicts: MAXCOUNT\n");
+                return;
+            }
+            this.areaEntities[this.areaCount] = check;
+            this.areaCount++;
+        }
+        if (node.axis == -1)
+            return; // terminal node
+        // recurse down both sides
+        if (this.areaMaxs[node.axis] > node.dist)
+            collectAreaEntities(node.children[0]);
+        if (this.areaMins[node.axis] < node.dist)
+            collectAreaEntities(node.children[1]);
+    }
+
+    private int hullForEntity(ServerEntity ent) {
+        cmodel_t model;
+        // decide which clipping hull to use, based on the size
+        if (ent.solid == Defines.SOLID_BSP) {
+            // explicit hulls in the BSP model
+            model = models[ent.s.modelindex];
+            if (null == model)
+                Com.Error(Defines.ERR_FATAL,
+                        "MOVETYPE_PUSH with a non bsp model");
+            return model.headnode;
+        }
+        // create a temp hull from bounding box sizes
+        return cm.HeadnodeForBox(ent.mins, ent.maxs);
+    }
+
+    private void clipMoveToEntities(moveclip_t clip) {
+        int i, num;
+        ServerEntity touch;
+        trace_t trace;
+        int headnode;
+        float angles[];
+        num = BoxEdicts(clip.boxmins, clip.boxmaxs, this.traceTouches, Defines.MAX_EDICTS, Defines.AREA_SOLID);
+        // be careful, it is possible to have an entity in this
+        // list removed before we get to it (killtriggered)
+        for (i = 0; i < num; i++) {
+            touch = this.traceTouches[i];
+            if (touch.solid == Defines.SOLID_NOT)
+                continue;
+            if (touch == clip.passedict)
+                continue;
+            if (clip.trace.allsolid)
+                return;
+            if (clip.passedict != null) {
+                if (touch.getOwner() == clip.passedict)
+                    continue; // don't clip against own missiles
+                if (clip.passedict.getOwner() == touch)
+                    continue; // don't clip against owner
+            }
+            if (0 == (clip.contentmask & Defines.CONTENTS_DEADMONSTER)
+                    && 0 != (touch.svflags & Defines.SVF_DEADMONSTER))
+                continue;
+            // might intersect, so do an exact clip
+            headnode = hullForEntity(touch);
+            angles = touch.s.angles;
+            if (touch.solid != Defines.SOLID_BSP)
+                angles = Globals.vec3_origin; // boxes don't rotate
+            if ((touch.svflags & Defines.SVF_MONSTER) != 0)
+                trace = cm.TransformedBoxTrace(clip.start, clip.end,
+                        clip.mins2, clip.maxs2, headnode, clip.contentmask,
+                        touch.s.origin, angles);
+            else
+                trace = cm.TransformedBoxTrace(clip.start, clip.end, clip.mins,
+                        clip.maxs, headnode, clip.contentmask, touch.s.origin,
+                        angles);
+            if (trace.allsolid || trace.startsolid
+                    || trace.fraction < clip.trace.fraction) {
+                trace.ent = touch;
+                if (clip.trace.startsolid) {
+                    clip.trace = trace;
+                    clip.trace.startsolid = true;
+                } else
+                    clip.trace.set(trace);
+            } else if (trace.startsolid)
+                clip.trace.startsolid = true;
+        }
+    }
+
+    private static void traceBounds(float[] start, float[] mins, float[] maxs, float[] end, float[] boxmins, float[] boxmaxs) {
+        int i;
+        for (i = 0; i < 3; i++) {
+            if (end[i] > start[i]) {
+                boxmins[i] = start[i] + mins[i] - 1;
+                boxmaxs[i] = end[i] + maxs[i] + 1;
+            } else {
+                boxmins[i] = end[i] + mins[i] - 1;
+                boxmaxs[i] = start[i] + maxs[i] + 1;
+            }
         }
     }
 
