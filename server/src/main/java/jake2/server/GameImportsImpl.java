@@ -111,7 +111,7 @@ public class GameImportsImpl implements GameImports {
     private final entity_state_t[] clientEntityStates;
     private int nextClientEntity;
 
-    private final float configuredAirAcceleration;
+    private final cvar_t<Float> configuredAirAcceleration;
     final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
@@ -133,10 +133,15 @@ public class GameImportsImpl implements GameImports {
                 Cvar.getInstance().find("coop", Boolean.class).getTypedValue(),
                 Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, null);
 
+        configuredAirAcceleration = localCvars.register("sv_airaccelerate", CvarTypes.FLOAT,
+                Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue(),
+                Defines.CVAR_LATCH, "Controls air acceleration (currently only for deathmatch)");
+
         // map starts a new session from Host defaults; gamemap inherits the previous Game.
         if (previous != null && previous.state == ServerStates.SS_DEAD && !changeMapInfo.isLoadgame) {
             deathmatch.forceSet(Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue());
             coop.forceSet(Cvar.getInstance().find("coop", Boolean.class).getTypedValue());
+            configuredAirAcceleration.forceSet(Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue());
         }
 
         spawncount = Lib.rand();
@@ -189,9 +194,8 @@ public class GameImportsImpl implements GameImports {
         }
 
         // Snapshot the applied setting for this game; client prediction receives the same value.
-        configuredAirAcceleration = Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue();
         airAcceleration = isDeathmatch()
-                ? configuredAirAcceleration : 0f;
+                ? configuredAirAcceleration.getTypedValue() : 0f;
         configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
 
         // clear physics interaction links
@@ -1252,10 +1256,7 @@ public class GameImportsImpl implements GameImports {
         List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
         Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {
             if (!localCvars.isRegistered(var.name)) {
-                // Air acceleration is captured per instance; the global value may now belong to another game.
-                String value = var.name.equals("sv_airaccelerate")
-                        ? Float.toString(configuredAirAcceleration) : var.getRawString();
-                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, value));
+                latchedCvars.add(new ServerSaveJsonStore.LatchedCvarSnapshot(var.name, var.getRawString()));
             }
         });
         localCvars.eachCvarByFlags(Defines.CVAR_LATCH, var ->

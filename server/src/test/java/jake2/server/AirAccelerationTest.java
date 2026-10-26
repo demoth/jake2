@@ -124,7 +124,8 @@ class AirAccelerationTest {
             var store = ServerSaveJsonStore.forWriteDir(temp.toString());
             first.writeLatchedCvars(store);
             GameImportsImpl loadedFirst = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, true));
-            assertEquals(1f, acceleration.getTypedValue());
+            assertEquals(7f, acceleration.getTypedValue());
+            assertEquals(1f, loadedFirst.findCvar("sv_airaccelerate", Float.class).getTypedValue());
             assertMovementSetting(loadedFirst, frozenMovement(), 1f);
             assertMovementSetting(second, frozenMovement(), 7f);
 
@@ -134,7 +135,8 @@ class AirAccelerationTest {
             acceleration.forceSet(9f);
             singlePlayer.writeLatchedCvars(store);
             GameImportsImpl loadedSinglePlayer = new GameImportsImpl(server, new ChangeMapInfo("single.pcx", false, true));
-            assertEquals(5f, acceleration.getTypedValue());
+            assertEquals(9f, acceleration.getTypedValue());
+            assertEquals(5f, loadedSinglePlayer.findCvar("sv_airaccelerate", Float.class).getTypedValue());
             assertMovementSetting(loadedSinglePlayer, frozenMovement(), 0f);
             assertMovementSetting(singlePlayer, frozenMovement(), 0f);
         } finally {
