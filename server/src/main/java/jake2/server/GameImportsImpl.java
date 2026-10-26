@@ -32,15 +32,18 @@ import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.NET;
 import jake2.qcommon.network.messages.NetworkMessage;
+import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.PrintCenterMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
 import jake2.server.save.ServerLevelJsonStore;
 import jake2.server.save.ServerSaveJsonStore;
 import jake2.server.save.ServerSaveFiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -85,8 +88,6 @@ public class GameImportsImpl implements GameImports {
 
     SV_ENTS sv_ents;
 
-    SV_GAME sv_game;
-
     final float[] origin_v = { 0, 0, 0 };
     private final float configuredAirAcceleration;
     final float airAcceleration;
@@ -108,8 +109,6 @@ public class GameImportsImpl implements GameImports {
 
         cm = new CM();
         sv_ents = new SV_ENTS(this, serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64);
-
-        sv_game = new SV_GAME(this);
 
         // heartbeats will always be sent to the id master
 
@@ -220,20 +219,32 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void cprintf(ServerEntity ent, int printlevel, String s) {
-        sv_game.PF_cprintf(ent, printlevel, s);
+
+        int n = 0;
+
+        if (ent != null) {
+            n = ent.index;
+            if (n < 1 || n > serverMain.getClients().size())
+                Com.Error(Defines.ERR_DROP, "cprintf to a non-client");
+        }
+
+        if (ent != null)
+            SV_SEND.SV_ClientPrintf(serverMain.getClients().get(n - 1), printlevel, s);
+        else
+            Com.Printf(s);
     }
 
     @Override
     public void centerprintf(ServerEntity ent, String s) {
         // todo: check if s is not empty
-        sv_game.PF_Unicast(ent.index, true, new PrintCenterMessage(s));
+        unicastMessage(ent.index, new PrintCenterMessage(s), true);
     }
 
     @Override
     public void sound(ServerEntity ent, int channel, int soundindex, float volume,
                       float attenuation, float timeofs) {
-        sv_game.PF_StartSound(ent, channel, soundindex, volume, attenuation,
-                timeofs);
+        if (ent == null) return;
+        positioned_sound(null, ent, channel, soundindex, volume, attenuation, timeofs);
     }
 
     @Override
@@ -252,7 +263,20 @@ public class GameImportsImpl implements GameImports {
     */
     @Override
     public void configstring(int num, String string) {
-        sv_game.PF_Configstring(num, string);
+        if (num < 0 || num >= Defines.MAX_CONFIGSTRINGS)
+            Com.Error(Defines.ERR_DROP, "configstring: bad index " + num
+                    + "\n");
+
+        if (string == null)
+            string = "";
+
+        // Update this Game's resource table.
+        configstrings[num] = string;
+
+        if (state != ServerStates.SS_LOADING) {
+            // send the update to everyone
+            multicastMessage(null, new ConfigStringMessage(num, string), MulticastTypes.MULTICAST_ALL_R);
+        }
     }
 
     @Override
@@ -268,22 +292,36 @@ public class GameImportsImpl implements GameImports {
     /* the *index functions create configstrings and some internal server state */
     @Override
     public int modelindex(String name) {
-        return sv_game.SV_FindIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS, true);
+        return findConfigstringIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS);
     }
 
     @Override
     public int soundindex(String name) {
-        return sv_game.SV_FindIndex(name, Defines.CS_SOUNDS, Defines.MAX_SOUNDS, true);
+        return findConfigstringIndex(name, Defines.CS_SOUNDS, Defines.MAX_SOUNDS);
     }
 
     @Override
     public int imageindex(String name) {
-        return sv_game.SV_FindIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES, true);
+        return findConfigstringIndex(name, Defines.CS_IMAGES, Defines.MAX_IMAGES);
     }
 
     @Override
     public void setmodel(ServerEntity ent, String name) {
-        sv_game.PF_setmodel(ent, name);
+
+        if (name == null) {
+            Com.DPrintf( "Error: GameImportsImpl.setmodel: name is null");
+            return;
+        }
+
+        ent.s.modelindex = findConfigstringIndex(name, Defines.CS_MODELS, Defines.MAX_MODELS);
+
+        // if it is an inline model, get the size information for it
+        if (name.startsWith("*")) {
+            cmodel_t mod = cm.InlineModel(name);
+            Math3D.VectorCopy(mod.mins, ent.mins);
+            Math3D.VectorCopy(mod.maxs, ent.maxs);
+            SV_WORLD.SV_LinkEdict(ent, this);
+        }
     }
 
     /* collision detection */
@@ -295,7 +333,29 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public boolean inPHS(float[] p1, float[] p2) {
-        return sv_game.PF_inPHS(p1, p2);
+        int leafnum;
+        int cluster;
+        int area1, area2;
+        byte mask[];
+
+        leafnum = cm.CM_PointLeafnum(p1);
+        cluster = cm.CM_LeafCluster(leafnum);
+        area1 = cm.CM_LeafArea(leafnum);
+        mask = cm.CM_ClusterPHS(cluster);
+
+        leafnum = cm.CM_PointLeafnum(p2);
+        cluster = cm.CM_LeafCluster(leafnum);
+        area2 = cm.CM_LeafArea(leafnum);
+
+        // quake2 bugfix
+        if (cluster == -1)
+            return false;
+        if (mask != null && (0 == (mask[cluster >> 3] & (1 << (cluster & 7)))))
+            return false; // more than one bounce away
+        if (!cm.CM_AreasConnected(area1, area2))
+            return false; // a door blocks hearing
+
+        return true;
     }
 
     @Override
@@ -651,6 +711,75 @@ public class GameImportsImpl implements GameImports {
         }
     }
 
+    /** Find or allocate a configstring index within this Game's resource table. */
+    private int findConfigstringIndex(String val, int start, int max) {
+        int i;
+
+        if (val == null || val.length() == 0)
+            return 0;
+
+        for (i = 1; i < max && configstrings[start + i] != null; i++)
+            if (val.equals(configstrings[start + i]))
+                return i;
+
+        if (i == max)
+            Com.Error(Defines.ERR_DROP, "*Index: overflow");
+
+        configstring(start + i, val);
+
+        return i;
+    }
+
+    /** Build the entity baselines used to compress client updates. */
+    void createBaselines() {
+        for (int entnum = 1; entnum < gameExports.getNumEdicts(); entnum++) {
+            ServerEntity svent = gameExports.getEdict(entnum);
+
+            if (!svent.inuse)
+                continue;
+            if (0 == svent.s.modelindex && 0 == svent.s.sound
+                    && 0 == svent.s.effects)
+                continue;
+
+            svent.s.index = entnum;
+
+            // take current state as baseline
+            Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
+            baselines[entnum].set(svent.s);
+        }
+    }
+
+    /** Restore archived level state, settling revisited levels before clients reconnect. */
+    void restorePreviousGame() {
+
+        // get configstrings and areaportals
+        // then read game entities
+        readLevelFile();
+
+        if (!loadgame) {
+            // coming back to a level after being in a different
+            // level, so run it for 100 frames
+
+            // assert state == LOADING, otherwise, updates from 100 frames may overflow the reliable channel
+            for (int i = 0; i < 100; i++) {
+                gameExports.G_RunFrame();
+            }
+        }
+    }
+
+    boolean isPreviousLevel() {
+        if (Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
+            return false;
+
+        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue())
+            return false;
+
+        String name = EngineWriteRoot.resolve("save/current/" + mapName + ".sav.json").toString();
+
+        return new File(name).exists();
+
+    }
+
     /** Restore this game's configstrings, portals and gameplay state from the current save. */
     void readLevelFile() {
         Com.DPrintf("SV_ReadLevelFile()\n");
@@ -830,6 +959,16 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void unicastMessage(int index, ServerMessage msg, boolean reliable) {
-        sv_game.PF_Unicast(index, reliable, msg);
+
+        if (index < 1 || index > serverMain.getClients().size())
+            return;
+
+        ClientNetworkInfo client = serverMain.getClients().get(index - 1);
+
+        if (reliable) {
+            client.netchan.reliablePending.add(msg);
+        } else
+            client.unreliable.add(msg);
+
     }
 }

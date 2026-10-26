@@ -30,7 +30,6 @@ import static java.util.Comparator.comparingInt;
 /**
  * Collection of functions provided by the game module.
  * Also serves as the holder of game state from the game side
- * See jake2.server.SV_GAME#SV_InitGameProgs()
  *
  */
 public class GameExportsImpl implements GameExports {

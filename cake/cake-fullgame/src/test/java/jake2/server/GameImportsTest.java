@@ -7,6 +7,8 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.MainCommon;
 import jake2.qcommon.Globals;
 import jake2.qcommon.ServerStates;
+import jake2.qcommon.Defines;
+import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.vfs.VfsConfig;
@@ -82,6 +84,44 @@ public class GameImportsTest {
         Assertions.assertEquals(secondMapLabel, second.configstrings[jake2.qcommon.Defines.CS_NAME]);
         Assertions.assertEquals(0, second.baselines[1].modelindex);
         Assertions.assertEquals(ServerStates.SS_LOADING, second.state);
+    }
+
+    @Test
+    public void resourceUpdatesStayWithTheirGameAndOnlySendAfterLoading() {
+        manager = new SV_MAIN();
+        Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
+        manager.resetClients();
+        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
+        SV_MAIN.games.put(first.name, first);
+        SV_MAIN.games.put(second.name, second);
+        ClientNetworkInfo firstClient = manager.getClients().get(0);
+        ClientNetworkInfo secondClient = manager.getClients().get(1);
+        firstClient.gameName = first.name;
+        secondClient.gameName = second.name;
+        firstClient.state = secondClient.state = ClientStates.CS_CONNECTED;
+
+        try {
+            int firstIndex = first.modelindex("models/first.md2");
+            int secondIndex = second.modelindex("models/second.md2");
+            Assertions.assertEquals(firstIndex, first.modelindex("models/first.md2"));
+            Assertions.assertEquals("models/first.md2", first.configstrings[Defines.CS_MODELS + firstIndex]);
+            Assertions.assertEquals("models/second.md2", second.configstrings[Defines.CS_MODELS + secondIndex]);
+            Assertions.assertTrue(firstClient.netchan.reliablePending.isEmpty());
+            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+
+            first.state = ServerStates.SS_GAME;
+            int soundIndex = first.soundindex("sound/first.wav");
+            // Reusing an index should not publish another resource update.
+            Assertions.assertEquals(soundIndex, first.soundindex("sound/first.wav"));
+            Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
+            Assertions.assertEquals(new ConfigStringMessage(Defines.CS_SOUNDS + soundIndex, "sound/first.wav"),
+                    firstClient.netchan.reliablePending.iterator().next());
+            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+        } finally {
+            // These clients exercise message queues without establishing network channels.
+            firstClient.state = secondClient.state = ClientStates.CS_FREE;
+        }
     }
 
     @Test

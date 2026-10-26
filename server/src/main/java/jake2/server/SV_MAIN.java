@@ -1408,13 +1408,13 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // spawn fresh entities
         gameImports.gameExports.SpawnEntities(gameImports.mapName, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
 
-        if (gameImports.sv_game.isPreviousLevel()) {
+        if (gameImports.isPreviousLevel()) {
             // fixme: need to spawn all entities and then remove them,
             //  because otherwise precaching will not work properly - configstrings will not match.
             SV_WORLD.SV_ClearWorld(gameImports);
 
             // loads a stored game, runs 100 frames afterwards
-            gameImports.sv_game.restorePreviousGame();
+            gameImports.restorePreviousGame();
         } else {
             // run two frames to allow everything to settle
             gameImports.gameExports.G_RunFrame();
@@ -1422,7 +1422,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         }
         // create a baseline for more efficient communications
-        gameImports.sv_game.SV_CreateBaseline();
+        gameImports.createBaselines();
 
 
         // Level restoration may replace configstrings, including saves from before air movement was published.
