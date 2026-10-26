@@ -425,54 +425,76 @@ class ServerHost : AutoCloseable {
         return GameImportsImpl.create(this, changeMapInfo, previous)
     }
 
+    sealed interface LoadResult {
+        data object Loaded : LoadResult
+        data class Rejected(val reason: String) : LoadResult
+        data class Failed(val reason: String, val cause: Exception) : LoadResult
+    }
+
+    /** Console adapter; applications can inspect the same operation's typed result. */
     fun loadGame(args: List<String>) {
         if (args.size != 2) {
             Com.Printf("USAGE: load <directory>\n")
             return
         }
-
         Com.Printf("Loading game...\n")
+        when (val result = loadGame(args[1])) {
+            LoadResult.Loaded -> Unit
+            is LoadResult.Rejected -> Com.Printf("Couldn't load save: ${result.reason}\n")
+            is LoadResult.Failed -> Com.Printf("Load failed; server stopped: ${result.reason}\n")
+        }
+    }
 
-        val saveGame: String
-        try {
-            saveGame = ServerSaveJsonStore.normalizeSlot(args[1])
+    /** Preflight preserves the live session; failures after copying begins leave an idle Host. */
+    fun loadGame(slot: String): LoadResult {
+        val saveGame = try {
+            ServerSaveJsonStore.normalizeSlot(slot)
         } catch (_: IllegalArgumentException) {
-            Com.Printf("Bad save name.\n")
-            return
+            return LoadResult.Rejected("Bad save name")
         }
-        if ("current" == saveGame) {
-            Com.Printf("Can't load from 'current'\n")
-            return
-        }
-
-        // make sure the server metadata file exists
-        val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
-        if (!store.hasMapCommand(saveGame)) {
-            val name = EngineWriteRoot.resolve("save/$saveGame/server_mapcmd.ssv.json").toString()
-            Com.Printf("No such savegame: $name\n")
-            return
-        }
+        if (saveGame == "current") return LoadResult.Rejected("Can't load from 'current'")
 
         val prepared = try {
             SavePreflight(EngineWriteRoot.path()).inspect(saveGame)
         } catch (e: Exception) {
-            Com.Printf("Couldn't load save: ${e.message}\n")
-            return
+            return LoadResult.Rejected(e.message ?: "Invalid save")
         }
         val savedMaxClients = prepared.maxClients
         if (games.keys.any { it != "default" } && clients.size != savedMaxClients) {
-            Com.Printf("Can't change saved client capacity while other Games are running\n")
-            return
+            return LoadResult.Rejected("Can't change saved client capacity while other Games are running")
         }
-        val target = prepared.target
-        ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
-        prepareServerSession(restart = true, savedMaxClients = savedMaxClients)
 
-        val transitionClients = clients.filter { it.gameName == null || it.gameName == "default" }
-        val loaded = spawnServerInstance(target, games["default"], transitionClients)
-        loaded.name = "default"
-        games["default"] = loaded
-        transitionClients.forEach { it.gameName = loaded.name }
+        return try {
+            // From here on the shared workspace/resources may be partially replaced.
+            ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
+            prepareServerSession(restart = true, savedMaxClients = savedMaxClients)
+
+            val transitionClients = clients.filter { it.gameName == null || it.gameName == "default" }
+            val loaded = spawnServerInstance(prepared.target, games["default"], transitionClients)
+            loaded.name = "default"
+            games["default"] = loaded
+            transitionClients.forEach { it.gameName = loaded.name }
+            LoadResult.Loaded
+        } catch (failure: Exception) {
+            recoverFailedLoad(failure)
+            LoadResult.Failed(failure.message ?: "Save restoration failed", failure)
+        }
+    }
+
+    private fun recoverFailedLoad(failure: Exception) {
+        try {
+            stop("Load failed\n", false)
+        } catch (cleanupFailure: Exception) {
+            // stop clears Host state in finally even if notifying clients fails.
+            failure.addSuppressed(cleanupFailure)
+        } finally {
+            NET.configureServer(false)
+            paused.forceSet(false)
+            Cvar.getInstance().find<String>("mapname").forceSet("")
+            for (i in challenges.indices) challenges[i] = challenge_t()
+            // Keep ordinary queued commands (e.g. a subsequent map); only abandon session-deferred work.
+            Cbuf.ClearDeferred()
+        }
     }
 
     /*

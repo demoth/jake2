@@ -310,13 +310,100 @@ class HostSessionPreparationTest {
         assertEquals(original, Files.readString(root.resolve("save/slot/game.ssv.json")))
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["copy", "game", "level", "idle"])
+    fun `late load failure leaves idle Host and allows retry`(stage: String) {
+        save(true)
+        // A shared-state failure must also discard unrelated Games, not leave half a Host alive.
+        val other = host.createGameInstance(ChangeMapInfo("testbox2", false, false), null)
+        host.games[other.name] = other
+        host.clients[1].gameName = other.name
+        cvars.find<Boolean>("paused").forceSet(true)
+        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        if (stage == "idle") {
+            host.stop("test", false)
+            NET.configureServer(false)
+        }
+        val path = when (stage) {
+            "copy" -> root.resolve("save/current/game.ssv.json")
+            "game" -> root.resolve("save/slot/game.ssv.json")
+            else -> root.resolve("save/slot/testbox.sav.json")
+        }
+        val original = Files.readString(path)
+        when (stage) {
+            "copy" -> {
+                Files.delete(path)
+                Files.createDirectory(path)
+                Files.writeString(path.resolve("blocker"), "nonempty directory")
+            }
+            // These have valid envelopes, but invalid typed gameplay data/reference indices.
+            "game" -> Files.writeString(path, original.replace("\"playerState\":", "\"missingPlayerState\":"))
+            else -> Files.writeString(path, original.replace("\"entityNumber\":0", "\"entityNumber\":999999"))
+        }
+        var deferredRan = false
+        jake2.qcommon.exec.Cmd.AddCommand("test_failed_load_deferred") { deferredRan = true }
+        try {
+            jake2.qcommon.exec.Cbuf.AddText("test_failed_load_deferred")
+            jake2.qcommon.exec.Cbuf.CopyToDefer()
+            val result = host.loadGame("slot")
+            assertInstanceOf(ServerHost.LoadResult.Failed::class.java, result)
+            assertTrue(host.games.isEmpty())
+            assertTrue(host.clients.isEmpty())
+            assertFalse(host.isPaused)
+            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+            assertEquals(ServerStates.SS_DEAD, Globals.server_state)
+            assertEquals("", cvars.find<String>("mapname").typedValue)
+            assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("load"))
+            host.update(100)
+            jake2.qcommon.exec.Cbuf.InsertFromDefer()
+            jake2.qcommon.exec.Cbuf.Execute()
+            assertFalse(deferredRan)
+
+            if (stage == "copy") {
+                Files.delete(path.resolve("blocker"))
+                Files.delete(path)
+            }
+            Files.writeString(path, original)
+            assertEquals(ServerHost.LoadResult.Loaded, host.loadGame("slot"))
+            assertEquals("testbox", host.games.getValue("default").mapName)
+        } finally {
+            jake2.qcommon.exec.Cmd.RemoveCommand("test_failed_load_deferred")
+        }
+    }
+
+    @Test
+    fun `load port failure leaves reusable idle Host`() {
+        save(true)
+        host.stop("test", false)
+        NET.configureServer(false)
+        java.net.DatagramSocket(0).use { occupied ->
+            cvars.find<Int>("port").forceSet(occupied.localPort)
+            assertInstanceOf(ServerHost.LoadResult.Failed::class.java, host.loadGame("slot"))
+            assertTrue(host.games.isEmpty())
+            assertTrue(host.clients.isEmpty())
+            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        }
+        cvars.find<Int>("port").forceSet(0)
+        assertEquals(ServerHost.LoadResult.Loaded, host.loadGame("slot"))
+    }
+
+    @Test
+    fun `console load failure does not abort following startup command`() {
+        save(false)
+        val file = root.resolve("save/slot/testbox.sav.json")
+        Files.writeString(file, Files.readString(file).replace("\"entityNumber\":0", "\"entityNumber\":999999"))
+        jake2.qcommon.exec.Cbuf.AddText("load slot; map testbox2")
+        jake2.qcommon.exec.Cbuf.Execute()
+        assertEquals("testbox2", host.games.getValue("default").mapName)
+    }
+
     @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
         val game = host.games.getValue("default")
         val client = host.clients[0]
         Files.writeString(root.resolve("save/slot/server_latched_cvars.ssv.json"), "invalid")
-        host.loadGame(listOf("load", "slot"))
+        assertInstanceOf(ServerHost.LoadResult.Rejected::class.java, host.loadGame("slot"))
         assertSame(game, host.games["default"])
         assertSame(client, host.clients[0])
     }

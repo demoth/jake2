@@ -240,9 +240,7 @@ public class GameImportsImpl implements GameImports {
             Constructor<?> constructor = game.getConstructor(GameImports.class);
             return (GameExports) constructor.newInstance(this);
         } catch (Exception e) {
-            e.printStackTrace();
-            Com.Error(Defines.ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
-            return null;
+            throw new IllegalStateException("Could not initialise game subsystem", e);
         }
     }
 
