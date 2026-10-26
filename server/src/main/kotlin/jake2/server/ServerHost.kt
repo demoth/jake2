@@ -760,8 +760,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     /**
      * If a packet has not been received from a client for the configured timeout
-     * in seconds, drop the connection. Server frames are used instead of realtime
-     * to avoid dropping the local client while debugging.
+     * in seconds, drop the connection. All connection timestamps use Host elapsed
+     * time, independent of Game replacement and simulation clocks.
      *
      * When a client is normally dropped, the ClientNetworkInfo goes into a zombie state
      * for a few seconds to make sure any final reliable message gets resent if
@@ -771,12 +771,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         for (cl in clients) {
             if (cl.state == ClientStates.CS_FREE) continue
 
-            val game: GameImportsImpl = games[cl.gameName]!!
-            val droppoint = (game.realtime - 1000 * timeout.typedValue).toInt()
-            val zombiepoint = (game.realtime - 1000 * zombieTimeout.typedValue).toInt()
-
-            // message times may be wrong across a changelevel
-            if (cl.lastmessage > game.realtime) cl.lastmessage = game.realtime
+            val droppoint = realtime - (1000 * timeout.typedValue).toLong()
+            val zombiepoint = realtime - (1000 * zombieTimeout.typedValue).toLong()
 
             if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
                 cl.state = ClientStates.CS_FREE // can now be reused
@@ -823,8 +819,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         for (cl in clients) {
             if (cl.state == ClientStates.CS_FREE) continue
-
-            if ((games[cl.gameName]!!.frameNum and 15) != 0) continue
 
             cl.commandMsec = 1800 // 1600 + some slop
         }
@@ -1052,8 +1046,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         client.state = ClientStates.CS_CONNECTED
 
-        client.lastmessage = gameImports.realtime // don't timeout
-        client.lastconnect = gameImports.realtime
+        client.lastmessage = realtime // don't timeout
+        client.lastconnect = realtime
         Com.DPrintf("new client added.\n")
     }
 
@@ -1133,6 +1127,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             client.download = null
         }
 
+        client.lastmessage = realtime // start the zombie grace period on the Host clock
         client.state = ClientStates.CS_ZOMBIE // become free in a few seconds
         client.name = ""
     }
@@ -1174,7 +1169,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 if (cl.netchan.accept(networkPacket)) {
                     // this is a valid, sequenced packet, so process it
                     if (cl.state != ClientStates.CS_ZOMBIE) {
-                        cl.lastmessage = games[cl.gameName]!!.realtime // don't timeout
+                        cl.lastmessage = realtime // don't timeout
                         val body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence)
                         if (body == null) dropClient(cl)
                         else handleClientMessages(cl, body)
@@ -1216,7 +1211,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     cl.lastReceivedFrame = lastReceivedFrame
                     if (cl.lastReceivedFrame > 0) {
                         val frameLatency =
-                            games[cl.gameName]!!.realtime - cl.frames[cl.lastReceivedFrame and Defines.UPDATE_MASK].senttime
+                            (realtime - cl.frames[cl.lastReceivedFrame and Defines.UPDATE_MASK].senttime)
+                                .coerceIn(0, Int.MAX_VALUE.toLong()).toInt()
                         cl.frame_latency[cl.lastReceivedFrame and (Defines.LATENCY_COUNTS - 1)] = frameLatency
                     }
                 }
@@ -1733,10 +1729,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         unreliable.addAll(client.unreliable)
         client.unreliable.clear()
         // send the datagram
+        client.frames[gameImports.frameNum and Defines.UPDATE_MASK].senttime = realtime
         client.netchan.transmit(unreliable)
 
         // record the size for rate estimation
-        client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] =
+        client.message_size[frameNum % Defines.RATE_MESSAGES] =
             unreliable.sumOf { it.size }
     }
 
@@ -1756,7 +1753,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // SV_BroadcastPrintf message
         client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n")
         dropClient(client)
-        client.lastmessage = games[client.gameName]!!.realtime // min case there is a funny zombie
     }
 
     private fun printStatus() {
@@ -1787,7 +1783,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             Com.Printf(cl.name.padEnd(16))
-            val lastMessageAge = games[cl.gameName]!!.realtime - cl.lastmessage
+            val lastMessageAge = realtime - cl.lastmessage
             Com.Printf(lastMessageAge.toString().padStart(7) + " ")
             Com.Printf(cl.netchan.remote_address.toString().padEnd(22))
             Com.Printf(cl.netchan.qport.toString().padStart(5))

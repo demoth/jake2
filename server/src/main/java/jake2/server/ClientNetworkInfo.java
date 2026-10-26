@@ -85,8 +85,8 @@ public class ClientNetworkInfo {
 	int downloadsize; // total bytes (can't use EOF because of paks)
 	int downloadcount; // bytes sent
 
-	int lastmessage; // sv.framenum when packet was last received
-	int lastconnect;
+	long lastmessage; // Host elapsed milliseconds at last packet or start of zombie grace period
+	long lastconnect; // Host elapsed milliseconds at connection acceptance
 
 	int challenge; // challenge of this user, randomly generated
 

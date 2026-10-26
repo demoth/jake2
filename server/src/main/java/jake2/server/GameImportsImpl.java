@@ -1510,7 +1510,6 @@ public class GameImportsImpl implements GameImports {
         // this is the frame we are creating
         client_frame_t frame = client.frames[frameNum & Defines.UPDATE_MASK];
 
-        frame.senttime = realtime; // save it for ping calc later
 
         // find the client's PVS
         int i;
