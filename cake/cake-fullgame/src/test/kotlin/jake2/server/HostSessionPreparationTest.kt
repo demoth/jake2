@@ -234,6 +234,32 @@ class HostSessionPreparationTest {
     }
 
     @Test
+    fun `revisited moving entity retains movement component and completes movement`() {
+        host.map(listOf("map", "testbox"))
+        val original = host.games.getValue("default")
+        val gameplay = original.gameExports as jake2.game.GameExportsImpl
+        val mover = gameplay.G_Spawn()
+        mover.classname = "saved_mover"
+        mover.movetype = jake2.game.GameDefines.MOVETYPE_PUSH
+        val movement = jake2.game.components.MoveInfo(speed = 100f, accel = 100f, decel = 100f)
+        mover.components[jake2.game.components.MoveInfo::class.java.name] = movement
+        val completed = jake2.game.adapters.SuperAdapter.registerThink("test_saved_mover_done") { self, _ ->
+            self.health = 73
+            true
+        }
+        jake2.game.func.startMovement(mover, jake2.qcommon.math.Vector3f(100f, 0f, 0f), completed, gameplay)
+        movement.remaining_distance = 5f
+        mover.think.action = jake2.game.adapters.SuperAdapter.think("move_final")
+        mover.think.nextTime = gameplay.level.time + Defines.FRAMETIME
+        val index = mover.index
+        host.changeMap(listOf("gamemap", "testbox2"))
+        host.changeMap(listOf("gamemap", "testbox"))
+        val restored = host.games.getValue("default").gameExports.getEdict(index) as jake2.game.GameEntity
+        assertEquals(73, restored.health)
+        assertNotNull(restored.components[jake2.game.components.MoveInfo::class.java.name])
+    }
+
+    @Test
     fun `explicit load restores archived state`() {
         save(false)
         val original = host.games.getValue("default")

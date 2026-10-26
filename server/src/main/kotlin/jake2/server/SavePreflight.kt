@@ -56,7 +56,8 @@ internal class SavePreflight(private val root: Path) {
         // Level-entry autosaves intentionally have no archive for the new map yet.
         if (!autoSaved && target.state == ServerStates.SS_GAME) archives.add(target.mapName)
         for (name in archives) {
-            val level = readEnvelope(directory.resolve("$name.sav.json"))
+            // Gameplay level v2 includes the component state required by restored callbacks.
+            val level = readEnvelope(directory.resolve("$name.sav.json"), version = 2)
             require(level["level"] is Map<*, *> && level["entities"] is List<*>) { "Incomplete level: $name" }
             val server = ServerLevelJsonStore.forWriteDir(root.toString()).readLevelState(slot, name)
             require(server.schemaVersion == ServerLevelJsonStore.SCHEMA_VERSION) { "Unsupported server level version" }
@@ -65,9 +66,9 @@ internal class SavePreflight(private val root: Path) {
         return PreparedSave(target, capacity)
     }
 
-    private fun readEnvelope(path: Path): Map<*, *> = Files.newInputStream(path).use {
+    private fun readEnvelope(path: Path, version: Int = 1): Map<*, *> = Files.newInputStream(path).use {
         val value = SaveJson.read(it, Map::class.java)
-        require(value["schemaVersion"] == 1) { "Unsupported save version: ${path.fileName}" }
+        require(value["schemaVersion"] == version) { "Unsupported save version: ${path.fileName}" }
         value
     }
 }
