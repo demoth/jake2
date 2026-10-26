@@ -209,7 +209,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED)
                     players++;
 
-            info = SV_MAIN.hostname.getTypedValue() + " " + games.get("default").sv.name + " " + players + "/" + clients.size() + "\n";
+            info = SV_MAIN.hostname.getTypedValue() + " " + games.get("default").mapName + " " + players + "/" + clients.size() + "\n";
         }
 
         return info;
@@ -273,7 +273,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
 
 
 /*
-        if (gameImports.sv.isDemo) {
+        if (gameImports.isDemo) {
             if (!adr.IsLocalAddress()) {
                 Com.Printf("Remote connect in attract loop.  Ignored.\n");
                 Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.print, "\nConnection refused.\n");
@@ -567,7 +567,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 SV_DropClient(c);
             }
 
-            if (game.sv.state == ServerStates.SS_CINEMATIC || game.sv.state == ServerStates.SS_DEMO || game.sv.state == ServerStates.SS_PIC) {
+            if (game.state == ServerStates.SS_CINEMATIC || game.state == ServerStates.SS_DEMO || game.state == ServerStates.SS_PIC) {
                 // leftover from demo code
                 c.netchan.transmit(null);
             } else if (c.state == ClientStates.CS_SPAWNED) {
@@ -852,7 +852,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
             return;
         }
 
-        if (game.sv.state == ServerStates.SS_GAME)
+        if (game.state == ServerStates.SS_GAME)
             game.gameExports.ClientCommand(cl.edict, args);
     }
 
@@ -931,7 +931,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
             if (cl.state == ClientStates.CS_FREE)
                 continue;
 
-            if ((games.get(cl.gameName).sv.framenum & 15) != 0)
+            if ((games.get(cl.gameName).frameNum & 15) != 0)
                 continue;
 
             cl.commandMsec = 1800; // 1600 + some slop
@@ -1285,7 +1285,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         } else { // save the map just exited
             // note: only applicable to the default instance (subject to change in future)
             var gameImports = games.get("default");
-            if (gameImports != null && gameImports.sv.state == ServerStates.SS_GAME) {
+            if (gameImports != null && gameImports.state == ServerStates.SS_GAME) {
                 // clear all the client inuse flags before saving so that
                 // when the level is re-entered, the clients will spawn
                 // at spawn points instead of occupying body shells
@@ -1396,7 +1396,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         // precache and static commands can be issued during
         // map initialization
-        Globals.server_state = gameImports.sv.state; // LOADING
+        Globals.server_state = gameImports.state; // LOADING
 
         if (oldGame != null && !changeMapInfo.isLoadgame) {
             // copy persistent data between instances.
@@ -1406,15 +1406,15 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
 
         // spawn fresh entities
-        gameImports.gameExports.SpawnEntities(gameImports.sv.name, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
+        gameImports.gameExports.SpawnEntities(gameImports.mapName, gameImports.cm.CM_EntityString(), changeMapInfo.spawnPoint);
 
-        if (gameImports.sv_game.isPreviousLevel(gameImports.sv)) {
+        if (gameImports.sv_game.isPreviousLevel()) {
             // fixme: need to spawn all entities and then remove them,
             //  because otherwise precaching will not work properly - configstrings will not match.
             SV_WORLD.SV_ClearWorld(gameImports);
 
             // loads a stored game, runs 100 frames afterwards
-            gameImports.sv_game.restorePreviousGame(gameImports.sv);
+            gameImports.sv_game.restorePreviousGame();
         } else {
             // run two frames to allow everything to settle
             gameImports.gameExports.G_RunFrame();
@@ -1426,16 +1426,16 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
 
         // Level restoration may replace configstrings, including saves from before air movement was published.
-        gameImports.sv.configstrings[CS_AIRACCEL] = Float.toString(gameImports.airAcceleration);
+        gameImports.configstrings[CS_AIRACCEL] = Float.toString(gameImports.airAcceleration);
 
         // all precaches are complete
-        gameImports.sv.state = changeMapInfo.state;
-        Globals.server_state = gameImports.sv.state;
+        gameImports.state = changeMapInfo.state;
+        Globals.server_state = gameImports.state;
 
 
         // set serverinfo variable
-        Cvar.getInstance().find("mapname", String.class).forceSet(gameImports.sv.name);
-        Com.Println("mapname: " + gameImports.sv.name);
+        Cvar.getInstance().find("mapname", String.class).forceSet(gameImports.mapName);
+        Com.Println("mapname: " + gameImports.mapName);
 
         if (changeMapInfo.state == ServerStates.SS_GAME)
             Cbuf.CopyToDefer();
@@ -1478,7 +1478,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         var game = games.get("default");
 
         if (game != null)
-            game.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
+            game.state = ServerStates.SS_DEAD; // don't save current level when changing
 
         new ServerSaveFiles(EngineWriteRoot.path()).wipe("current");
 

@@ -130,9 +130,9 @@ public class SV_GAME {
             val = "";
 
         // change the string in sv
-        gameImports.sv.configstrings[index] = val;
+        gameImports.configstrings[index] = val;
 
-        if (gameImports.sv.state != ServerStates.SS_LOADING) {
+        if (gameImports.state != ServerStates.SS_LOADING) {
             // send the update to everyone
             gameImports.multicastMessage(null, new ConfigStringMessage(index, val), MulticastTypes.MULTICAST_ALL_R);
         }
@@ -220,8 +220,8 @@ public class SV_GAME {
         if (val == null || val.length() == 0)
             return 0;
 
-        for (i = 1; i < max && gameImports.sv.configstrings[start + i] != null; i++)
-            if (val.equals(gameImports.sv.configstrings[start + i]))
+        for (i = 1; i < max && gameImports.configstrings[start + i] != null; i++)
+            if (val.equals(gameImports.configstrings[start + i]))
                 return i;
 
         if (!create)
@@ -255,38 +255,38 @@ public class SV_GAME {
 
             // take current state as baseline
             Math3D.VectorCopy(svent.s.origin, svent.s.old_origin);
-            gameImports.sv.baselines[entnum].set(svent.s);
+            gameImports.baselines[entnum].set(svent.s);
         }
     }
 
     /**
      * SV_CheckForSavegame.
      */
-    void restorePreviousGame(server_t sv) {
+    void restorePreviousGame() {
 
         // get configstrings and areaportals
         // then read game enitites
         gameImports.readLevelFile();
 
-        if (!sv.loadgame) {
+        if (!gameImports.loadgame) {
             // coming back to a level after being in a different
             // level, so run it for 100 frames
 
-            // assert sv.state == LOADING, otherwise, updates from 100 frames may overflow the reliable channel
+            // assert gameImports.state == LOADING, otherwise, updates from 100 frames may overflow the reliable channel
             for (int i = 0; i < 100; i++) {
                 gameImports.gameExports.G_RunFrame();
             }
         }
     }
 
-    boolean isPreviousLevel(server_t sv) {
+    boolean isPreviousLevel() {
         if (Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
             return false;
 
         if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue())
             return false;
 
-        String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();
+        String name = EngineWriteRoot.resolve("save/current/" + gameImports.mapName + ".sav.json").toString();
 
         return new File(name).exists();
 

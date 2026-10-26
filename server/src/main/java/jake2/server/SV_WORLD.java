@@ -117,7 +117,7 @@ class SV_WORLD {
      */
     static void SV_ClearWorld(GameImportsImpl gameImports) {
         gameImports.world.clearAreaNodes();
-        SV_CreateAreaNode(0, gameImports.sv.models[1].mins, gameImports.sv.models[1].maxs, gameImports);
+        SV_CreateAreaNode(0, gameImports.models[1].mins, gameImports.models[1].maxs, gameImports);
         /*
          * Com.p("areanodes:" + sv_numareanodes + " (sollten 32 sein)."); for
          * (int n = 0; n < sv_numareanodes; n++) { Com.Printf( "|%3i|%2i|%8.2f
@@ -227,7 +227,7 @@ class SV_WORLD {
                 // but nothing should ever need more than that
                 if (ent.areanum != 0 && ent.areanum != area) {
                     if (ent.areanum2 != 0 && ent.areanum2 != area
-                            && gameImports.sv.state == ServerStates.SS_LOADING)
+                            && gameImports.state == ServerStates.SS_LOADING)
                         Com.DPrintf("Object touching 3 areas at "
                                 + ent.absmin[0] + " " + ent.absmin[1] + " "
                                 + ent.absmin[2] + "\n");
@@ -350,7 +350,7 @@ class SV_WORLD {
         int contents, c2;
         int headnode;
         // get base contents from world
-        contents = gameImports.cm.PointContents(p, gameImports.sv.models[1].headnode);
+        contents = gameImports.cm.PointContents(p, gameImports.models[1].headnode);
         // or in contents from all the other entities
         num = SV_AreaEdicts(p, p, gameImports.world.touch, Defines.MAX_EDICTS, Defines.AREA_SOLID, gameImports);
         for (i = 0; i < num; i++) {
@@ -379,7 +379,7 @@ class SV_WORLD {
         // decide which clipping hull to use, based on the size
         if (ent.solid == Defines.SOLID_BSP) {
             // explicit hulls in the BSP model
-            model = gameImports.sv.models[ent.s.modelindex];
+            model = gameImports.models[ent.s.modelindex];
             if (null == model)
                 Com.Error(Defines.ERR_FATAL,
                         "MOVETYPE_PUSH with a non bsp model");

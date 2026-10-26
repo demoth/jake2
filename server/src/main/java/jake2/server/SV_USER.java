@@ -91,7 +91,7 @@ class SV_USER {
         // send full levelname
 
         final int clientIndex;
-        if (gameImports.sv.state == ServerStates.SS_CINEMATIC || gameImports.sv.state == ServerStates.SS_PIC)
+        if (gameImports.state == ServerStates.SS_CINEMATIC || gameImports.state == ServerStates.SS_PIC)
             clientIndex = -1;
         else
             clientIndex = client.edict.index - 1;
@@ -101,15 +101,15 @@ class SV_USER {
                 new ServerDataMessage(
                         Defines.PROTOCOL_VERSION,
                         gameImports.spawncount,
-                        gameImports.sv.isDemo,
+                        gameImports.isDemo,
                         gamedir,
                         clientIndex,
-                        gameImports.sv.configstrings[Defines.CS_NAME]
+                        gameImports.configstrings[Defines.CS_NAME]
                 ));
         //
         // game server
         // 
-        if (gameImports.sv.state == ServerStates.SS_GAME) {
+        if (gameImports.state == ServerStates.SS_GAME) {
             // set up the entity for the client
             ServerEntity ent = gameImports.gameExports.getEdict(clientIndex + 1);
             ent.s.index = clientIndex + 1;
@@ -146,8 +146,8 @@ class SV_USER {
         // write a packet full of data
         int currentReliableSize = client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
-            if (gameImports.sv.configstrings[start] != null && gameImports.sv.configstrings[start].length() != 0) {
-                final ConfigStringMessage config = new ConfigStringMessage(start, gameImports.sv.configstrings[start]);
+            if (gameImports.configstrings[start] != null && gameImports.configstrings[start].length() != 0) {
+                final ConfigStringMessage config = new ConfigStringMessage(start, gameImports.configstrings[start]);
                 currentReliableSize += config.getSize();
                 client.netchan.reliablePending.add(config);
             }
@@ -191,7 +191,7 @@ class SV_USER {
         // write a packet full of data
         int currentReliableSize = client.netchan.reliablePending.stream().mapToInt(NetworkMessage::getSize).sum();
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
-            entity_state_t base = gameImports.sv.baselines[start];
+            entity_state_t base = gameImports.baselines[start];
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 final SpawnBaselineMessage spawn = new SpawnBaselineMessage(base);
                 currentReliableSize += spawn.getSize();
@@ -359,8 +359,8 @@ class SV_USER {
     static void SV_Nextserver(GameImportsImpl gameImports) {
 
         //ZOID, ss_pic can be nextserver'd in coop mode
-        if (gameImports.sv.state == ServerStates.SS_GAME
-                || (gameImports.sv.state == ServerStates.SS_PIC && !Cvar.getInstance().find("coop", Boolean.class).getTypedValue()))
+        if (gameImports.state == ServerStates.SS_GAME
+                || (gameImports.state == ServerStates.SS_PIC && !Cvar.getInstance().find("coop", Boolean.class).getTypedValue()))
             return; // can't nextserver while playing a normal game
 
         gameImports.spawncount++; // make sure another doesn't sneak in

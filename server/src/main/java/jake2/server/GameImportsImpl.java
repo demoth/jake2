@@ -50,12 +50,7 @@ import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
 import static jake2.qcommon.Defines.CS_MODELS;
 import static jake2.qcommon.exec.Cmd.getArguments;
 
-/*
- Collection of functions provided by the main engine.
- Also serves as the holder of game state from the server side
-
- todo make singleton (same as game exports)
-*/
+/** Owns one server-side game instance and exposes engine services to its gameplay module. */
 @SuppressWarnings("deprecation")
 public class GameImportsImpl implements GameImports {
 
@@ -63,8 +58,15 @@ public class GameImportsImpl implements GameImports {
     final JakeServer serverMain;
     public GameExports gameExports;
 
-    // local (instance) server state
-    public server_t sv;
+    // Per-game map state. The routing name above is independent of the loaded map name.
+    final String mapName;
+    ServerStates state;
+    final boolean isDemo;
+    final boolean loadgame;
+    int frameNum;
+    final cmodel_t[] models = new cmodel_t[Defines.MAX_MODELS];
+    final String[] configstrings = new String[Defines.MAX_CONFIGSTRINGS];
+    final entity_state_t[] baselines = new entity_state_t[Defines.MAX_EDICTS];
 
     public int realtime; // always increasing, no clamping, etc
     // todo: remove
@@ -111,23 +113,29 @@ public class GameImportsImpl implements GameImports {
 
         // heartbeats will always be sent to the id master
 
-        // create local server state
-        sv = new server_t(changeMapInfo);
+        mapName = changeMapInfo.mapName;
+        state = ServerStates.SS_LOADING;
+        isDemo = changeMapInfo.isDemo;
+        loadgame = changeMapInfo.isLoadgame;
+        for (int i = 0; i < models.length; i++) models[i] = new cmodel_t();
+        for (int i = 0; i < baselines.length; i++) baselines[i] = new entity_state_t();
+        // Fallback for maps that do not supply a display name.
+        configstrings[Defines.CS_NAME] = mapName;
 
         int[] iw = { 0 };
         if (changeMapInfo.state == ServerStates.SS_GAME) {
-            sv.configstrings[CS_MODELS + 1] = "maps/" + changeMapInfo.mapName + ".bsp";
-            sv.models[1] = cm.CM_LoadMap(sv.configstrings[CS_MODELS + 1], false, iw);
+            configstrings[CS_MODELS + 1] = "maps/" + changeMapInfo.mapName + ".bsp";
+            models[1] = cm.CM_LoadMap(configstrings[CS_MODELS + 1], false, iw);
         } else {
-            sv.models[1] = cm.CM_LoadMap("", false, iw); // no real map
+            models[1] = cm.CM_LoadMap("", false, iw); // no real map
         }
-        sv.configstrings[CS_MAPCHECKSUM] = "" + iw[0];
+        configstrings[CS_MAPCHECKSUM] = "" + iw[0];
 
         for (int i = 1; i < cm.CM_NumInlineModels(); i++) {
-            sv.configstrings[CS_MODELS + 1 + i] = "*" + i;
+            configstrings[CS_MODELS + 1 + i] = "*" + i;
 
             // copy references
-            sv.models[i + 1] = cm.InlineModel(sv.configstrings[CS_MODELS + 1 + i]);
+            models[i + 1] = cm.InlineModel(configstrings[CS_MODELS + 1 + i]);
         }
 
 
@@ -144,7 +152,7 @@ public class GameImportsImpl implements GameImports {
         configuredAirAcceleration = Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue();
         airAcceleration = Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()
                 ? configuredAirAcceleration : 0f;
-        sv.configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
+        configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
 
         // clear physics interaction links
         // Q: is it required? the instance was just created
@@ -361,7 +369,7 @@ public class GameImportsImpl implements GameImports {
 
     private void SV_Savegame_f(List<String> args) {
 
-        if (sv.state != ServerStates.SS_GAME) {
+        if (state != ServerStates.SS_GAME) {
             Com.Printf("You must be in a game to save.\n");
             return;
         }
@@ -454,7 +462,7 @@ public class GameImportsImpl implements GameImports {
             Com.Printf("No server running.\n");
             return;
         }
-        Com.Printf("map              : " + sv.name + "\n");
+        Com.Printf("map              : " + mapName + "\n");
 
         Com.Printf("num score ping name            lastmsg address               qport \n");
         Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
@@ -612,7 +620,7 @@ public class GameImportsImpl implements GameImports {
         // don't run the world, otherwise the delta
         // compression can get confused when a client
         // has the "current" frame
-        sv.framenum++;
+        frameNum++;
 
         if (SV_MAIN.sv_paused != null && SV_MAIN.sv_paused.getTypedValue() && serverMain.getClients().size() <= 1) {
             return;
@@ -633,7 +641,7 @@ public class GameImportsImpl implements GameImports {
     void SV_BroadcastCommand(String s) {
 
         //fixme: check if server is running
-        if (sv.state == ServerStates.SS_DEAD)
+        if (state == ServerStates.SS_DEAD)
             return;
 
         for (ClientNetworkInfo client : serverMain.getClients()) {
@@ -649,13 +657,13 @@ public class GameImportsImpl implements GameImports {
 
         try {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
-            store.applyLevelState(store.readLevelState("current", sv.name), sv.configstrings, cm);
+            store.applyLevelState(store.readLevelState("current", mapName), configstrings, cm);
         } catch (Exception e) {
-            Com.Printf("Failed to open current level state for " + sv.name + "\n");
+            Com.Printf("Failed to open current level state for " + mapName + "\n");
             e.printStackTrace();
         }
 
-        String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();
+        String name = EngineWriteRoot.resolve("save/current/" + mapName + ".sav.json").toString();
         gameExports.ReadLevel(name);
     }
 
@@ -665,14 +673,14 @@ public class GameImportsImpl implements GameImports {
 
         try {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
-            store.writeLevelState("current", sv.name, sv.configstrings, cm.portalopen);
+            store.writeLevelState("current", mapName, configstrings, cm.portalopen);
         }
         catch (Exception e) {
-            Com.Printf("Failed to write current level state for " + sv.name + "\n");
+            Com.Printf("Failed to write current level state for " + mapName + "\n");
             e.printStackTrace();
         }
 
-        String name = EngineWriteRoot.resolve("save/current/" + sv.name + ".sav.json").toString();
+        String name = EngineWriteRoot.resolve("save/current/" + mapName + ".sav.json").toString();
         gameExports.WriteLevel(name);
     }
 
@@ -695,9 +703,9 @@ public class GameImportsImpl implements GameImports {
 
             final String comment;
             if (autosave) {
-                comment = "Autosave in " + sv.configstrings[Defines.CS_NAME];
+                comment = "Autosave in " + configstrings[Defines.CS_NAME];
             } else {
-                comment = new Date() + " " + sv.configstrings[Defines.CS_NAME];
+                comment = new Date() + " " + configstrings[Defines.CS_NAME];
             }
 
             store.writeMapCommand("current", comment, mapcmd);

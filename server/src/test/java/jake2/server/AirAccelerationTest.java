@@ -153,6 +153,6 @@ class AirAccelerationTest {
     private static void assertMovementSetting(GameImportsImpl game, pmove_t movement, float expected) {
         game.Pmove(movement);
         assertEquals(expected, movement.airAccelerate);
-        assertEquals(Float.toString(expected), game.sv.configstrings[CS_AIRACCEL]);
+        assertEquals(Float.toString(expected), game.configstrings[CS_AIRACCEL]);
     }
 }

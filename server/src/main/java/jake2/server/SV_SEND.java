@@ -197,7 +197,7 @@ public class SV_SEND {
 		client.netchan.transmit(unreliable);
 
 		// record the size for rate estimation
-		client.message_size[gameImports.sv.framenum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
+		client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
 	}
 
 }

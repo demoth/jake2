@@ -55,7 +55,33 @@ public class GameImportsTest {
 
         testInstance.SV_RunGameFrame(100);
 
-        Assertions.assertEquals(1, testInstance.sv.framenum);
+        Assertions.assertEquals(1, testInstance.frameNum);
+    }
+
+    @Test
+    public void gamesKeepIndependentMapStateAndFrameCounters() {
+        manager = new SV_MAIN();
+        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
+
+        Assertions.assertEquals("testbox", first.mapName);
+        Assertions.assertEquals("testbox2", second.mapName);
+        Assertions.assertNotEquals(first.name, second.name);
+        Assertions.assertEquals(ServerStates.SS_LOADING, second.state);
+        Assertions.assertNotSame(first.models, second.models);
+        Assertions.assertNotSame(first.baselines[1], second.baselines[1]);
+        String secondMapLabel = second.configstrings[jake2.qcommon.Defines.CS_NAME];
+
+        first.configstrings[jake2.qcommon.Defines.CS_NAME] = "changed first map";
+        first.baselines[1].modelindex = 7;
+        first.state = ServerStates.SS_GAME;
+        first.SV_RunGameFrame(100);
+
+        Assertions.assertEquals(1, first.frameNum);
+        Assertions.assertEquals(0, second.frameNum);
+        Assertions.assertEquals(secondMapLabel, second.configstrings[jake2.qcommon.Defines.CS_NAME]);
+        Assertions.assertEquals(0, second.baselines[1].modelindex);
+        Assertions.assertEquals(ServerStates.SS_LOADING, second.state);
     }
 
     @Test

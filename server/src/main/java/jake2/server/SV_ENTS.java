@@ -89,14 +89,14 @@ public class SV_ENTS {
         // now, build the messages
         List<ServerMessage> result = new ArrayList<>();
         // this is the frame we are creating
-        client_frame_t currentFrame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
+        client_frame_t currentFrame = client.frames[gameImports.frameNum & Defines.UPDATE_MASK];
         client_frame_t lastReceivedFrame;
         int lastReceivedFrameNum;
         // client is asking for a retransmit
         if (client.lastReceivedFrame <= 0) {
             lastReceivedFrame = null;
             lastReceivedFrameNum = -1;
-        } else if (gameImports.sv.framenum - client.lastReceivedFrame >= (Defines.UPDATE_BACKUP - 3)) {
+        } else if (gameImports.frameNum - client.lastReceivedFrame >= (Defines.UPDATE_BACKUP - 3)) {
             // client hasn't gotten a good message through in a long time
             // Com_Printf ("%s: Delta request from out-of-date packet.\n",
             // client.name);
@@ -109,7 +109,7 @@ public class SV_ENTS {
         }
 
         result.add(new FrameHeaderMessage(
-                gameImports.sv.framenum,
+                gameImports.frameNum,
                 lastReceivedFrameNum,
                 client.surpressCount,
                 currentFrame.areabytes,
@@ -127,7 +127,7 @@ public class SV_ENTS {
                 lastReceivedFrame,
                 currentFrame,
                 clientEntityStates,
-                gameImports.sv.baselines,
+                gameImports.baselines,
                 gameImports.serverMain.getClients().size());
         result.add(packetEntities);
         return result;
@@ -266,7 +266,7 @@ public class SV_ENTS {
             return; // not in game yet
 
         // this is the frame we are creating
-        client_frame_t frame = client.frames[gameImports.sv.framenum & Defines.UPDATE_MASK];
+        client_frame_t frame = client.frames[gameImports.frameNum & Defines.UPDATE_MASK];
 
         frame.senttime = gameImports.realtime; // save it for ping calc later
 
