@@ -288,7 +288,7 @@ class ServerHost : AutoCloseable {
     fun startMap(mapName: String): Boolean {
         val result = map(mapName)
         reportTransition("map", result)
-        return result == TransitionResult.Completed
+        return result == OperationResult.Completed
     }
 
     /** Release this manager's console hooks after ending its last session.  */
@@ -426,10 +426,10 @@ class ServerHost : AutoCloseable {
         return GameImportsImpl.create(this, changeMapInfo, previous)
     }
 
-    sealed interface TransitionResult {
-        data object Completed : TransitionResult
-        data class Rejected(val reason: String) : TransitionResult
-        data class Failed(val reason: String, val cause: Exception) : TransitionResult
+    sealed interface OperationResult {
+        data object Completed : OperationResult
+        data class Rejected(val reason: String) : OperationResult
+        data class Failed(val reason: String, val cause: Exception) : OperationResult
     }
 
     /** Console adapter; applications can inspect the same operation's typed result. */
@@ -443,22 +443,22 @@ class ServerHost : AutoCloseable {
     }
 
     /** Preflight preserves the live session; failures after copying begins leave an idle Host. */
-    fun loadGame(slot: String): TransitionResult {
+    fun loadGame(slot: String): OperationResult {
         val saveGame = try {
             ServerSaveJsonStore.normalizeSlot(slot)
         } catch (_: IllegalArgumentException) {
-            return TransitionResult.Rejected("Bad save name")
+            return OperationResult.Rejected("Bad save name")
         }
-        if (saveGame == "current") return TransitionResult.Rejected("Can't load from 'current'")
+        if (saveGame == "current") return OperationResult.Rejected("Can't load from 'current'")
 
         val prepared = try {
             SavePreflight(EngineWriteRoot.path()).inspect(saveGame)
         } catch (e: Exception) {
-            return TransitionResult.Rejected(e.message ?: "Invalid save")
+            return OperationResult.Rejected(e.message ?: "Invalid save")
         }
         val savedMaxClients = prepared.maxClients
         if (games.keys.any { it != "default" } && clients.size != savedMaxClients) {
-            return TransitionResult.Rejected("Can't change saved client capacity while other Games are running")
+            return OperationResult.Rejected("Can't change saved client capacity while other Games are running")
         }
 
         return try {
@@ -471,10 +471,10 @@ class ServerHost : AutoCloseable {
             loaded.name = "default"
             games["default"] = loaded
             transitionClients.forEach { it.gameName = loaded.name }
-            TransitionResult.Completed
+            OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            TransitionResult.Failed(failure.message ?: "Save restoration failed", failure)
+            OperationResult.Failed(failure.message ?: "Save restoration failed", failure)
         }
     }
 
@@ -514,18 +514,18 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         }
         val clientIndex = if (args.size > 2 && args[2].isNotBlank()) args[2].toIntOrNull() else 0
         if (clientIndex == null) {
-            reportTransition("gamemap", TransitionResult.Rejected("Invalid client index"))
+            reportTransition("gamemap", OperationResult.Rejected("Invalid client index"))
             return
         }
         reportTransition("gamemap", changeMap(args[1], clientIndex))
     }
 
-    fun changeMap(level: String, clientIndex: Int = 0): TransitionResult =
+    fun changeMap(level: String, clientIndex: Int = 0): OperationResult =
         transitionMap(level, clientIndex, newSession = false)
 
-    fun map(level: String): TransitionResult = transitionMap(level, 0, newSession = true)
+    fun map(level: String): OperationResult = transitionMap(level, 0, newSession = true)
 
-    private fun transitionMap(level: String, clientIndex: Int, newSession: Boolean): TransitionResult {
+    private fun transitionMap(level: String, clientIndex: Int, newSession: Boolean): OperationResult {
         val target = try {
             val parsed = prepareMapTarget(level)
             require(clientIndex in 0..clients.size) { "Invalid client index: $clientIndex" }
@@ -534,7 +534,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             }
             parsed
         } catch (failure: Exception) {
-            return TransitionResult.Rejected(failure.message ?: "Invalid map request")
+            return OperationResult.Rejected(failure.message ?: "Invalid map request")
         }
 
         // Archival restores temporarily hidden player entities in finally. A write failure here
@@ -543,7 +543,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             try {
                 games["default"]?.takeIf { it.state == ServerStates.SS_GAME }?.archiveLevelForTransition()
             } catch (failure: Exception) {
-                return TransitionResult.Rejected("Could not archive current level: ${failure.message}")
+                return OperationResult.Rejected("Could not archive current level: ${failure.message}")
             }
         }
 
@@ -553,10 +553,10 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             prepareServerSession(restart = newSession)
             EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
             installMap(target, clientIndex)
-            TransitionResult.Completed
+            OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            TransitionResult.Failed(failure.message ?: "Map transition failed", failure)
+            OperationResult.Failed(failure.message ?: "Map transition failed", failure)
         }
     }
 
@@ -570,11 +570,11 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         return target
     }
 
-    private fun reportTransition(operation: String, result: TransitionResult) {
+    private fun reportTransition(operation: String, result: OperationResult) {
         when (result) {
-            TransitionResult.Completed -> Unit
-            is TransitionResult.Rejected -> Com.Printf("$operation rejected: ${result.reason}\n")
-            is TransitionResult.Failed -> Com.Printf("$operation failed; server stopped: ${result.reason}\n")
+            OperationResult.Completed -> Unit
+            is OperationResult.Rejected -> Com.Printf("$operation rejected: ${result.reason}\n")
+            is OperationResult.Failed -> Com.Printf("$operation failed; server stopped: ${result.reason}\n")
         }
     }
 
@@ -685,14 +685,36 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         reportTransition("map", map(args[1]))
     }
 
-    /** Resolve the default Game at execution time; command registration belongs to the Host. */
+    /** Console syntax stays here; Game owns save eligibility and serialization. */
     private fun saveGame(args: List<String>) {
-        val game = games["default"]
-        if (game == null) {
-            Com.Printf("No running default game\n")
+        if (args.size != 2) {
+            Com.Printf("USAGE: save <directory>\n")
             return
         }
-        game.saveGame(args)
+        Com.Printf("Saving game...\n")
+        when (val result = saveGame(args[1])) {
+            OperationResult.Completed -> Com.Printf("Done.\n")
+            is OperationResult.Rejected -> Com.Printf("Save rejected: ${result.reason}\n")
+            is OperationResult.Failed -> Com.Printf("Save failed: ${result.reason}\n")
+        }
+    }
+
+    /** Saving does not replace the live Game; an IO failure leaves it running for retry. */
+    fun saveGame(slot: String): OperationResult {
+        val destination = try {
+            ServerSaveJsonStore.normalizeSlot(slot)
+        } catch (_: IllegalArgumentException) {
+            return OperationResult.Rejected("Bad save name")
+        }
+        if (destination == "current") return OperationResult.Rejected("Can't save to 'current'")
+        val game = games["default"] ?: return OperationResult.Rejected("No running default game")
+        game.saveRejectionReason()?.let { return OperationResult.Rejected(it) }
+        return try {
+            game.saveGame(destination)
+            OperationResult.Completed
+        } catch (failure: Exception) {
+            OperationResult.Failed(failure.message ?: "Save failed", failure)
+        }
     }
 
     // endregion
@@ -1492,15 +1514,15 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             if (games[previous.name] !== previous) continue // replaced or stopped before execution
             val result = continueGame(previous, nextMap)
             reportTransition("Continuation for ${previous.name}", result)
-            if (result is TransitionResult.Failed) break // Recovery invalidated the whole queued batch.
+            if (result is OperationResult.Failed) break // Recovery invalidated the whole queued batch.
         }
     }
 
-    private fun continueGame(previous: GameImportsImpl, nextMap: String): TransitionResult {
+    private fun continueGame(previous: GameImportsImpl, nextMap: String): OperationResult {
         val target = try {
             if (nextMap.isEmpty()) null else prepareMapTarget(nextMap)
         } catch (failure: Exception) {
-            return TransitionResult.Rejected(failure.message ?: "Invalid continuation target")
+            return OperationResult.Rejected(failure.message ?: "Invalid continuation target")
         }
         return try {
             val routedClients = clients.filter { it.gameName == previous.name }
@@ -1519,7 +1541,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     }
                     games.remove(previous.name)
                 }
-                return TransitionResult.Completed
+                return OperationResult.Completed
             }
             // Unit changes and autosaves still share the existing persistence workspace.
             if (target.newUnit) ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
@@ -1530,10 +1552,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 replacement.SV_WriteServerFile(true)
                 ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
             }
-            TransitionResult.Completed
+            OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            TransitionResult.Failed(failure.message ?: "Continuation failed", failure)
+            OperationResult.Failed(failure.message ?: "Continuation failed", failure)
         }
     }
 

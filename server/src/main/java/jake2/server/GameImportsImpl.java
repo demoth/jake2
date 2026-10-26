@@ -839,60 +839,27 @@ public class GameImportsImpl implements GameImports {
     // inheritance and dedicated save/load targeting are decided. All Game save/restore paths
     // currently share EngineWriteRoot/save/current; transitions and unit resets can overwrite
     // another Game's archives. Multi-Game persistence is explicitly deferred; save targets the default Game.
-    void saveGame(List<String> args) {
-
-        if (state != ServerStates.SS_GAME) {
-            Com.Printf("You must be in a game to save.\n");
-            return;
-        }
-
-        if (args.size() != 2) {
-            Com.Printf("USAGE: save <directory>\n");
-            return;
-        }
-
-        if (isDeathmatch()) {
-            Com.Printf("Can't savegame in a deathmatch\n");
-            return;
-        }
-
-        String saveGame;
-        try {
-            saveGame = ServerSaveJsonStore.normalizeSlot(args.get(1));
-        } catch (IllegalArgumentException e) {
-            Com.Printf("Bad save name.\n");
-            return;
-        }
-        if ("current".equals(saveGame)) {
-            Com.Printf("Can't save to 'current'\n");
-            return;
-        }
+    /** Return a user-facing rejection reason, or null when this Game can be saved. */
+    String saveRejectionReason() {
+        if (state != ServerStates.SS_GAME) return "You must be in a game to save.";
+        if (isDeathmatch()) return "Can't savegame in a deathmatch";
 
         if (serverMain.getClients().size() == 1) {
             ClientNetworkInfo client = serverMain.getClients().get(0);
-            if (client.state != ClientStates.CS_SPAWNED || client.edict == null) {
-                Com.Printf("Can't savegame before the player has spawned.\n");
-                return;
-            }
-            if (client.edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0) {
-                Com.Printf("\nCan't savegame while dead!\n");
-                return;
-            }
+            if (client.state != ClientStates.CS_SPAWNED || client.edict == null)
+                return "Can't savegame before the player has spawned.";
+            if (client.edict.getClient().getPlayerState().stats[Defines.STAT_HEALTH] <= 0)
+                return "Can't savegame while dead!";
         }
+        return null;
+    }
 
-        Com.Printf("Saving game...\n");
-
-        // archive current level, including all client edicts.
-        // when the level is reloaded, they will be shells awaiting
-        // a connecting client
+    /** Write this Game to a validated slot; failures propagate to the Host operation boundary. */
+    void saveGame(String slot) {
+        // Archive client bodies as shells awaiting reconnect when the level is restored.
         SV_WriteLevelFile();
-
-        // save server state
         SV_WriteServerFile(false);
-
-        // copy it off
-        new ServerSaveFiles(EngineWriteRoot.path()).copy("current", saveGame);
-        Com.Printf("Done.\n");
+        new ServerSaveFiles(EngineWriteRoot.path()).copy("current", slot);
     }
 
     /**

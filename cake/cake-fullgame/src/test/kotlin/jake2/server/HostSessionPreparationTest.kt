@@ -306,7 +306,7 @@ class HostSessionPreparationTest {
         }
         Files.delete(root.resolve("save/current/game.ssv.json"))
         Files.createDirectory(root.resolve("save/current/game.ssv.json"))
-        assertThrows(IllegalStateException::class.java) { game.saveGame(listOf("save", "slot")) }
+        assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.saveGame("slot"))
         assertEquals(original, Files.readString(root.resolve("save/slot/game.ssv.json")))
     }
 
@@ -346,7 +346,7 @@ class HostSessionPreparationTest {
             jake2.qcommon.exec.Cbuf.AddText("test_failed_load_deferred")
             jake2.qcommon.exec.Cbuf.CopyToDefer()
             val result = host.loadGame("slot")
-            assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, result)
+            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertFalse(host.isPaused)
@@ -364,7 +364,7 @@ class HostSessionPreparationTest {
                 Files.delete(path)
             }
             Files.writeString(path, original)
-            assertEquals(ServerHost.TransitionResult.Completed, host.loadGame("slot"))
+            assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
             assertEquals("testbox", host.games.getValue("default").mapName)
         } finally {
             jake2.qcommon.exec.Cmd.RemoveCommand("test_failed_load_deferred")
@@ -378,13 +378,13 @@ class HostSessionPreparationTest {
         NET.configureServer(false)
         java.net.DatagramSocket(0).use { occupied ->
             cvars.find<Int>("port").forceSet(occupied.localPort)
-            assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, host.loadGame("slot"))
+            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.loadGame("slot"))
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertNull(NET.ip_sockets[Defines.NS_SERVER])
         }
         cvars.find<Int>("port").forceSet(0)
-        assertEquals(ServerHost.TransitionResult.Completed, host.loadGame("slot"))
+        assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
     }
 
     @Test
@@ -404,8 +404,8 @@ class HostSessionPreparationTest {
         val game = host.games.getValue("default")
         val client = host.clients[0]
         val metadata = Files.readString(root.resolve("save/current/server_mapcmd.ssv.json"))
-        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.map(level))
-        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.changeMap(level))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.map(level))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.changeMap(level))
         assertSame(game, host.games["default"])
         assertSame(client, host.clients[0])
         assertEquals(ServerStates.SS_GAME, game.state)
@@ -417,7 +417,7 @@ class HostSessionPreparationTest {
     fun `invalid targeted gamemap leaves session untouched`(clientIndex: Int) {
         save(false)
         val game = host.games.getValue("default")
-        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.changeMap("testbox2", clientIndex))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.changeMap("testbox2", clientIndex))
         assertSame(game, host.games["default"])
     }
 
@@ -430,7 +430,7 @@ class HostSessionPreparationTest {
         Files.createDirectory(blocked)
         Files.writeString(blocked.resolve("blocker"), "prevent replacement")
         val result = if (newSession) host.map("testbox2") else host.changeMap("testbox2")
-        assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, result)
+        assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertFalse(host.isPaused)
@@ -439,7 +439,7 @@ class HostSessionPreparationTest {
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
         Files.delete(blocked.resolve("blocker"))
         Files.delete(blocked)
-        assertEquals(ServerHost.TransitionResult.Completed, host.map("testbox"))
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
     }
 
     @Test
@@ -451,13 +451,13 @@ class HostSessionPreparationTest {
         try {
             java.net.DatagramSocket(0).use { occupied ->
                 cvars.find<Int>("port").forceSet(occupied.localPort)
-                assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, host.changeMap("testbox"))
+                assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.changeMap("testbox"))
                 assertTrue(host.games.isEmpty())
                 assertTrue(host.clients.isEmpty())
                 assertFalse(globalShutdown)
             }
             cvars.find<Int>("port").forceSet(0)
-            assertEquals(ServerHost.TransitionResult.Completed, host.changeMap("testbox"))
+            assertEquals(ServerHost.OperationResult.Completed, host.changeMap("testbox"))
         } finally {
             jake2.qcommon.exec.Cmd.RemoveCommand("cl_drop")
             if (previous != null) jake2.qcommon.exec.Cmd.AddCommand("cl_drop", previous.description, previous.function)
@@ -537,13 +537,84 @@ class HostSessionPreparationTest {
         host.close()
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["server_mapcmd.ssv.json", "game.ssv.json", "destination"])
+    fun `save failures preserve live Game and can be retried`(stage: String) {
+        save(true)
+        val game = host.games.getValue("default")
+        val client = host.clients[0]
+        val blocked = if (stage == "destination") root.resolve("save/slot/game.ssv.json")
+            else root.resolve("save/current/$stage")
+        Files.delete(blocked)
+        Files.createDirectory(blocked)
+        Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        val result = host.saveGame("slot")
+        assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
+        assertSame(game, host.games["default"])
+        assertSame(client, host.clients[0])
+        assertTrue(host.isRunning)
+        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        host.update(100)
+        Files.delete(blocked.resolve("blocker"))
+        Files.delete(blocked)
+        assertEquals(ServerHost.OperationResult.Completed, host.saveGame("slot"))
+        assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
+    }
+
+    @Test
+    fun `save eligibility rejects idle unspawned dead and deathmatch sessions`() {
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("slot"))
+        host.map("testbox")
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("slot"))
+        val game = host.games.getValue("default")
+        val client = host.clients[0]
+        client.state = ClientStates.CS_SPAWNED
+        client.edict = game.gameExports.getEdict(1)
+        client.edict.getClient().playerState.stats[Defines.STAT_HEALTH] = 0
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("slot"))
+        client.edict.getClient().playerState.stats[Defines.STAT_HEALTH] = 100
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("current"))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("../bad"))
+        assertFalse(Files.exists(root.resolve("save/slot")))
+        assertEquals(ServerHost.OperationResult.Completed, host.saveGame("slot"))
+        client.state = ClientStates.CS_FREE
+        cvars.find<Boolean>("deathmatch").forceSet(true)
+        host.map("testbox")
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("dm"))
+        assertFalse(Files.exists(root.resolve("save/dm")))
+    }
+
+    @Test
+    fun `console save failure reports failure and continues queued commands`() {
+        save(true)
+        val blocked = root.resolve("save/current/game.ssv.json")
+        Files.delete(blocked)
+        Files.createDirectory(blocked)
+        val output = StringBuilder()
+        val sink = Com.ConsoleSink { _, message -> output.append(message) }
+        var continued = false
+        jake2.qcommon.exec.Cmd.AddCommand("test_after_save") { continued = true }
+        Com.SetConsoleSink(sink)
+        try {
+            jake2.qcommon.exec.Cbuf.AddText("save slot; test_after_save")
+            jake2.qcommon.exec.Cbuf.Execute()
+            assertTrue(continued)
+            assertTrue(output.contains("Save failed:"))
+            assertFalse(output.contains("Done."))
+            assertTrue(host.isRunning)
+        } finally {
+            Com.ClearConsoleSink(sink)
+            jake2.qcommon.exec.Cmd.RemoveCommand("test_after_save")
+        }
+    }
+
     @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
         val game = host.games.getValue("default")
         val client = host.clients[0]
         Files.writeString(root.resolve("save/slot/server_latched_cvars.ssv.json"), "invalid")
-        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.loadGame("slot"))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.loadGame("slot"))
         assertSame(game, host.games["default"])
         assertSame(client, host.clients[0])
     }

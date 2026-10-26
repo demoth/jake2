@@ -233,7 +233,7 @@ class GameContinuationTest {
             Files.delete(broken.resolve("blocker"))
             Files.delete(broken)
         }
-        assertEquals(ServerHost.TransitionResult.Completed, host.map("testbox"))
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
         assertEquals(1, host.games.size)
         assertEquals("testbox", host.games.getValue("default").mapName)
     }
