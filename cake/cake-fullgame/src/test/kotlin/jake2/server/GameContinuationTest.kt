@@ -12,6 +12,10 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import java.nio.file.Files
+import jake2.qcommon.network.NET
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 class GameContinuationTest {
     @TempDir lateinit var root: Path
@@ -175,6 +179,63 @@ class GameContinuationTest {
         finish(client, replacement)
         host.update(100)
         assertEquals("testbox2", host.games.getValue("default").mapName)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["missing", "*", "unsupported.dm2"])
+    fun `invalid continuation preserves its Game while another queued Game advances`(target: String) {
+        val first = game("default", "intro.cin+$target")
+        val second = game("other", "intro.cin+testbox2")
+        val client = bind(0, first)
+        finish(client, first)
+        finish(bind(1, second), second)
+        host.update(100)
+        assertSame(first, host.games["default"])
+        assertEquals(ClientStates.CS_CONNECTED, client.state)
+        assertEquals("default", client.gameName)
+        assertEquals("testbox2", host.games.getValue("other").mapName)
+        assertNull(first.takeNextMap(), "Rejected continuation remains consumed")
+        assertFalse(client.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["wipe", "restore", "autosave"])
+    fun `late continuation failure stops the batch and permits Host restart`(stage: String) {
+        val first = game("default", "intro.cin+${if (stage == "wipe") "*" else ""}testbox")
+        val second = game("other", "intro.cin+testbox2")
+        finish(bind(0, first), first)
+        finish(bind(1, second), second)
+        Cvar.getInstance().find<Boolean>("paused").forceSet(true)
+        Cvar.getInstance().find<Int>("port").forceSet(0)
+        assertTrue(NET.configureServer(true))
+        val broken = when (stage) {
+            "wipe" -> root.resolve("save/current/game.ssv.json")
+            "autosave" -> root.resolve("save/save0/game.ssv.json")
+            else -> root.resolve("save/current/testbox.sav.json")
+        }
+        if (stage == "restore") {
+            Files.createDirectories(broken.parent)
+            Files.writeString(broken, "invalid level")
+        } else {
+            Files.createDirectories(broken)
+            Files.writeString(broken.resolve("blocker"), "prevent replacement")
+        }
+        host.update(100)
+        assertTrue(host.games.isEmpty())
+        assertTrue(host.clients.isEmpty())
+        assertFalse(host.isPaused)
+        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("gamemap"))
+        host.update(100)
+        assertTrue(host.games.isEmpty(), "Remaining queued continuation must not restart a Game")
+
+        if (stage != "restore") {
+            Files.delete(broken.resolve("blocker"))
+            Files.delete(broken)
+        }
+        assertEquals(ServerHost.TransitionResult.Completed, host.map("testbox"))
+        assertEquals(1, host.games.size)
+        assertEquals("testbox", host.games.getValue("default").mapName)
     }
 
     @Test

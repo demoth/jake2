@@ -530,12 +530,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
     private fun transitionMap(level: String, clientIndex: Int, newSession: Boolean): TransitionResult {
         val target = try {
-            require(level.isNotBlank()) { "Missing map name" }
-            val parsed = ChangeMapInfo(level, false, false)
-            require(parsed.mapName.isNotBlank()) { "Missing map name" }
-            if (parsed.state == ServerStates.SS_GAME) {
-                require(EngineVfs.exists("maps/${parsed.mapName}.bsp")) { "Can't find maps/${parsed.mapName}.bsp" }
-            }
+            val parsed = prepareMapTarget(level)
             require(clientIndex in 0..clients.size) { "Invalid client index: $clientIndex" }
             if (clientIndex != 0) {
                 require(games.containsKey(clients[clientIndex - 1].gameName)) { "Client has no running Game" }
@@ -566,6 +561,16 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             recoverFailedTransition(failure)
             TransitionResult.Failed(failure.message ?: "Map transition failed", failure)
         }
+    }
+
+    private fun prepareMapTarget(level: String): ChangeMapInfo {
+        require(level.isNotBlank()) { "Missing map name" }
+        val target = ChangeMapInfo(level, false, false)
+        require(target.mapName.isNotBlank()) { "Missing map name" }
+        if (target.state == ServerStates.SS_GAME) {
+            require(EngineVfs.exists("maps/${target.mapName}.bsp")) { "Can't find maps/${target.mapName}.bsp" }
+        }
+        return target
     }
 
     private fun reportTransition(operation: String, result: TransitionResult) {
@@ -1498,8 +1503,21 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         pendingContinuations.clear()
         for ((previous, nextMap) in pending) {
             if (games[previous.name] !== previous) continue // replaced or stopped before execution
+            val result = continueGame(previous, nextMap)
+            reportTransition("Continuation for ${previous.name}", result)
+            if (result is TransitionResult.Failed) break // Recovery invalidated the whole queued batch.
+        }
+    }
+
+    private fun continueGame(previous: GameImportsImpl, nextMap: String): TransitionResult {
+        val target = try {
+            if (nextMap.isEmpty()) null else prepareMapTarget(nextMap)
+        } catch (failure: Exception) {
+            return TransitionResult.Rejected(failure.message ?: "Invalid continuation target")
+        }
+        return try {
             val routedClients = clients.filter { it.gameName == previous.name }
-            if (nextMap.isEmpty()) {
+            if (target == null) {
                 if (games.size == 1) {
                     stop("Game sequence ended.\n", false)
                     NET.configureServer(false)
@@ -1515,9 +1533,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     }
                     games.remove(previous.name)
                 }
-                continue
+                return TransitionResult.Completed
             }
-            val target = ChangeMapInfo(nextMap, false, false)
             // Unit changes and autosaves still share the existing persistence workspace.
             if (target.newUnit) ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
             val replacement = spawnServerInstance(target, previous, routedClients)
@@ -1527,6 +1544,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 replacement.SV_WriteServerFile(true)
                 ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
             }
+            TransitionResult.Completed
+        } catch (failure: Exception) {
+            recoverFailedTransition(failure)
+            TransitionResult.Failed(failure.message ?: "Continuation failed", failure)
         }
     }
 
