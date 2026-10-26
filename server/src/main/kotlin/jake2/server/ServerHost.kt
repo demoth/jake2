@@ -43,6 +43,7 @@ class ServerHost : AutoCloseable {
     // region Host state and command dispatch
 
     private val commands = ServerCommands()
+    private val pendingContinuations = linkedMapOf<GameImportsImpl, String>()
     val isRunning: Boolean
         get() = games.isNotEmpty()
 
@@ -149,13 +150,6 @@ class ServerHost : AutoCloseable {
             Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET
         )
         cvars.register("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET)
-        cvars.register(
-            "nextserver",
-            CvarTypes.STRING,
-            "",
-            0,
-            "Console command to execute after a cinematic or picture"
-        )
         cvars.register(
             "maxclients",
             CvarTypes.IntegerType(1, Defines.MAX_CLIENTS),
@@ -324,6 +318,7 @@ class ServerHost : AutoCloseable {
             }
         } finally {
             games.clear()
+            pendingContinuations.clear()
             clients.clear()
             publishLegacyServerState(ServerStates.SS_DEAD)
             realtime = 0
@@ -579,34 +574,32 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
      * SV_Map
      */
     fun spawnServerInstance(changeMapInfo: ChangeMapInfo, clientIndex: Int): GameImportsImpl {
-        publishLegacyServerState(ServerStates.SS_DEAD)
-
         val previous = if (clientIndex != 0)
             games[clients[clientIndex - 1].gameName]
         else
             games["default"]
+        val transitionClients = if (clientIndex == 0) clients.toList() else listOf(clients[clientIndex - 1])
+        return spawnServerInstance(changeMapInfo, previous, transitionClients)
+    }
+
+    private fun spawnServerInstance(
+        changeMapInfo: ChangeMapInfo,
+        previous: GameImportsImpl?,
+        transitionClients: List<ClientNetworkInfo>
+    ): GameImportsImpl {
+        publishLegacyServerState(ServerStates.SS_DEAD)
         previous?.prepareLevelTransition()
 
         val gameImports = createGameInstance(changeMapInfo, previous)
 
-        Cvar.getInstance().find<String>("nextserver")
-            .set("gamemap \"" + changeMapInfo.nextServer + "\"")
-
         Cmd.ExecuteFunction("loading") // for local system
 
-        if (clientIndex == 0) {
-            // leave slots at start for clients only
-            for (cl in clients) { //todo
-                // needs to reconnect
-                if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
-                cl.lastReceivedFrame = -1
+        for (client in transitionClients) {
+            if (client.state == ClientStates.CS_SPAWNED) client.state = ClientStates.CS_CONNECTED
+            client.lastReceivedFrame = -1
+            if (client.state == ClientStates.CS_CONNECTED) {
+                client.netchan.reliablePending.add(StuffTextMessage("changing"))
             }
-            gameImports.SV_BroadcastCommand("changing")
-        } else {
-            val cl = clients[clientIndex - 1]
-            if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
-            cl.lastReceivedFrame = -1
-            gameImports.unicastMessage(clientIndex, StuffTextMessage("changing"), true)
         }
 
         sendClientMessages()
@@ -624,10 +617,10 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         if (changeMapInfo.state == ServerStates.SS_GAME) Cbuf.CopyToDefer()
 
-        if (clientIndex == 0) {
-            gameImports.SV_BroadcastCommand("reconnect") // doesn't really reconnect but rather issues 'NEW' command
-        } else {
-            gameImports.unicastMessage(clientIndex, StuffTextMessage("reconnect"), true)
+        for (client in transitionClients) {
+            if (client.state == ClientStates.CS_CONNECTED) {
+                client.netchan.reliablePending.add(StuffTextMessage("reconnect"))
+            }
         }
         return gameImports
     }
@@ -716,8 +709,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // check timeouts
         checkTimeouts()
 
-        // get packets from clients
+        // Finish packet processing before replacing Games referenced by packet handlers.
         readPackets()
+        runPendingContinuations()
+        if (games.isEmpty()) return
 
         // identify if we need to update the game or it's too early (sleep or skip this update).
         // fixedtime - the time of the next scheduled game update.
@@ -1481,23 +1476,41 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Cbuf.InsertFromDefer()
     }
 
-    private fun advanceCinematic(gameImports: GameImportsImpl) {
-        //ZOID, ss_pic can be nextserver'd in coop mode
-
-        if (gameImports.state == ServerStates.SS_GAME
-            || (gameImports.state == ServerStates.SS_PIC && !Cvar.getInstance()
-                .find<Boolean>("coop").typedValue)
-        ) return  // can't nextserver while playing a normal game
-
-        gameImports.spawncount++ // make sure another doesn't sneak in
-        val v = Cvar.getInstance().find<String>("nextserver").typedValue
-
-        if (v.isEmpty()) Cbuf.AddText("killserver\n")
-        else {
-            Cbuf.AddText(v)
-            Cbuf.AddText("\n")
+    private fun runPendingContinuations() {
+        val pending = pendingContinuations.toList()
+        pendingContinuations.clear()
+        for ((previous, nextMap) in pending) {
+            if (games[previous.name] !== previous) continue // replaced or stopped before execution
+            val routedClients = clients.filter { it.gameName == previous.name }
+            if (nextMap.isEmpty()) {
+                if (games.size == 1) {
+                    stop("Game sequence ended.\n", false)
+                    NET.configureServer(false)
+                } else {
+                    sendFinalMessage("Game sequence ended.\n", false, routedClients)
+                    for (client in routedClients) {
+                        client.state = ClientStates.CS_FREE
+                        client.gameName = null
+                        client.edict = null
+                        client.download = null
+                        client.netchan.reliablePending.clear()
+                        client.unreliable.clear()
+                    }
+                    games.remove(previous.name)
+                }
+                continue
+            }
+            val target = ChangeMapInfo(nextMap, false, false)
+            // Unit changes and autosaves still share the existing persistence workspace.
+            if (target.newUnit) ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
+            val replacement = spawnServerInstance(target, previous, routedClients)
+            replacement.name = previous.name
+            games[replacement.name] = replacement
+            if (!Globals.dedicated.typedValue) {
+                replacement.SV_WriteServerFile(true)
+                ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
+            }
         }
-        Cvar.getInstance().find<String>("nextserver").set("")
     }
 
     /*
@@ -1514,7 +1527,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         Com.DPrintf("Nextserver() from " + client.name + "\n")
-        advanceCinematic(gameImports)
+        val nextMap = gameImports.takeNextMap() ?: return
+        pendingContinuations[gameImports] = nextMap
     }
 
     // endregion
@@ -1698,7 +1712,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * stuck on the outgoing message list, because the server is going to
      * totally exit after returning from this function.
      */
-    private fun sendFinalMessage(message: String?, reconnect: Boolean) {
+    private fun sendFinalMessage(
+        message: String?,
+        reconnect: Boolean,
+        recipients: List<ClientNetworkInfo> = clients
+    ) {
         val msgs: MutableCollection<NetworkMessage> = ArrayList()
         msgs.add(PrintMessage(Defines.PRINT_HIGH, message))
 
@@ -1707,10 +1725,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
-        for (cl in clients) {
+        for (cl in recipients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) cl.netchan.transmit(msgs)
         }
-        for (cl in clients) {
+        for (cl in recipients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) cl.netchan.transmit(msgs)
         }
     }

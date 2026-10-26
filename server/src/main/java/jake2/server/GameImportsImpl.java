@@ -82,6 +82,7 @@ public class GameImportsImpl implements GameImports {
     public String firstmap = "";
 
     String mapcmd = ""; // ie: *intro.cin+base
+    private String nextMap; // null after consumption; empty means the sequence has ended
 
     // Spatial indexing and query scratch state belong to this Game.
     private static final int MAX_TOTAL_ENT_LEAFS = 128;
@@ -158,6 +159,7 @@ public class GameImportsImpl implements GameImports {
 
         // archive server state to be used in savegame
         mapcmd = changeMapInfo.levelString;
+        nextMap = changeMapInfo.nextServer;
 
 
         if (changeMapInfo.isLoadgame) {
@@ -200,6 +202,18 @@ public class GameImportsImpl implements GameImports {
             Com.Error(Defines.ERR_FATAL, "Could not initialise game subsystem due to : " + e.getMessage() + "\n");
             return null;
         }
+    }
+
+    /** Consume this Game's cinematic continuation once; null means no eligible request. */
+    String takeNextMap() {
+        if (nextMap == null || state == ServerStates.SS_GAME
+                || (state == ServerStates.SS_PIC && !Cvar.getInstance().find("coop", Boolean.class).getTypedValue())) {
+            return null;
+        }
+        String result = nextMap;
+        nextMap = null;
+        spawncount++; // reject duplicate completion messages from other clients
+        return result;
     }
 
     /** Capture persistent player data before allocating the replacement Game. */
