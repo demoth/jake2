@@ -465,6 +465,79 @@ class HostSessionPreparationTest {
     }
 
     @Test
+    fun `stop owns cleanup and preserves final packets and client socket`() {
+        save(true)
+        NET.clearLoopbacks()
+        cvars.find<Int>("clientport").forceSet(0)
+        assertTrue(NET.configureClient(true))
+        val clientSocket = NET.ip_sockets[Defines.NS_CLIENT]
+        val serverSocket = NET.ip_sockets[Defines.NS_SERVER]
+        val mapCommand = jake2.qcommon.exec.Cmd.FindCommand("map")
+        val client = host.clients[0]
+        client.state = ClientStates.CS_CONNECTED
+        client.netchan.setup(Defines.NS_SERVER, jake2.qcommon.network.netadr_t(), 0)
+        NET.SendLoopPacket(Defines.NS_CLIENT, 8, ByteArray(8), jake2.qcommon.network.netadr_t())
+        cvars.find<Boolean>("paused").forceSet(true)
+        var deferredRan = false
+        jake2.qcommon.exec.Cmd.AddCommand("test_stopped_deferred") { deferredRan = true }
+        try {
+            jake2.qcommon.exec.Cbuf.AddText("test_stopped_deferred")
+            jake2.qcommon.exec.Cbuf.CopyToDefer()
+            host.stop("test stop", false)
+            assertTrue(serverSocket.isClosed)
+            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+            assertSame(clientSocket, NET.ip_sockets[Defines.NS_CLIENT])
+            assertFalse(clientSocket.isClosed)
+            assertTrue(host.games.isEmpty())
+            assertTrue(host.clients.isEmpty())
+            assertFalse(host.isPaused)
+            assertEquals("", cvars.find<String>("mapname").typedValue)
+            assertSame(mapCommand, jake2.qcommon.exec.Cmd.FindCommand("map"))
+            assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_SERVER], true))
+            assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            host.stop("again", false)
+            assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            jake2.qcommon.exec.Cbuf.InsertFromDefer()
+            jake2.qcommon.exec.Cbuf.Execute()
+            assertFalse(deferredRan)
+            host.close()
+            host.close()
+            assertNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
+        } finally {
+            jake2.qcommon.exec.Cmd.RemoveCommand("test_stopped_deferred")
+            NET.configureClient(false)
+            NET.clearLoopbacks()
+        }
+    }
+
+    @Test
+    fun `killserver preserves queued gamemap startup`() {
+        save(true)
+        val mapCommand = jake2.qcommon.exec.Cmd.FindCommand("map")
+        jake2.qcommon.exec.Cbuf.AddText("killserver; gamemap testbox2")
+        jake2.qcommon.exec.Cbuf.Execute()
+        assertEquals("testbox2", host.games.getValue("default").mapName)
+        assertSame(mapCommand, jake2.qcommon.exec.Cmd.FindCommand("map"))
+        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+    }
+
+    @Test
+    fun `notification failure still cleans session and close releases commands`() {
+        save(true)
+        val client = host.clients[0]
+        client.state = ClientStates.CS_CONNECTED
+        client.netchan.remote_address = null // Fault injection at final packet transmission.
+        assertThrows(NullPointerException::class.java) { host.close() }
+        assertTrue(host.games.isEmpty())
+        assertTrue(host.clients.isEmpty())
+        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertFalse(host.isPaused)
+        assertNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
+        host.close()
+    }
+
+    @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
         val game = host.games.getValue("default")

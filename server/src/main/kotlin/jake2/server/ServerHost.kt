@@ -243,7 +243,6 @@ class ServerHost : AutoCloseable {
 
         commands.add("killserver") {
             stop("Server was killed.\n", false)
-            NET.configureServer(false)
         }
         commands.add("map", Command(::map))
         commands.add("gamemap", Command(::changeMap))
@@ -299,10 +298,7 @@ class ServerHost : AutoCloseable {
         }
     }
 
-    /**
-     * Called when each game quits, before Sys_Quit or Sys_Error.
-     * todo: shutdown a particular instance, not the whole server
-     */
+    /** End the whole server session, retaining Host commands for a subsequent start. */
     fun stop(finalmsg: String?, reconnect: Boolean) {
         try {
             if (games.isNotEmpty()) {
@@ -317,6 +313,14 @@ class ServerHost : AutoCloseable {
             realtime = 0
             frameNum = 0
             nextFrameTime = 100
+            paused.forceSet(false)
+            Cvar.getInstance().find<String>("mapname").forceSet("")
+            for (i in challenges.indices) challenges[i] = challenge_t()
+            // Ordinary queued commands may start the next session (killserver; gamemap ...).
+            Cbuf.ClearDeferred()
+            NET.configureServer(false)
+            // Keep outgoing final messages available to the local client.
+            NET.clearLoopback(Defines.NS_SERVER)
         }
     }
 
@@ -480,13 +484,6 @@ class ServerHost : AutoCloseable {
         } catch (cleanupFailure: Exception) {
             // stop clears Host state in finally even if notifying clients fails.
             failure.addSuppressed(cleanupFailure)
-        } finally {
-            NET.configureServer(false)
-            paused.forceSet(false)
-            Cvar.getInstance().find<String>("mapname").forceSet("")
-            for (i in challenges.indices) challenges[i] = challenge_t()
-            // Keep ordinary queued commands (e.g. a subsequent map); only abandon session-deferred work.
-            Cbuf.ClearDeferred()
         }
     }
 
@@ -1520,7 +1517,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             if (target == null) {
                 if (games.size == 1) {
                     stop("Game sequence ended.\n", false)
-                    NET.configureServer(false)
                 } else {
                     sendFinalMessage("Game sequence ended.\n", false, routedClients)
                     for (client in routedClients) {

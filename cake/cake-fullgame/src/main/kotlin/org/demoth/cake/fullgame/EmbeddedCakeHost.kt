@@ -135,12 +135,8 @@ class EmbeddedCakeHost(
                 manager?.close()
             } finally {
                 if (ownedSession) {
-                    // Shutdown notification is sent before sockets close.
-                    NET.configureServer(false)
+                    // This adapter also owns disposal of the local client's queued traffic.
                     NET.clearLoopbacks()
-                    Cbuf.ClearDeferred()
-                    val cvars = Cvar.getInstance()
-                    if (cvars.isRegistered("paused")) cvars.forceSetResult("paused", "0")
                 }
                 previousWriteRoot?.let(EngineWriteRoot::setRoot)
                 previousWriteRoot = null
