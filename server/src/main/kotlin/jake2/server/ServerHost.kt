@@ -685,24 +685,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         reportTransition("map", map(args[1]))
     }
 
-    /** Resolve a Game at execution time; creating another Game never replaces these callbacks.  */
+    /** Resolve the default Game at execution time; command registration belongs to the Host. */
     private fun saveGame(args: List<String>) {
-        var target = "default"
-        var command = args
-        if (args.size > 1 && args[1] == "--game") {
-            if (args.size < 4) {
-                Com.Printf("Usage: " + args[0] + " --game <id> <arguments>\n")
-                return
-            }
-            target = args[2]
-            command = listOf(args[0]) + args.drop(3)
-        }
-        val game = games[target]
+        val game = games["default"]
         if (game == null) {
-            Com.Printf("No running game: $target\n")
+            Com.Printf("No running default game\n")
             return
         }
-        game.saveGame(command)
+        game.saveGame(args)
     }
 
     // endregion

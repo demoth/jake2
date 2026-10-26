@@ -391,7 +391,7 @@ public class GameImportsTest {
     }
 
     @Test
-    public void saveCommandResolvesDefaultAndExplicitGamesWithoutReregistration() throws Exception {
+    public void saveCommandResolvesOnlyDefaultGameWithoutReregistration() throws Exception {
         manager = new ServerHost();
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
@@ -408,10 +408,11 @@ public class GameImportsTest {
         jake2.qcommon.exec.Cmd.ExecuteString("save --game " + second.name + " second");
         var store = jake2.server.save.ServerSaveJsonStore.forWriteDir(writeRoot.toString());
         Assertions.assertEquals("testbox", store.readMapCommand("first").mapCommand());
-        Assertions.assertEquals("testbox2", store.readMapCommand("second").mapCommand());
-
-        jake2.qcommon.exec.Cmd.ExecuteString("save --game missing absent");
-        Assertions.assertFalse(store.hasMapCommand("absent"));
+        Assertions.assertFalse(store.hasMapCommand("second"));
+        manager.games.put("default", second);
+        jake2.qcommon.exec.Cmd.ExecuteString("save replaced");
+        Assertions.assertEquals("testbox2", store.readMapCommand("replaced").mapCommand());
+        Assertions.assertSame(saveRegistration, jake2.qcommon.exec.Cmd.FindCommand("save"));
         manager.stop("test", false);
         Assertions.assertSame(saveRegistration, jake2.qcommon.exec.Cmd.FindCommand("save"));
         jake2.qcommon.exec.Cmd.ExecuteString("save idle");
