@@ -395,7 +395,6 @@ class ServerHost : AutoCloseable {
     }
 
     /** Bridge for client loading state and cvar latching until shared-global cleanup. */
-    @Suppress("DEPRECATION")
     private fun publishLegacyServerState(state: ServerStates) {
         Globals.server_state = state
     }

@@ -58,7 +58,6 @@ import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
 import static jake2.qcommon.Defines.CS_MODELS;
 
 /** Owns one server-side game instance and exposes engine services to its gameplay module. */
-@SuppressWarnings("deprecation")
 public class GameImportsImpl implements GameImports {
 
     String name;

@@ -15,7 +15,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Files
 import java.nio.file.Path
 
-@Suppress("DEPRECATION")
 class TransitionArchiveTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
