@@ -56,7 +56,6 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameChase",
                     "jake2.game.GameCombat",
                     "jake2.game.GameMisc",
-                    "jake2.game.GameSVCmds",
                     "jake2.game.GameSpawn",
                     "jake2.game.GameUtil",
                     "jake2.game.GameWeapon",
@@ -1686,12 +1685,6 @@ public class GameExportsImpl implements GameExports {
     @Override
     public void SpawnEntities(String mapname, String entities, String spawnpoint) {
         GameSpawn.SpawnEntities(mapname, entities, spawnpoint, this);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void ServerCommand(List<String> args) {
-        GameSVCmds.ServerCommand(args, this);
     }
 
     @Override

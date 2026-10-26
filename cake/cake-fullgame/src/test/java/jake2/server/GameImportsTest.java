@@ -391,6 +391,34 @@ public class GameImportsTest {
     }
 
     @Test
+    public void saveCommandResolvesDefaultAndExplicitGamesWithoutReregistration() throws Exception {
+        manager = new SV_MAIN();
+        Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
+        manager.resetClients();
+        var saveRegistration = jake2.qcommon.exec.Cmd.FindCommand("save");
+        Assertions.assertNull(jake2.qcommon.exec.Cmd.FindCommand("sv"));
+        GameImportsImpl first = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+        manager.games.put("default", first);
+        GameImportsImpl second = manager.spawnServerInstance(new ChangeMapInfo("testbox2", false, false), 0);
+        manager.games.put(second.name, second);
+        Assertions.assertSame(saveRegistration, jake2.qcommon.exec.Cmd.FindCommand("save"));
+        Assertions.assertFalse(Cvar.getInstance().isRegistered("filterban"));
+
+        jake2.qcommon.exec.Cmd.ExecuteString("save first");
+        jake2.qcommon.exec.Cmd.ExecuteString("save --game " + second.name + " second");
+        var store = jake2.server.save.ServerSaveJsonStore.forWriteDir(writeRoot.toString());
+        Assertions.assertEquals("testbox", store.readMapCommand("first").mapCommand());
+        Assertions.assertEquals("testbox2", store.readMapCommand("second").mapCommand());
+
+        jake2.qcommon.exec.Cmd.ExecuteString("save --game missing absent");
+        Assertions.assertFalse(store.hasMapCommand("absent"));
+        manager.SV_Shutdown("test", false);
+        Assertions.assertSame(saveRegistration, jake2.qcommon.exec.Cmd.FindCommand("save"));
+        jake2.qcommon.exec.Cmd.ExecuteString("save idle");
+        Assertions.assertFalse(store.hasMapCommand("idle"));
+    }
+
+    @Test
     public void runGame() {
 
         final SV_MAIN sv_main = manager = new SV_MAIN();

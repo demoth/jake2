@@ -28,8 +28,10 @@ final class ServerCommands implements AutoCloseable {
     @Override
     public void close() {
         installed.forEach((name, registration) -> {
-            // A later owner may already have replaced our command.
-            if (Cmd.FindCommand(name) == registration) {
+            // Restoring an earlier owner creates a fresh registration around its same callback.
+            // A genuinely different callback still belongs to the later owner.
+            Cmd.cmd_function_t current = Cmd.FindCommand(name);
+            if (current != null && current.function == registration.function) {
                 Cmd.RemoveCommand(name);
                 Cmd.cmd_function_t original = previous.get(name);
                 if (original != null)

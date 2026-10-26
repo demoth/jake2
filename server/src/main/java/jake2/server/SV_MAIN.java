@@ -40,6 +40,7 @@ import jake2.qcommon.network.messages.client.*;
 import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
+import jake2.qcommon.util.Vargs;
 import jake2.server.save.ServerSaveJsonStore;
 import jake2.server.save.ServerSaveFiles;
 
@@ -56,12 +57,6 @@ public class SV_MAIN implements AutoCloseable {
             new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3));
 
     private final ServerCommands commands = new ServerCommands();
-    private final ServerCommands gameCommands = new ServerCommands();
-
-    public void registerGameCommand(String name, jake2.qcommon.exec.Command command) {
-        gameCommands.add(name, true, command);
-    }
-
     public boolean isRunning() {
         return !games.isEmpty();
     }
@@ -951,8 +946,6 @@ public class SV_MAIN implements AutoCloseable {
                 Com.Printf("==== ShutdownGame ====\n");
             }
         } finally {
-            // Also clean commands installed by a partially constructed game.
-            gameCommands.close();
             games.clear();
             clients.clear();
             Globals.server_state = ServerStates.SS_DEAD;
@@ -1024,8 +1017,15 @@ public class SV_MAIN implements AutoCloseable {
         sv_reconnect_limit = cvars.register("sv_reconnect_limit", new CvarTypes.FloatType(0f, null), 3f, Defines.CVAR_ARCHIVE, "Minimum seconds between reconnect attempts from the same remote client");
         resetClients();
 
-        // Publish callbacks only after initialization succeeds. Game operator commands
-        // are registered separately when a map starts.
+        // Publish Host callbacks only after initialization succeeds. They survive Game replacement.
+        commands.add("heartbeat", true, this::SV_Heartbeat_f);
+        commands.add("kick", true, this::SV_Kick_f);
+        commands.add("status", true, this::SV_Status_f);
+        commands.add("serverinfo", true, this::SV_Serverinfo_f);
+        commands.add("dumpuser", true, this::SV_DumpUser_f);
+        commands.add("say", true, this::SV_ConSay_f);
+        commands.add("save", true, this::saveGame);
+
         commands.add("killserver", args -> {
             SV_Shutdown("Server was killed.\n", false);
             NET.configureServer(false);
@@ -1793,6 +1793,211 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         Com.DPrintf("Nextserver() from " + client.name + "\n");
         SV_Nextserver(gameImports);
+    }
+
+    /** Resolve a Game at execution time; creating another Game never replaces these callbacks. */
+    private void saveGame(List<String> args) {
+        String target = "default";
+        List<String> command = args;
+        if (args.size() > 1 && args.get(1).equals("--game")) {
+            if (args.size() < 4) {
+                Com.Printf("Usage: " + args.get(0) + " --game <id> <arguments>\n");
+                return;
+            }
+            target = args.get(2);
+            command = new ArrayList<>();
+            command.add(args.get(0));
+            command.addAll(args.subList(3, args.size()));
+        }
+        GameImportsImpl game = games.get(target);
+        if (game == null) {
+            Com.Printf("No running game: " + target + "\n");
+            return;
+        }
+        game.saveGame(command);
+    }
+
+	/*
+	==================
+	SV_Kick_f
+
+	Kick a user off of the server
+	==================
+	*/
+    private void SV_Kick_f(List<String> args) {
+        if (args.size() != 2) {
+            Com.Printf("Usage: kick <userid>\n");
+            return;
+        }
+        ClientNetworkInfo client = SV_SetPlayer(args);
+        if (client == null)
+            return;
+
+        SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n", client.gameName);
+        // print directly, because the dropped client won't get the
+        // SV_BroadcastPrintf message
+        client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n");
+        SV_DropClient(client);
+        client.lastmessage = games.get(client.gameName).realtime; // min case there is a funny zombie
+    }
+    /*
+    ================
+    SV_Status_f
+    ================
+    */
+    private void SV_Status_f(List<String> args) {
+        // todo: check
+        if (games.isEmpty()) {
+            Com.Printf("No server running.\n");
+            return;
+        }
+        for (GameImportsImpl game : games.values())
+            Com.Printf("game " + game.name + " : " + game.mapName + "\n");
+
+        Com.Printf("num score ping name            lastmsg address               qport \n");
+        Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
+
+        for (int i = 0; i < clients.size(); i++) {
+            ClientNetworkInfo cl = clients.get(i);
+            if (ClientStates.CS_FREE == cl.state)
+                continue;
+
+            Com.Printf("%3i ", new Vargs().add(i));
+            Com.Printf("%5i ", new Vargs().add(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]));
+
+            if (cl.state == ClientStates.CS_CONNECTED)
+                Com.Printf("CNCT ");
+            else if (cl.state == ClientStates.CS_ZOMBIE)
+                Com.Printf("ZMBI ");
+            else {
+                int ping = cl.ping < 9999 ? cl.ping : 9999;
+                Com.Printf("%4i ", new Vargs().add(ping));
+            }
+
+            Com.Printf("%s", new Vargs().add(cl.name));
+            int l = 16 - cl.name.length();
+            int j;
+            for (j = 0; j < l; j++)
+                Com.Printf(" ");
+
+            Com.Printf("%7i ", new Vargs().add(games.get(cl.gameName).realtime - cl.lastmessage));
+
+            String s = cl.netchan.remote_address.toString();
+            Com.Printf(s);
+            l = 22 - s.length();
+            for (j = 0; j < l; j++)
+                Com.Printf(" ");
+
+            Com.Printf("%5i", new Vargs().add(cl.netchan.qport));
+
+            Com.Printf("\n");
+        }
+        Com.Printf("\n");
+    }
+    /*
+    ==================
+    SV_ConSay_f
+    ==================
+    */
+    private void SV_ConSay_f(List<String> args) {
+
+        if (args.size() < 2)
+            return;
+
+        // char[1024];
+        String text = "console: ";
+        String p = Cmd.getArguments(args);
+
+        if (!p.isEmpty() && p.charAt(0) == '"') {
+            p = p.substring(1, p.length() - 1);
+        }
+
+        text += p;
+
+        for (ClientNetworkInfo client: clients) {
+            if (client.state != ClientStates.CS_SPAWNED)
+                continue;
+            client.queuePrint(Defines.PRINT_CHAT, text + "\n");
+        }
+    }
+    /*
+    ==================
+    SV_Heartbeat_f
+    ==================
+    */
+    private void SV_Heartbeat_f(List<String> agrs) {
+    }
+    /*
+    ===========
+    SV_Serverinfo_f
+
+      Examine or change the serverinfo string
+    ===========
+    */
+    private void SV_Serverinfo_f(List<String> args) {
+        Com.Printf("Server info settings:\n");
+        Info.Print(Cvar.getInstance().Serverinfo());
+    }
+    /*
+    ===========
+    SV_DumpUser_f
+
+    Examine all a users info strings
+    ===========
+    */
+    private void SV_DumpUser_f(List<String> args) {
+        if (args.size() != 2) {
+            Com.Printf("Usage: info <userid>\n");
+            return;
+        }
+        ClientNetworkInfo client = SV_SetPlayer(args);
+        if (client == null)
+            return;
+
+        Com.Printf("userinfo\n");
+        Com.Printf("--------\n");
+        Info.Print(client.userinfo);
+
+    }
+
+    /**
+     * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
+     */
+    private ClientNetworkInfo SV_SetPlayer(List<String> args) {
+
+        if (args.size() < 2)
+            return null;
+
+        String idOrName = args.get(1);
+
+        // numeric values are just slot numbers
+        // fixme: player name cannot start with a number?
+        if (!idOrName.isEmpty() && idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
+            int id = Lib.atoi(idOrName);
+            if (id < 0 || id >= clients.size()) {
+                Com.Printf("Bad client slot: " + id + "\n");
+                return null;
+            }
+
+            final ClientNetworkInfo result = clients.get(id);
+            if (ClientStates.CS_FREE == result.state) {
+                Com.Printf("Client " + id + " is not active\n");
+                return null;
+            }
+            return result;
+        }
+
+        // check for a name match
+        for (ClientNetworkInfo cl: clients) {
+            if (ClientStates.CS_FREE == cl.state)
+                continue;
+            if (idOrName.equals(cl.name)) {
+                return cl;
+            }
+        }
+
+        Com.Printf("Userid " + idOrName + " is not on the server\n");
+        return null;
     }
 
 }

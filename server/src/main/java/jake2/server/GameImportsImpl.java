@@ -24,7 +24,6 @@ package jake2.server;
 
 import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
-import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarType;
 import jake2.qcommon.exec.cvar_t;
@@ -44,7 +43,6 @@ import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 import jake2.server.save.ServerLevelJsonStore;
 import jake2.server.save.ServerSaveJsonStore;
 import jake2.server.save.ServerSaveFiles;
@@ -59,7 +57,6 @@ import java.util.List;
 
 import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
 import static jake2.qcommon.Defines.CS_MODELS;
-import static jake2.qcommon.exec.Cmd.getArguments;
 
 /** Owns one server-side game instance and exposes engine services to its gameplay module. */
 @SuppressWarnings("deprecation")
@@ -179,7 +176,6 @@ public class GameImportsImpl implements GameImports {
         // Q: is it required? the instance was just created
         clearWorld();
 
-        SV_InitOperatorCommands();
 
     }
 
@@ -279,25 +275,6 @@ public class GameImportsImpl implements GameImports {
         } catch (Exception e) {
             Com.Printf("Couldn't read file " + e.getMessage() + "\n");
         }
-    }
-
-    /**
-     * bind operator commands to this server instance
-     */
-    private void SV_InitOperatorCommands() {
-        serverMain.registerGameCommand("heartbeat", this::SV_Heartbeat_f);
-        serverMain.registerGameCommand("kick", this::SV_Kick_f);
-        serverMain.registerGameCommand("status", this::SV_Status_f);
-        serverMain.registerGameCommand("serverinfo", this::SV_Serverinfo_f);
-        serverMain.registerGameCommand("dumpuser", this::SV_DumpUser_f);
-        serverMain.registerGameCommand("say", this::SV_ConSay_f);
-        serverMain.registerGameCommand("save", this::SV_Savegame_f);
-
-        // ip filtering and stuff
-        serverMain.registerGameCommand("sv", args -> {
-            if (gameExports != null)
-                gameExports.ServerCommand(args);
-        });
     }
 
     // special messages
@@ -791,7 +768,7 @@ public class GameImportsImpl implements GameImports {
         return contents;
     }
 
-    private void SV_Savegame_f(List<String> args) {
+    void saveGame(List<String> args) {
 
         if (state != ServerStates.SS_GAME) {
             Com.Printf("You must be in a game to save.\n");
@@ -850,189 +827,6 @@ public class GameImportsImpl implements GameImports {
         // copy it off
         new ServerSaveFiles(EngineWriteRoot.path()).copy("current", saveGame);
         Com.Printf("Done.\n");
-    }
-
-	/*
-	==================
-	SV_Kick_f
-
-	Kick a user off of the server
-	==================
-	*/
-    private void SV_Kick_f(List<String> args) {
-        if (args.size() != 2) {
-            Com.Printf("Usage: kick <userid>\n");
-            return;
-        }
-        ClientNetworkInfo client = SV_SetPlayer(args);
-        if (client == null)
-            return;
-
-        serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n", client.gameName);
-        // print directly, because the dropped client won't get the
-        // SV_BroadcastPrintf message
-        client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n");
-        serverMain.SV_DropClient(client);
-        client.lastmessage = realtime; // min case there is a funny zombie
-    }
-    /*
-    ================
-    SV_Status_f
-    ================
-    */
-    private void SV_Status_f(List<String> args) {
-        // todo: check
-        if (serverMain.getClients().isEmpty()) {
-            Com.Printf("No server running.\n");
-            return;
-        }
-        Com.Printf("map              : " + mapName + "\n");
-
-        Com.Printf("num score ping name            lastmsg address               qport \n");
-        Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n");
-
-        int i = 0;
-        for (ClientNetworkInfo cl : serverMain.getClients()) {
-            if (ClientStates.CS_FREE == cl.state)
-                continue;
-
-            Com.Printf("%3i ", new Vargs().add(i));
-            Com.Printf("%5i ", new Vargs().add(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]));
-
-            if (cl.state == ClientStates.CS_CONNECTED)
-                Com.Printf("CNCT ");
-            else if (cl.state == ClientStates.CS_ZOMBIE)
-                Com.Printf("ZMBI ");
-            else {
-                int ping = cl.ping < 9999 ? cl.ping : 9999;
-                Com.Printf("%4i ", new Vargs().add(ping));
-            }
-
-            Com.Printf("%s", new Vargs().add(cl.name));
-            int l = 16 - cl.name.length();
-            int j;
-            for (j = 0; j < l; j++)
-                Com.Printf(" ");
-
-            Com.Printf("%7i ", new Vargs().add(realtime - cl.lastmessage));
-
-            String s = cl.netchan.remote_address.toString();
-            Com.Printf(s);
-            l = 22 - s.length();
-            for (j = 0; j < l; j++)
-                Com.Printf(" ");
-
-            Com.Printf("%5i", new Vargs().add(cl.netchan.qport));
-
-            Com.Printf("\n");
-            i++;
-        }
-        Com.Printf("\n");
-    }
-    /*
-    ==================
-    SV_ConSay_f
-    ==================
-    */
-    private void SV_ConSay_f(List<String> args) {
-
-        if (args.size() < 2)
-            return;
-
-        // char[1024];
-        String text = "console: ";
-        String p = getArguments(args);
-
-        if (p.charAt(0) == '"') {
-            p = p.substring(1, p.length() - 1);
-        }
-
-        text += p;
-
-        for (ClientNetworkInfo client: serverMain.getClients()) {
-            if (client.state != ClientStates.CS_SPAWNED)
-                continue;
-            client.queuePrint(Defines.PRINT_CHAT, text + "\n");
-        }
-    }
-    /*
-    ==================
-    SV_Heartbeat_f
-    ==================
-    */
-    private void SV_Heartbeat_f(List<String> agrs) {
-    }
-    /*
-    ===========
-    SV_Serverinfo_f
-
-      Examine or change the serverinfo string
-    ===========
-    */
-    private void SV_Serverinfo_f(List<String> args) {
-        Com.Printf("Server info settings:\n");
-        Info.Print(Cvar.getInstance().Serverinfo());
-    }
-    /*
-    ===========
-    SV_DumpUser_f
-
-    Examine all a users info strings
-    ===========
-    */
-    private void SV_DumpUser_f(List<String> args) {
-        if (args.size() != 2) {
-            Com.Printf("Usage: info <userid>\n");
-            return;
-        }
-        ClientNetworkInfo client = SV_SetPlayer(args);
-        if (client == null)
-            return;
-
-        Com.Printf("userinfo\n");
-        Com.Printf("--------\n");
-        Info.Print(client.userinfo);
-
-    }
-
-    /**
-     * Sets sv_client and sv_player to the player with idnum Cmd.Argv(1)
-     */
-    private ClientNetworkInfo SV_SetPlayer(List<String> args) {
-
-        if (args.size() < 2)
-            return null;
-
-        String idOrName = args.get(1);
-
-        // numeric values are just slot numbers
-        // fixme: player name cannot start with a number?
-        if (idOrName.charAt(0) >= '0' && idOrName.charAt(0) <= '9') {
-            int id = Lib.atoi(idOrName);
-            if (id < 0 || id >= serverMain.getClients().size()) {
-                Com.Printf("Bad client slot: " + id + "\n");
-                return null;
-            }
-
-            final ClientNetworkInfo result = serverMain.getClients().get(id);
-            if (ClientStates.CS_FREE == result.state) {
-                Com.Printf("Client " + id + " is not active\n");
-                return null;
-            }
-            return result;
-        }
-
-        // check for a name match
-        for (ClientNetworkInfo cl: serverMain.getClients()) {
-            if (ClientStates.CS_FREE == cl.state)
-                continue;
-            if (idOrName.equals(cl.name)) {
-                return cl;
-            }
-        }
-
-        Com.Printf("Userid " + idOrName + " is not on the server\n");
-        return null;
     }
 
     /**
