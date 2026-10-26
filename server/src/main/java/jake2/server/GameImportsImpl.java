@@ -835,6 +835,10 @@ public class GameImportsImpl implements GameImports {
         return contents;
     }
 
+    // TODO: Isolate Game persistence after multi-instance workspace ownership, transition
+    // inheritance and dedicated save/load targeting are decided. All Game save/restore paths
+    // currently share EngineWriteRoot/save/current; transitions and unit resets can overwrite
+    // another Game's archives. This is explicitly deferred, not isolated by save --game targeting.
     void saveGame(List<String> args) {
 
         if (state != ServerStates.SS_GAME) {
