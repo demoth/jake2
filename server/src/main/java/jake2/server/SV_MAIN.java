@@ -44,14 +44,13 @@ import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.util.Lib;
 import jake2.server.save.ServerSaveJsonStore;
+import jake2.server.save.ServerSaveFiles;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static jake2.qcommon.Defines.*;
-import static jake2.server.SV_CCMDS.SV_CopySaveGame;
-import static jake2.server.SV_CCMDS.SV_WipeSavegame;
 import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
@@ -1202,7 +1201,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
             return;
         }
 
-        SV_CopySaveGame(saveGame, "current");
+        new ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current");
 
         final String mapCommand = SV_ReadMapCommand();
 
@@ -1282,7 +1281,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // check for clearing the current savegame
         if (mapName.charAt(0) == '*') {
             // wipe all the *.sav files
-            SV_WipeSavegame("current");
+            new ServerSaveFiles(EngineWriteRoot.path()).wipe("current");
         } else { // save the map just exited
             // note: only applicable to the default instance (subject to change in future)
             var gameImports = games.get("default");
@@ -1337,7 +1336,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // copy off the level to the autosave slot
         if (!Globals.dedicated.getTypedValue()) {
             game.SV_WriteServerFile(true);
-            SV_CopySaveGame("current", "save0");
+            new ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0");
         }
 
         // multi instance preview:
@@ -1481,7 +1480,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (game != null)
             game.sv.state = ServerStates.SS_DEAD; // don't save current level when changing
 
-        SV_WipeSavegame("current");
+        new ServerSaveFiles(EngineWriteRoot.path()).wipe("current");
 
         // A running server needs its clients reset for map. For a fresh server,
         // gamemap performs this initialization itself.

@@ -39,6 +39,7 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Vargs;
 import jake2.server.save.ServerLevelJsonStore;
 import jake2.server.save.ServerSaveJsonStore;
+import jake2.server.save.ServerSaveFiles;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +49,6 @@ import java.util.List;
 import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
 import static jake2.qcommon.Defines.CS_MODELS;
 import static jake2.qcommon.exec.Cmd.getArguments;
-import static jake2.server.SV_CCMDS.SV_CopySaveGame;
 
 /*
  Collection of functions provided by the main engine.
@@ -416,7 +416,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         // copy it off
-        SV_CopySaveGame("current", saveGame);
+        new ServerSaveFiles(EngineWriteRoot.path()).copy("current", saveGame);
         Com.Printf("Done.\n");
     }
 

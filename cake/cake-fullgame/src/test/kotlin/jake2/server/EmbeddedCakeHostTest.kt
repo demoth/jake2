@@ -11,6 +11,7 @@ import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.vfs.EngineWriteRoot
+import jake2.server.save.ServerSaveFiles
 import org.demoth.cake.download.CakeDownloadCache
 import org.demoth.cake.download.CakeDownloadManager
 import org.demoth.cake.download.CakeDownloadSession
@@ -114,6 +115,7 @@ class EmbeddedCakeHostTest {
         assertEquals(HostStartResult.Started, host.start(request()))
         val current = temp.resolve("session/save/current/server_mapcmd.ssv.json")
         val snapshot = Files.readString(current)
+        val saveFiles = ServerSaveFiles(temp.resolve("session"))
         val sentinel = temp.resolve("sentinel/server_mapcmd.ssv.json")
         Files.createDirectories(sentinel.parent)
         Files.writeString(sentinel, "outside profile")
@@ -121,13 +123,13 @@ class EmbeddedCakeHostTest {
             // Invalid names must be rejected before the not-yet-spawned player check or any writes.
             Cmd.ExecuteString("save \"$slot\"")
             Cmd.ExecuteString("load \"$slot\"")
-            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_CopySaveGame("current", slot) }
-            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_CopySaveGame(slot, "current") }
-            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_WipeSavegame(slot) }
+            assertThrows(IllegalArgumentException::class.java) { saveFiles.copy("current", slot) }
+            assertThrows(IllegalArgumentException::class.java) { saveFiles.copy(slot, "current") }
+            assertThrows(IllegalArgumentException::class.java) { saveFiles.wipe(slot) }
             assertEquals(snapshot, Files.readString(current))
             assertEquals("outside profile", Files.readString(sentinel))
         }
-        SV_CCMDS.SV_CopySaveGame("current", "current")
+        saveFiles.copy("current", "current")
         Cmd.ExecuteString("load current")
         Cmd.ExecuteString("save current")
         Cmd.ExecuteString("save before-spawn")
