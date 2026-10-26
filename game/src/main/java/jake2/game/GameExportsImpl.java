@@ -1633,7 +1633,7 @@ public class GameExportsImpl implements GameExports {
                     entities
             ));
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to write gameplay level to " + filename, e);
         }
     }
 

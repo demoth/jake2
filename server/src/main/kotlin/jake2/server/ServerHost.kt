@@ -539,30 +539,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             // note: only applicable to the default instance (subject to change in future)
             val gameImports = games["default"]
             if (gameImports != null && gameImports.state == ServerStates.SS_GAME) {
-                // clear all the client inuse flags before saving so that
-                // when the level is re-entered, the clients will spawn
-                // at spawn points instead of occupying body shells
-                // todo: only relevant to this gameImports clients
-                val savedInuse = BooleanArray(clients.size)
-                var i = 0
-                for (cl in clients) {
-                    if (cl.edict != null) { // free client slots will have null values
-                        savedInuse[i] = cl.edict.inuse
-                        cl.edict.inuse = false
-                    }
-                    i++
-                }
-
-                gameImports.SV_WriteLevelFile()
-
-                // we must restore these for clients to transfer over correctly
-                i = 0
-                for (cl in clients) {
-                    if (cl.edict != null) { // free client slots will have null values
-                        cl.edict.inuse = savedInuse[i]
-                    }
-                    i++
-                }
+                gameImports.archiveLevelForTransition()
             }
         }
 

@@ -1126,6 +1126,30 @@ public class GameImportsImpl implements GameImports {
         gameExports.ReadLevel(name);
     }
 
+    /** Archive this level without player bodies, restoring live entities even if writing fails. */
+    void archiveLevelForTransition() {
+        List<ServerEntity> players = new ArrayList<>();
+        for (ClientNetworkInfo client : serverMain.getClientsForInstance(name)) {
+            if (client != null && client.edict != null) {
+                players.add(client.edict);
+            }
+        }
+        boolean[] savedInuse = new boolean[players.size()];
+        for (int i = 0; i < players.size(); i++) {
+            savedInuse[i] = players.get(i).inuse;
+        }
+        try {
+            for (ServerEntity player : players) {
+                player.inuse = false;
+            }
+            SV_WriteLevelFile();
+        } finally {
+            for (int i = 0; i < players.size(); i++) {
+                players.get(i).inuse = savedInuse[i];
+            }
+        }
+    }
+
     void SV_WriteLevelFile() {
 
         Com.DPrintf("SV_WriteLevelFile()\n");
@@ -1135,8 +1159,7 @@ public class GameImportsImpl implements GameImports {
             store.writeLevelState("current", mapName, configstrings, cm.portalopen);
         }
         catch (Exception e) {
-            Com.Printf("Failed to write current level state for " + mapName + "\n");
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to write current level state for " + mapName, e);
         }
 
         String name = EngineWriteRoot.resolve("save/current/" + mapName + ".sav.json").toString();
