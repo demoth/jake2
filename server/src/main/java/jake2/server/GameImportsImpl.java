@@ -363,7 +363,7 @@ public class GameImportsImpl implements GameImports {
         if (ent != null) {
             n = ent.index;
             if (n < 1 || n > serverMain.getClients().size())
-                Com.Error(Defines.ERR_DROP, "cprintf to a non-client");
+                throw new GameFailure(this, "cprintf to a non-client");
         }
 
         if (ent != null)
@@ -390,16 +390,16 @@ public class GameImportsImpl implements GameImports {
                                  int soundindex, float volume, float attenuation, float timeofs) {
 
         if (volume < 0 || volume > 1.0)
-            Com.Error(Defines.ERR_FATAL, "SV_StartSound: volume = " + volume);
+            throw new GameFailure(this, "SV_StartSound: volume = " + volume);
 
         if (attenuation < 0 || attenuation > 4)
-            Com.Error(Defines.ERR_FATAL, "SV_StartSound: attenuation = " + attenuation);
+            throw new GameFailure(this, "SV_StartSound: attenuation = " + attenuation);
 
         //    if (channel < 0 || channel > 15)
         //        Com_Error (ERR_FATAL, "SV_StartSound: channel = %i", channel);
 
         if (timeofs < 0 || timeofs > 0.255)
-            Com.Error(Defines.ERR_FATAL, "SV_StartSound: timeofs = " + timeofs);
+            throw new GameFailure(this, "SV_StartSound: timeofs = " + timeofs);
 
         int entityIndex = ent.index;
 
@@ -478,7 +478,7 @@ public class GameImportsImpl implements GameImports {
     @Override
     public void configstring(int num, String string) {
         if (num < 0 || num >= Defines.MAX_CONFIGSTRINGS)
-            Com.Error(Defines.ERR_DROP, "configstring: bad index " + num
+            throw new GameFailure(this, "configstring: bad index " + num
                     + "\n");
 
         if (string == null)
@@ -495,12 +495,13 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void error(String err) {
-        Com.Error(Defines.ERR_FATAL, err);
+        throw new GameFailure(this, err);
     }
 
     @Override
     public void error(int level, String err) {
-        Com.Error(level, err);
+        // Legacy severity codes do not select process/client ownership here.
+        throw new GameFailure(this, err);
     }
 
     /* the *index functions create configstrings and some internal server state */
@@ -1002,8 +1003,7 @@ public class GameImportsImpl implements GameImports {
             // explicit hulls in the BSP model
             model = models[ent.s.modelindex];
             if (null == model)
-                Com.Error(Defines.ERR_FATAL,
-                        "MOVETYPE_PUSH with a non bsp model");
+                throw new GameFailure(this, "MOVETYPE_PUSH with a non bsp model");
             return model.headnode;
         }
         // create a temp hull from bounding box sizes
@@ -1087,7 +1087,7 @@ public class GameImportsImpl implements GameImports {
                 return i;
 
         if (i == max)
-            Com.Error(Defines.ERR_DROP, "*Index: overflow");
+            throw new GameFailure(this, "*Index: overflow");
 
         configstring(start + i, val);
 
@@ -1298,7 +1298,7 @@ public class GameImportsImpl implements GameImports {
 
             default:
                 mask = null;
-                Com.Error(Defines.ERR_FATAL, "SV_Multicast: bad to:" + to + "\n");
+                throw new GameFailure(this, "SV_Multicast: bad to:" + to + "\n");
         }
 
         // send the data to all relevent clients
@@ -1493,7 +1493,7 @@ public class GameImportsImpl implements GameImports {
         count = cm.CM_BoxLeafnums(mins, maxs, leafs, 64, null);
 
         if (count < 1)
-            Com.Error(Defines.ERR_FATAL, "SV_FatPVS: count < 1");
+            throw new GameFailure(this, "SV_FatPVS: count < 1");
 
         longs = (cm.CM_NumClusters() + 31) >> 5;
 

@@ -18,7 +18,7 @@ import java.nio.file.Path
 class TransitionArchiveTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
-    private lateinit var previousState: ServerStates
+    private var previousState: ServerStates? = null
     private lateinit var host: ServerHost
     private lateinit var first: GameImportsImpl
     private lateinit var second: GameImportsImpl

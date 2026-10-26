@@ -577,6 +577,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         if (!newSession && !target.newUnit) {
             try {
                 games["default"]?.takeIf { it.state == ServerStates.SS_GAME }?.archiveLevelForTransition()
+            } catch (failure: GameFailure) {
+                handleGameFailure(failure)
+                return OperationResult.Failed(failure.message ?: "Game failed during archival", failure)
             } catch (failure: Exception) {
                 return OperationResult.Rejected("Could not archive current level: ${failure.message}")
             }
@@ -609,7 +612,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         when (result) {
             OperationResult.Completed -> Unit
             is OperationResult.Rejected -> Com.Printf("$operation rejected: ${result.reason}\n")
-            is OperationResult.Failed -> Com.Printf("$operation failed; server stopped: ${result.reason}\n")
+            is OperationResult.Failed -> Com.Printf("$operation failed: ${result.reason}\n")
         }
     }
 
@@ -747,6 +750,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         return try {
             game.saveGame(destination)
             OperationResult.Completed
+        } catch (failure: GameFailure) {
+            handleGameFailure(failure)
+            OperationResult.Failed(failure.message ?: "Game failed while saving", failure)
         } catch (failure: Exception) {
             OperationResult.Failed(failure.message ?: "Save failed", failure)
         }
@@ -760,6 +766,36 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * SV_Frame.
      */
     fun update(msec: Long) {
+        // Also covers Game callbacks reached through connection admission, timeouts and snapshots.
+        // Unwind these Host iterations before removing a failed Game; retry no partial work.
+        withGameFailureBoundary { updateFrame(msec) }
+    }
+
+    private inline fun withGameFailureBoundary(action: () -> Unit) {
+        try {
+            action()
+        } catch (failure: GameFailure) {
+            handleGameFailure(failure)
+        }
+    }
+
+    /**
+     * Contain a Game failure after execution unwinds: stop its Game and report the original stack.
+     * Foreign-Host failures propagate; cleanup failures escalate so enclosing Game boundaries cannot swallow them.
+     */
+    private fun handleGameFailure(failure: GameFailure) {
+        if (failure.game.serverMain !== this) throw failure
+        try {
+            stopGame(failure.game, "Game failed: ${failure.message}\n")
+        } catch (cleanupFailure: Exception) {
+            failure.addSuppressed(cleanupFailure)
+            // Do not let an enclosing Game boundary retry or swallow failed recovery.
+            throw IllegalStateException("Could not recover Game ${failure.game.name}", failure)
+        }
+        Com.Printf(failure.stackTraceToString() + "\n")
+    }
+
+    private fun updateFrame(msec: Long) {
         // if server is not active, do nothing
         // like when connected to another server
         if (games.isEmpty()) return
@@ -804,9 +840,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         replenishClientMoveBudgets()
 
         // let everything in the world think and move
-        for (game in games.values) {
-            game.SV_RunGameFrame(nextFrameTime.toLong())
+        for (game in games.values.toList()) {
+            if (games[game.name] !== game) continue
+            withGameFailureBoundary { game.SV_RunGameFrame(nextFrameTime.toLong()) }
         }
+        if (games.isEmpty()) return
 
         // send messages back to the clients that had packets read this frame
         sendClientMessages()
@@ -1242,6 +1280,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     fun handleClientMessages(cl: ClientNetworkInfo, clientMessages: Collection<ClientMessage>) {
+        withGameFailureBoundary { processClientMessages(cl, clientMessages) }
+    }
+
+    private fun processClientMessages(cl: ClientNetworkInfo, clientMessages: Collection<ClientMessage>) {
         // only allow one move command
 
         var moveIssued = false

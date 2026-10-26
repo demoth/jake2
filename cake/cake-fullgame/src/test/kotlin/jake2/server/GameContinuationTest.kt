@@ -202,6 +202,90 @@ class GameContinuationTest {
     }
 
     @Test
+    fun `Game frame failure stops only its owner and other Game runs in the same tick`() {
+        val first = game("default", "testbox")
+        val second = game("other", "testbox2")
+        val a = bind(0, first)
+        val b = bind(1, second)
+        var secondFrames = 0
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun G_RunFrame() { first.configstring(-1, "invalid") }
+        }
+        second.gameExports = object : GameExports by second.gameExports {
+            override fun G_RunFrame() { secondFrames++ }
+        }
+        host.update(1000)
+        assertFalse(host.games.containsKey("default"))
+        assertSame(second, host.games["other"])
+        assertEquals(ClientStates.CS_FREE, a.state)
+        assertEquals(ClientStates.CS_CONNECTED, b.state)
+        assertEquals(1, secondFrames)
+        host.update(1000)
+        assertEquals(2, secondFrames)
+    }
+
+    @Test
+    fun `Game failure in client command aborts packet and stops Game rather than just client`() {
+        val first = game("default", "testbox")
+        val second = game("other", "end.cin")
+        val a = bind(0, first)
+        val peer = bind(1, first)
+        val other = bind(2, second)
+        var commands = 0
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun ClientCommand(ent: ServerEntity, args: MutableList<String>) {
+                commands++
+                first.error(Defines.ERR_FATAL, "broken Game state")
+            }
+        }
+        host.handleClientMessages(a, listOf(
+            jake2.qcommon.network.messages.client.StringCmdMessage("fail"),
+            jake2.qcommon.network.messages.client.StringCmdMessage("must_not_run")))
+        assertEquals(1, commands)
+        assertEquals(ClientStates.CS_FREE, a.state)
+        assertEquals(ClientStates.CS_FREE, peer.state)
+        assertEquals(ClientStates.CS_CONNECTED, other.state)
+        assertSame(second, host.games["other"])
+    }
+
+    @Test
+    fun `last Game failure leaves reusable idle Host`() {
+        val first = game("default", "testbox")
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun G_RunFrame() { first.error("failed frame") }
+        }
+        host.update(1000)
+        assertFalse(host.isRunning)
+        assertTrue(host.clients.isEmpty())
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+    }
+
+    @Test
+    fun `failed cleanup escapes nested Game boundaries with original failure`() {
+        val first = game("default", "testbox")
+        bind(0, first).netchan.remote_address = null
+        val failure = GameFailure(first, "failed frame")
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun G_RunFrame() { throw failure }
+        }
+        val escaped = assertThrows(IllegalStateException::class.java) { host.update(1000) }
+        assertSame(failure, escaped.cause)
+        assertEquals(1, failure.suppressed.size)
+        assertFalse(host.isRunning)
+        assertTrue(host.clients.isEmpty())
+    }
+
+    @Test
+    fun `unclassified programming failures are not swallowed by Game boundary`() {
+        val first = game("default", "testbox")
+        val bug = IllegalStateException("unexpected bug")
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun G_RunFrame() { throw bug }
+        }
+        assertSame(bug, assertThrows(IllegalStateException::class.java) { host.update(1000) })
+    }
+
+    @Test
     fun `singleplayer chain preserves unit syntax and ends in an idle Host`() {
         val intro = game("default", "intro.cin+end.cin+*testbox")
         val client = bind(0, intro)

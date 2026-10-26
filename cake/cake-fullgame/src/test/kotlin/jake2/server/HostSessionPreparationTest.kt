@@ -637,6 +637,23 @@ class HostSessionPreparationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `Game failure during save or archival stops unhealthy Game`(archive: Boolean) {
+        save(true)
+        val game = host.games.getValue("default")
+        val failure = GameFailure(game, "invalid gameplay persistence state")
+        game.gameExports = object : GameExports by game.gameExports {
+            override fun WriteLevel(filename: String) { throw failure }
+        }
+        val result = if (archive) host.changeMap("testbox2") else host.saveGame("broken")
+        assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
+        assertSame(failure, (result as ServerHost.OperationResult.Failed).cause)
+        assertFalse(host.isRunning)
+        assertTrue(host.clients.isEmpty())
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+    }
+
     @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
