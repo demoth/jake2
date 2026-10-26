@@ -93,7 +93,7 @@ class ServerHost : AutoCloseable {
         StringCmdMessage.BEGIN to ServerUserCommand(::beginClient),
         StringCmdMessage.NEXT_SERVER to ServerUserCommand(::finishCinematic),
         StringCmdMessage.DISCONNECT to ServerUserCommand { _, _, client -> dropClient(client) },
-        StringCmdMessage.INFO to ServerUserCommand { _, _, _ -> Info.Print(Cvar.getInstance().Serverinfo()) },
+        StringCmdMessage.INFO to ServerUserCommand { _, game, _ -> Info.Print(game.serverInfo()) },
         StringCmdMessage.DOWNLOAD to ServerUserCommand { args, _, client -> beginDownload(args, client) },
         StringCmdMessage.NEXT_DOWNLOAD to ServerUserCommand { _, _, client -> sendNextDownloadChunk(client) },
     )
@@ -827,7 +827,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * Builds the string that is sent as heartbeats and status replies.
      */
     private fun buildStatusResponse(): String {
-        var status = Cvar.getInstance().Serverinfo() + "\n"
+        var status = (games["default"]?.serverInfo() ?: Cvar.getInstance().Serverinfo()) + "\n"
 
         for (cl in clients) {
             if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) {
@@ -1832,7 +1832,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     private fun printServerInfo() {
         Com.Printf("Server info settings:\n")
-        Info.Print(Cvar.getInstance().Serverinfo())
+        Info.Print(games["default"]?.serverInfo() ?: Cvar.getInstance().Serverinfo())
     }
 
     private fun dumpUser(args: List<String>) {

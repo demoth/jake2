@@ -54,6 +54,17 @@ class EmbeddedCakeHostTest {
         cvars.clear()
     }
 
+    @Test
+    fun `pause checks the hosted Game mode rather than startup defaults`() {
+        assertEquals(HostStartResult.Started, host.start(request()))
+        cvars.find<Boolean>("deathmatch").forceSet(true)
+        host.setPaused(true)
+        assertTrue(host.server!!.isPaused)
+        host.server!!.games.getValue("default").findCvar("coop", Boolean::class.java).forceSet(true)
+        host.setPaused(true)
+        assertFalse(host.server!!.isPaused)
+    }
+
     private fun game() = host.server!!.games.getValue("default").gameExports as GameExportsImpl
 
     @Test

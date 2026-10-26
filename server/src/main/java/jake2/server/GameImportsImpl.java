@@ -26,6 +26,7 @@ import jake2.qcommon.*;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarType;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.network.MulticastTypes;
@@ -100,6 +101,8 @@ public class GameImportsImpl implements GameImports {
     private final int[] entityClusters = new int[MAX_TOTAL_ENT_LEAFS];
 
     private final Cvar localCvars = new Cvar();
+    private final cvar_t<Boolean> deathmatch;
+    private final cvar_t<Boolean> coop;
 
     CM cm;
 
@@ -121,6 +124,20 @@ public class GameImportsImpl implements GameImports {
         this.name = serverMain.allocateGameName();
         if (previous != null && !changeMapInfo.isLoadgame)
             previous.localCvars.copyValuesTo(localCvars);
+
+        // Host cvars are startup defaults; live mode entries belong to this Game.
+        deathmatch = localCvars.register("deathmatch", CvarTypes.BOOLEAN,
+                Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue(),
+                Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, null);
+        coop = localCvars.register("coop", CvarTypes.BOOLEAN,
+                Cvar.getInstance().find("coop", Boolean.class).getTypedValue(),
+                Defines.CVAR_SERVERINFO | Defines.CVAR_LATCH, null);
+
+        // map starts a new session from Host defaults; gamemap inherits the previous Game.
+        if (previous != null && previous.state == ServerStates.SS_DEAD && !changeMapInfo.isLoadgame) {
+            deathmatch.forceSet(Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue());
+            coop.forceSet(Cvar.getInstance().find("coop", Boolean.class).getTypedValue());
+        }
 
         spawncount = Lib.rand();
 
@@ -166,9 +183,14 @@ public class GameImportsImpl implements GameImports {
             SV_Read_Latched_Vars();
         }
 
+        if (isDeathmatch() && isCoop()) {
+            Com.Printf("Deathmatch and Coop both set, disabling Coop for this Game\n");
+            coop.forceSet(false);
+        }
+
         // Snapshot the applied setting for this game; client prediction receives the same value.
         configuredAirAcceleration = Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue();
-        airAcceleration = Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()
+        airAcceleration = isDeathmatch()
                 ? configuredAirAcceleration : 0f;
         configstrings[Defines.CS_AIRACCEL] = Float.toString(airAcceleration);
 
@@ -204,10 +226,21 @@ public class GameImportsImpl implements GameImports {
         }
     }
 
+    public boolean isDeathmatch() { return deathmatch.getTypedValue(); }
+
+    public boolean isCoop() { return coop.getTypedValue(); }
+
+    /** Overlay this Game's mode on the remaining shared server-info settings. */
+    public String serverInfo() {
+        String info = Cvar.getInstance().Serverinfo();
+        info = Info.Info_SetValueForKey(info, "deathmatch", deathmatch.getRawString());
+        return Info.Info_SetValueForKey(info, "coop", coop.getRawString());
+    }
+
     /** Consume this Game's cinematic continuation once; null means no eligible request. */
     String takeNextMap() {
         if (nextMap == null || state == ServerStates.SS_GAME
-                || (state == ServerStates.SS_PIC && !Cvar.getInstance().find("coop", Boolean.class).getTypedValue())) {
+                || (state == ServerStates.SS_PIC && !isCoop())) {
             return null;
         }
         String result = nextMap;
@@ -792,7 +825,7 @@ public class GameImportsImpl implements GameImports {
             return;
         }
 
-        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue()) {
+        if (isDeathmatch()) {
             Com.Printf("Can't savegame in a deathmatch\n");
             return;
         }
@@ -852,7 +885,7 @@ public class GameImportsImpl implements GameImports {
         // has the "current" frame
         frameNum++;
 
-        if (serverMain.isPaused() && serverMain.getClients().size() <= 1) {
+        if (serverMain.isPaused() && !isDeathmatch() && !isCoop() && serverMain.getClients().size() <= 1) {
             return;
         }
 
@@ -1114,7 +1147,7 @@ public class GameImportsImpl implements GameImports {
         if (Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
             return false;
 
-        if (Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue())
+        if (isDeathmatch())
             return false;
 
         String name = EngineWriteRoot.resolve("save/current/" + mapName + ".sav.json").toString();

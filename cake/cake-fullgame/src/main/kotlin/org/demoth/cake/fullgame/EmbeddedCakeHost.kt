@@ -152,8 +152,8 @@ class EmbeddedCakeHost(
         checkThread()
         if (server?.isRunning != true) return
         val cvars = Cvar.getInstance()
-        val singlePlayer = !cvars.find<Boolean>("deathmatch").typedValue &&
-            !cvars.find<Boolean>("coop").typedValue && cvars.find<Int>("maxclients").typedValue == 1
+        val game = server?.games?.get("default") ?: return
+        val singlePlayer = !game.isDeathmatch && !game.isCoop && server?.clients?.size == 1
         cvars.find<Boolean>("paused").forceSet(paused && singlePlayer)
     }
 

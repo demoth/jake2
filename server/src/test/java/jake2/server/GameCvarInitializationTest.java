@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Checks early config consumption, game-instance isolation and shared engine entries without map assets. */
 class GameCvarInitializationTest {
     @Test
-    void gameWritesValidateSharedTypesAndRetainLatchSemantics() {
+    void gameModeWritesStayLocalAndRetainLatchSemantics() {
         Cvar cvars = Cvar.getInstance();
         var previousState = Globals.server_state;
         cvars.clear();
@@ -31,10 +31,10 @@ class GameCvarInitializationTest {
             ServerHost server = new ServerHost();
             GameImportsImpl imports = new GameImportsImpl(server, new ChangeMapInfo("test.pcx", false, false));
             cvar_t<Integer> maxclients = cvars.find("maxclients", Integer.class);
-            cvar_t<Boolean> deathmatch = cvars.find("deathmatch", Boolean.class);
+            cvar_t<Boolean> deathmatch = imports.findCvar("deathmatch", Boolean.class);
             assertEquals(1, maxclients.getTypedValue());
             assertEquals(0.5f, server.timeout.getTypedValue());
-            assertSame(deathmatch, imports.findCvar("deathmatch", Boolean.class));
+            assertNotSame(cvars.find("deathmatch", Boolean.class), deathmatch);
 
             Globals.server_state = ServerStates.SS_GAME;
             imports.findCvar("deathmatch", Boolean.class).set(true);
@@ -44,8 +44,11 @@ class GameCvarInitializationTest {
             assertFalse(deathmatch.getTypedValue());
             assertEquals(Boolean.TRUE, deathmatch.getPendingValue());
             cvars.updateLatchedVars();
-            assertTrue(deathmatch.getTypedValue());
-            assertEquals("1", deathmatch.getRawString());
+            assertFalse(deathmatch.getTypedValue());
+            assertFalse(cvars.find("deathmatch", Boolean.class).getTypedValue());
+            GameImportsImpl successor = new GameImportsImpl(server, new ChangeMapInfo("next.pcx", false, false), imports);
+            assertTrue(successor.isDeathmatch());
+            assertEquals(Boolean.TRUE, deathmatch.getPendingValue());
             imports.findCvar("maxclients", Integer.class).forceSet(0);
             assertEquals(1, maxclients.getTypedValue());
         } finally {
@@ -83,7 +86,7 @@ class GameCvarInitializationTest {
             nextGravity.set(400f);
             assertEquals(2, skill.getTypedValue());
             assertEquals(600f, gravity.getTypedValue());
-            assertSame(first.findCvar("deathmatch", Boolean.class), next.findCvar("deathmatch", Boolean.class));
+            assertNotSame(first.findCvar("deathmatch", Boolean.class), next.findCvar("deathmatch", Boolean.class));
         } finally {
             Globals.server_state = previousState;
             cvars.clear();
@@ -172,8 +175,9 @@ class GameCvarInitializationTest {
             assertNull(loadedSkill.getRawPendingString());
             assertEquals(1, otherSkill.getTypedValue());
             assertFalse(cvars.isRegistered("skill"));
-            assertSame(cvars.find("deathmatch"), loaded.findCvar("deathmatch", Boolean.class));
-            assertEquals("1", cvars.find("deathmatch", Boolean.class).getRawString());
+            assertNotSame(cvars.find("deathmatch"), loaded.findCvar("deathmatch", Boolean.class));
+            assertTrue(loaded.isDeathmatch());
+            assertFalse(cvars.find("deathmatch", Boolean.class).getTypedValue());
         } finally {
             EngineWriteRoot.setRoot(previousRoot);
             cvars.clear();

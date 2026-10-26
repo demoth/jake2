@@ -166,7 +166,7 @@ class GameContinuationTest {
         finish(client, picture)
         host.update(100)
         assertSame(picture, host.games["default"])
-        Cvar.getInstance().find<Boolean>("coop").forceSet(true)
+        picture.findCvar("coop", Boolean::class.java).forceSet(true)
         finish(client, picture)
         host.update(100)
         assertEquals("testbox2", host.games.getValue("default").mapName)
