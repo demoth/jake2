@@ -259,7 +259,7 @@ class ServerHost : AutoCloseable {
         commands.add("listmaps") {
             val bytes = EngineVfs.loadBytes("maps.lst")
             if (bytes == null) {
-                Com.Error(Defines.ERR_DROP, "Could not read maps.lst")
+                Com.Printf("Could not read maps.lst\n")
                 return@add
             }
             for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {

@@ -608,6 +608,35 @@ class HostSessionPreparationTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `missing map list preserves Host and continues queued commands`(running: Boolean) {
+        if (running) save(true)
+        assertNull(EngineVfs.loadBytes("maps.lst"), "Fixture must have no optional map list")
+        val games = host.games.toMap()
+        val clients = host.clients.toList()
+        val socket = NET.ip_sockets[Defines.NS_SERVER]
+        val output = StringBuilder()
+        val sink = Com.ConsoleSink { _, message -> output.append(message) }
+        var continued = false
+        jake2.qcommon.exec.Cmd.AddCommand("test_after_listmaps") { continued = true }
+        Com.SetConsoleSink(sink)
+        try {
+            jake2.qcommon.exec.Cbuf.AddText("listmaps; test_after_listmaps")
+            jake2.qcommon.exec.Cbuf.Execute()
+
+            assertTrue(output.contains("Could not read maps.lst"))
+            assertTrue(continued)
+            assertEquals(running, host.isRunning)
+            assertEquals(games, host.games)
+            assertEquals(clients, host.clients.toList())
+            assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
+        } finally {
+            Com.ClearConsoleSink(sink)
+            jake2.qcommon.exec.Cmd.RemoveCommand("test_after_listmaps")
+        }
+    }
+
     @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
