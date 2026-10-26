@@ -100,6 +100,12 @@ public class GameImportsImpl implements GameImports {
     private final int[] entityLeafs = new int[MAX_TOTAL_ENT_LEAFS];
     private final int[] entityClusters = new int[MAX_TOTAL_ENT_LEAFS];
 
+    // TODO: Give the entire Game-local cvar registry consistent console access via scoped execution.
+    // GameImports resolves local entries, but console set, shorthand queries/writes and $ expansion
+    // use the global registry, even with one running Game. Writes affect separate global entries
+    // or early inputs, not this Game's values. This accepted gap applies to all local cvars
+    // (skill, sv_gravity, modes, rules, etc.), not just the recently migrated settings.
+    // For now these cvars are effectively read only
     private final Cvar localCvars = new Cvar();
     private final cvar_t<Boolean> deathmatch;
     private final cvar_t<Boolean> coop;
@@ -137,11 +143,21 @@ public class GameImportsImpl implements GameImports {
                 Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue(),
                 Defines.CVAR_LATCH, "Controls air acceleration (currently only for deathmatch)");
 
+        localCvars.register("dmflags", CvarTypes.INTEGER,
+                Cvar.getInstance().find("dmflags", Integer.class).getTypedValue(), Defines.CVAR_SERVERINFO, null);
+        localCvars.register("fraglimit", new CvarTypes.IntegerType(0, null),
+                Cvar.getInstance().find("fraglimit", Integer.class).getTypedValue(), Defines.CVAR_SERVERINFO, null);
+        localCvars.register("timelimit", new CvarTypes.FloatType(0f, null),
+                Cvar.getInstance().find("timelimit", Float.class).getTypedValue(), Defines.CVAR_SERVERINFO, null);
+
         // map starts a new session from Host defaults; gamemap inherits the previous Game.
         if (previous != null && previous.state == ServerStates.SS_DEAD && !changeMapInfo.isLoadgame) {
             deathmatch.forceSet(Cvar.getInstance().find("deathmatch", Boolean.class).getTypedValue());
             coop.forceSet(Cvar.getInstance().find("coop", Boolean.class).getTypedValue());
             configuredAirAcceleration.forceSet(Cvar.getInstance().find("sv_airaccelerate", Float.class).getTypedValue());
+            for (String rule : List.of("dmflags", "fraglimit", "timelimit")) {
+                localCvars.forceSetResult(rule, Cvar.getInstance().find(rule).getRawString());
+            }
         }
 
         spawncount = Lib.rand();
@@ -234,11 +250,15 @@ public class GameImportsImpl implements GameImports {
 
     public boolean isCoop() { return coop.getTypedValue(); }
 
-    /** Overlay this Game's mode on the remaining shared server-info settings. */
+    /** Overlay this Game's mode and rules on the remaining shared server-info settings. */
     public String serverInfo() {
         String info = Cvar.getInstance().Serverinfo();
         info = Info.Info_SetValueForKey(info, "deathmatch", deathmatch.getRawString());
-        return Info.Info_SetValueForKey(info, "coop", coop.getRawString());
+        info = Info.Info_SetValueForKey(info, "coop", coop.getRawString());
+        for (String rule : List.of("dmflags", "fraglimit", "timelimit")) {
+            info = Info.Info_SetValueForKey(info, rule, localCvars.find(rule).getRawString());
+        }
+        return info;
     }
 
     /** Consume this Game's cinematic continuation once; null means no eligible request. */
@@ -312,7 +332,7 @@ public class GameImportsImpl implements GameImports {
             ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             ServerSaveJsonStore.ServerLatchedCvarsSnapshot snapshot = store.readLatchedCvars("current");
 
-            // read all CVAR_LATCH cvars
+            // Restore saved latched settings
             // these will be things like coop, skill, deathmatch, etc
             for (ServerSaveJsonStore.LatchedCvarSnapshot cvar : snapshot.cvars()) {
                 String name = cvar.name();
@@ -1251,7 +1271,7 @@ public class GameImportsImpl implements GameImports {
         gameExports.WriteGame(EngineWriteRoot.resolve("save/current/game.ssv.json").toString(), autosave);
     }
 
-    /** Save shared and local latched cvars, with local entries taking precedence. */
+    /** Save shared and local latched settings, with local entries taking precedence. */
     void writeLatchedCvars(ServerSaveJsonStore store) throws IOException {
         List<ServerSaveJsonStore.LatchedCvarSnapshot> latchedCvars = new ArrayList<>();
         Cvar.getInstance().eachCvarByFlags(Defines.CVAR_LATCH, var -> {

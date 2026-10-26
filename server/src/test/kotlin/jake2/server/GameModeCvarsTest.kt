@@ -45,6 +45,46 @@ class GameModeCvarsTest {
         }
 
     @Test
+    fun `local rule edits stay isolated and validate without changing defaults`() {
+        val first = game().apply { name = "default" }
+        val second = game().apply { name = "other" }
+        host.games[first.name] = first
+        host.games[second.name] = second
+        first.findCvar("fraglimit", Int::class.java).setText("12")
+        second.findCvar("timelimit", Float::class.java).setText("2.5")
+        second.findCvar("dmflags", Int::class.java).setText("128")
+        assertEquals(12, first.findCvar("fraglimit", Int::class.java).typedValue)
+        assertEquals(0, second.findCvar("fraglimit", Int::class.java).typedValue)
+        assertEquals(2.5f, second.findCvar("timelimit", Float::class.java).typedValue)
+        assertEquals(128, second.findCvar("dmflags", Int::class.java).typedValue)
+        assertEquals(0f, first.findCvar("timelimit", Float::class.java).typedValue)
+        assertEquals(0, cvars.find<Int>("fraglimit").typedValue)
+        assertTrue(first.serverInfo().contains("\\fraglimit\\12"))
+        assertFalse(first.findCvar("fraglimit", Int::class.java).setText("-1").accepted)
+        assertFalse(second.findCvar("timelimit", Float::class.java).setText("invalid").accepted)
+        assertEquals(12, first.findCvar("fraglimit", Int::class.java).typedValue)
+        assertEquals(2.5f, second.findCvar("timelimit", Float::class.java).typedValue)
+        assertFalse(first.isCoop)
+    }
+
+    @Test
+    fun `live rules inherit locally while fresh maps use defaults`() {
+        val first = game()
+        first.findCvar("fraglimit", Int::class.java).set(12)
+        first.findCvar("timelimit", Float::class.java).set(2.5f)
+        first.findCvar("dmflags", Int::class.java).set(128)
+        cvars.find<Int>("fraglimit").forceSet(30)
+        val successor = game(first)
+        assertNotSame(first.findCvar("fraglimit", Int::class.java), successor.findCvar("fraglimit", Int::class.java))
+        assertEquals(12, successor.findCvar("fraglimit", Int::class.java).typedValue)
+        assertEquals(2.5f, successor.findCvar("timelimit", Float::class.java).typedValue)
+        assertEquals(128, successor.findCvar("dmflags", Int::class.java).typedValue)
+        assertEquals(30, cvars.find<Int>("fraglimit").typedValue)
+        first.state = ServerStates.SS_DEAD
+        assertEquals(30, game(first).findCvar("fraglimit", Int::class.java).typedValue)
+    }
+
+    @Test
     fun `independent modes control picture continuation air acceleration and server info`() {
         cvars.find<Boolean>("deathmatch").forceSet(true)
         cvars.find<Float>("sv_airaccelerate").forceSet(5f)

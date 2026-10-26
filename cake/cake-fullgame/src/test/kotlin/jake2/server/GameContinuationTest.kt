@@ -65,6 +65,28 @@ class GameContinuationTest {
         host.executeClientCommand(client, "nextserver ${game.spawncount}")
 
     @Test
+    fun `live timelimit ends only its owning Game`() {
+        Cvar.getInstance().find<Boolean>("deathmatch").forceSet(true)
+        val first = host.spawnServerInstance(ChangeMapInfo("testbox", false, false), 0)
+        first.name = "default"
+        host.games[first.name] = first
+        val second = host.spawnServerInstance(ChangeMapInfo("testbox2", false, false), 0)
+        second.name = "other"
+        host.games[second.name] = second
+        first.findCvar("dmflags", Int::class.java).set(Defines.DF_SAME_LEVEL)
+        first.findCvar("timelimit", Float::class.java).set(0.001f)
+        second.findCvar("fraglimit", Int::class.java).set(10)
+        val firstGameplay = first.gameExports as jake2.game.GameExportsImpl
+        val secondGameplay = second.gameExports as jake2.game.GameExportsImpl
+        firstGameplay.G_RunFrame()
+        secondGameplay.G_RunFrame()
+        assertTrue(firstGameplay.level.intermissiontime > 0)
+        assertEquals(0f, secondGameplay.level.intermissiontime)
+        assertEquals(10, secondGameplay.gameCvars.fraglimit.typedValue)
+        assertEquals(0, firstGameplay.gameCvars.fraglimit.typedValue)
+    }
+
+    @Test
     fun `two Games advance independently and retain all routed clients`() {
         val first = game("default", "intro.cin+testbox")
         val second = game("other", "end.cin+testbox2")
