@@ -1643,6 +1643,14 @@ public class GameExportsImpl implements GameExports {
             LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             LevelSaveFileSnapshot snapshot = store.read(filename);
 
+            // SpawnEntities ran for precaching. Replace that world, rather than overlaying it:
+            // entities absent from the save must remain unused. Allocate every slot before
+            // resolving saved references, including references to later entity numbers.
+            CreateEdicts(game.maxentities);
+            for (GamePlayerInfo client : game.clients) {
+                if (client.chase_target != null)
+                    client.chase_target = g_edicts[client.chase_target.index];
+            }
             num_edicts = game.maxclients + 1;
 
             LevelSaveSnapshots.apply(level, snapshot.getLevel(), g_edicts);

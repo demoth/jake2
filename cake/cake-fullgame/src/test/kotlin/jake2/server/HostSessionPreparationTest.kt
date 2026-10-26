@@ -189,14 +189,57 @@ class HostSessionPreparationTest {
         assertFalse(cvars.find<Boolean>("coop").typedValue)
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `restoration keeps removed entities absent and restores surviving references`(load: Boolean) {
+        host.map(listOf("map", "testbox2"))
+        val original = host.games.getValue("default")
+        val gameplay = original.gameExports as jake2.game.GameExportsImpl
+        fun entity(classname: String) = gameplay.g_edicts.first { it.inuse && it.classname == classname }
+        val removed = entity("ammo_bullets")
+        val survivor = entity("ammo_cells")
+        val target = entity("ammo_shells")
+        val removedIndex = removed.index
+        val survivorIndex = survivor.index
+        val targetIndex = target.index
+        assertTrue(removedIndex < targetIndex, "Removed slot must be inside the restored entity range")
+        survivor.health = 73
+        survivor.enemy = target
+        gameplay.game.clients[0].chase_target = target
+        gameplay.level.sound_entity = target
+        gameplay.freeEntity(removed)
+        original.SV_WriteLevelFile()
+        original.SV_WriteServerFile(true)
+        ServerSaveFiles(root).copy("current", "slot")
+
+        if (load) {
+            host.loadGame(listOf("load", "slot"))
+        } else {
+            host.changeMap(listOf("gamemap", "testbox"))
+            host.changeMap(listOf("gamemap", "testbox2"))
+        }
+
+        val restored = host.games.getValue("default")
+        assertFalse(restored.gameExports.getEdict(removedIndex).inuse)
+        val restoredSurvivor = restored.gameExports.getEdict(survivorIndex) as jake2.game.GameEntity
+        assertTrue(restoredSurvivor.inuse)
+        assertEquals(73, restoredSurvivor.health)
+        assertSame(restored.gameExports.getEdict(targetIndex), restoredSurvivor.enemy)
+        if (load) {
+            val restoredGameplay = restored.gameExports as jake2.game.GameExportsImpl
+            assertSame(restored.gameExports.getEdict(targetIndex), restoredGameplay.game.clients[0].chase_target)
+            assertSame(restored.gameExports.getEdict(targetIndex), restoredGameplay.level.sound_entity)
+        }
+        assertEquals(0, restored.baselines[removedIndex].modelindex)
+    }
+
     @Test
-    fun `explicit load restores archived state even when level revisit is disabled`() {
+    fun `explicit load restores archived state`() {
         save(false)
         val original = host.games.getValue("default")
         original.configstrings[Defines.CS_NAME] = "Saved level name"
         original.SV_WriteLevelFile()
         ServerSaveFiles(root).copy("current", "slot")
-        cvars.find<Boolean>("sv_noreload").forceSet(true)
         host.stop("test", false)
         host.loadGame(listOf("load", "slot"))
         assertEquals("Saved level name", host.games.getValue("default").configstrings[Defines.CS_NAME])

@@ -291,8 +291,8 @@ public class GameImportsImpl implements GameImports {
         gameExports.SpawnEntities(mapName, cm.CM_EntityString(), changeMapInfo.spawnPoint);
 
         if (isPreviousLevel()) {
-            // fixme: need to spawn all entities and then remove them,
-            //  because otherwise precaching will not work properly - configstrings will not match.
+            // Spawn first for precaching; restoration replaces the gameplay entities.
+            // Clear spatial links before linking the restored world.
             clearWorld();
 
             // loads a stored game, runs 100 frames afterwards
@@ -1163,9 +1163,6 @@ public class GameImportsImpl implements GameImports {
     }
 
     boolean isPreviousLevel() {
-        if (!loadgame && Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
-            return false;
-
         if (isDeathmatch())
             return false;
 

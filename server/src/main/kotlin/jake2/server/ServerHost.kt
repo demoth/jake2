@@ -209,13 +209,6 @@ class ServerHost : AutoCloseable {
         allowMapDownloads = cvars.find<Boolean>("allow_download_maps")
 
         cvars.register(
-            "sv_noreload",
-            CvarTypes.BOOLEAN,
-            false,
-            0,
-            "Start revisited levels fresh instead of restoring their saved state"
-        )
-        cvars.register(
             "sv_airaccelerate",
             CvarTypes.FLOAT,
             0f,
