@@ -460,23 +460,18 @@ class ServerHost : AutoCloseable {
             return
         }
 
-        // Read Host allocation inputs before touching the current workspace or running Game.
-        val mapCommand: String
-        val savedMaxClients: Int
-        try {
-            mapCommand = store.readMapCommand(saveGame).mapCommand()
-            savedMaxClients = store.readLatchedCvars(saveGame).cvars()
-                .last { it.name() == "maxclients" }.value().toInt()
-            require(savedMaxClients in 1..Defines.MAX_CLIENTS) { "Invalid saved maxclients" }
+        val prepared = try {
+            SavePreflight(EngineWriteRoot.path()).inspect(saveGame)
         } catch (e: Exception) {
-            Com.Printf("Couldn't read save metadata: ${e.message}\n")
+            Com.Printf("Couldn't load save: ${e.message}\n")
             return
         }
+        val savedMaxClients = prepared.maxClients
         if (games.keys.any { it != "default" } && clients.size != savedMaxClients) {
             Com.Printf("Can't change saved client capacity while other Games are running\n")
             return
         }
-        val target = ChangeMapInfo(mapCommand, false, true)
+        val target = prepared.target
         ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
         prepareServerSession(restart = true, savedMaxClients = savedMaxClients)
 

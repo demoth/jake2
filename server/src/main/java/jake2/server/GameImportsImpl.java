@@ -339,10 +339,10 @@ public class GameImportsImpl implements GameImports {
                 String value = cvar.value();
                 Com.DPrintf("Set " + name + " = " + value + "\n");
                 var result = writeRegistry(name).forceSetResult(name, value);
-                if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
+                if (!result.getAccepted()) throw new IllegalArgumentException(result.getDiagnostic());
             }
         } catch (Exception e) {
-            Com.Printf("Couldn't read file " + e.getMessage() + "\n");
+            throw new IllegalStateException("Failed to restore saved Game settings", e);
         }
     }
 
@@ -886,12 +886,7 @@ public class GameImportsImpl implements GameImports {
         SV_WriteLevelFile();
 
         // save server state
-        try {
-            SV_WriteServerFile(false);
-        }
-        catch (Exception e) {
-            Com.Printf("IOError in SV_WriteServerFile: " + e);
-        }
+        SV_WriteServerFile(false);
 
         // copy it off
         new ServerSaveFiles(EngineWriteRoot.path()).copy("current", saveGame);
@@ -1168,7 +1163,7 @@ public class GameImportsImpl implements GameImports {
     }
 
     boolean isPreviousLevel() {
-        if (Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
+        if (!loadgame && Cvar.getInstance().find("sv_noreload", Boolean.class).getTypedValue())
             return false;
 
         if (isDeathmatch())
@@ -1188,8 +1183,7 @@ public class GameImportsImpl implements GameImports {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
             store.applyLevelState(store.readLevelState("current", mapName), configstrings, cm);
         } catch (Exception e) {
-            Com.Printf("Failed to open current level state for " + mapName + "\n");
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to restore server level " + mapName, e);
         }
 
         String name = EngineWriteRoot.resolve("save/current/" + mapName + ".sav.json").toString();

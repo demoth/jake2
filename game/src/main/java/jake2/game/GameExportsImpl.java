@@ -1590,7 +1590,7 @@ public class GameExportsImpl implements GameExports {
                 game.autosaved = false;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to write gameplay save " + filename, e);
         }
     }
 
@@ -1611,7 +1611,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to restore gameplay save " + filename, e);
         }
     }
 
@@ -1678,7 +1678,7 @@ public class GameExportsImpl implements GameExports {
                     ent.think.nextTime = level.time + ent.delay;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to restore gameplay level " + filename, e);
         }
     }
 

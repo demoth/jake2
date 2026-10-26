@@ -124,6 +124,123 @@ class HostSessionPreparationTest {
             .readMapCommand("current").mapCommand())
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["game.ssv.json", "testbox.sav.json", "testbox.sv2.json"])
+    fun `missing save components preserve Game and working save`(file: String) {
+        save(false)
+        Files.delete(root.resolve("save/slot/$file"))
+        // Require a level archive by making this a manual save envelope.
+        val gameFile = root.resolve("save/slot/game.ssv.json")
+        if (Files.exists(gameFile)) Files.writeString(gameFile,
+            Files.readString(gameFile).replace("\"autoSaved\":true", "\"autoSaved\":false"))
+        val game = host.games.getValue("default")
+        val original = Files.readString(root.resolve("save/current/game.ssv.json"))
+        host.loadGame(listOf("load", "slot"))
+        assertSame(game, host.games["default"])
+        assertEquals(original, Files.readString(root.resolve("save/current/game.ssv.json")))
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["game.ssv.json", "testbox.sav.json", "testbox.sv2.json"])
+    fun `malformed save components are rejected before replacement`(file: String) {
+        save(false)
+        Files.writeString(root.resolve("save/slot/$file"), "{ broken json")
+        val game = host.games.getValue("default")
+        host.loadGame(listOf("load", "slot"))
+        assertSame(game, host.games["default"])
+    }
+
+    @Test
+    fun `manual save requires current level even when both archive files are absent`() {
+        save(false)
+        Files.delete(root.resolve("save/slot/testbox.sav.json"))
+        Files.delete(root.resolve("save/slot/testbox.sv2.json"))
+        val path = root.resolve("save/slot/game.ssv.json")
+        val json = Files.readString(path)
+        assertTrue(json.contains("\"autoSaved\":true"))
+        Files.writeString(path, json.replace("\"autoSaved\":true", "\"autoSaved\":false"))
+        val game = host.games.getValue("default")
+        host.loadGame(listOf("load", "slot"))
+        assertSame(game, host.games["default"])
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["version", "capacity", "setting"])
+    fun `inconsistent metadata is rejected without modifying live settings`(damage: String) {
+        save(false)
+        val store = jake2.server.save.ServerSaveJsonStore.forWriteDir(root.toString())
+        when (damage) {
+            "version" -> {
+                val file = root.resolve("save/slot/server_mapcmd.ssv.json")
+                Files.writeString(file, Files.readString(file).replace("\"schemaVersion\":1", "\"schemaVersion\":99"))
+            }
+            else -> {
+                val name = if (damage == "capacity") "maxclients" else "coop"
+                val value = if (damage == "capacity") "4" else "invalid"
+                store.writeLatchedCvars("slot", store.readLatchedCvars("slot").cvars().map {
+                    if (it.name() == name) jake2.server.save.ServerSaveJsonStore.LatchedCvarSnapshot(name, value) else it
+                })
+            }
+        }
+        val game = host.games.getValue("default")
+        host.loadGame(listOf("load", "slot"))
+        assertSame(game, host.games["default"])
+        assertEquals(1, cvars.find<Int>("maxclients").typedValue)
+        assertFalse(cvars.find<Boolean>("coop").typedValue)
+    }
+
+    @Test
+    fun `explicit load restores archived state even when level revisit is disabled`() {
+        save(false)
+        val original = host.games.getValue("default")
+        original.configstrings[Defines.CS_NAME] = "Saved level name"
+        original.SV_WriteLevelFile()
+        ServerSaveFiles(root).copy("current", "slot")
+        cvars.find<Boolean>("sv_noreload").forceSet(true)
+        host.stop("test", false)
+        host.loadGame(listOf("load", "slot"))
+        assertEquals("Saved level name", host.games.getValue("default").configstrings[Defines.CS_NAME])
+    }
+
+    @Test
+    fun `server level read failure stops before gameplay restoration`() {
+        save(false)
+        val game = host.games.getValue("default")
+        val gameplay = game.gameExports
+        var restoredGameplay = false
+        game.gameExports = object : GameExports by gameplay {
+            override fun ReadLevel(filename: String) { restoredGameplay = true }
+        }
+        Files.delete(root.resolve("save/current/testbox.sv2.json"))
+        assertThrows(IllegalStateException::class.java) { game.readLevelFile() }
+        assertFalse(restoredGameplay)
+    }
+
+    @Test
+    fun `level entry autosave without archives remains loadable`() {
+        host.map(listOf("map", "testbox"))
+        host.stop("test", false)
+        host.loadGame(listOf("load", "save0"))
+        assertEquals("testbox", host.games.getValue("default").mapName)
+    }
+
+    @Test
+    fun `gameplay IO failures propagate and failed save does not replace slot`() {
+        save(true)
+        val game = host.games.getValue("default")
+        val original = Files.readString(root.resolve("save/slot/game.ssv.json"))
+        assertThrows(IllegalStateException::class.java) {
+            game.gameExports.readGameLocals(root.resolve("missing.json").toString())
+        }
+        assertThrows(IllegalStateException::class.java) {
+            game.gameExports.ReadLevel(root.resolve("missing.json").toString())
+        }
+        Files.delete(root.resolve("save/current/game.ssv.json"))
+        Files.createDirectory(root.resolve("save/current/game.ssv.json"))
+        assertThrows(IllegalStateException::class.java) { game.saveGame(listOf("save", "slot")) }
+        assertEquals(original, Files.readString(root.resolve("save/slot/game.ssv.json")))
+    }
+
     @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
