@@ -227,6 +227,60 @@ public class GameImportsTest {
     }
 
     @Test
+    public void queuedSoundsKeepTheirPositionsAndStayWithinTheirGame() {
+        manager = new SV_MAIN();
+        Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
+        manager.resetClients();
+        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        ClientNetworkInfo firstClient = manager.getClients().get(0);
+        ClientNetworkInfo secondClient = manager.getClients().get(1);
+        firstClient.gameName = first.name;
+        secondClient.gameName = second.name;
+        firstClient.state = secondClient.state = ClientStates.CS_SPAWNED;
+        try {
+            ServerEntity entity = first.gameExports.getEdict(1);
+            entity.solid = Defines.SOLID_BSP;
+            entity.s.origin[0] = 10;
+            entity.maxs[0] = 4;
+            first.sound(entity, Defines.CHAN_WEAPON, 3, 0.5f, Defines.ATTN_NONE, 0.1f);
+            entity.s.origin[0] = 40;
+            first.sound(entity, Defines.CHAN_WEAPON, 4, 1, Defines.ATTN_NONE, 0);
+            var sounds = List.copyOf(firstClient.unreliable);
+            Assertions.assertEquals(2, sounds.size());
+            SoundMessage earlier = (SoundMessage) sounds.get(0);
+            Assertions.assertArrayEquals(new float[]{12, 0, 0}, earlier.origin);
+            Assertions.assertArrayEquals(new float[]{42, 0, 0}, ((SoundMessage) sounds.get(1)).origin);
+            Assertions.assertEquals(Defines.SND_ENT | Defines.SND_POS | Defines.SND_VOLUME
+                    | Defines.SND_ATTENUATION | Defines.SND_OFFSET, earlier.flags);
+            Assertions.assertEquals((entity.index << 3) | Defines.CHAN_WEAPON, earlier.sendchan);
+
+            float[] explicitOrigin = {1, 2, 3};
+            first.positioned_sound(explicitOrigin, entity, Defines.CHAN_RELIABLE | Defines.CHAN_VOICE,
+                    5, 1, Defines.ATTN_NONE, 0);
+            explicitOrigin[0] = 99;
+            Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
+            SoundMessage reliable = (SoundMessage) firstClient.netchan.reliablePending.iterator().next();
+            Assertions.assertArrayEquals(new float[]{1, 2, 3}, reliable.origin);
+            Assertions.assertTrue(secondClient.unreliable.isEmpty());
+            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+        } finally {
+            firstClient.state = secondClient.state = ClientStates.CS_FREE;
+        }
+    }
+
+    @Test
+    public void clientPrintQueueRespectsItsMessageLevel() {
+        ClientNetworkInfo client = new ClientNetworkInfo();
+        client.messagelevel = Defines.PRINT_HIGH;
+        client.queuePrint(Defines.PRINT_LOW, "hidden");
+        client.queuePrint(Defines.PRINT_HIGH, "visible");
+        Assertions.assertEquals(List.of(new PrintMessage(Defines.PRINT_HIGH, "visible")),
+                List.copyOf(client.netchan.reliablePending));
+        Assertions.assertTrue(client.unreliable.isEmpty());
+    }
+
+    @Test
     public void runGame() {
 
         final SV_MAIN sv_main = manager = new SV_MAIN();

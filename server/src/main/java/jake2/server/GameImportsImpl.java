@@ -41,6 +41,7 @@ import jake2.qcommon.network.messages.server.EntityUpdate;
 import jake2.qcommon.network.messages.server.DeltaEntityHeader;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
+import jake2.qcommon.network.messages.server.SoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vargs;
@@ -110,7 +111,6 @@ public class GameImportsImpl implements GameImports {
     private final entity_state_t[] clientEntityStates;
     private int nextClientEntity;
 
-    final float[] origin_v = { 0, 0, 0 };
     private final float configuredAirAcceleration;
     final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
@@ -250,7 +250,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         if (ent != null)
-            SV_SEND.SV_ClientPrintf(serverMain.getClients().get(n - 1), printlevel, s);
+            serverMain.getClients().get(n - 1).queuePrint(printlevel, s);
         else
             Com.Printf(s);
     }
@@ -270,10 +270,86 @@ public class GameImportsImpl implements GameImports {
 
     @Override
     public void positioned_sound(float[] origin, ServerEntity ent, int channel,
-                                 int soundinedex, float volume, float attenuation, float timeofs) {
+                                 int soundindex, float volume, float attenuation, float timeofs) {
 
-        SV_SEND.SV_StartSound(origin, ent, channel, soundinedex, volume,
-                attenuation, timeofs, this);
+        if (volume < 0 || volume > 1.0)
+            Com.Error(Defines.ERR_FATAL, "SV_StartSound: volume = " + volume);
+
+        if (attenuation < 0 || attenuation > 4)
+            Com.Error(Defines.ERR_FATAL, "SV_StartSound: attenuation = " + attenuation);
+
+        //    if (channel < 0 || channel > 15)
+        //        Com_Error (ERR_FATAL, "SV_StartSound: channel = %i", channel);
+
+        if (timeofs < 0 || timeofs > 0.255)
+            Com.Error(Defines.ERR_FATAL, "SV_StartSound: timeofs = " + timeofs);
+
+        int entityIndex = ent.index;
+
+        // no PHS flag
+        boolean use_phs;
+        if ((channel & 8) != 0) {
+            use_phs = false;
+            channel &= 7;
+        }
+        else
+            use_phs = true;
+
+        int sendchan = (entityIndex << 3) | (channel & 7);
+
+        int flags = 0;
+        if (volume != Defines.DEFAULT_SOUND_PACKET_VOLUME)
+            flags |= Defines.SND_VOLUME;
+        if (attenuation != Defines.DEFAULT_SOUND_PACKET_ATTENUATION)
+            flags |= Defines.SND_ATTENUATION;
+
+        // the client doesn't know that bmodels have weird origins
+        // the origin can also be explicitly set
+        if ((ent.svflags & Defines.SVF_NOCLIENT) != 0 || (ent.solid == Defines.SOLID_BSP) || origin != null)
+            flags |= Defines.SND_POS;
+
+        // always send the ent number for channel overrides
+        flags |= Defines.SND_ENT;
+
+        if (timeofs != 0)
+            flags |= Defines.SND_OFFSET;
+
+        // use the ent origin unless it is a bmodel or explicitly specified
+        if (origin == null) {
+            origin = new float[3];
+            if (ent.solid == Defines.SOLID_BSP) {
+                for (int i = 0; i < 3; i++)
+                    origin[i] = ent.s.origin[i] + 0.5f * (ent.mins[i] + ent.maxs[i]);
+            }
+            else {
+                Math3D.VectorCopy(ent.s.origin, origin);
+            }
+        }
+
+        // Queued messages own their position until the transport serializes them.
+        else {
+            origin = origin.clone();
+        }
+
+        // if the sound doesn't attenuate,send it to everyone
+        // (global radio chatter, voiceovers, etc)
+        if (attenuation == Defines.ATTN_NONE)
+            use_phs = false;
+
+        final MulticastTypes multicastType;
+
+        if ((channel & Defines.CHAN_RELIABLE) != 0) {
+            if (use_phs)
+                multicastType = MulticastTypes.MULTICAST_PHS_R;
+            else
+                multicastType = MulticastTypes.MULTICAST_ALL_R;
+        } else {
+            if (use_phs)
+                multicastType = MulticastTypes.MULTICAST_PHS;
+            else
+                multicastType = MulticastTypes.MULTICAST_ALL;
+        }
+        multicastMessage(origin, new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin), multicastType);
     }
 
     /*
@@ -722,7 +798,7 @@ public class GameImportsImpl implements GameImports {
         serverMain.SV_BroadcastPrintf(Defines.PRINT_HIGH, client.name + " was kicked\n", client.gameName);
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
-        SV_SEND.SV_ClientPrintf(client, Defines.PRINT_HIGH, "You were kicked from the game\n");
+        client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n");
         SV_MAIN.SV_DropClient(client);
         client.lastmessage = realtime; // min case there is a funny zombie
     }
@@ -803,7 +879,7 @@ public class GameImportsImpl implements GameImports {
         for (ClientNetworkInfo client: serverMain.getClients()) {
             if (client.state != ClientStates.CS_SPAWNED)
                 continue;
-            SV_SEND.SV_ClientPrintf(client, Defines.PRINT_CHAT, text + "\n");
+            client.queuePrint(Defines.PRINT_CHAT, text + "\n");
         }
     }
     /*

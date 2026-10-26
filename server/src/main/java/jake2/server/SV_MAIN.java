@@ -51,7 +51,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static jake2.qcommon.Defines.*;
-import static jake2.server.SV_SEND.SV_SendClientDatagram;
 import static jake2.server.SV_USER.userCommands;
 
 @SuppressWarnings("deprecation")
@@ -575,7 +574,7 @@ public class SV_MAIN implements JakeServer, AutoCloseable {
                 if (SV_RateDrop(c))
                     continue;
 
-                SV_SendClientDatagram(c, game);
+                sendClientDatagram(c, game);
             } else {
                 // just update reliable	if needed
                 if (c.netchan.reliablePending.size() != 0 || Globals.curtime - c.netchan.last_sent > 1000)
@@ -1504,4 +1503,23 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         resetClients();
     }
 
+    /** Send this client's Game snapshot followed by its queued events, recording rate usage. */
+    private void sendClientDatagram(ClientNetworkInfo client, GameImportsImpl gameImports) {
+        // send over all the relevant entity_state_t
+        // and the player_state_t
+        Collection<NetworkMessage> unreliable = new ArrayList<>();
+        unreliable.addAll(gameImports.buildClientFrameMessages(client)); // 3 messages
+
+        // copy the accumulated multicast datagram
+        // for this client out to the message
+        // it is necessary for this to be after the buildClientFrameMessages (SV_BuildClientFrame)
+        // so that entity references will be current
+        unreliable.addAll(client.unreliable);
+        client.unreliable.clear();
+        // send the datagram
+        client.netchan.transmit(unreliable);
+
+        // record the size for rate estimation
+        client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] = unreliable.stream().mapToInt(NetworkMessage::getSize).sum();
+    }
 }
