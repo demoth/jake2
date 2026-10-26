@@ -40,45 +40,15 @@ import jake2.server.save.ServerSaveJsonStore
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
 class ServerHost : AutoCloseable {
+    // region Host state and command dispatch
+
     private val commands = ServerCommands()
     val isRunning: Boolean
         get() = games.isNotEmpty()
 
-    /** Bridge for client loading state and cvar latching until shared-global cleanup. */
-    @Suppress("DEPRECATION")
-    private fun publishLegacyServerState(state: ServerStates) {
-        Globals.server_state = state
-    }
-
-    /** Typed entrypoint for an embedded host; uses the same map path as the console.  */
-    fun startMap(mapName: String): Boolean {
-        val previous = games["default"]
-        map(listOf("map", mapName))
-        return games["default"] != null && games["default"] !== previous
-    }
-
-    /** Release this manager's console hooks after ending its last session.  */
-    override fun close() {
-        commands.use {
-            stop("Server stopped\n", false)
-        }
-    }
-
     @JvmField
     val games: MutableMap<String, GameImportsImpl> = HashMap()
 
-    fun getClientsForInstance(gameName: String?): MutableList<ClientNetworkInfo?> {
-        if (!games.containsKey(gameName)) {
-            // happens during the game instance creation, while the instance has random name
-            Com.Printf("Game $gameName is not found!\n")
-        }
-        // nullify unrelated clients
-        return clients.map { client ->
-            if (client.gameName != null && client.gameName == gameName) client else null
-        }.toMutableList()
-    }
-
-    // prevent invalid IPs from connecting
     private val challenges = Array(Defines.MAX_CHALLENGES) { challenge_t() }
 
     var clients: MutableList<ClientNetworkInfo> = mutableListOf()
@@ -88,10 +58,6 @@ class ServerHost : AutoCloseable {
     private var frameNum = 0
     private var nextFrameTime = 1000
     private var gameCounter = 0
-
-    fun allocateGameName(): String {
-        return "jake2_${gameCounter++}"
-    }
 
     val isPaused: Boolean
         get() = paused.typedValue
@@ -118,6 +84,779 @@ class ServerHost : AutoCloseable {
     private val hostname: cvar_t<String>
 
     private val reconnectLimit: cvar_t<Float> // minimum seconds between connect
+
+    private val userCommands = mapOf(
+        StringCmdMessage.NEW to ServerUserCommand { _, game, client -> sendInitialGameData(game, client) },
+        StringCmdMessage.CONFIG_STRINGS to ServerUserCommand(::sendConfigstrings),
+        StringCmdMessage.BASELINES to ServerUserCommand(::sendBaselines),
+        StringCmdMessage.BEGIN to ServerUserCommand(::beginClient),
+        StringCmdMessage.NEXT_SERVER to ServerUserCommand(::finishCinematic),
+        StringCmdMessage.DISCONNECT to ServerUserCommand { _, _, client -> dropClient(client) },
+        StringCmdMessage.INFO to ServerUserCommand { _, _, _ -> Info.Print(Cvar.getInstance().Serverinfo()) },
+        StringCmdMessage.DOWNLOAD to ServerUserCommand { args, _, client -> beginDownload(args, client) },
+        StringCmdMessage.NEXT_DOWNLOAD to ServerUserCommand { _, _, client -> sendNextDownloadChunk(client) },
+    )
+
+    private fun interface ServerUserCommand {
+        fun execute(args: List<String>, game: GameImportsImpl, client: ClientNetworkInfo)
+    }
+
+    // endregion
+
+    // region Initialization and lifecycle
+
+    /**
+     * One manager per dedicated process or embedded session; map changes reuse it.
+     */
+    init {
+        val cvars = Cvar.getInstance()
+        cvars.register(
+            "spectator_password", CvarTypes.STRING, "", Defines.CVAR_USERINFO,
+            "Spectator admission password; empty or none allows access"
+        )
+        cvars.register(
+            "needpass", NEEDPASS_TYPE, 0, Defines.CVAR_SERVERINFO,
+            "Required passwords: 0 none, 1 player, 2 spectator, 3 both"
+        )
+        cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
+        cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
+        cvars.register(
+            "dmflags",
+            CvarTypes.INTEGER,
+            Defines.DF_INSTANT_ITEMS,
+            Defines.CVAR_SERVERINFO,
+            "Deathmatch rule bitmask; combine DF_* flags"
+        )
+        cvars.register(
+            "fraglimit",
+            CvarTypes.IntegerType(0, null),
+            0,
+            Defines.CVAR_SERVERINFO,
+            "End a deathmatch level at this score; 0 disables the limit"
+        )
+        cvars.register(
+            "timelimit",
+            CvarTypes.FloatType(0f, null),
+            0f,
+            Defines.CVAR_SERVERINFO,
+            "Deathmatch level time limit in minutes; 0 disables the limit"
+        )
+        cvars.register("cheats", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
+        cvars.register(
+            "protocol",
+            CvarTypes.INTEGER,
+            Defines.PROTOCOL_VERSION,
+            Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET
+        )
+        cvars.register("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET)
+        cvars.register(
+            "nextserver",
+            CvarTypes.STRING,
+            "",
+            0,
+            "Console command to execute after a cinematic or picture"
+        )
+        cvars.register(
+            "maxclients",
+            CvarTypes.IntegerType(1, Defines.MAX_CLIENTS),
+            1,
+            Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH,
+            "Client slot limit; single-player and coop mode also restrict the count"
+        )
+
+        hostname = cvars.register(
+            "hostname",
+            CvarTypes.STRING,
+            "noname",
+            Defines.CVAR_SERVERINFO or Defines.CVAR_ARCHIVE
+        )
+        timeout = cvars.register(
+            "timeout",
+            CvarTypes.FloatType(0f, null),
+            125f,
+            0,
+            "Seconds without a client message before disconnection"
+        )
+        zombieTimeout = cvars.register(
+            "zombietime",
+            CvarTypes.FloatType(0f, null),
+            2f,
+            0,
+            "Seconds to retain a disconnected client slot for final reliable messages"
+        )
+        cvars.register(
+            "showclamp",
+            CvarTypes.BOOLEAN,
+            false,
+            0,
+            "Legacy frame-time clamp diagnostics; unused by the current server and Cake"
+        )
+        paused = cvars.register("paused", CvarTypes.BOOLEAN, false, 0)
+        cvars.register(
+            "timedemo",
+            CvarTypes.BOOLEAN,
+            false,
+            0,
+            "Legacy demo benchmarking switch; unused by the current server and Cake"
+        )
+        enforceMoveTime = cvars.register(
+            "sv_enforcetime",
+            CvarTypes.BOOLEAN,
+            false,
+            0,
+            "Ignore movement commands that exceed the client time budget"
+        )
+
+        // come from MainCommon
+        allowDownload = cvars.find<Boolean>("allow_download")
+        allowPlayerDownloads = cvars.find<Boolean>("allow_download_players")
+        allowModelDownloads = cvars.find<Boolean>("allow_download_models")
+        allowSoundDownloads = cvars.find<Boolean>("allow_download_sounds")
+        allowMapDownloads = cvars.find<Boolean>("allow_download_maps")
+
+        cvars.register(
+            "sv_noreload",
+            CvarTypes.BOOLEAN,
+            false,
+            0,
+            "Start revisited levels fresh instead of restoring their saved state"
+        )
+        cvars.register(
+            "sv_airaccelerate",
+            CvarTypes.FLOAT,
+            0f,
+            Defines.CVAR_LATCH,
+            "Controls air acceleration (currently only for deathmatch)"
+        )
+        cvars.register(
+            "public",
+            CvarTypes.BOOLEAN,
+            false,
+            0,
+            "Legacy master-server advertising switch; currently unused"
+        )
+        reconnectLimit = cvars.register(
+            "sv_reconnect_limit",
+            CvarTypes.FloatType(0f, null),
+            3f,
+            Defines.CVAR_ARCHIVE,
+            "Minimum seconds between reconnect attempts from the same remote client"
+        )
+        resetClients()
+
+        // Publish Host callbacks only after initialization succeeds. They survive Game replacement.
+        // Retained for console compatibility; master-server advertising is not implemented.
+        commands.add("heartbeat", true) {}
+        commands.add("kick", true, Command(::kickClient))
+        commands.add("status", true) { printStatus() }
+        commands.add("serverinfo", true) { printServerInfo() }
+        commands.add("dumpuser", true, Command(::dumpUser))
+        commands.add("say", true, Command(::say))
+        commands.add("save", true, Command(::saveGame))
+
+        commands.add("killserver") {
+            stop("Server was killed.\n", false)
+            NET.configureServer(false)
+        }
+        commands.add("map", Command(::map))
+        commands.add("gamemap", Command(::changeMap))
+        commands.add("load", Command(::loadGame))
+        commands.add("sv_shutdown") { args ->
+            val reason: String? = if (args.size > 1) {
+                args[1]
+            } else {
+                "Server is shut down"
+            }
+            stop(reason + "\n", args.size > 2 && args[2].toBoolean())
+        }
+
+        commands.add("listmaps") {
+            val bytes = EngineVfs.loadBytes("maps.lst")
+            if (bytes == null) {
+                Com.Error(Defines.ERR_DROP, "Could not read maps.lst")
+                return@add
+            }
+            for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
+                Com.Printf(Defines.PRINT_ALL, line.trim { it <= ' ' } + "\n")
+            }
+        }
+        commands.add("jvm_memory") {
+            val runtime = Runtime.getRuntime()
+            Com.Printf("vm memory:" + (runtime.totalMemory() - runtime.freeMemory()) + "\n")
+        }
+        commands.add("games") {
+            for (game in games.values) {
+                Com.Printf(game.name + " - " + game.mapcmd + "\n")
+            }
+            Com.Printf("Total " + games.size + " games\n")
+        }
+        commands.add("spamgames") { args ->
+            val total = args[1].toInt()
+            repeat(total) {
+                changeMap(listOf("gamemap", "base1", "1"))
+            }
+        }
+    }
+
+    /** Typed entrypoint for an embedded host; uses the same map path as the console.  */
+    fun startMap(mapName: String): Boolean {
+        val previous = games["default"]
+        map(listOf("map", mapName))
+        return games["default"] != null && games["default"] !== previous
+    }
+
+    /** Release this manager's console hooks after ending its last session.  */
+    override fun close() {
+        commands.use {
+            stop("Server stopped\n", false)
+        }
+    }
+
+    /**
+     * Called when each game quits, before Sys_Quit or Sys_Error.
+     * todo: shutdown a particular instance, not the whole server
+     */
+    fun stop(finalmsg: String?, reconnect: Boolean) {
+        try {
+            if (games.isNotEmpty()) {
+                if (clients.isNotEmpty()) sendFinalMessage(finalmsg, reconnect)
+                Com.Printf("==== ShutdownGame ====\n")
+            }
+        } finally {
+            games.clear()
+            clients.clear()
+            publishLegacyServerState(ServerStates.SS_DEAD)
+            realtime = 0
+            frameNum = 0
+            nextFrameTime = 100
+        }
+    }
+
+    /**
+     * Resets the clients when maxclients changes
+     */
+    fun resetClients() {
+        sendFinalMessage("Server restarted", true)
+        val max = Cvar.getInstance().find<Int>("maxclients").typedValue
+
+        // Clear all clients
+        clients = MutableList(max) {
+            ClientNetworkInfo().apply { lastcmd = usercmd_t() }
+        }
+    }
+
+    private fun initializeServerSession() {
+        if (games.isEmpty()) {
+            realtime = 0
+            frameNum = 0
+            nextFrameTime = 100
+        }
+        val multiplayer = initializeServerCvars()
+        if (!NET.configureServer(multiplayer)) {
+            Com.Error(Defines.ERR_DROP, "Could not open the server UDP port")
+            return
+        }
+        resetClients()
+    }
+
+    /**
+     * @return if the game is multiplayer or not
+     */
+    private fun initializeServerCvars(): Boolean {
+        val cvars = Cvar.getInstance()
+        val coop = cvars.find<Boolean>("coop")
+        val deathmatch = cvars.find<Boolean>("deathmatch")
+        val maxclients = cvars.find<Int>("maxclients")
+
+        // get any latched variable changes (maxclients, etc)
+        cvars.updateLatchedVars()
+
+        if (coop.typedValue && deathmatch.typedValue) {
+            Com.Printf("Deathmatch and Coop both set, disabling Coop\n")
+            coop.forceSet(false)
+        }
+
+        // dedicated servers are can't be single player and are usually DM
+        // so unless they explicity set coop, force it to deathmatch
+        if (Globals.dedicated.typedValue) {
+            if (!coop.typedValue) deathmatch.forceSet(true)
+        }
+
+        // set max clients based on game mode
+        if (deathmatch.typedValue) {
+            if (maxclients.typedValue <= 1) maxclients.forceSet(8)
+        } else if (coop.typedValue) {
+            if (maxclients.typedValue !in 2..4) maxclients.forceSet(4)
+        } else {
+            // non-deathmatch, non-coop is one player
+            maxclients.forceSet(1)
+        }
+        return maxclients.typedValue > 1
+    }
+
+    /** Bridge for client loading state and cvar latching until shared-global cleanup. */
+    @Suppress("DEPRECATION")
+    private fun publishLegacyServerState(state: ServerStates) {
+        Globals.server_state = state
+    }
+
+    // endregion
+
+    // region Game routing and map/save transitions
+
+    fun getClientsForInstance(gameName: String?): MutableList<ClientNetworkInfo?> {
+        if (!games.containsKey(gameName)) {
+            // happens during the game instance creation, while the instance has random name
+            Com.Printf("Game $gameName is not found!\n")
+        }
+        // nullify unrelated clients
+        return clients.map { client ->
+            if (client.gameName != null && client.gameName == gameName) client else null
+        }.toMutableList()
+    }
+
+    // prevent invalid IPs from connecting
+
+    fun allocateGameName(): String {
+        return "jake2_${gameCounter++}"
+    }
+
+    /**
+     * SV_InitGame.
+     *
+     * A brand new game has been started.
+     */
+    fun createGameInstance(changeMapInfo: ChangeMapInfo, previous: GameImportsImpl?): GameImportsImpl {
+        return GameImportsImpl.create(this, changeMapInfo, previous)
+    }
+
+    fun loadGame(args: List<String>) {
+        if (args.size != 2) {
+            Com.Printf("USAGE: load <directory>\n")
+            return
+        }
+
+        Com.Printf("Loading game...\n")
+
+        val saveGame: String
+        try {
+            saveGame = ServerSaveJsonStore.normalizeSlot(args[1])
+        } catch (_: IllegalArgumentException) {
+            Com.Printf("Bad save name.\n")
+            return
+        }
+        if ("current" == saveGame) {
+            Com.Printf("Can't load from 'current'\n")
+            return
+        }
+
+        // make sure the server metadata file exists
+        val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
+        if (!store.hasMapCommand(saveGame)) {
+            val name = EngineWriteRoot.resolve("save/$saveGame/server_mapcmd.ssv.json").toString()
+            Com.Printf("No such savegame: $name\n")
+            return
+        }
+
+        ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
+
+        val mapCommand = readSavedMapCommand()
+
+        // go to the map
+        val loaded = spawnServerInstance(ChangeMapInfo(mapCommand, false, true), 0)
+        loaded.name = "default"
+        games["default"] = loaded
+    }
+
+    private fun readSavedMapCommand(): String {
+        Com.DPrintf("SV_ReadMapCommand()\n")
+
+        try {
+            val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
+            val snapshot = store.readMapCommand("current")
+            // read the comment field
+            Com.DPrintf("SV_ReadMapCommand: Loading save: " + snapshot.comment + "\n")
+
+            // read the mapcmd
+            return snapshot.mapCommand
+        } catch (e: Exception) {
+            throw RuntimeException(e)
+        }
+    }
+
+    /*
+==================
+SV_GameMap_f
+
+Saves the state of the map just being exited and goes to a new map.
+
+If the initial character of the map string is '*', the next map is
+in a new unit, so the current savegame directory is cleared of
+map files.
+
+Example:
+
+*inter.cin+jail
+
+Clears the archived maps, plays the inter.cin cinematic, then
+goes to map jail.bsp.
+==================
+
+Spins up a new game instance, to be used with either `map` or `join` (TBD)
+*/
+    fun changeMap(args: List<String>) {
+        if (args.size < 2) {
+            Com.Printf("USAGE: gamemap <map>\n <client>")
+            return
+        }
+
+        val mapName = args[1]
+        val clientIndex: Int = if (args.size > 2 && args[2].isNotBlank()) {
+            try {
+                args[2].toInt()
+            } catch (_: NumberFormatException) {
+                Com.Printf("USAGE: gamemap <map>\n <client>\n")
+                return
+            }
+        } else 0
+
+        // default.cfg may start a session with "killserver; gamemap *...".
+        // Shutdown clears the client slots, so gamemap must initialize a fresh
+        // server just as map does, while preserving clients on level transitions.
+        if (games.isEmpty()) {
+            initializeServerSession()
+        }
+
+        Com.DPrintf("SV_GameMap($mapName)\n")
+
+        EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
+
+        // check for clearing the current savegame
+        if (mapName[0] == '*') {
+            // wipe all the *.sav files
+            ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
+        } else { // save the map just exited
+            // note: only applicable to the default instance (subject to change in future)
+            val gameImports = games["default"]
+            if (gameImports != null && gameImports.state == ServerStates.SS_GAME) {
+                // clear all the client inuse flags before saving so that
+                // when the level is re-entered, the clients will spawn
+                // at spawn points instead of occupying body shells
+                // todo: only relevant to this gameImports clients
+                val savedInuse = BooleanArray(clients.size)
+                var i = 0
+                for (cl in clients) {
+                    if (cl.edict != null) { // free client slots will have null values
+                        savedInuse[i] = cl.edict.inuse
+                        cl.edict.inuse = false
+                    }
+                    i++
+                }
+
+                gameImports.SV_WriteLevelFile()
+
+                // we must restore these for clients to transfer over correctly
+                i = 0
+                for (cl in clients) {
+                    if (cl.edict != null) { // free client slots will have null values
+                        cl.edict.inuse = savedInuse[i]
+                    }
+                    i++
+                }
+            }
+        }
+
+        val game = spawnServerInstance(ChangeMapInfo(mapName, false, false), clientIndex)
+
+        if (clientIndex == 0) {
+            // server just started, `map` cmd was used
+            // start up the next map
+            game.name = "default"
+            games[game.name] = game
+            for (cl in clients) {
+                cl.gameName = "default"
+            }
+        } else {
+            // preview of the multi instance mode
+            val cl = clients[clientIndex - 1]
+            val previousGame: GameImportsImpl = games[cl.gameName]!!
+            previousGame.gameExports.ClientDisconnect(cl.edict)
+            games[game.name] = game
+            cl.gameName = game.name
+        }
+
+        // copy off the level to the autosave slot
+        if (!Globals.dedicated.typedValue) {
+            game.SV_WriteServerFile(true)
+            ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
+        }
+
+        // multi instance preview:
+        // when playing the regular flow, multi instances are not requried
+        if (clientIndex == 0) {
+            games.clear()
+            games["default"] = game
+        }
+    }
+
+    /**
+     * SV_Map
+     */
+    fun spawnServerInstance(changeMapInfo: ChangeMapInfo, clientIndex: Int): GameImportsImpl {
+        publishLegacyServerState(ServerStates.SS_DEAD)
+
+        val previous = if (clientIndex != 0)
+            games[clients[clientIndex - 1].gameName]
+        else
+            games["default"]
+        previous?.prepareLevelTransition()
+
+        val gameImports = createGameInstance(changeMapInfo, previous)
+
+        Cvar.getInstance().find<String>("nextserver")
+            .set("gamemap \"" + changeMapInfo.nextServer + "\"")
+
+        Cmd.ExecuteFunction("loading") // for local system
+
+        if (clientIndex == 0) {
+            // leave slots at start for clients only
+            for (cl in clients) { //todo
+                // needs to reconnect
+                if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
+                cl.lastReceivedFrame = -1
+            }
+            gameImports.SV_BroadcastCommand("changing")
+        } else {
+            val cl = clients[clientIndex - 1]
+            if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
+            cl.lastReceivedFrame = -1
+            gameImports.unicastMessage(clientIndex, StuffTextMessage("changing"), true)
+        }
+
+        sendClientMessages()
+
+        // precache and static commands can be issued during
+        // map initialization
+        publishLegacyServerState(gameImports.state)
+
+        gameImports.initializeLevel(changeMapInfo, previous)
+        publishLegacyServerState(gameImports.state)
+
+        // set serverinfo variable
+        Cvar.getInstance().find<String>("mapname").forceSet(gameImports.mapName)
+        Com.Println("mapname: " + gameImports.mapName)
+
+        if (changeMapInfo.state == ServerStates.SS_GAME) Cbuf.CopyToDefer()
+
+        if (clientIndex == 0) {
+            gameImports.SV_BroadcastCommand("reconnect") // doesn't really reconnect but rather issues 'NEW' command
+        } else {
+            gameImports.unicastMessage(clientIndex, StuffTextMessage("reconnect"), true)
+        }
+        return gameImports
+    }
+
+    /*
+==================
+SV_Map_f
+
+Goes directly to a given map without any savegame archiving.
+For development work
+==================
+
+Resets server to host a given map, moves all clients to it (via reconnect)
+*/
+    fun map(args: List<String>) {
+
+        if (args.size < 2 || args[1].isBlank()) {
+            Com.Printf("usage: map <map_name>\n")
+            return
+        }
+
+        // if not a pcx, demo, or cinematic, check to make sure the level exists
+        val mapName = args[1]
+        val target = ChangeMapInfo(mapName, false, false)
+        if (target.state == ServerStates.SS_GAME) {
+            val mapPath = "maps/" + target.mapName + ".bsp"
+            if (!EngineVfs.exists(mapPath)) {
+                Com.Printf("Can't find $mapPath\n")
+                return
+            }
+        }
+        val game = games["default"]
+
+        if (game != null) game.state = ServerStates.SS_DEAD // don't save current level when changing
+
+        ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
+
+        // A running server needs its clients reset for map. For a fresh server,
+        // gamemap performs this initialization itself.
+        if (games.isNotEmpty()) {
+            initializeServerSession()
+        }
+        changeMap(args)
+    }
+
+    /** Resolve a Game at execution time; creating another Game never replaces these callbacks.  */
+    private fun saveGame(args: List<String>) {
+        var target = "default"
+        var command = args
+        if (args.size > 1 && args[1] == "--game") {
+            if (args.size < 4) {
+                Com.Printf("Usage: " + args[0] + " --game <id> <arguments>\n")
+                return
+            }
+            target = args[2]
+            command = listOf(args[0]) + args.drop(3)
+        }
+        val game = games[target]
+        if (game == null) {
+            Com.Printf("No running game: $target\n")
+            return
+        }
+        game.saveGame(command)
+    }
+
+    // endregion
+
+    // region Frame scheduling and client time accounting
+
+    /**
+     * SV_Frame.
+     */
+    fun update(msec: Long) {
+        // if server is not active, do nothing
+        // like when connected to another server
+        if (games.isEmpty()) return
+
+        realtime += msec
+        for (game in games.values) {
+            game.realtime += msec.toInt()
+        }
+
+        // keep the random time dependent
+        Lib.rand()
+
+        // check timeouts
+        checkTimeouts()
+
+        // get packets from clients
+        readPackets()
+
+        // identify if we need to update the game or it's too early (sleep or skip this update).
+        // fixedtime - the time of the next scheduled game update.
+        var delay = nextFrameTime - realtime
+        if (delay > 0) {
+            // never let the time get too far off
+            if (delay > 100) { // how is it even possible?
+                for (game in games.values) game.realtime = (nextFrameTime - 100)
+                delay = 100
+            }
+            NET.Sleep(delay.toInt())
+            return
+        }
+
+        // move autonomous things around if enough time has passed
+        frameNum++
+        nextFrameTime = 100 * frameNum
+
+        // update ping based on the last known frame from all clients
+        updateClientPings()
+
+        // give the clients some timeslices
+        replenishClientMoveBudgets()
+
+        // let everything in the world think and move
+        for (game in games.values) {
+            game.SV_RunGameFrame(nextFrameTime.toLong())
+        }
+
+        // send messages back to the clients that had packets read this frame
+        sendClientMessages()
+
+        // send a heartbeat to the master if needed
+
+        // clear teleport flags, etc for next frame
+        for (game in games.values) {
+            game.clearEntityStateEvents()
+        }
+    }
+
+    /**
+     * If a packet has not been received from a client for the configured timeout
+     * in seconds, drop the connection. Server frames are used instead of realtime
+     * to avoid dropping the local client while debugging.
+     *
+     * When a client is normally dropped, the ClientNetworkInfo goes into a zombie state
+     * for a few seconds to make sure any final reliable message gets resent if
+     * necessary.
+     */
+    fun checkTimeouts() {
+        for (cl in clients) {
+            if (cl.state == ClientStates.CS_FREE) continue
+
+            val game: GameImportsImpl = games[cl.gameName]!!
+            val droppoint = (game.realtime - 1000 * timeout.typedValue).toInt()
+            val zombiepoint = (game.realtime - 1000 * zombieTimeout.typedValue).toInt()
+
+            // message times may be wrong across a changelevel
+            if (cl.lastmessage > game.realtime) cl.lastmessage = game.realtime
+
+            if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
+                cl.state = ClientStates.CS_FREE // can now be reused
+                continue
+            }
+            if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) && cl.lastmessage < droppoint) {
+                broadcastPrint(Defines.PRINT_HIGH, cl.name + " timed out\n", cl.gameName)
+                dropClient(cl)
+                cl.state = ClientStates.CS_FREE // don't bother with zombie state
+            }
+        }
+    }
+
+    /**
+     * Updates the cl.ping variables.
+     */
+    fun updateClientPings() {
+        for (cl in clients) {
+            if (cl.state != ClientStates.CS_SPAWNED) continue
+
+            var total = 0
+            var count = 0
+            for (j in 0..<Defines.LATENCY_COUNTS) {
+                if (cl.frame_latency[j] > 0) {
+                    count++
+                    total += cl.frame_latency[j]
+                }
+            }
+            if (0 == count) cl.ping = 0
+            else cl.ping = total / count
+
+            // let the jake2.game dll know about the ping
+            cl.edict.getClient().setPing(cl.ping)
+        }
+    }
+
+    /**
+     * Every few frames, gives all clients an allotment of milliseconds for
+     * their command moves. If they exceed it, assume cheating.
+     */
+    fun replenishClientMoveBudgets() {
+        // why *1111
+        if ((frameNum and 15) != 0) return
+
+        for (cl in clients) {
+            if (cl.state == ClientStates.CS_FREE) continue
+
+            if ((games[cl.gameName]!!.frameNum and 15) != 0) continue
+
+            cl.commandMsec = 1800 // 1600 + some slop
+        }
+    }
+
+    // endregion
+
+    // region Connection admission and disconnection
 
     /**
      * Builds the string that is sent as heartbeats and status replies.
@@ -400,102 +1139,6 @@ class ServerHost : AutoCloseable {
     }
 
     /**
-     * SV_Frame.
-     */
-    fun update(msec: Long) {
-        // if server is not active, do nothing
-        // like when connected to another server
-        if (games.isEmpty()) return
-
-        realtime += msec
-        for (game in games.values) {
-            game.realtime += msec.toInt()
-        }
-
-        // keep the random time dependent
-        Lib.rand()
-
-        // check timeouts
-        checkTimeouts()
-
-        // get packets from clients
-        readPackets()
-
-        // identify if we need to update the game or it's too early (sleep or skip this update).
-        // fixedtime - the time of the next scheduled game update.
-        var delay = nextFrameTime - realtime
-        if (delay > 0) {
-            // never let the time get too far off
-            if (delay > 100) { // how is it even possible?
-                for (game in games.values) game.realtime = (nextFrameTime - 100)
-                delay = 100
-            }
-            NET.Sleep(delay.toInt())
-            return
-        }
-
-        // move autonomous things around if enough time has passed
-        frameNum++
-        nextFrameTime = 100 * frameNum
-
-        // update ping based on the last known frame from all clients
-        updateClientPings()
-
-        // give the clients some timeslices
-        replenishClientMoveBudgets()
-
-        // let everything in the world think and move
-        for (game in games.values) {
-            game.SV_RunGameFrame(nextFrameTime.toLong())
-        }
-
-        // send messages back to the clients that had packets read this frame
-        sendClientMessages()
-
-        // send a heartbeat to the master if needed
-
-        // clear teleport flags, etc for next frame
-        for (game in games.values) {
-            game.clearEntityStateEvents()
-        }
-    }
-
-    fun sendClientMessages() {
-        // send a message to each connected client
-
-        for (c in clients) {
-            if (c.state == ClientStates.CS_FREE) continue
-
-            val game: GameImportsImpl = games[c.gameName]!!
-            // if the reliable message overflowed,
-            // drop the client
-            val pendingReliableSize =
-                c.netchan.reliablePending.sumOf { it.size }
-            if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
-                c.netchan.reliablePending.clear()
-                c.unreliable.clear()
-                broadcastPrint(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName)
-                dropClient(c)
-            }
-
-            if (game.state == ServerStates.SS_CINEMATIC || game.state == ServerStates.SS_DEMO || game.state == ServerStates.SS_PIC) {
-                // leftover from demo code
-                c.netchan.transmit(null)
-            } else if (c.state == ClientStates.CS_SPAWNED) {
-                // don't overrun bandwidth
-                if (shouldRateLimit(c)) continue
-
-                sendClientDatagram(c, game)
-            } else {
-                // just update reliable	if needed
-                if (c.netchan.reliablePending.isNotEmpty() || Globals.curtime - c.netchan.last_sent > 1000) c.netchan.transmit(
-                    null
-                )
-            }
-        }
-    }
-
-    /**
      * Called when the player is totally leaving the server, either willingly or
      * unwillingly. This is NOT called if the entire server is quiting or
      * crashing.
@@ -518,49 +1161,9 @@ class ServerHost : AutoCloseable {
         client.name = ""
     }
 
-    /**
-     * Sends text to all active clients
-     */
-    fun broadcastPrint(level: Int, message: String?, gameName: String?) {
-        // echo to console
+    // endregion
 
-        if (Globals.dedicated.typedValue) {
-            Com.Printf(message)
-        }
-
-        for (cl in getClientsForInstance(gameName)) {
-            if (cl == null || level < cl.messagelevel) continue
-            if (cl.state != ClientStates.CS_SPAWNED) continue
-            cl.netchan.reliablePending.add(PrintMessage(level, message))
-        }
-    }
-
-    /**
-     * SV_RateDrop
-     *
-     *
-     * Returns true if the client is over its current
-     * bandwidth estimation and should not be sent another packet
-     */
-    fun shouldRateLimit(c: ClientNetworkInfo): Boolean {
-        // never drop over the loopback
-
-        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK) return false
-
-        var total = 0
-
-        for (i in 0..<Defines.RATE_MESSAGES) {
-            total += c.message_size[i]
-        }
-
-        if (total > c.rate) {
-            c.surpressCount++
-            c.message_size[frameNum % Defines.RATE_MESSAGES] = 0
-            return true
-        }
-
-        return false
-    }
+    // region Incoming packets and client commands
 
     /**
      * Reads packets from the network or loopback.
@@ -735,688 +1338,9 @@ class ServerHost : AutoCloseable {
         if (game.state == ServerStates.SS_GAME) game.gameExports.ClientCommand(cl.edict, args)
     }
 
-    /**
-     * If a packet has not been received from a client for the configured timeout
-     * in seconds, drop the connection. Server frames are used instead of realtime
-     * to avoid dropping the local client while debugging.
-     *
-     * When a client is normally dropped, the ClientNetworkInfo goes into a zombie state
-     * for a few seconds to make sure any final reliable message gets resent if
-     * necessary.
-     */
-    fun checkTimeouts() {
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_FREE) continue
+    // endregion
 
-            val game: GameImportsImpl = games[cl.gameName]!!
-            val droppoint = (game.realtime - 1000 * timeout.typedValue).toInt()
-            val zombiepoint = (game.realtime - 1000 * zombieTimeout.typedValue).toInt()
-
-            // message times may be wrong across a changelevel
-            if (cl.lastmessage > game.realtime) cl.lastmessage = game.realtime
-
-            if (cl.state == ClientStates.CS_ZOMBIE && cl.lastmessage < zombiepoint) {
-                cl.state = ClientStates.CS_FREE // can now be reused
-                continue
-            }
-            if ((cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) && cl.lastmessage < droppoint) {
-                broadcastPrint(Defines.PRINT_HIGH, cl.name + " timed out\n", cl.gameName)
-                dropClient(cl)
-                cl.state = ClientStates.CS_FREE // don't bother with zombie state
-            }
-        }
-    }
-
-    /**
-     * Updates the cl.ping variables.
-     */
-    fun updateClientPings() {
-        for (cl in clients) {
-            if (cl.state != ClientStates.CS_SPAWNED) continue
-
-            var total = 0
-            var count = 0
-            for (j in 0..<Defines.LATENCY_COUNTS) {
-                if (cl.frame_latency[j] > 0) {
-                    count++
-                    total += cl.frame_latency[j]
-                }
-            }
-            if (0 == count) cl.ping = 0
-            else cl.ping = total / count
-
-            // let the jake2.game dll know about the ping
-            cl.edict.getClient().setPing(cl.ping)
-        }
-    }
-
-    /**
-     * Every few frames, gives all clients an allotment of milliseconds for
-     * their command moves. If they exceed it, assume cheating.
-     */
-    fun replenishClientMoveBudgets() {
-        // why *1111
-        if ((frameNum and 15) != 0) return
-
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_FREE) continue
-
-            if ((games[cl.gameName]!!.frameNum and 15) != 0) continue
-
-            cl.commandMsec = 1800 // 1600 + some slop
-        }
-    }
-
-    /**
-     * Used by stop to send a final message to all connected clients
-     * before the server goes down. The messages are sent immediately, not just
-     * stuck on the outgoing message list, because the server is going to
-     * totally exit after returning from this function.
-     */
-    private fun sendFinalMessage(message: String?, reconnect: Boolean) {
-        val msgs: MutableCollection<NetworkMessage> = ArrayList()
-        msgs.add(PrintMessage(Defines.PRINT_HIGH, message))
-
-        if (reconnect) msgs.add(ReconnectMessage())
-        else msgs.add(DisconnectMessage())
-
-        // send it twice
-        // stagger the packets to crutch operating system limited buffers
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) cl.netchan.transmit(msgs)
-        }
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) cl.netchan.transmit(msgs)
-        }
-    }
-
-    /**
-     * Called when each game quits, before Sys_Quit or Sys_Error.
-     * todo: shutdown a particular instance, not the whole server
-     */
-    fun stop(finalmsg: String?, reconnect: Boolean) {
-        try {
-            if (games.isNotEmpty()) {
-                if (clients.isNotEmpty()) sendFinalMessage(finalmsg, reconnect)
-                Com.Printf("==== ShutdownGame ====\n")
-            }
-        } finally {
-            games.clear()
-            clients.clear()
-            publishLegacyServerState(ServerStates.SS_DEAD)
-            realtime = 0
-            frameNum = 0
-            nextFrameTime = 100
-        }
-    }
-
-    /**
-     * Resets the clients when maxclients changes
-     */
-    fun resetClients() {
-        sendFinalMessage("Server restarted", true)
-        val max = Cvar.getInstance().find<Int>("maxclients").typedValue
-
-        // Clear all clients
-        clients = MutableList(max) {
-            ClientNetworkInfo().apply { lastcmd = usercmd_t() }
-        }
-    }
-
-    /**
-     * SV_InitGame.
-     *
-     * A brand new game has been started.
-     */
-    fun createGameInstance(changeMapInfo: ChangeMapInfo, previous: GameImportsImpl?): GameImportsImpl {
-        return GameImportsImpl.create(this, changeMapInfo, previous)
-    }
-
-    /**
-     * @return if the game is multiplayer or not
-     */
-    private fun initializeServerCvars(): Boolean {
-        val cvars = Cvar.getInstance()
-        val coop = cvars.find<Boolean>("coop")
-        val deathmatch = cvars.find<Boolean>("deathmatch")
-        val maxclients = cvars.find<Int>("maxclients")
-
-        // get any latched variable changes (maxclients, etc)
-        cvars.updateLatchedVars()
-
-        if (coop.typedValue && deathmatch.typedValue) {
-            Com.Printf("Deathmatch and Coop both set, disabling Coop\n")
-            coop.forceSet(false)
-        }
-
-        // dedicated servers are can't be single player and are usually DM
-        // so unless they explicity set coop, force it to deathmatch
-        if (Globals.dedicated.typedValue) {
-            if (!coop.typedValue) deathmatch.forceSet(true)
-        }
-
-        // set max clients based on game mode
-        if (deathmatch.typedValue) {
-            if (maxclients.typedValue <= 1) maxclients.forceSet(8)
-        } else if (coop.typedValue) {
-            if (maxclients.typedValue !in 2..4) maxclients.forceSet(4)
-        } else {
-            // non-deathmatch, non-coop is one player
-            maxclients.forceSet(1)
-        }
-        return maxclients.typedValue > 1
-    }
-
-    fun loadGame(args: List<String>) {
-        if (args.size != 2) {
-            Com.Printf("USAGE: load <directory>\n")
-            return
-        }
-
-        Com.Printf("Loading game...\n")
-
-        val saveGame: String
-        try {
-            saveGame = ServerSaveJsonStore.normalizeSlot(args[1])
-        } catch (_: IllegalArgumentException) {
-            Com.Printf("Bad save name.\n")
-            return
-        }
-        if ("current" == saveGame) {
-            Com.Printf("Can't load from 'current'\n")
-            return
-        }
-
-        // make sure the server metadata file exists
-        val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
-        if (!store.hasMapCommand(saveGame)) {
-            val name = EngineWriteRoot.resolve("save/$saveGame/server_mapcmd.ssv.json").toString()
-            Com.Printf("No such savegame: $name\n")
-            return
-        }
-
-        ServerSaveFiles(EngineWriteRoot.path()).copy(saveGame, "current")
-
-        val mapCommand = readSavedMapCommand()
-
-        // go to the map
-        val loaded = spawnServerInstance(ChangeMapInfo(mapCommand, false, true), 0)
-        loaded.name = "default"
-        games["default"] = loaded
-    }
-
-    private fun readSavedMapCommand(): String {
-        Com.DPrintf("SV_ReadMapCommand()\n")
-
-        try {
-            val store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString())
-            val snapshot = store.readMapCommand("current")
-            // read the comment field
-            Com.DPrintf("SV_ReadMapCommand: Loading save: " + snapshot.comment + "\n")
-
-            // read the mapcmd
-            return snapshot.mapCommand
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
-    }
-
-    /*
-==================
-SV_GameMap_f
-
-Saves the state of the map just being exited and goes to a new map.
-
-If the initial character of the map string is '*', the next map is
-in a new unit, so the current savegame directory is cleared of
-map files.
-
-Example:
-
-*inter.cin+jail
-
-Clears the archived maps, plays the inter.cin cinematic, then
-goes to map jail.bsp.
-==================
-
-Spins up a new game instance, to be used with either `map` or `join` (TBD)
-*/
-    fun changeMap(args: List<String>) {
-        if (args.size < 2) {
-            Com.Printf("USAGE: gamemap <map>\n <client>")
-            return
-        }
-
-        val mapName = args[1]
-        val clientIndex: Int = if (args.size > 2 && args[2].isNotBlank()) {
-            try {
-                args[2].toInt()
-            } catch (_: NumberFormatException) {
-                Com.Printf("USAGE: gamemap <map>\n <client>\n")
-                return
-            }
-        } else 0
-
-        // default.cfg may start a session with "killserver; gamemap *...".
-        // Shutdown clears the client slots, so gamemap must initialize a fresh
-        // server just as map does, while preserving clients on level transitions.
-        if (games.isEmpty()) {
-            initializeServerSession()
-        }
-
-        Com.DPrintf("SV_GameMap($mapName)\n")
-
-        EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
-
-        // check for clearing the current savegame
-        if (mapName[0] == '*') {
-            // wipe all the *.sav files
-            ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
-        } else { // save the map just exited
-            // note: only applicable to the default instance (subject to change in future)
-            val gameImports = games["default"]
-            if (gameImports != null && gameImports.state == ServerStates.SS_GAME) {
-                // clear all the client inuse flags before saving so that
-                // when the level is re-entered, the clients will spawn
-                // at spawn points instead of occupying body shells
-                // todo: only relevant to this gameImports clients
-                val savedInuse = BooleanArray(clients.size)
-                var i = 0
-                for (cl in clients) {
-                    if (cl.edict != null) { // free client slots will have null values
-                        savedInuse[i] = cl.edict.inuse
-                        cl.edict.inuse = false
-                    }
-                    i++
-                }
-
-                gameImports.SV_WriteLevelFile()
-
-                // we must restore these for clients to transfer over correctly
-                i = 0
-                for (cl in clients) {
-                    if (cl.edict != null) { // free client slots will have null values
-                        cl.edict.inuse = savedInuse[i]
-                    }
-                    i++
-                }
-            }
-        }
-
-        val game = spawnServerInstance(ChangeMapInfo(mapName, false, false), clientIndex)
-
-        if (clientIndex == 0) {
-            // server just started, `map` cmd was used
-            // start up the next map
-            game.name = "default"
-            games[game.name] = game
-            for (cl in clients) {
-                cl.gameName = "default"
-            }
-        } else {
-            // preview of the multi instance mode
-            val cl = clients[clientIndex - 1]
-            val previousGame: GameImportsImpl = games[cl.gameName]!!
-            previousGame.gameExports.ClientDisconnect(cl.edict)
-            games[game.name] = game
-            cl.gameName = game.name
-        }
-
-        // copy off the level to the autosave slot
-        if (!Globals.dedicated.typedValue) {
-            game.SV_WriteServerFile(true)
-            ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
-        }
-
-        // multi instance preview:
-        // when playing the regular flow, multi instances are not requried
-        if (clientIndex == 0) {
-            games.clear()
-            games["default"] = game
-        }
-    }
-
-    /**
-     * SV_Map
-     */
-    fun spawnServerInstance(changeMapInfo: ChangeMapInfo, clientIndex: Int): GameImportsImpl {
-        publishLegacyServerState(ServerStates.SS_DEAD)
-
-        val previous = if (clientIndex != 0)
-            games[clients[clientIndex - 1].gameName]
-        else
-            games["default"]
-        previous?.prepareLevelTransition()
-
-        val gameImports = createGameInstance(changeMapInfo, previous)
-
-        Cvar.getInstance().find<String>("nextserver")
-            .set("gamemap \"" + changeMapInfo.nextServer + "\"")
-
-        Cmd.ExecuteFunction("loading") // for local system
-
-        if (clientIndex == 0) {
-            // leave slots at start for clients only
-            for (cl in clients) { //todo
-                // needs to reconnect
-                if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
-                cl.lastReceivedFrame = -1
-            }
-            gameImports.SV_BroadcastCommand("changing")
-        } else {
-            val cl = clients[clientIndex - 1]
-            if (cl.state == ClientStates.CS_SPAWNED) cl.state = ClientStates.CS_CONNECTED
-            cl.lastReceivedFrame = -1
-            gameImports.unicastMessage(clientIndex, StuffTextMessage("changing"), true)
-        }
-
-        sendClientMessages()
-
-        // precache and static commands can be issued during
-        // map initialization
-        publishLegacyServerState(gameImports.state)
-
-        gameImports.initializeLevel(changeMapInfo, previous)
-        publishLegacyServerState(gameImports.state)
-
-        // set serverinfo variable
-        Cvar.getInstance().find<String>("mapname").forceSet(gameImports.mapName)
-        Com.Println("mapname: " + gameImports.mapName)
-
-        if (changeMapInfo.state == ServerStates.SS_GAME) Cbuf.CopyToDefer()
-
-        if (clientIndex == 0) {
-            gameImports.SV_BroadcastCommand("reconnect") // doesn't really reconnect but rather issues 'NEW' command
-        } else {
-            gameImports.unicastMessage(clientIndex, StuffTextMessage("reconnect"), true)
-        }
-        return gameImports
-    }
-
-    /*
-==================
-SV_Map_f
-
-Goes directly to a given map without any savegame archiving.
-For development work
-==================
-
-Resets server to host a given map, moves all clients to it (via reconnect)
-*/
-    fun map(args: List<String>) {
-
-        if (args.size < 2 || args[1].isBlank()) {
-            Com.Printf("usage: map <map_name>\n")
-            return
-        }
-
-        // if not a pcx, demo, or cinematic, check to make sure the level exists
-        val mapName = args[1]
-        val target = ChangeMapInfo(mapName, false, false)
-        if (target.state == ServerStates.SS_GAME) {
-            val mapPath = "maps/" + target.mapName + ".bsp"
-            if (!EngineVfs.exists(mapPath)) {
-                Com.Printf("Can't find $mapPath\n")
-                return
-            }
-        }
-        val game = games["default"]
-
-        if (game != null) game.state = ServerStates.SS_DEAD // don't save current level when changing
-
-        ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
-
-        // A running server needs its clients reset for map. For a fresh server,
-        // gamemap performs this initialization itself.
-        if (games.isNotEmpty()) {
-            initializeServerSession()
-        }
-        changeMap(args)
-    }
-
-    private fun initializeServerSession() {
-        if (games.isEmpty()) {
-            realtime = 0
-            frameNum = 0
-            nextFrameTime = 100
-        }
-        val multiplayer = initializeServerCvars()
-        if (!NET.configureServer(multiplayer)) {
-            Com.Error(Defines.ERR_DROP, "Could not open the server UDP port")
-            return
-        }
-        resetClients()
-    }
-
-    /** Send this client's Game snapshot followed by its queued events, recording rate usage.  */
-    private fun sendClientDatagram(client: ClientNetworkInfo, gameImports: GameImportsImpl) {
-        // send over all the relevant entity_state_t
-        // and the player_state_t
-        val unreliable: MutableList<NetworkMessage> = mutableListOf()
-        unreliable.addAll(gameImports.buildClientFrameMessages(client)) // 3 messages
-
-        // copy the accumulated multicast datagram
-        // for this client out to the message
-        // it is necessary for this to be after the buildClientFrameMessages (SV_BuildClientFrame)
-        // so that entity references will be current
-        unreliable.addAll(client.unreliable)
-        client.unreliable.clear()
-        // send the datagram
-        client.netchan.transmit(unreliable)
-
-        // record the size for rate estimation
-        client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] =
-            unreliable.sumOf { it.size }
-    }
-
-    private val userCommands = mapOf(
-        StringCmdMessage.NEW to ServerUserCommand { _, game, client -> sendInitialGameData(game, client) },
-        StringCmdMessage.CONFIG_STRINGS to ServerUserCommand(::sendConfigstrings),
-        StringCmdMessage.BASELINES to ServerUserCommand(::sendBaselines),
-        StringCmdMessage.BEGIN to ServerUserCommand(::beginClient),
-        StringCmdMessage.NEXT_SERVER to ServerUserCommand(::finishCinematic),
-        StringCmdMessage.DISCONNECT to ServerUserCommand { _, _, client -> dropClient(client) },
-        StringCmdMessage.INFO to ServerUserCommand { _, _, _ -> Info.Print(Cvar.getInstance().Serverinfo()) },
-        StringCmdMessage.DOWNLOAD to ServerUserCommand { args, _, client -> beginDownload(args, client) },
-        StringCmdMessage.NEXT_DOWNLOAD to ServerUserCommand { _, _, client -> sendNextDownloadChunk(client) },
-    )
-
-    /**
-     * One manager per dedicated process or embedded session; map changes reuse it.
-     */
-    init {
-        val cvars = Cvar.getInstance()
-        cvars.register(
-            "spectator_password", CvarTypes.STRING, "", Defines.CVAR_USERINFO,
-            "Spectator admission password; empty or none allows access"
-        )
-        cvars.register(
-            "needpass", NEEDPASS_TYPE, 0, Defines.CVAR_SERVERINFO,
-            "Required passwords: 0 none, 1 player, 2 spectator, 3 both"
-        )
-        cvars.register("deathmatch", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
-        cvars.register("coop", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
-        cvars.register(
-            "dmflags",
-            CvarTypes.INTEGER,
-            Defines.DF_INSTANT_ITEMS,
-            Defines.CVAR_SERVERINFO,
-            "Deathmatch rule bitmask; combine DF_* flags"
-        )
-        cvars.register(
-            "fraglimit",
-            CvarTypes.IntegerType(0, null),
-            0,
-            Defines.CVAR_SERVERINFO,
-            "End a deathmatch level at this score; 0 disables the limit"
-        )
-        cvars.register(
-            "timelimit",
-            CvarTypes.FloatType(0f, null),
-            0f,
-            Defines.CVAR_SERVERINFO,
-            "Deathmatch level time limit in minutes; 0 disables the limit"
-        )
-        cvars.register("cheats", CvarTypes.BOOLEAN, false, Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH)
-        cvars.register(
-            "protocol",
-            CvarTypes.INTEGER,
-            Defines.PROTOCOL_VERSION,
-            Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET
-        )
-        cvars.register("mapname", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET)
-        cvars.register(
-            "nextserver",
-            CvarTypes.STRING,
-            "",
-            0,
-            "Console command to execute after a cinematic or picture"
-        )
-        cvars.register(
-            "maxclients",
-            CvarTypes.IntegerType(1, Defines.MAX_CLIENTS),
-            1,
-            Defines.CVAR_SERVERINFO or Defines.CVAR_LATCH,
-            "Client slot limit; single-player and coop mode also restrict the count"
-        )
-
-        hostname = cvars.register(
-            "hostname",
-            CvarTypes.STRING,
-            "noname",
-            Defines.CVAR_SERVERINFO or Defines.CVAR_ARCHIVE
-        )
-        timeout = cvars.register(
-            "timeout",
-            CvarTypes.FloatType(0f, null),
-            125f,
-            0,
-            "Seconds without a client message before disconnection"
-        )
-        zombieTimeout = cvars.register(
-            "zombietime",
-            CvarTypes.FloatType(0f, null),
-            2f,
-            0,
-            "Seconds to retain a disconnected client slot for final reliable messages"
-        )
-        cvars.register(
-            "showclamp",
-            CvarTypes.BOOLEAN,
-            false,
-            0,
-            "Legacy frame-time clamp diagnostics; unused by the current server and Cake"
-        )
-        paused = cvars.register("paused", CvarTypes.BOOLEAN, false, 0)
-        cvars.register(
-            "timedemo",
-            CvarTypes.BOOLEAN,
-            false,
-            0,
-            "Legacy demo benchmarking switch; unused by the current server and Cake"
-        )
-        enforceMoveTime = cvars.register(
-            "sv_enforcetime",
-            CvarTypes.BOOLEAN,
-            false,
-            0,
-            "Ignore movement commands that exceed the client time budget"
-        )
-
-        // come from MainCommon
-        allowDownload = cvars.find<Boolean>("allow_download")
-        allowPlayerDownloads = cvars.find<Boolean>("allow_download_players")
-        allowModelDownloads = cvars.find<Boolean>("allow_download_models")
-        allowSoundDownloads = cvars.find<Boolean>("allow_download_sounds")
-        allowMapDownloads = cvars.find<Boolean>("allow_download_maps")
-
-        cvars.register(
-            "sv_noreload",
-            CvarTypes.BOOLEAN,
-            false,
-            0,
-            "Start revisited levels fresh instead of restoring their saved state"
-        )
-        cvars.register(
-            "sv_airaccelerate",
-            CvarTypes.FLOAT,
-            0f,
-            Defines.CVAR_LATCH,
-            "Controls air acceleration (currently only for deathmatch)"
-        )
-        cvars.register(
-            "public",
-            CvarTypes.BOOLEAN,
-            false,
-            0,
-            "Legacy master-server advertising switch; currently unused"
-        )
-        reconnectLimit = cvars.register(
-            "sv_reconnect_limit",
-            CvarTypes.FloatType(0f, null),
-            3f,
-            Defines.CVAR_ARCHIVE,
-            "Minimum seconds between reconnect attempts from the same remote client"
-        )
-        resetClients()
-
-        // Publish Host callbacks only after initialization succeeds. They survive Game replacement.
-        // Retained for console compatibility; master-server advertising is not implemented.
-        commands.add("heartbeat", true) {}
-        commands.add("kick", true, Command(::kickClient))
-        commands.add("status", true) { printStatus() }
-        commands.add("serverinfo", true) { printServerInfo() }
-        commands.add("dumpuser", true, Command(::dumpUser))
-        commands.add("say", true, Command(::say))
-        commands.add("save", true, Command(::saveGame))
-
-        commands.add("killserver") {
-            stop("Server was killed.\n", false)
-            NET.configureServer(false)
-        }
-        commands.add("map", Command(::map))
-        commands.add("gamemap", Command(::changeMap))
-        commands.add("load", Command(::loadGame))
-        commands.add("sv_shutdown") { args ->
-            val reason: String? = if (args.size > 1) {
-                args[1]
-            } else {
-                "Server is shut down"
-            }
-            stop(reason + "\n", args.size > 2 && args[2].toBoolean())
-        }
-
-        commands.add("listmaps") {
-            val bytes = EngineVfs.loadBytes("maps.lst")
-            if (bytes == null) {
-                Com.Error(Defines.ERR_DROP, "Could not read maps.lst")
-                return@add
-            }
-            for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
-                Com.Printf(Defines.PRINT_ALL, line.trim { it <= ' ' } + "\n")
-            }
-        }
-        commands.add("jvm_memory") {
-            val runtime = Runtime.getRuntime()
-            Com.Printf("vm memory:" + (runtime.totalMemory() - runtime.freeMemory()) + "\n")
-        }
-        commands.add("games") {
-            for (game in games.values) {
-                Com.Printf(game.name + " - " + game.mapcmd + "\n")
-            }
-            Com.Printf("Total " + games.size + " games\n")
-        }
-        commands.add("spamgames") { args ->
-            val total = args[1].toInt()
-            repeat(total) {
-                changeMap(listOf("gamemap", "base1", "1"))
-            }
-        }
-    }
-
-    private fun interface ServerUserCommand {
-        fun execute(args: List<String>, game: GameImportsImpl, client: ClientNetworkInfo)
-    }
+    // region Game handshake and cinematic progression
 
     /*
      * ================ SV_New_f
@@ -1585,6 +1509,46 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Cbuf.InsertFromDefer()
     }
 
+    private fun advanceCinematic(gameImports: GameImportsImpl) {
+        //ZOID, ss_pic can be nextserver'd in coop mode
+
+        if (gameImports.state == ServerStates.SS_GAME
+            || (gameImports.state == ServerStates.SS_PIC && !Cvar.getInstance()
+                .find<Boolean>("coop").typedValue)
+        ) return  // can't nextserver while playing a normal game
+
+        gameImports.spawncount++ // make sure another doesn't sneak in
+        val v = Cvar.getInstance().find<String>("nextserver").typedValue
+
+        if (v.isEmpty()) Cbuf.AddText("killserver\n")
+        else {
+            Cbuf.AddText(v)
+            Cbuf.AddText("\n")
+        }
+        Cvar.getInstance().find<String>("nextserver").set("")
+    }
+
+    /*
+     * ================== SV_Nextserver_f
+     *
+     * A cinematic has completed or been aborted by a client, so move to the
+     * next server, ==================
+     */
+    private fun finishCinematic(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
+        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
+        if (spawnCount != gameImports.spawncount) {
+            Com.DPrintf("Nextserver() from wrong level, from " + client.name + "\n")
+            return  // leftover from last server
+        }
+
+        Com.DPrintf("Nextserver() from " + client.name + "\n")
+        advanceCinematic(gameImports)
+    }
+
+    // endregion
+
+    // region Downloads
+
     private fun sendNextDownloadChunk(client: ClientNetworkInfo) {
         if (client.download == null) return
 
@@ -1673,61 +1637,136 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Com.DPrintf("Downloading " + name + " to " + client.name + "\n")
     }
 
-    private fun advanceCinematic(gameImports: GameImportsImpl) {
-        //ZOID, ss_pic can be nextserver'd in coop mode
+    // endregion
 
-        if (gameImports.state == ServerStates.SS_GAME
-            || (gameImports.state == ServerStates.SS_PIC && !Cvar.getInstance()
-                .find<Boolean>("coop").typedValue)
-        ) return  // can't nextserver while playing a normal game
+    // region Outgoing messages and rate limiting
 
-        gameImports.spawncount++ // make sure another doesn't sneak in
-        val v = Cvar.getInstance().find<String>("nextserver").typedValue
+    fun sendClientMessages() {
+        // send a message to each connected client
 
-        if (v.isEmpty()) Cbuf.AddText("killserver\n")
-        else {
-            Cbuf.AddText(v)
-            Cbuf.AddText("\n")
-        }
-        Cvar.getInstance().find<String>("nextserver").set("")
-    }
+        for (c in clients) {
+            if (c.state == ClientStates.CS_FREE) continue
 
-    /*
-     * ================== SV_Nextserver_f
-     *
-     * A cinematic has completed or been aborted by a client, so move to the
-     * next server, ==================
-     */
-    private fun finishCinematic(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
-        if (spawnCount != gameImports.spawncount) {
-            Com.DPrintf("Nextserver() from wrong level, from " + client.name + "\n")
-            return  // leftover from last server
-        }
-
-        Com.DPrintf("Nextserver() from " + client.name + "\n")
-        advanceCinematic(gameImports)
-    }
-
-    /** Resolve a Game at execution time; creating another Game never replaces these callbacks.  */
-    private fun saveGame(args: List<String>) {
-        var target = "default"
-        var command = args
-        if (args.size > 1 && args[1] == "--game") {
-            if (args.size < 4) {
-                Com.Printf("Usage: " + args[0] + " --game <id> <arguments>\n")
-                return
+            val game: GameImportsImpl = games[c.gameName]!!
+            // if the reliable message overflowed,
+            // drop the client
+            val pendingReliableSize =
+                c.netchan.reliablePending.sumOf { it.size }
+            if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
+                c.netchan.reliablePending.clear()
+                c.unreliable.clear()
+                broadcastPrint(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName)
+                dropClient(c)
             }
-            target = args[2]
-            command = listOf(args[0]) + args.drop(3)
+
+            if (game.state == ServerStates.SS_CINEMATIC || game.state == ServerStates.SS_DEMO || game.state == ServerStates.SS_PIC) {
+                // leftover from demo code
+                c.netchan.transmit(null)
+            } else if (c.state == ClientStates.CS_SPAWNED) {
+                // don't overrun bandwidth
+                if (shouldRateLimit(c)) continue
+
+                sendClientDatagram(c, game)
+            } else {
+                // just update reliable	if needed
+                if (c.netchan.reliablePending.isNotEmpty() || Globals.curtime - c.netchan.last_sent > 1000) c.netchan.transmit(
+                    null
+                )
+            }
         }
-        val game = games[target]
-        if (game == null) {
-            Com.Printf("No running game: $target\n")
-            return
-        }
-        game.saveGame(command)
     }
+
+    /**
+     * Sends text to all active clients
+     */
+    fun broadcastPrint(level: Int, message: String?, gameName: String?) {
+        // echo to console
+
+        if (Globals.dedicated.typedValue) {
+            Com.Printf(message)
+        }
+
+        for (cl in getClientsForInstance(gameName)) {
+            if (cl == null || level < cl.messagelevel) continue
+            if (cl.state != ClientStates.CS_SPAWNED) continue
+            cl.netchan.reliablePending.add(PrintMessage(level, message))
+        }
+    }
+
+    /**
+     * SV_RateDrop
+     *
+     *
+     * Returns true if the client is over its current
+     * bandwidth estimation and should not be sent another packet
+     */
+    fun shouldRateLimit(c: ClientNetworkInfo): Boolean {
+        // never drop over the loopback
+
+        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK) return false
+
+        var total = 0
+
+        for (i in 0..<Defines.RATE_MESSAGES) {
+            total += c.message_size[i]
+        }
+
+        if (total > c.rate) {
+            c.surpressCount++
+            c.message_size[frameNum % Defines.RATE_MESSAGES] = 0
+            return true
+        }
+
+        return false
+    }
+
+    /**
+     * Used by stop to send a final message to all connected clients
+     * before the server goes down. The messages are sent immediately, not just
+     * stuck on the outgoing message list, because the server is going to
+     * totally exit after returning from this function.
+     */
+    private fun sendFinalMessage(message: String?, reconnect: Boolean) {
+        val msgs: MutableCollection<NetworkMessage> = ArrayList()
+        msgs.add(PrintMessage(Defines.PRINT_HIGH, message))
+
+        if (reconnect) msgs.add(ReconnectMessage())
+        else msgs.add(DisconnectMessage())
+
+        // send it twice
+        // stagger the packets to crutch operating system limited buffers
+        for (cl in clients) {
+            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) cl.netchan.transmit(msgs)
+        }
+        for (cl in clients) {
+            if (cl.state == ClientStates.CS_CONNECTED || cl.state == ClientStates.CS_SPAWNED) cl.netchan.transmit(msgs)
+        }
+    }
+
+    /** Send this client's Game snapshot followed by its queued events, recording rate usage.  */
+    private fun sendClientDatagram(client: ClientNetworkInfo, gameImports: GameImportsImpl) {
+        // send over all the relevant entity_state_t
+        // and the player_state_t
+        val unreliable: MutableList<NetworkMessage> = mutableListOf()
+        unreliable.addAll(gameImports.buildClientFrameMessages(client)) // 3 messages
+
+        // copy the accumulated multicast datagram
+        // for this client out to the message
+        // it is necessary for this to be after the buildClientFrameMessages (SV_BuildClientFrame)
+        // so that entity references will be current
+        unreliable.addAll(client.unreliable)
+        client.unreliable.clear()
+        // send the datagram
+        client.netchan.transmit(unreliable)
+
+        // record the size for rate estimation
+        client.message_size[gameImports.frameNum % Defines.RATE_MESSAGES] =
+            unreliable.sumOf { it.size }
+    }
+
+    // endregion
+
+    // region Operator commands and diagnostics
 
     private fun kickClient(args: List<String>) {
         if (args.size != 2) {
@@ -1854,6 +1893,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Com.Printf("Userid $idOrName is not on the server\n")
         return null
     }
+
+    // endregion
 
     companion object {
         // Recreating an embedded manager must reuse the same choice declaration.
