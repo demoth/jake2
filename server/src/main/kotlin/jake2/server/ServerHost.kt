@@ -287,9 +287,9 @@ class ServerHost : AutoCloseable {
 
     /** Typed entrypoint for an embedded host; uses the same map path as the console.  */
     fun startMap(mapName: String): Boolean {
-        val previous = games["default"]
-        map(listOf("map", mapName))
-        return games["default"] != null && games["default"] !== previous
+        val result = map(mapName)
+        reportTransition("map", result)
+        return result == TransitionResult.Completed
     }
 
     /** Release this manager's console hooks after ending its last session.  */
@@ -348,10 +348,7 @@ class ServerHost : AutoCloseable {
             Cvar.getInstance().find<Int>("maxclients").forceSet(savedMaxClients)
             savedMaxClients > 1
         }
-        if (!NET.configureServer(multiplayer)) {
-            Com.Error(Defines.ERR_DROP, "Could not open the server UDP port")
-            return
-        }
+        check(NET.configureServer(multiplayer)) { "Could not open the server UDP port" }
         if (savedMaxClients == null || clients.size != savedMaxClients) resetClients()
     }
 
@@ -425,10 +422,10 @@ class ServerHost : AutoCloseable {
         return GameImportsImpl.create(this, changeMapInfo, previous)
     }
 
-    sealed interface LoadResult {
-        data object Loaded : LoadResult
-        data class Rejected(val reason: String) : LoadResult
-        data class Failed(val reason: String, val cause: Exception) : LoadResult
+    sealed interface TransitionResult {
+        data object Completed : TransitionResult
+        data class Rejected(val reason: String) : TransitionResult
+        data class Failed(val reason: String, val cause: Exception) : TransitionResult
     }
 
     /** Console adapter; applications can inspect the same operation's typed result. */
@@ -438,30 +435,26 @@ class ServerHost : AutoCloseable {
             return
         }
         Com.Printf("Loading game...\n")
-        when (val result = loadGame(args[1])) {
-            LoadResult.Loaded -> Unit
-            is LoadResult.Rejected -> Com.Printf("Couldn't load save: ${result.reason}\n")
-            is LoadResult.Failed -> Com.Printf("Load failed; server stopped: ${result.reason}\n")
-        }
+        reportTransition("load", loadGame(args[1]))
     }
 
     /** Preflight preserves the live session; failures after copying begins leave an idle Host. */
-    fun loadGame(slot: String): LoadResult {
+    fun loadGame(slot: String): TransitionResult {
         val saveGame = try {
             ServerSaveJsonStore.normalizeSlot(slot)
         } catch (_: IllegalArgumentException) {
-            return LoadResult.Rejected("Bad save name")
+            return TransitionResult.Rejected("Bad save name")
         }
-        if (saveGame == "current") return LoadResult.Rejected("Can't load from 'current'")
+        if (saveGame == "current") return TransitionResult.Rejected("Can't load from 'current'")
 
         val prepared = try {
             SavePreflight(EngineWriteRoot.path()).inspect(saveGame)
         } catch (e: Exception) {
-            return LoadResult.Rejected(e.message ?: "Invalid save")
+            return TransitionResult.Rejected(e.message ?: "Invalid save")
         }
         val savedMaxClients = prepared.maxClients
         if (games.keys.any { it != "default" } && clients.size != savedMaxClients) {
-            return LoadResult.Rejected("Can't change saved client capacity while other Games are running")
+            return TransitionResult.Rejected("Can't change saved client capacity while other Games are running")
         }
 
         return try {
@@ -474,16 +467,16 @@ class ServerHost : AutoCloseable {
             loaded.name = "default"
             games["default"] = loaded
             transitionClients.forEach { it.gameName = loaded.name }
-            LoadResult.Loaded
+            TransitionResult.Completed
         } catch (failure: Exception) {
-            recoverFailedLoad(failure)
-            LoadResult.Failed(failure.message ?: "Save restoration failed", failure)
+            recoverFailedTransition(failure)
+            TransitionResult.Failed(failure.message ?: "Save restoration failed", failure)
         }
     }
 
-    private fun recoverFailedLoad(failure: Exception) {
+    private fun recoverFailedTransition(failure: Exception) {
         try {
-            stop("Load failed\n", false)
+            stop("Server transition failed\n", false)
         } catch (cleanupFailure: Exception) {
             // stop clears Host state in finally even if notifying clients fails.
             failure.addSuppressed(cleanupFailure)
@@ -517,46 +510,74 @@ goes to map jail.bsp.
 
 Spins up a new game instance, to be used with either `map` or `join` (TBD)
 */
-    fun changeMap(args: List<String>) = changeMap(args, sessionPrepared = false)
-
-    private fun changeMap(args: List<String>, sessionPrepared: Boolean) {
+    fun changeMap(args: List<String>) {
         if (args.size < 2) {
-            Com.Printf("USAGE: gamemap <map>\n <client>")
+            Com.Printf("USAGE: gamemap <map> [client]\n")
             return
         }
+        val clientIndex = if (args.size > 2 && args[2].isNotBlank()) args[2].toIntOrNull() else 0
+        if (clientIndex == null) {
+            reportTransition("gamemap", TransitionResult.Rejected("Invalid client index"))
+            return
+        }
+        reportTransition("gamemap", changeMap(args[1], clientIndex))
+    }
 
-        val mapName = args[1]
-        val clientIndex: Int = if (args.size > 2 && args[2].isNotBlank()) {
-            try {
-                args[2].toInt()
-            } catch (_: NumberFormatException) {
-                Com.Printf("USAGE: gamemap <map>\n <client>\n")
-                return
+    fun changeMap(level: String, clientIndex: Int = 0): TransitionResult =
+        transitionMap(level, clientIndex, newSession = false)
+
+    fun map(level: String): TransitionResult = transitionMap(level, 0, newSession = true)
+
+    private fun transitionMap(level: String, clientIndex: Int, newSession: Boolean): TransitionResult {
+        val target = try {
+            require(level.isNotBlank()) { "Missing map name" }
+            val parsed = ChangeMapInfo(level, false, false)
+            require(parsed.mapName.isNotBlank()) { "Missing map name" }
+            if (parsed.state == ServerStates.SS_GAME) {
+                require(EngineVfs.exists("maps/${parsed.mapName}.bsp")) { "Can't find maps/${parsed.mapName}.bsp" }
             }
-        } else 0
+            require(clientIndex in 0..clients.size) { "Invalid client index: $clientIndex" }
+            if (clientIndex != 0) {
+                require(games.containsKey(clients[clientIndex - 1].gameName)) { "Client has no running Game" }
+            }
+            parsed
+        } catch (failure: Exception) {
+            return TransitionResult.Rejected(failure.message ?: "Invalid map request")
+        }
 
-        // default.cfg may start a session with "killserver; gamemap *...".
-        // Shutdown clears the client slots, so gamemap must initialize a fresh
-        // server just as map does, while preserving clients on level transitions.
-        if (!sessionPrepared) prepareServerSession()
-
-        Com.DPrintf("SV_GameMap($mapName)\n")
-
-        EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
-
-        // check for clearing the current savegame
-        if (mapName[0] == '*') {
-            // wipe all the *.sav files
-            ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
-        } else { // save the map just exited
-            // note: only applicable to the default instance (subject to change in future)
-            val gameImports = games["default"]
-            if (gameImports != null && gameImports.state == ServerStates.SS_GAME) {
-                gameImports.archiveLevelForTransition()
+        // Archival restores temporarily hidden player entities in finally. A write failure here
+        // leaves the live world usable, so do not tear it down or proceed to replacement.
+        if (!newSession && !target.newUnit) {
+            try {
+                games["default"]?.takeIf { it.state == ServerStates.SS_GAME }?.archiveLevelForTransition()
+            } catch (failure: Exception) {
+                return TransitionResult.Rejected("Could not archive current level: ${failure.message}")
             }
         }
 
-        val game = spawnServerInstance(ChangeMapInfo(mapName, false, false), clientIndex)
+        return try {
+            if (newSession) games["default"]?.state = ServerStates.SS_DEAD
+            if (newSession || target.newUnit) ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
+            prepareServerSession(restart = newSession)
+            EngineWriteRoot.ensureParentDirectories(EngineWriteRoot.resolve("save/current/.keep"))
+            installMap(target, clientIndex)
+            TransitionResult.Completed
+        } catch (failure: Exception) {
+            recoverFailedTransition(failure)
+            TransitionResult.Failed(failure.message ?: "Map transition failed", failure)
+        }
+    }
+
+    private fun reportTransition(operation: String, result: TransitionResult) {
+        when (result) {
+            TransitionResult.Completed -> Unit
+            is TransitionResult.Rejected -> Com.Printf("$operation rejected: ${result.reason}\n")
+            is TransitionResult.Failed -> Com.Printf("$operation failed; server stopped: ${result.reason}\n")
+        }
+    }
+
+    private fun installMap(target: ChangeMapInfo, clientIndex: Int) {
+        val game = spawnServerInstance(target, clientIndex)
 
         if (clientIndex == 0) {
             // server just started, `map` cmd was used
@@ -655,30 +676,11 @@ For development work
 Resets server to host a given map, moves all clients to it (via reconnect)
 */
     fun map(args: List<String>) {
-
-        if (args.size < 2 || args[1].isBlank()) {
+        if (args.size != 2) {
             Com.Printf("usage: map <map_name>\n")
             return
         }
-
-        // if not a pcx, demo, or cinematic, check to make sure the level exists
-        val mapName = args[1]
-        val target = ChangeMapInfo(mapName, false, false)
-        if (target.state == ServerStates.SS_GAME) {
-            val mapPath = "maps/" + target.mapName + ".bsp"
-            if (!EngineVfs.exists(mapPath)) {
-                Com.Printf("Can't find $mapPath\n")
-                return
-            }
-        }
-        val game = games["default"]
-
-        if (game != null) game.state = ServerStates.SS_DEAD // don't save current level when changing
-
-        ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
-
-        prepareServerSession(restart = true)
-        changeMap(args, sessionPrepared = true)
+        reportTransition("map", map(args[1]))
     }
 
     /** Resolve a Game at execution time; creating another Game never replaces these callbacks.  */

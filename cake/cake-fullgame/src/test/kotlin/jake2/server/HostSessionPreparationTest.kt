@@ -346,7 +346,7 @@ class HostSessionPreparationTest {
             jake2.qcommon.exec.Cbuf.AddText("test_failed_load_deferred")
             jake2.qcommon.exec.Cbuf.CopyToDefer()
             val result = host.loadGame("slot")
-            assertInstanceOf(ServerHost.LoadResult.Failed::class.java, result)
+            assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, result)
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertFalse(host.isPaused)
@@ -364,7 +364,7 @@ class HostSessionPreparationTest {
                 Files.delete(path)
             }
             Files.writeString(path, original)
-            assertEquals(ServerHost.LoadResult.Loaded, host.loadGame("slot"))
+            assertEquals(ServerHost.TransitionResult.Completed, host.loadGame("slot"))
             assertEquals("testbox", host.games.getValue("default").mapName)
         } finally {
             jake2.qcommon.exec.Cmd.RemoveCommand("test_failed_load_deferred")
@@ -378,13 +378,13 @@ class HostSessionPreparationTest {
         NET.configureServer(false)
         java.net.DatagramSocket(0).use { occupied ->
             cvars.find<Int>("port").forceSet(occupied.localPort)
-            assertInstanceOf(ServerHost.LoadResult.Failed::class.java, host.loadGame("slot"))
+            assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, host.loadGame("slot"))
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertNull(NET.ip_sockets[Defines.NS_SERVER])
         }
         cvars.find<Int>("port").forceSet(0)
-        assertEquals(ServerHost.LoadResult.Loaded, host.loadGame("slot"))
+        assertEquals(ServerHost.TransitionResult.Completed, host.loadGame("slot"))
     }
 
     @Test
@@ -397,13 +397,80 @@ class HostSessionPreparationTest {
         assertEquals("testbox2", host.games.getValue("default").mapName)
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = ["", "*", "missing", "unsupported.dm2"])
+    fun `invalid map requests preserve live Game and workspace`(level: String) {
+        save(false)
+        val game = host.games.getValue("default")
+        val client = host.clients[0]
+        val metadata = Files.readString(root.resolve("save/current/server_mapcmd.ssv.json"))
+        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.map(level))
+        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.changeMap(level))
+        assertSame(game, host.games["default"])
+        assertSame(client, host.clients[0])
+        assertEquals(ServerStates.SS_GAME, game.state)
+        assertEquals(metadata, Files.readString(root.resolve("save/current/server_mapcmd.ssv.json")))
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = [-1, 2])
+    fun `invalid targeted gamemap leaves session untouched`(clientIndex: Int) {
+        save(false)
+        val game = host.games.getValue("default")
+        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.changeMap("testbox2", clientIndex))
+        assertSame(game, host.games["default"])
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `map autosave failure leaves idle Host and permits restart`(newSession: Boolean) {
+        save(false)
+        val blocked = root.resolve("save/save0/game.ssv.json")
+        Files.delete(blocked)
+        Files.createDirectory(blocked)
+        Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        val result = if (newSession) host.map("testbox2") else host.changeMap("testbox2")
+        assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, result)
+        assertTrue(host.games.isEmpty())
+        assertTrue(host.clients.isEmpty())
+        assertFalse(host.isPaused)
+        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertEquals(ServerStates.SS_DEAD, Globals.server_state)
+        assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
+        Files.delete(blocked.resolve("blocker"))
+        Files.delete(blocked)
+        assertEquals(ServerHost.TransitionResult.Completed, host.map("testbox"))
+    }
+
+    @Test
+    fun `gamemap port failure is recoverable without global shutdown callbacks`() {
+        cvars.find<Boolean>("coop").forceSet(true)
+        var globalShutdown = false
+        val previous = jake2.qcommon.exec.Cmd.FindCommand("cl_drop")
+        jake2.qcommon.exec.Cmd.AddCommand("cl_drop", true) { globalShutdown = true }
+        try {
+            java.net.DatagramSocket(0).use { occupied ->
+                cvars.find<Int>("port").forceSet(occupied.localPort)
+                assertInstanceOf(ServerHost.TransitionResult.Failed::class.java, host.changeMap("testbox"))
+                assertTrue(host.games.isEmpty())
+                assertTrue(host.clients.isEmpty())
+                assertFalse(globalShutdown)
+            }
+            cvars.find<Int>("port").forceSet(0)
+            assertEquals(ServerHost.TransitionResult.Completed, host.changeMap("testbox"))
+        } finally {
+            jake2.qcommon.exec.Cmd.RemoveCommand("cl_drop")
+            if (previous != null) jake2.qcommon.exec.Cmd.AddCommand("cl_drop", previous.description, previous.function)
+        }
+    }
+
     @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
         val game = host.games.getValue("default")
         val client = host.clients[0]
         Files.writeString(root.resolve("save/slot/server_latched_cvars.ssv.json"), "invalid")
-        assertInstanceOf(ServerHost.LoadResult.Rejected::class.java, host.loadGame("slot"))
+        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.loadGame("slot"))
         assertSame(game, host.games["default"])
         assertSame(client, host.clients[0])
     }

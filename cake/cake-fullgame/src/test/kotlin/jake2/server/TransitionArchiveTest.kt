@@ -103,11 +103,7 @@ class TransitionArchiveTest {
         // A directory at the output filename forces a real filesystem write failure.
         Files.createDirectories(root.resolve("save/current/testbox.$extension.json"))
         val originalGameplay = first.gameExports
-        val failure = assertThrows(IllegalStateException::class.java) {
-            host.changeMap(listOf("gamemap", "testbox2"))
-        }
-
-        assertNotNull(failure.cause)
+        assertInstanceOf(ServerHost.TransitionResult.Rejected::class.java, host.changeMap("testbox2"))
         assertLiveState()
         assertSame(first, host.games["default"])
         assertSame(second, host.games[second.name])
