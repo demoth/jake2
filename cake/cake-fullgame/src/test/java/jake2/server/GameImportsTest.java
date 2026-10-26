@@ -1,6 +1,7 @@
 package jake2.server;
 
 import jake2.game.GameEntity;
+import jake2.game.GamePlayerInfo;
 import jake2.game.monsters.M_Gunner;
 import jake2.qcommon.GameExports;
 import jake2.qcommon.ServerEntity;
@@ -9,7 +10,7 @@ import jake2.qcommon.MainCommon;
 import jake2.qcommon.Globals;
 import jake2.qcommon.ServerStates;
 import jake2.qcommon.Defines;
-import jake2.qcommon.network.messages.server.ConfigStringMessage;
+import jake2.qcommon.network.messages.server.*;
 import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.vfs.EngineWriteRoot;
 import jake2.qcommon.vfs.VfsConfig;
@@ -161,6 +162,68 @@ public class GameImportsTest {
         Assertions.assertEquals(1, second.BoxEdicts(mins, maxs, found, found.length, Defines.AREA_SOLID));
         Assertions.assertSame(secondEntity, found[0]);
         Assertions.assertSame(secondEntity, second.trace(start, null, null, end, null, Defines.MASK_PLAYERSOLID).ent);
+    }
+
+    @Test
+    public void clientSnapshotsKeepIndependentGameHistory() {
+        manager = new SV_MAIN();
+        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        ClientNetworkInfo firstClient = snapshotClient(first, 11);
+        ClientNetworkInfo secondClient = snapshotClient(second, 22);
+        first.frameNum = second.frameNum = 1;
+
+        var initial = List.copyOf(first.buildClientFrameMessages(firstClient));
+        Assertions.assertEquals(3, initial.size());
+        Assertions.assertEquals(-1, ((FrameHeaderMessage) initial.get(0)).lastFrame);
+        EntityUpdate initialUpdate = ((PacketEntitiesMessage) initial.get(2)).updates.get(0);
+        Assertions.assertTrue(initialUpdate.force);
+        Assertions.assertEquals(11, initialUpdate.newState.modelindex);
+        second.buildClientFrameMessages(secondClient);
+
+        // Each delta must refer to its own saved snapshot, not the live entity or the other Game.
+        firstClient.edict.s.modelindex = 12;
+        secondClient.edict.s.modelindex = 23;
+        first.frameNum = second.frameNum = 2;
+        firstClient.lastReceivedFrame = secondClient.lastReceivedFrame = 1;
+        for (GameImportsImpl game : List.of(first, second)) {
+            ClientNetworkInfo client = game == first ? firstClient : secondClient;
+            int oldModel = game == first ? 11 : 22;
+            var messages = List.copyOf(game.buildClientFrameMessages(client));
+            FrameHeaderMessage header = (FrameHeaderMessage) messages.get(0);
+            Assertions.assertEquals(2, header.frameNumber);
+            Assertions.assertEquals(1, header.lastFrame);
+            var updates = ((PacketEntitiesMessage) messages.get(2)).updates;
+            Assertions.assertEquals(1, updates.size());
+            Assertions.assertEquals(oldModel, updates.get(0).oldState.modelindex);
+            Assertions.assertEquals(oldModel + 1, updates.get(0).newState.modelindex);
+            Assertions.assertFalse(updates.get(0).force);
+        }
+
+        firstClient.lastReceivedFrame = 2;
+        first.frameNum = 3;
+        firstClient.edict.s.modelindex = 0;
+        var removed = List.copyOf(first.buildClientFrameMessages(firstClient));
+        EntityUpdate removal = ((PacketEntitiesMessage) removed.get(2)).updates.get(0);
+        Assertions.assertEquals(1, removal.header.number);
+        Assertions.assertNotEquals(0, removal.header.flags & Defines.U_REMOVE);
+
+        // An acknowledgement outside the retained frame window falls back to a baseline update.
+        second.frameNum += Defines.UPDATE_BACKUP;
+        var stale = List.copyOf(second.buildClientFrameMessages(secondClient));
+        Assertions.assertEquals(-1, ((FrameHeaderMessage) stale.get(0)).lastFrame);
+        Assertions.assertTrue(((PacketEntitiesMessage) stale.get(2)).updates.get(0).force);
+    }
+
+    private ClientNetworkInfo snapshotClient(GameImportsImpl game, int modelIndex) {
+        GameEntity entity = (GameEntity) game.gameExports.getEdict(1);
+        entity.setClient(new GamePlayerInfo(0));
+        entity.getClient().getPlayerState().pmove.origin[2] = 64 * 8;
+        entity.s.modelindex = modelIndex;
+        ClientNetworkInfo client = new ClientNetworkInfo();
+        client.gameName = game.name;
+        client.edict = entity;
+        return client;
     }
 
     @Test

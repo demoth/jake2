@@ -185,7 +185,7 @@ public class SV_SEND {
 		// send over all the relevant entity_state_t
 		// and the player_state_t
 		Collection<NetworkMessage> unreliable = new ArrayList<>();
-		unreliable.addAll(gameImports.sv_ents.buildClientFrameMessages(client)); // 3 messages
+		unreliable.addAll(gameImports.buildClientFrameMessages(client)); // 3 messages
 
 		// copy the accumulated multicast datagram
 		// for this client out to the message

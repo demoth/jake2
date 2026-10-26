@@ -34,6 +34,11 @@ import jake2.qcommon.network.NET;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.messages.server.ConfigStringMessage;
 import jake2.qcommon.network.messages.server.PrintCenterMessage;
+import jake2.qcommon.network.messages.server.FrameHeaderMessage;
+import jake2.qcommon.network.messages.server.PlayerInfoMessage;
+import jake2.qcommon.network.messages.server.PacketEntitiesMessage;
+import jake2.qcommon.network.messages.server.EntityUpdate;
+import jake2.qcommon.network.messages.server.DeltaEntityHeader;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.util.Lib;
@@ -47,6 +52,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Collection;
 import java.util.List;
 
 import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
@@ -99,7 +105,10 @@ public class GameImportsImpl implements GameImports {
 
     CM cm;
 
-    SV_ENTS sv_ents;
+    // Entity snapshots are shared by this Game's clients; frame acknowledgements stay on each client.
+    private final byte[] fatPvs = new byte[65536 / 8];
+    private final entity_state_t[] clientEntityStates;
+    private int nextClientEntity;
 
     final float[] origin_v = { 0, 0, 0 };
     private final float configuredAirAcceleration;
@@ -119,7 +128,8 @@ public class GameImportsImpl implements GameImports {
         spawncount = Lib.rand();
 
         cm = new CM();
-        sv_ents = new SV_ENTS(this, serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64);
+        clientEntityStates = new entity_state_t[serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64];
+        for (int i = 0; i < clientEntityStates.length; i++) clientEntityStates[i] = new entity_state_t();
 
         // heartbeats will always be sent to the id master
 
@@ -1348,5 +1358,301 @@ public class GameImportsImpl implements GameImports {
         } else
             client.unreliable.add(msg);
 
+    }
+
+    /**
+     * Build the frame and prepare a list of messages to a client system.
+     * @return - listOf(FrameHeaderMessage, PlayerInfoMessage, PacketEntitiesMessage)
+     *
+     * SV_WriteFrameToClient
+     */
+    Collection<ServerMessage> buildClientFrameMessages(ClientNetworkInfo client) {
+        // first, build the "frame" (previously it was invoked outside of this method)
+        buildClientFrame(client);
+
+        // now, build the messages
+        List<ServerMessage> result = new ArrayList<>();
+        // this is the frame we are creating
+        client_frame_t currentFrame = client.frames[frameNum & Defines.UPDATE_MASK];
+        client_frame_t lastReceivedFrame;
+        int lastReceivedFrameNum;
+        // client is asking for a retransmit
+        if (client.lastReceivedFrame <= 0) {
+            lastReceivedFrame = null;
+            lastReceivedFrameNum = -1;
+        } else if (frameNum - client.lastReceivedFrame >= (Defines.UPDATE_BACKUP - 3)) {
+            // client hasn't gotten a good message through in a long time
+            // Com_Printf ("%s: Delta request from out-of-date packet.\n",
+            // client.name);
+            lastReceivedFrame = null;
+            lastReceivedFrameNum = -1;
+        } else {
+            // we have a valid message to delta from
+            lastReceivedFrame = client.frames[client.lastReceivedFrame & Defines.UPDATE_MASK];
+            lastReceivedFrameNum = client.lastReceivedFrame;
+        }
+
+        result.add(new FrameHeaderMessage(
+                frameNum,
+                lastReceivedFrameNum,
+                client.surpressCount,
+                currentFrame.areabytes,
+                currentFrame.areabits
+        ));
+
+        client.surpressCount = 0;
+
+        // delta encode the playerstate
+        PlayerInfoMessage playerInfoMsg = new PlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : new player_state_t(), currentFrame.ps);
+        result.add(playerInfoMsg);
+
+        // delta encode the entities
+        PacketEntitiesMessage packetEntities = buildPacketEntities(
+                lastReceivedFrame,
+                currentFrame);
+        result.add(packetEntities);
+        return result;
+    }
+
+    // SV_EmitPacketEntities
+    /**
+     * Encode recent entity updates into a message using the previously sent updates and the baseline (shared with the client in the beginning of the match).
+     */
+    private PacketEntitiesMessage buildPacketEntities(client_frame_t lastReceivedFrame,
+                                                      client_frame_t currentFrame) {
+        int maxClients = serverMain.getClients().size();
+        assert baselines.length == Defines.MAX_EDICTS;
+        int maxEntityStates = clientEntityStates.length;
+        PacketEntitiesMessage result = new PacketEntitiesMessage();
+
+        // Write delta entity
+        int from_num_entities;
+        if (lastReceivedFrame == null)
+            from_num_entities = 0;
+        else
+            from_num_entities = lastReceivedFrame.num_entities;
+
+        int newindex = 0;
+        int oldindex = 0;
+        entity_state_t oldState = null;
+        entity_state_t newState = null;
+        while (newindex < currentFrame.num_entities || oldindex < from_num_entities) {
+            final int newnum;
+            if (newindex >= currentFrame.num_entities) {
+                // does not exist in the frame
+                newnum = 9999;
+            } else {
+                newState = clientEntityStates[(currentFrame.first_entity + newindex) % maxEntityStates];
+                newnum = newState.index;
+            }
+            final int oldnum;
+            if (oldindex >= from_num_entities)
+                // does not exist in the frame
+                oldnum = 9999;
+            else {
+                oldState = clientEntityStates[(lastReceivedFrame.first_entity + oldindex) % maxEntityStates];
+                oldnum = oldState.index;
+            }
+
+            if (newnum == oldnum) {
+                // delta update from old position.
+                // because the force parm is false, this will not result
+                // in any bytes being emited if the entity has not changed at all.
+                // Note: players are always 'newentities', this updates
+                // their oldorigin always  and prevents warping
+                final boolean isPlayer = newState.index <= maxClients;
+                result.updates.add(new EntityUpdate(oldState, newState, false, isPlayer));
+                oldindex++;
+                newindex++;
+            } else if (newnum < oldnum) {
+                // this is a new entity, send it from the baseline
+                result.updates.add(new EntityUpdate(baselines[newnum], newState, true, true));
+                newindex++;
+            } else {
+                // if (newnum > oldnum) {
+                // the old entity isn't present in the new message
+
+                int flags = Defines.U_REMOVE;
+                if (oldnum >= 256)
+                    flags |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
+
+                result.updates.add(new EntityUpdate(new DeltaEntityHeader(flags, oldnum)));
+                oldindex++;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * The client will interpolate the view position, so we can't use a single
+     * PVS point.
+     */
+    private void buildFatPvs(float[] org) {
+        int leafs[] = new int[64];
+        int i, j, count;
+        int longs;
+        byte src[];
+        float[] mins = { 0, 0, 0 }, maxs = { 0, 0, 0 };
+
+        for (i = 0; i < 3; i++) {
+            mins[i] = org[i] - 8;
+            maxs[i] = org[i] + 8;
+        }
+        count = cm.CM_BoxLeafnums(mins, maxs, leafs, 64, null);
+
+        if (count < 1)
+            Com.Error(Defines.ERR_FATAL, "SV_FatPVS: count < 1");
+
+        longs = (cm.CM_NumClusters() + 31) >> 5;
+
+        // convert leafs to clusters
+        for (i = 0; i < count; i++)
+            leafs[i] = cm.CM_LeafCluster(leafs[i]);
+
+        System.arraycopy(cm.CM_ClusterPVS(leafs[0]), 0, fatPvs, 0,
+                longs << 2);
+        // or in all the other leaf bits
+        for (i = 1; i < count; i++) {
+            for (j = 0; j < i; j++)
+                if (leafs[i] == leafs[j])
+                    break;
+            if (j != i)
+                continue; // already have the cluster we want
+
+            src = cm.CM_ClusterPVS(leafs[i]);
+
+            //for (j=0 ; j<longs ; j++)
+            //	((long *)fatPvs)[j] |= ((long *)src)[j];
+            int k = 0;
+            for (j = 0; j < longs; j++) {
+                fatPvs[k] |= src[k++];
+                fatPvs[k] |= src[k++];
+                fatPvs[k] |= src[k++];
+                fatPvs[k] |= src[k++];
+            }
+        }
+    }
+
+    /**
+     * Decides which entities are going to be visible to the client (update the clientEntityStates from game entities' state),
+     * and copies off the playerstat and areabits.
+     */
+    private void buildClientFrame(ClientNetworkInfo client) {
+
+        ServerEntity clent = client.edict;
+        if (clent.getClient() == null)
+            return; // not in game yet
+
+        // this is the frame we are creating
+        client_frame_t frame = client.frames[frameNum & Defines.UPDATE_MASK];
+
+        frame.senttime = realtime; // save it for ping calc later
+
+        // find the client's PVS
+        int i;
+        float[] org = {0, 0, 0};
+        for (i = 0; i < 3; i++)
+            org[i] = clent.getClient().getPlayerState().pmove.origin[i] * 0.125f
+                    + clent.getClient().getPlayerState().viewoffset[i];
+
+        int leafnum = cm.CM_PointLeafnum(org);
+        int clientarea = cm.CM_LeafArea(leafnum);
+        int clientcluster = cm.CM_LeafCluster(leafnum);
+
+        // calculate the visible areas
+        frame.areabytes = cm.CM_WriteAreaBits(frame.areabits, clientarea);
+
+        // grab the current player_state_t
+        frame.ps.set(clent.getClient().getPlayerState());
+
+        buildFatPvs(org);
+        byte[] clientphs = cm.CM_ClusterPHS(clientcluster);
+
+        // build up the list of visible entities
+        frame.num_entities = 0;
+        frame.first_entity = nextClientEntity;
+
+        for (int e = 1; e < gameExports.getNumEdicts(); e++) {
+            ServerEntity ent = gameExports.getEdict(e);
+
+            // ignore ents without visible models
+            if ((ent.svflags & Defines.SVF_NOCLIENT) != 0)
+                continue;
+
+            // ignore ents without visible models unless they have an effect
+            if (0 == ent.s.modelindex && 0 == ent.s.effects && 0 == ent.s.sound
+                    && 0 == ent.s.event)
+                continue;
+
+            // ignore if not touching a PV leaf
+            // check area
+            if (ent != clent) {
+                if (!cm.CM_AreasConnected(clientarea, ent.areanum)) {
+                    // doors can legally straddle two areas, so we may need to check another one
+                    if (0 == ent.areanum2 || !cm.CM_AreasConnected(clientarea, ent.areanum2))
+                        continue; // blocked by a door
+                }
+
+                // beams just check one point for PHS
+                int l;
+                if ((ent.s.renderfx & Defines.RF_BEAM) != 0) {
+                    l = ent.clusternums[0];
+                    if (0 == (clientphs[l >> 3] & (1 << (l & 7))))
+                        continue;
+                } else {
+                    // FIXME: if an ent has a model and a sound, but isn't
+                    // in the PVS, only the PHS, clear the model
+                    byte[] bitvector;
+                    if (ent.s.sound == 0) {
+                        bitvector = fatPvs; //clientphs;
+                    } else
+                        bitvector = fatPvs;
+
+                    if (ent.num_clusters == -1) { // too many leafs for
+                                                  // individual check, go by
+                                                  // headnode
+                        if (!cm.CM_HeadnodeVisible(ent.headnode, bitvector))
+                            continue;
+                    } else { // check individual leafs
+                        for (i = 0; i < ent.num_clusters; i++) {
+                            l = ent.clusternums[i];
+                            if ((bitvector[l >> 3] & (1 << (l & 7))) != 0)
+                                break;
+                        }
+                        if (i == ent.num_clusters)
+                            continue; // not visible
+                    }
+
+                    if (ent.s.modelindex == 0) { // don't send sounds if they
+                                                 // will be attenuated away
+                        float[] delta = { 0, 0, 0 };
+                        float len;
+
+                        Math3D.VectorSubtract(org, ent.s.origin, delta);
+                        len = Math3D.VectorLength(delta);
+                        if (len > 400)
+                            continue;
+                    }
+                }
+            }
+
+            // add it to the circular client_entities array
+            int ix = nextClientEntity % clientEntityStates.length;
+            entity_state_t state = clientEntityStates[ix];
+            if (ent.s.index != e) {
+                Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
+                ent.s.index = e;
+            }
+
+            //*state = ent.s;
+            clientEntityStates[ix].set(ent.s);
+
+            // don't mark players missiles as solid
+            if (ent.getOwner() == client.edict)
+                state.solid = 0;
+
+            nextClientEntity++;
+            frame.num_entities++;
+        }
     }
 }
