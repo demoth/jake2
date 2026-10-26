@@ -325,6 +325,41 @@ class ServerHost : AutoCloseable {
     }
 
     /**
+     * End one owned Game without invoking gameplay disconnect callbacks.
+     * Call after unwinding Game execution, outside iteration over the Game registry.
+     * Identity prevents stale work from stopping a replacement with the same name.
+     */
+    fun stopGame(game: GameImportsImpl, reason: String) {
+        if (games[game.name] !== game) return
+        if (games.size == 1) {
+            stop(reason, false)
+            return
+        }
+        val routedClients = clients.filter { it.gameName == game.name }
+        try {
+            for (client in routedClients) {
+                try {
+                    sendFinalMessage(reason, false, listOf(client))
+                } catch (failure: Exception) {
+                    // A failed final packet must not prevent other clients from being released.
+                    Com.Printf("Could not notify client of Game ${game.name} shutdown: $failure\n")
+                }
+            }
+        } finally {
+            for (client in routedClients) {
+                client.state = ClientStates.CS_FREE
+                client.gameName = null
+                client.edict = null
+                client.download = null
+                client.netchan.reliablePending.clear()
+                client.unreliable.clear()
+            }
+            pendingContinuations.remove(game)
+            games.remove(game.name)
+        }
+    }
+
+    /**
      * Resets the clients when maxclients changes
      */
     fun resetClients() {
@@ -1527,20 +1562,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         return try {
             val routedClients = clients.filter { it.gameName == previous.name }
             if (target == null) {
-                if (games.size == 1) {
-                    stop("Game sequence ended.\n", false)
-                } else {
-                    sendFinalMessage("Game sequence ended.\n", false, routedClients)
-                    for (client in routedClients) {
-                        client.state = ClientStates.CS_FREE
-                        client.gameName = null
-                        client.edict = null
-                        client.download = null
-                        client.netchan.reliablePending.clear()
-                        client.unreliable.clear()
-                    }
-                    games.remove(previous.name)
-                }
+                stopGame(previous, "Game sequence ended.\n")
                 return OperationResult.Completed
             }
             // Unit changes and autosaves still share the existing persistence workspace.

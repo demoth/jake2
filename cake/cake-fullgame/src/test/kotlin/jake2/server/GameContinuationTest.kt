@@ -148,6 +148,60 @@ class GameContinuationTest {
     }
 
     @Test
+    fun `targeted stop survives notification failure and cancels only its pending work`() {
+        val first = game("default", "intro.cin+testbox")
+        val second = game("other", "intro.cin+testbox2")
+        val a = bind(0, first)
+        val b = bind(1, second)
+        val c = bind(2, first)
+        finish(a, first)
+        finish(b, second)
+        a.state = ClientStates.CS_SPAWNED
+        a.download = byteArrayOf(1)
+        a.netchan.reliablePending.add(StuffTextMessage("stale"))
+        a.unreliable.add(StuffTextMessage("stale"))
+        a.netchan.remote_address = null // Fail the first final notification.
+        first.gameExports = null // Discarding a Game must not call back into its gameplay.
+        Cvar.getInstance().find<Int>("port").forceSet(0)
+        assertTrue(NET.configureServer(true))
+        val socket = NET.ip_sockets[Defines.NS_SERVER]
+        val peerChannel = b.netchan
+
+        host.stopGame(first, "Game failed\n")
+
+        for (client in listOf(a, c)) {
+            assertEquals(ClientStates.CS_FREE, client.state)
+            assertNull(client.gameName)
+            assertNull(client.edict)
+            assertNull(client.download)
+            assertTrue(client.netchan.reliablePending.isEmpty())
+            assertTrue(client.unreliable.isEmpty())
+        }
+        assertSame(second, host.games["other"])
+        assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
+        assertSame(peerChannel, b.netchan)
+        assertEquals(ClientStates.CS_CONNECTED, b.state)
+        host.update(100)
+        assertFalse(host.games.containsKey("default"))
+        assertEquals("testbox2", host.games.getValue("other").mapName)
+        host.stopGame(first, "Already stopped\n")
+        assertTrue(host.isRunning)
+    }
+
+    @Test
+    fun `stale Game stop cannot remove its replacement or disconnect its clients`() {
+        val old = game("default", "end.cin")
+        val replacement = game("default", "intro.cin+testbox")
+        val client = bind(0, replacement)
+        host.stopGame(old, "Stale failure\n")
+        assertSame(replacement, host.games["default"])
+        assertEquals(ClientStates.CS_CONNECTED, client.state)
+        finish(client, replacement)
+        host.update(100)
+        assertEquals("testbox", host.games.getValue("default").mapName)
+    }
+
+    @Test
     fun `singleplayer chain preserves unit syntax and ends in an idle Host`() {
         val intro = game("default", "intro.cin+end.cin+*testbox")
         val client = bind(0, intro)
