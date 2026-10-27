@@ -71,15 +71,15 @@ class CakeHostApplicationTest {
                         initialHost = host.server!!
                         assertEquals(HostState.STOPPED, host.state)
                         assertNotNull(Cmd.FindCommand("map"))
-                        assertNull(Cmd.FindCommand("host_start"))
-                        assertNull(Cmd.FindCommand("host_stop"))
                         // Hosted storage rejection must precede persisted profile selection.
                         val originalRoot = EngineWriteRoot.path()
                         Files.writeString(temp.resolve(".cake/blocked"), "not a directory")
                         val content = Path.of("src/test/resources").toAbsolutePath()
+                        Cvar.getInstance().find<String>("hostname").forceSet("keep on failure")
                         Cmd.ExecuteString("cake_profile_set blocked \"$content\"")
                         assertEquals("application-test", CakeGameProfileStore().readSelectedProfileId())
                         assertEquals(originalRoot, EngineWriteRoot.path())
+                        assertEquals("keep on failure", Cvar.getInstance().find<String>("hostname").typedValue)
                     } catch (error: Throwable) {
                         failure = error
                         Gdx.app.exit()

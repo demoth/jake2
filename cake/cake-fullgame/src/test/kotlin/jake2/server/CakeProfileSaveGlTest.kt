@@ -46,7 +46,12 @@ class CakeProfileSaveGlTest {
             val source = CakeFileResolver(basedir = installation.toString())
             Files.write(mod.resolve("profilemap.bsp"), source.resolve("maps/base1.bsp")!!.readBytes())
             CakeGameProfileStore().upsertProfile(CakeGameProfile("first", content.toString(), "custom"))
-            val startup = CakeStartupBootstrap.bootstrap(arguments = listOf("+map", "profilemap"))
+            Files.createDirectories(temp.resolve(".cake/first"))
+            Files.writeString(temp.resolve(".cake/first/config.cfg"), "set skill 1\n")
+            Files.createDirectories(temp.resolve(".cake/second"))
+            Files.writeString(temp.resolve(".cake/second/config.cfg"), "set skill 2\nset hostname second\n")
+            val startup = CakeStartupBootstrap.bootstrap(arguments = listOf(
+                "+set", "skill", "3", "+set", "flood_msgs", "6", "+map", "profilemap"))
             Lwjgl3Application(object : ApplicationAdapter() {
                 private lateinit var cake: Cake
                 private var step = 0
@@ -75,6 +80,7 @@ class CakeProfileSaveGlTest {
                 private fun state() = Cake::class.java.getDeclaredField("networkState").apply {
                     isAccessible = true
                 }.get(cake).toString()
+                private fun settings() = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).gameCvars
                 private fun player() = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).getEdict(1) as GameEntity
 
                 override fun render() {
@@ -86,6 +92,8 @@ class CakeProfileSaveGlTest {
                             "Timed out at step $step, client=${state()}")
                         when (step) {
                             0 -> if (active("profilemap")) {
+                                assertEquals(3, settings().skill.typedValue)
+                                assertEquals(6, settings().flood_msgs.typedValue)
                                 val resolver = Cake::class.java.getDeclaredField("fileResolver").apply {
                                     isAccessible = true
                                 }.get(cake) as CakeFileResolver
@@ -106,6 +114,9 @@ class CakeProfileSaveGlTest {
                             1 -> if (active("base2")) next("load shared")
                             2 -> if (active("profilemap")) {
                                 assertEquals(73, player().health)
+                                // Stage changes while live; a profile switch must discard these too.
+                                Cmd.ExecuteString("set coop 1")
+                                Cmd.ExecuteString("set flood_msgs 7")
                                 next("disconnect")
                             }
                             3 -> {
@@ -114,6 +125,10 @@ class CakeProfileSaveGlTest {
                                 next("gamemap *base2")
                             }
                             4 -> if (active("base2")) {
+                                assertFalse(settings().coop.typedValue)
+                                assertEquals(2, settings().skill.typedValue)
+                                assertEquals(4, settings().flood_msgs.typedValue)
+                                assertEquals("second", Cvar.getInstance().find<String>("hostname").typedValue)
                                 player().health = 41
                                 Cmd.ExecuteString("save shared")
                                 assertTrue(Files.exists(secondSlot))
@@ -131,6 +146,9 @@ class CakeProfileSaveGlTest {
                                 next("load shared")
                             }
                             8 -> if (active("profilemap")) {
+                                // Saves restore latched settings; non-saved runtime options use defaults.
+                                assertEquals(3, settings().skill.typedValue)
+                                assertEquals(4, settings().flood_msgs.typedValue)
                                 assertEquals(73, player().health)
                                 assertEquals(temp.resolve(".cake/first"), EngineWriteRoot.path())
                                 Gdx.app.exit()

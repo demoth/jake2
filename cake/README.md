@@ -115,6 +115,11 @@ and Host Game menus, using the selected profile's game data and mod.
 Hosting automatically connects the local player. Disconnect before switching
 profiles or starting another session.
 
+Switching profiles resets built-in gameplay startup settings before loading the
+selected profile's config. Video and client preferences are not reset. Initial
+startup preserves command-line overrides; loading a save restores its saved
+latched settings, including difficulty.
+
 Console equivalents:
 
 - `map <map>` / `gamemap <map>` — start a local game or change maps while hosting.

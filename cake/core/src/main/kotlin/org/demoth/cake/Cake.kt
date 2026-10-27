@@ -43,6 +43,7 @@ import org.demoth.cake.assets.*
 import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
+import org.demoth.cake.profile.CakeHostStartupSettings
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.profile.CakeProfilePersistence
@@ -1490,6 +1491,8 @@ class Cake(
             }
             throw failure
         }
+        // Selection and hosted storage are committed before discarding outgoing gameplay inputs.
+        CakeHostStartupSettings.reset()
         applyGameProfile(profile)
         profilePersistence.loadConfig()
         return path
