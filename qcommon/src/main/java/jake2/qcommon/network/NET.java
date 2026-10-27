@@ -28,6 +28,7 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.network.messages.NetworkPacket;
+import jake2.qcommon.network.runtime.NetworkTransport;
 import jake2.qcommon.network.protocol.PacketCodec;
 import jake2.qcommon.network.protocol.PacketDecodeResult;
 import jake2.qcommon.network.protocol.PacketDirection;
@@ -45,32 +46,32 @@ public final class NET {
     /** Legacy address bridge; transport endpoints themselves use immutable addresses. */
     public static final netadr_t net_local_adr = new netadr_t();
 
-    // Temporary role owners until ClientNetwork and ServerNetwork receive their endpoints.
-    private static final UdpDatagramEndpoint[] udpEndpoints = new UdpDatagramEndpoint[2];
-    private static LoopbackLink loopback = new LoopbackLink();
+    // Compatibility composition root until application controllers receive their transports.
+    private static NetworkTransport[] transports = newTransports();
 
-    public static UdpDatagramEndpoint udpEndpoint(int role) {
-        return udpEndpoints[role];
+    private static NetworkTransport[] newTransports() {
+        LoopbackLink link = new LoopbackLink();
+        return new NetworkTransport[] {
+                new NetworkTransport(link.getFirst(), link.getSecond().getLocalAddress()),
+                new NetworkTransport(link.getSecond(), link.getFirst().getLocalAddress())
+        };
     }
 
-    private static LoopbackLink.Endpoint localEndpoint(int role) {
-        return role == Defines.NS_CLIENT ? loopback.getFirst() : loopback.getSecond();
+    public static UdpDatagramEndpoint udpEndpoint(int role) {
+        return transports[role].getUdpEndpoint();
     }
 
     public static void SendLoopPacket(int role, int length, byte[] data, netadr_t to) {
-        localEndpoint(role).send(localEndpoint(role ^ 1).getLocalAddress(), PacketBytes.copyOf(data, length));
+        transports[role].send(transports[role].getLocalPeer(), PacketBytes.copyOf(data, length));
     }
 
     /** Receive only local traffic, including final messages after the UDP role has stopped. */
     public static NetworkPacket receiveLoopbackPacket(int role) {
-        return adaptReceived(localEndpoint(role).receive(), role == NS_SERVER);
+        return adaptReceived(transports[role].receiveLocal(), role == NS_SERVER);
     }
 
     public static NetworkPacket receiveNetworkPacket(int role) {
-        NetworkPacket local = receiveLoopbackPacket(role);
-        if (local != null) return local;
-        UdpDatagramEndpoint endpoint = udpEndpoints[role];
-        return endpoint == null ? null : adaptReceived(endpoint.receive(), role == NS_SERVER);
+        return adaptReceived(transports[role].receive(), role == NS_SERVER);
     }
 
     // Legacy nullable API and trace output; decoding itself has explicit, side-effect-free outcomes.
@@ -103,9 +104,9 @@ public final class NET {
 
     public static SendResult sendPacket(int role, PacketBytes payload, netadr_t to) {
         if (to.type == NetAddrType.NA_LOOPBACK) {
-            return localEndpoint(role).send(localEndpoint(role ^ 1).getLocalAddress(), payload);
+            return transports[role].send(transports[role].getLocalPeer(), payload);
         }
-        UdpDatagramEndpoint endpoint = udpEndpoints[role];
+        UdpDatagramEndpoint endpoint = udpEndpoint(role);
         if (endpoint == null) return new SendResult.Failed(new ClosedChannelException());
         if (to.type != NetAddrType.NA_BROADCAST && to.type != NetAddrType.NA_IP) {
             throw new IllegalArgumentException("NET_SendPacket: unsupported address type " + to.type);
@@ -113,7 +114,7 @@ public final class NET {
         try {
             NetworkAddress.Udp destination = new NetworkAddress.Udp(
                     IpAddress.fromInetAddress(to.getInetAddress()), to.port);
-            SendResult result = endpoint.send(destination, payload);
+            SendResult result = transports[role].send(destination, payload);
             if (result instanceof SendResult.Failed failure) {
                 Com.Println("NET_SendPacket ERROR: " + failure.getCause() + " to " + to);
             }
@@ -157,38 +158,47 @@ public final class NET {
             closeRole(role);
             return true;
         }
-        if (udpEndpoints[role] != null && udpEndpoints[role].isOpen()) return true;
+        if (udpEndpoint(role) != null && udpEndpoint(role).isOpen()) return true;
         closeRole(role);
         Cvar cvars = Cvar.getInstance();
         String ip = cvars.find("ip", String.class).getTypedValue();
         int port = cvars.find(portName, Integer.class).getTypedValue();
-        udpEndpoints[role] = openEndpoint(ip, port);
-        if (udpEndpoints[role] == null && fallback)
-            udpEndpoints[role] = openEndpoint(ip, Defines.PORT_ANY);
-        return udpEndpoints[role] != null;
+        UdpDatagramEndpoint endpoint = openEndpoint(ip, port);
+        if (endpoint == null && fallback) endpoint = openEndpoint(ip, Defines.PORT_ANY);
+        try {
+            transports[role].replaceUdp(endpoint);
+        } catch (IOException error) {
+            Com.Println("Closing previous UDP endpoint: " + error.getMessage());
+        }
+        return endpoint != null;
     }
 
     private static void closeRole(int role) {
-        UdpDatagramEndpoint endpoint = udpEndpoints[role];
-        udpEndpoints[role] = null;
-        if (endpoint != null) {
+        try {
+            transports[role].replaceUdp(null);
+        } catch (IOException error) {
+            Com.Println("Closing UDP endpoint: " + error.getMessage());
+        }
+    }
+
+    /** Whole-session boundary only: preserve UDP bindings while retiring the local pair. */
+    public static void clearLoopbacks() {
+        NetworkTransport[] previous = transports;
+        transports = newTransports();
+        for (int role = 0; role < previous.length; role++) {
+            // UDP ownership remains with the role across a local-session reset.
             try {
-                endpoint.close();
+                transports[role].replaceUdp(previous[role].detachUdp());
+                previous[role].close();
             } catch (IOException error) {
-                Com.Println("Closing UDP endpoint: " + error.getMessage());
+                Com.Println("Closing network transport: " + error.getMessage());
             }
         }
     }
 
-    /** Whole-session boundary only: do not discard reconnect traffic during map changes. */
-    public static void clearLoopbacks() {
-        loopback.close();
-        loopback = new LoopbackLink();
-    }
-
     /** Discard incoming packets for one role without dropping the other role's final messages. */
     public static void clearLoopback(int role) {
-        localEndpoint(role).clearIncoming();
+        transports[role].clearLocalIncoming();
     }
 
     /** Legacy combined policy for callers that own both socket roles. */
@@ -225,7 +235,7 @@ public final class NET {
 
     /** Sleeps msec or until net socket is ready. */
     public static void Sleep(int msec) {
-        if (udpEndpoints[NS_SERVER] == null
+        if (udpEndpoint(NS_SERVER) == null
                 || (Globals.dedicated != null && !Globals.dedicated.getTypedValue()))
             return; // we're not a server, just run full speed
 
