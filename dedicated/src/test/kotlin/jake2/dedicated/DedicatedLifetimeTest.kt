@@ -97,7 +97,7 @@ class DedicatedLifetimeTest {
         Cmd.AddCommand("test_end") {
             continued = true
             assertNotNull(Cmd.FindCommand("map"))
-            assertNull(NET.ip_sockets[jake2.qcommon.Defines.NS_SERVER])
+            assertNull(NET.udpEndpoint(jake2.qcommon.Defines.NS_SERVER))
             Thread.currentThread().interrupt()
         }
         Jake2Dedicated.runHost(listOf("Jake2", "+test_start", "+wait", "+test_drop", "+test_end"))
@@ -108,6 +108,6 @@ class DedicatedLifetimeTest {
     private fun assertReleased() {
         assertNull(Cmd.FindCommand("map"))
         assertNull(Cmd.FindCommand("gamemap"))
-        assertNull(NET.ip_sockets[jake2.qcommon.Defines.NS_SERVER])
+        assertNull(NET.udpEndpoint(jake2.qcommon.Defines.NS_SERVER))
     }
 }

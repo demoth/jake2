@@ -1246,12 +1246,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      */
     fun readPackets() {
         while (true) {
-            val networkPacket = NET.receiveNetworkPacket(
-                NET.ip_sockets[Defines.NS_SERVER],
-                NET.ip_channels[Defines.NS_SERVER],
-                NET.loopbacks[Defines.NS_SERVER],
-                true
-            )
+            val networkPacket = NET.receiveNetworkPacket(Defines.NS_SERVER)
 
             if (networkPacket == null) break
 

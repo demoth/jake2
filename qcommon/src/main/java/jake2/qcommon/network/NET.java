@@ -29,144 +29,87 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.network.messages.NetworkPacket;
 
-import java.net.DatagramSocket;
+import jake2.qcommon.network.transport.*;
+
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
 
-import static jake2.qcommon.Defines.MAX_MSGLEN;
 import static jake2.qcommon.Defines.NS_SERVER;
 
 public final class NET {
 
-    private final static int MAX_LOOPBACK = 4;
-
-    /** Local loopback adress. */
+    /** Legacy address bridge; transport endpoints themselves use immutable addresses. */
     public static final netadr_t net_local_adr = new netadr_t();
 
-    public static class loopmsg_t {
-        byte[] data = new byte[Defines.MAX_MSGLEN];
+    // Temporary role owners until ClientNetwork and ServerNetwork receive their endpoints.
+    private static final UdpDatagramEndpoint[] udpEndpoints = new UdpDatagramEndpoint[2];
+    private static LoopbackLink loopback = new LoopbackLink();
 
-        int datalen;
-    };
+    public static UdpDatagramEndpoint udpEndpoint(int role) {
+        return udpEndpoints[role];
+    }
 
-    public static class loopback_t {
-        loopmsg_t[] msgs;
-        int get;
-        int send;
+    private static LoopbackLink.Endpoint localEndpoint(int role) {
+        return role == Defines.NS_CLIENT ? loopback.getFirst() : loopback.getSecond();
+    }
 
+    public static void SendLoopPacket(int role, int length, byte[] data, netadr_t to) {
+        localEndpoint(role).send(localEndpoint(role ^ 1).getLocalAddress(), PacketBytes.copyOf(data, length));
+    }
 
-        public loopback_t() {
-            msgs = new loopmsg_t[MAX_LOOPBACK];
-            for (int n = 0; n < MAX_LOOPBACK; n++) {
-                msgs[n] = new loopmsg_t();
-            }
+    /** Receive only local traffic, including final messages after the UDP role has stopped. */
+    public static NetworkPacket receiveLoopbackPacket(int role) {
+        return decode(localEndpoint(role).receive(), role == NS_SERVER);
+    }
+
+    public static NetworkPacket receiveNetworkPacket(int role) {
+        NetworkPacket local = receiveLoopbackPacket(role);
+        if (local != null) return local;
+        UdpDatagramEndpoint endpoint = udpEndpoints[role];
+        return endpoint == null ? null : decode(endpoint.receive(), role == NS_SERVER);
+    }
+
+    // Packet decoding stays in the compatibility facade until the PacketCodec extraction.
+    private static NetworkPacket decode(ReceiveResult result, boolean fromClient) {
+        if (result instanceof ReceiveResult.Failed failure) {
+            Com.Println("NET receive ERROR: " + failure.getCause());
         }
-
-    }
-
-    public static final loopback_t[] loopbacks = new loopback_t[] {
-            new loopback_t(), new loopback_t()
-    };
-
-    public static final DatagramChannel[] ip_channels = { null, null };
-
-    public static final DatagramSocket[] ip_sockets = { null, null };
-
-    /*
-     * ==================================================
-     * 
-     * LOOPBACK BUFFERS FOR LOCAL PLAYER
-     * 
-     * ==================================================
-     */
-
-    /**
-     * Sends a packet via internal loopback.
-     */
-    public static void SendLoopPacket(int sock, int length, byte[] data, netadr_t to) {
-
-        loopback_t loop = loopbacks[sock ^ 1];
-
-        // modulo 4
-        int i = loop.send & (MAX_LOOPBACK - 1);
-        loop.send++;
-
-        System.arraycopy(data, 0, loop.msgs[i].data, 0, length);
-        loop.msgs[i].datalen = length;
-    }
-
-    /**
-     * Gets a packet from internal loopback.
-     */
-    private static NetworkPacket receiveNetworkPacketLoopback(loopback_t loop, boolean fromClient) {
-
-        if (loop.send - loop.get > MAX_LOOPBACK)
-            loop.get = loop.send - MAX_LOOPBACK;
-
-        if (loop.get >= loop.send)
-            return null;
-
-        int i = loop.get & (MAX_LOOPBACK - 1);
-        loop.get++;
-
-        return NetworkPacket.fromLoopback(fromClient, loop.msgs[i].data, loop.msgs[i].datalen);
-    }
-
-    public static NetworkPacket receiveNetworkPacket(DatagramSocket socket, DatagramChannel channel, loopback_t loopback, boolean fromClient) {
-        NetworkPacket result = receiveNetworkPacketLoopback(loopback, fromClient);
-
-        if (result != null) {
-            return result;
-        }
-
-        if (socket == null)  // why?
-            return null;
-
+        if (!(result instanceof ReceiveResult.Received received)) return null;
+        Datagram datagram = received.getDatagram();
+        byte[] data = datagram.getPayload().toByteArray();
         try {
-            // Receive one extra byte so oversized datagrams can be detected even
-            // when DatagramChannel truncates them to the buffer capacity.
-            byte[] bytes = new byte[MAX_MSGLEN + 1];
-            ByteBuffer receiveBuffer = ByteBuffer.wrap(bytes);
-
-            InetSocketAddress srcSocket = (InetSocketAddress) channel.receive(receiveBuffer);
-            if (srcSocket == null)
-                return null;
-
-            if (receiveBuffer.position() > MAX_MSGLEN)
-                return null;
-
-            return NetworkPacket.fromSocket(fromClient, bytes, receiveBuffer.position(), srcSocket.getAddress().getAddress(), srcSocket.getPort());
-
-        } catch (Exception e) {
+            if (datagram.getSource() instanceof NetworkAddress.Local) {
+                return NetworkPacket.fromLoopback(fromClient, data, data.length);
+            }
+            NetworkAddress.Udp source = (NetworkAddress.Udp) datagram.getSource();
+            return NetworkPacket.fromSocket(fromClient, data, data.length,
+                    source.getIp().toByteArray(), source.getPort());
+        } catch (RuntimeException malformedPacket) {
+            // Preserve legacy packet rejection until decoding has explicit outcomes.
             return null;
         }
     }
 
-
-    /**
-     * Sends a Packet.
-     */
-    public static void SendPacket(int sock, int length, byte[] data, netadr_t to) {
+    public static void SendPacket(int role, int length, byte[] data, netadr_t to) {
         if (to.type == NetAddrType.NA_LOOPBACK) {
-            SendLoopPacket(sock, length, data, to);
+            SendLoopPacket(role, length, data, to);
             return;
         }
-
-        if (ip_sockets[sock] == null)
-            return;
-
+        UdpDatagramEndpoint endpoint = udpEndpoints[role];
+        if (endpoint == null) return;
         if (to.type != NetAddrType.NA_BROADCAST && to.type != NetAddrType.NA_IP) {
             throw new IllegalArgumentException("NET_SendPacket: unsupported address type " + to.type);
         }
-
         try {
-            SocketAddress dstSocket = new InetSocketAddress(to.getInetAddress(), to.port);
-            ip_channels[sock].send(ByteBuffer.wrap(data, 0, length), dstSocket);
-        } catch (Exception e) {
-            Com.Println("NET_SendPacket ERROR: " + e + " to " + to.toString());
+            NetworkAddress.Udp destination = new NetworkAddress.Udp(
+                    IpAddress.fromInetAddress(to.getInetAddress()), to.port);
+            SendResult result = endpoint.send(destination, PacketBytes.copyOf(data, length));
+            if (result instanceof SendResult.Failed failure) {
+                Com.Println("NET_SendPacket ERROR: " + failure.getCause() + " to " + to);
+            }
+        } catch (IOException | IllegalArgumentException error) {
+            Com.Println("NET_SendPacket ERROR: " + error + " to " + to);
         }
     }
 
@@ -203,40 +146,38 @@ public final class NET {
             closeRole(role);
             return true;
         }
-        if (ip_sockets[role] != null && !ip_sockets[role].isClosed()) return true;
+        if (udpEndpoints[role] != null && udpEndpoints[role].isOpen()) return true;
         closeRole(role);
         Cvar cvars = Cvar.getInstance();
         String ip = cvars.find("ip", String.class).getTypedValue();
         int port = cvars.find(portName, Integer.class).getTypedValue();
-        ip_sockets[role] = Socket(role, ip, port);
-        if (ip_sockets[role] == null && fallback)
-            ip_sockets[role] = Socket(role, ip, Defines.PORT_ANY);
-        return ip_sockets[role] != null;
+        udpEndpoints[role] = openEndpoint(ip, port);
+        if (udpEndpoints[role] == null && fallback)
+            udpEndpoints[role] = openEndpoint(ip, Defines.PORT_ANY);
+        return udpEndpoints[role] != null;
     }
 
     private static void closeRole(int role) {
-        if (ip_sockets[role] != null) ip_sockets[role].close();
-        ip_sockets[role] = null;
-        if (ip_channels[role] != null) {
+        UdpDatagramEndpoint endpoint = udpEndpoints[role];
+        udpEndpoints[role] = null;
+        if (endpoint != null) {
             try {
-                ip_channels[role].close();
-            } catch (java.io.IOException error) {
-                Com.Println("Closing UDP channel: " + error.getMessage());
+                endpoint.close();
+            } catch (IOException error) {
+                Com.Println("Closing UDP endpoint: " + error.getMessage());
             }
-            ip_channels[role] = null;
         }
     }
 
     /** Whole-session boundary only: do not discard reconnect traffic during map changes. */
     public static void clearLoopbacks() {
-        clearLoopback(NS_SERVER);
-        clearLoopback(Defines.NS_CLIENT);
+        loopback.close();
+        loopback = new LoopbackLink();
     }
 
     /** Discard incoming packets for one role without dropping the other role's final messages. */
     public static void clearLoopback(int role) {
-        loopbacks[role].get = 0;
-        loopbacks[role].send = 0;
+        localEndpoint(role).clearIncoming();
     }
 
     /** Legacy combined policy for callers that own both socket roles. */
@@ -248,35 +189,19 @@ public final class NET {
         }
     }
 
-    /*
-     * Socket
-     */
-    public static DatagramSocket Socket(int sock, String ip, int port) {
-        DatagramSocket newsocket = null;
+    private static UdpDatagramEndpoint openEndpoint(String ip, int port) {
         try {
-            if (ip_channels[sock] == null || !ip_channels[sock].isOpen())
-                ip_channels[sock] = DatagramChannel.open();
-
             int bindPort = port == Defines.PORT_ANY ? 0 : port;
-            newsocket = ip_channels[sock].socket();
-            if (ip == null || ip.length() == 0 || ip.equals("localhost")) {
-                newsocket.bind(new InetSocketAddress(bindPort));
-            } else {
-                InetAddress ia = InetAddress.getByName(ip);
-                newsocket.bind(new InetSocketAddress(ia, bindPort));
-            }
-
-            // nonblocking channel
-            ip_channels[sock].configureBlocking(false);
-            // the socket have to be broadcastable
-            newsocket.setBroadcast(true);
-            Com.Println("Opened port: " + port);
-        } catch (Exception e) {
-            Com.Println("jake2.qcommon.network.NET.Socket: " + e.toString());
-            closeRole(sock); // A failed bind may still have opened a channel.
-            newsocket = null;
+            InetSocketAddress bindAddress = ip == null || ip.isEmpty() || ip.equals("localhost")
+                    ? new InetSocketAddress(bindPort)
+                    : new InetSocketAddress(InetAddress.getByName(ip), bindPort);
+            UdpDatagramEndpoint endpoint = UdpDatagramEndpoint.bind(bindAddress);
+            Com.Println("Opened port: " + endpoint.getLocalAddress().getPort());
+            return endpoint;
+        } catch (IOException error) {
+            Com.Println("NET bind ERROR: " + error);
+            return null;
         }
-        return newsocket;
     }
 
     /**
@@ -289,7 +214,7 @@ public final class NET {
 
     /** Sleeps msec or until net socket is ready. */
     public static void Sleep(int msec) {
-        if (ip_sockets[NS_SERVER] == null
+        if (udpEndpoints[NS_SERVER] == null
                 || (Globals.dedicated != null && !Globals.dedicated.getTypedValue()))
             return; // we're not a server, just run full speed
 
@@ -298,29 +223,5 @@ public final class NET {
             Thread.sleep(msec);
         } catch (InterruptedException e) {
         }
-        //ip_sockets[NS_SERVER].
-
-        // this should wait up to 100ms until a packet
-        /*
-         * struct timeval timeout; 
-         * fd_set fdset; 
-         * extern cvar_t *dedicated;
-         * extern qboolean stdin_active;
-         * 
-         * if (!ip_sockets[NS_SERVER] || (dedicated && !dedicated.value))
-         * 		return; // we're not a server, just run full speed
-         * 
-         * FD_ZERO(&fdset);
-         *  
-         * if (stdin_active) 
-         * 		FD_SET(0, &fdset); // stdin is processed too 
-         * 
-         * FD_SET(ip_sockets[NS_SERVER], &fdset); // network socket 
-         * 
-         * timeout.tv_sec = msec/1000; 
-         * timeout.tv_usec = (msec%1000)*1000; 
-         * 
-         * select(ip_sockets[NS_SERVER]+1, &fdset, NULL, NULL, &timeout);
-         */
     }
 }

@@ -37,7 +37,7 @@ object CakeSessionPeer {
             try {
                 host.initialize()
                 check(host.start(HostRequest(profile, "base1", HostMode.DEATHMATCH)) == HostStartResult.Started)
-                Files.writeString(ready, NET.ip_sockets[Defines.NS_SERVER]!!.localPort.toString())
+                Files.writeString(ready, NET.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port.toString())
                 var previous = System.nanoTime()
                 while (System.nanoTime() < deadline) {
                     Thread.sleep(5)

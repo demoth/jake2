@@ -193,7 +193,7 @@ class GameContinuationTest {
         first.gameExports = null // Discarding a Game must not call back into its gameplay.
         Cvar.getInstance().find<Int>("port").forceSet(0)
         assertTrue(NET.configureServer(true))
-        val socket = NET.ip_sockets[Defines.NS_SERVER]
+        val socket = NET.udpEndpoint(Defines.NS_SERVER)
         val peerChannel = b.netchan
 
         host.stopGame(first, "Game failed\n")
@@ -207,7 +207,7 @@ class GameContinuationTest {
             assertTrue(client.unreliable.isEmpty())
         }
         assertSame(second, host.games["other"])
-        assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
+        assertSame(socket, NET.udpEndpoint(Defines.NS_SERVER))
         assertSame(peerChannel, b.netchan)
         assertEquals(ClientStates.CS_CONNECTED, b.state)
         host.update(100)
@@ -395,7 +395,7 @@ class GameContinuationTest {
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertFalse(host.isPaused)
-        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(NET.udpEndpoint(Defines.NS_SERVER))
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("gamemap"))
         host.update(100)
         assertTrue(host.games.isEmpty(), "Remaining queued continuation must not restart a Game")

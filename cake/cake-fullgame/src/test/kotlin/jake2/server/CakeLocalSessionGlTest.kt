@@ -49,7 +49,7 @@ class CakeLocalSessionGlTest {
                 private var ticks = 0
                 private var stageStart = System.nanoTime()
                 private var origin = floatArrayOf()
-                private var serverSocket: java.net.DatagramSocket? = null
+                private var serverEndpoint: jake2.qcommon.network.transport.UdpDatagramEndpoint? = null
                 private lateinit var clientPeer: Process
                 private lateinit var serverPeer: Process
                 private val clientReady = temp.resolve("client-ready")
@@ -84,7 +84,7 @@ class CakeLocalSessionGlTest {
                         ticks++
                         when (step) {
                             0 -> if (state(cake) == "ACTIVE") {
-                                assertTrue(NET.ip_sockets.all { it == null })
+                                assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
                                 origin = playerOrigin(host)
                                 next("+forward")
                             }
@@ -97,7 +97,7 @@ class CakeLocalSessionGlTest {
                             }
                             2 -> if (ticks > 2 && state(cake) == "ACTIVE" && mapName() == "base2") {
                                 assertEquals(HostState.RUNNING, host.state)
-                                assertTrue(NET.ip_sockets.all { it == null })
+                                assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
                                 next("map base1")
                             }
                             3 -> if (ticks > 2 && state(cake) == "ACTIVE" && mapName() == "base1") {
@@ -115,14 +115,14 @@ class CakeLocalSessionGlTest {
                             7 -> {
                                 assertEquals(HostState.STOPPED, host.state)
                                 assertEquals("DISCONNECTED", state(cake))
-                                assertTrue(NET.ip_channels.all { it == null })
+                                assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
                                 Cvar.getInstance().find<Int>("port").forceSet(0)
                                 next("set coop 1; set deathmatch 0; set maxclients 4; map base1")
                             }
                             8 -> if (state(cake) == "ACTIVE") {
-                                serverSocket = NET.ip_sockets[Defines.NS_SERVER]!!
-                                assertNull(NET.ip_sockets[Defines.NS_CLIENT])
-                                clientPeer = launchPeer("client", basedir, clientReady, serverSocket!!.localPort)
+                                serverEndpoint = NET.udpEndpoint(Defines.NS_SERVER)!!
+                                assertNull(NET.udpEndpoint(Defines.NS_CLIENT))
+                                clientPeer = launchPeer("client", basedir, clientReady, serverEndpoint!!.localAddress.port)
                                 peers.add(clientPeer)
                                 next()
                             }
@@ -131,14 +131,14 @@ class CakeLocalSessionGlTest {
                                 if (Files.exists(clientReady) && spawnedClients(host) == 2) next("gamemap base2")
                             }
                             10 -> if (ticks > 2 && state(cake) == "ACTIVE" && mapName() == "base2" && spawnedClients(host) == 2) {
-                                assertSame(serverSocket, NET.ip_sockets[Defines.NS_SERVER])
+                                assertSame(serverEndpoint, NET.udpEndpoint(Defines.NS_SERVER))
                                 clientPeer.destroy()
                                 next("disconnect; set coop 0; set deathmatch 1; set maxclients 8; map base1")
                             }
                             11 -> if (state(cake) == "ACTIVE") {
                                 Files.deleteIfExists(clientReady)
                                 clientPeer = launchPeer("client", basedir, clientReady,
-                                    NET.ip_sockets[Defines.NS_SERVER]!!.localPort)
+                                    NET.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port)
                                 peers.add(clientPeer)
                                 next()
                             }
@@ -157,19 +157,19 @@ class CakeLocalSessionGlTest {
                             }
                             14 -> if (state(cake) == "ACTIVE") {
                                 assertEquals(HostState.STOPPED, host.state)
-                                assertNull(NET.ip_sockets[Defines.NS_SERVER])
-                                assertNotNull(NET.ip_sockets[Defines.NS_CLIENT])
+                                assertNull(NET.udpEndpoint(Defines.NS_SERVER))
+                                assertNotNull(NET.udpEndpoint(Defines.NS_CLIENT))
                                 next("disconnect")
                             }
                             15 -> {
                                 assertEquals("DISCONNECTED", state(cake))
-                                assertTrue(NET.ip_channels.all { it == null })
+                                assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
                                 next("reconnect")
                             }
                             16 -> if (state(cake) == "ACTIVE") next("disconnect")
                             17 -> {
                                 assertEquals("DISCONNECTED", state(cake))
-                                assertTrue(NET.ip_channels.all { it == null })
+                                assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
                                 Gdx.app.exit()
                             }
                         }

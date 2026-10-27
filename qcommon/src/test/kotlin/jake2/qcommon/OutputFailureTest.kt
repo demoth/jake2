@@ -7,7 +7,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import java.net.DatagramSocket
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.network.Netchan
 
 class OutputFailureTest {
     @Test
@@ -44,19 +45,23 @@ class OutputFailureTest {
     @ParameterizedTest
     @EnumSource(NetAddrType::class, names = ["NA_IPX", "NA_BROADCAST_IPX"])
     fun `unsupported destination propagates without closing the socket`(type: NetAddrType) {
-        val previous = NET.ip_sockets[Defines.NS_SERVER]
-        DatagramSocket(0).use { socket ->
-            NET.ip_sockets[Defines.NS_SERVER] = socket
-            try {
-                val failure = assertThrows(IllegalArgumentException::class.java) {
-                    NET.SendPacket(Defines.NS_SERVER, 1, byteArrayOf(1), netadr_t().apply { this.type = type })
-                }
-                assertTrue(failure.message!!.contains(type.name))
-                assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
-                assertFalse(socket.isClosed)
-            } finally {
-                NET.ip_sockets[Defines.NS_SERVER] = previous
+        NET.Config(false)
+        val cvars = Cvar.getInstance()
+        cvars.clear()
+        Netchan.Netchan_Init()
+        cvars.find("port", Int::class.javaObjectType).forceSet(0)
+        try {
+            assertTrue(NET.configureServer(true))
+            val endpoint = NET.udpEndpoint(Defines.NS_SERVER)
+            val failure = assertThrows(IllegalArgumentException::class.java) {
+                NET.SendPacket(Defines.NS_SERVER, 1, byteArrayOf(1), netadr_t().apply { this.type = type })
             }
+            assertTrue(failure.message!!.contains(type.name))
+            assertSame(endpoint, NET.udpEndpoint(Defines.NS_SERVER))
+            assertTrue(endpoint.isOpen)
+        } finally {
+            NET.configureServer(false)
+            cvars.clear()
         }
     }
 }

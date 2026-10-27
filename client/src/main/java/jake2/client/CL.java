@@ -779,11 +779,7 @@ public final class CL {
      */
     private static void CL_ReadPackets() {
         while (true) {
-            NetworkPacket networkPacket = NET.receiveNetworkPacket(
-                    NET.ip_sockets[NS_CLIENT],
-                    NET.ip_channels[NS_CLIENT],
-                    NET.loopbacks[NS_CLIENT],
-                    false);
+            NetworkPacket networkPacket = NET.receiveNetworkPacket(NS_CLIENT);
 
             if (networkPacket == null)
                 break;

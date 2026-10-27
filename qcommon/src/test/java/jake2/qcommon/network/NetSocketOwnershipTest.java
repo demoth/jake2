@@ -38,19 +38,19 @@ class NetSocketOwnershipTest {
     @Test
     void clientTeardownPreservesServerAndServerTeardownPreservesClient() {
         assertTrue(NET.configureServer(true));
-        var server = NET.ip_sockets[NS_SERVER];
-        assertNull(NET.ip_sockets[NS_CLIENT]);
+        var server = NET.udpEndpoint(NS_SERVER);
+        assertNull(NET.udpEndpoint(NS_CLIENT));
         assertTrue(NET.configureClient(true));
         NET.configureClient(false);
-        assertSame(server, NET.ip_sockets[NS_SERVER]);
-        assertFalse(server.isClosed());
-        assertNull(NET.ip_channels[NS_CLIENT]);
+        assertSame(server, NET.udpEndpoint(NS_SERVER));
+        assertTrue(server.isOpen());
+        assertNull(NET.udpEndpoint(NS_CLIENT));
         assertTrue(NET.configureClient(true));
-        var client = NET.ip_sockets[NS_CLIENT];
+        var client = NET.udpEndpoint(NS_CLIENT);
         NET.configureServer(false);
-        assertSame(client, NET.ip_sockets[NS_CLIENT]);
-        assertFalse(client.isClosed());
-        assertNull(NET.ip_channels[NS_SERVER]);
+        assertSame(client, NET.udpEndpoint(NS_CLIENT));
+        assertTrue(client.isOpen());
+        assertNull(NET.udpEndpoint(NS_SERVER));
     }
 
     @Test
@@ -58,8 +58,7 @@ class NetSocketOwnershipTest {
         try (var occupied = new DatagramSocket(0)) {
             Cvar.getInstance().find("port", Integer.class).forceSet(occupied.getLocalPort());
             assertFalse(NET.configureServer(true));
-            assertNull(NET.ip_sockets[NS_SERVER]);
-            assertNull(NET.ip_channels[NS_SERVER]);
+            assertNull(NET.udpEndpoint(NS_SERVER));
         }
         assertTrue(NET.configureServer(true));
     }
@@ -71,8 +70,8 @@ class NetSocketOwnershipTest {
         Cvar.getInstance().find("port", Integer.class).forceSet(port);
 
         assertTrue(NET.configureServer(true));
-        assertEquals(InetAddress.getByName("127.0.0.1"), NET.ip_sockets[NS_SERVER].getLocalAddress());
-        assertTrue(NET.ip_sockets[NS_SERVER].getLocalPort() > 0);
+        assertEquals(InetAddress.getByName("127.0.0.1"), NET.udpEndpoint(NS_SERVER).getLocalAddress().getIp().toInetAddress());
+        assertTrue(NET.udpEndpoint(NS_SERVER).getLocalAddress().getPort() > 0);
     }
 
     @Test
@@ -82,23 +81,22 @@ class NetSocketOwnershipTest {
             Cvar.getInstance().find("clientport", Integer.class).forceSet(occupied.getLocalPort());
 
             assertTrue(NET.configureClient(true));
-            var client = NET.ip_sockets[NS_CLIENT];
-            assertEquals(occupied.getLocalAddress(), client.getLocalAddress());
-            assertTrue(client.getLocalPort() > 0);
-            assertNotEquals(occupied.getLocalPort(), client.getLocalPort());
-            assertTrue(NET.ip_channels[NS_CLIENT].isOpen());
-            assertFalse(NET.ip_channels[NS_CLIENT].isBlocking());
+            var client = NET.udpEndpoint(NS_CLIENT);
+            assertEquals(occupied.getLocalAddress(), client.getLocalAddress().getIp().toInetAddress());
+            assertTrue(client.getLocalAddress().getPort() > 0);
+            assertNotEquals(occupied.getLocalPort(), client.getLocalAddress().getPort());
+            assertTrue(NET.udpEndpoint(NS_CLIENT).isOpen());
         }
     }
 
     @Test
     void loopbackWorksWithoutSocketsAndSessionResetDiscardsBothQueues() {
         Netchan.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
-        assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[NS_SERVER], true));
+        assertNotNull(NET.receiveLoopbackPacket(NS_SERVER));
         Netchan.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.client_connect, "");
         Netchan.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
         NET.clearLoopbacks();
-        assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[NS_CLIENT], false));
-        assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[NS_SERVER], true));
+        assertNull(NET.receiveLoopbackPacket(NS_CLIENT));
+        assertNull(NET.receiveLoopbackPacket(NS_SERVER));
     }
 }

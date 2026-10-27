@@ -1102,12 +1102,7 @@ class Cake(
 
     private fun CL_ReadPackets() {
         while (true) {
-            val networkPacket = NET.receiveNetworkPacket(
-                NET.ip_sockets[NS_CLIENT],
-                NET.ip_channels[NS_CLIENT],
-                NET.loopbacks[NS_CLIENT],
-                false
-            )
+            val networkPacket = NET.receiveNetworkPacket(NS_CLIENT)
 
             if (networkPacket == null) break
 

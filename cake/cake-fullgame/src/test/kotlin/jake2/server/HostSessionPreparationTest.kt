@@ -97,7 +97,7 @@ class HostSessionPreparationTest {
         assertEquals(coop, loaded.isCoop)
         assertEquals(!coop, cvars.find<Boolean>("coop").typedValue, "Loading must preserve Host mode defaults")
         assertTrue(host.clients.all { it.gameName == "default" })
-        assertEquals(coop, NET.ip_sockets[Defines.NS_SERVER] != null)
+        assertEquals(coop, NET.udpEndpoint(Defines.NS_SERVER) != null)
         // Exercise the snapshot ring allocated from the prepared client capacity.
         host.clients[0].edict = loaded.gameExports.getEdict(1)
         loaded.buildClientFrameMessages(host.clients[0])
@@ -344,7 +344,7 @@ class HostSessionPreparationTest {
         host.games[other.name] = other
         host.clients[1].gameName = other.name
         cvars.find<Boolean>("paused").forceSet(true)
-        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(NET.udpEndpoint(Defines.NS_SERVER))
         if (stage == "idle") {
             host.stop("test", false)
             NET.configureServer(false)
@@ -375,7 +375,7 @@ class HostSessionPreparationTest {
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertFalse(host.isPaused)
-            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+            assertNull(NET.udpEndpoint(Defines.NS_SERVER))
             assertEquals(ServerStates.SS_DEAD, Globals.server_state)
             assertEquals("", cvars.find<String>("mapname").typedValue)
             assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("load"))
@@ -406,7 +406,7 @@ class HostSessionPreparationTest {
             assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.loadGame("slot"))
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
-            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+            assertNull(NET.udpEndpoint(Defines.NS_SERVER))
         }
         cvars.find<Int>("port").forceSet(0)
         assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
@@ -458,7 +458,7 @@ class HostSessionPreparationTest {
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertFalse(host.isPaused)
-        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(NET.udpEndpoint(Defines.NS_SERVER))
         assertEquals(ServerStates.SS_DEAD, Globals.server_state)
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
         Files.delete(blocked)
@@ -493,8 +493,8 @@ class HostSessionPreparationTest {
         NET.clearLoopbacks()
         cvars.find<Int>("clientport").forceSet(0)
         assertTrue(NET.configureClient(true))
-        val clientSocket = NET.ip_sockets[Defines.NS_CLIENT]
-        val serverSocket = NET.ip_sockets[Defines.NS_SERVER]
+        val clientSocket = NET.udpEndpoint(Defines.NS_CLIENT)
+        val serverEndpoint = NET.udpEndpoint(Defines.NS_SERVER)
         val mapCommand = jake2.qcommon.exec.Cmd.FindCommand("map")
         val client = host.clients[0]
         client.state = ClientStates.CS_CONNECTED
@@ -507,20 +507,20 @@ class HostSessionPreparationTest {
             jake2.qcommon.exec.Cbuf.AddText("test_stopped_deferred")
             jake2.qcommon.exec.Cbuf.CopyToDefer()
             host.stop("test stop", false)
-            assertTrue(serverSocket.isClosed)
-            assertNull(NET.ip_sockets[Defines.NS_SERVER])
-            assertSame(clientSocket, NET.ip_sockets[Defines.NS_CLIENT])
-            assertFalse(clientSocket.isClosed)
+            assertFalse(serverEndpoint.isOpen)
+            assertNull(NET.udpEndpoint(Defines.NS_SERVER))
+            assertSame(clientSocket, NET.udpEndpoint(Defines.NS_CLIENT))
+            assertTrue(clientSocket.isOpen)
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertFalse(host.isPaused)
             assertEquals("", cvars.find<String>("mapname").typedValue)
             assertSame(mapCommand, jake2.qcommon.exec.Cmd.FindCommand("map"))
-            assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_SERVER], true))
-            assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
-            assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            assertNull(NET.receiveLoopbackPacket(Defines.NS_SERVER))
+            assertNotNull(NET.receiveLoopbackPacket(Defines.NS_CLIENT))
+            assertNotNull(NET.receiveLoopbackPacket(Defines.NS_CLIENT))
             host.stop("again", false)
-            assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            assertNull(NET.receiveLoopbackPacket(Defines.NS_CLIENT))
             jake2.qcommon.exec.Cbuf.InsertFromDefer()
             jake2.qcommon.exec.Cbuf.Execute()
             assertFalse(deferredRan)
@@ -542,7 +542,7 @@ class HostSessionPreparationTest {
         jake2.qcommon.exec.Cbuf.Execute()
         assertEquals("testbox2", host.games.getValue("default").mapName)
         assertSame(mapCommand, jake2.qcommon.exec.Cmd.FindCommand("map"))
-        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(NET.udpEndpoint(Defines.NS_SERVER))
     }
 
     @Test
@@ -554,7 +554,7 @@ class HostSessionPreparationTest {
         assertThrows(NullPointerException::class.java) { host.close() }
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
-        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(NET.udpEndpoint(Defines.NS_SERVER))
         assertFalse(host.isPaused)
         assertNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
         host.close()
@@ -581,7 +581,7 @@ class HostSessionPreparationTest {
         assertSame(game, host.games["default"])
         assertSame(client, host.clients[0])
         assertTrue(host.isRunning)
-        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(NET.udpEndpoint(Defines.NS_SERVER))
         host.update(100)
         if (stage != "destination") Files.delete(blocked.resolve("blocker"))
         Files.delete(blocked)
@@ -643,7 +643,7 @@ class HostSessionPreparationTest {
         assertNull(EngineVfs.loadBytes("maps.lst"), "Fixture must have no optional map list")
         val games = host.games.toMap()
         val clients = host.clients.toList()
-        val socket = NET.ip_sockets[Defines.NS_SERVER]
+        val socket = NET.udpEndpoint(Defines.NS_SERVER)
         val output = StringBuilder()
         val sink = Com.ConsoleSink { _, message -> output.append(message) }
         var continued = false
@@ -658,7 +658,7 @@ class HostSessionPreparationTest {
             assertEquals(running, host.isRunning)
             assertEquals(games, host.games)
             assertEquals(clients, host.clients.toList())
-            assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
+            assertSame(socket, NET.udpEndpoint(Defines.NS_SERVER))
         } finally {
             Com.ClearConsoleSink(sink)
             jake2.qcommon.exec.Cmd.RemoveCommand("test_after_listmaps")

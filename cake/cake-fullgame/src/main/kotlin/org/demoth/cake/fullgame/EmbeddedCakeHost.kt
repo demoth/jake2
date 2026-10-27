@@ -121,7 +121,7 @@ class EmbeddedCakeHost(
                     return HostStartResult.Rejected(result.reason)
                 }
             }
-            if (request.mode != HostMode.SINGLEPLAYER && NET.ip_sockets[Defines.NS_SERVER] == null) {
+            if (request.mode != HostMode.SINGLEPLAYER && NET.udpEndpoint(Defines.NS_SERVER) == null) {
                 stop("Server port unavailable")
                 return HostStartResult.Rejected("Could not open the server UDP port")
             }

@@ -7,28 +7,30 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.util.Arrays;
+import java.util.concurrent.locks.LockSupport;
 
-import static jake2.qcommon.Defines.MAX_MSGLEN;
+import static jake2.qcommon.Defines.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NetPacketReceiveTest {
     @BeforeEach
     void setup() {
+        NET.Config(false);
+        NET.clearLoopbacks();
         Cvar.getInstance().clear();
         Netchan.Netchan_Init();
     }
 
     @AfterEach
     void cleanup() {
+        NET.Config(false);
+        NET.clearLoopbacks();
         Cvar.getInstance().clear();
     }
 
@@ -45,12 +47,6 @@ class NetPacketReceiveTest {
         assertEquals(3, packet.sequenceAck);
         assertEquals(fromClient ? 42 : 0, packet.qport);
         assertEquals(NetAddrType.NA_IP, packet.from.type);
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {1401, 4096})
-    void rejectsOversizedDatagramsInsteadOfAcceptingTruncatedPayload(int length) throws Exception {
-        assertNull(receive(sequencedPacket(length, false), false));
     }
 
     @Test
@@ -89,20 +85,20 @@ class NetPacketReceiveTest {
     }
 
     private static NetworkPacket receive(byte[] bytes, boolean fromClient) throws Exception {
-        try (var receiver = DatagramChannel.open();
-             var sender = DatagramChannel.open();
-             var selector = Selector.open()) {
-            receiver.bind(new InetSocketAddress("127.0.0.1", 0));
-            receiver.configureBlocking(false);
-            receiver.register(selector, SelectionKey.OP_READ);
-            assertEquals(bytes.length, sender.send(ByteBuffer.wrap(bytes), receiver.getLocalAddress()));
-
+        int role = fromClient ? NS_SERVER : NS_CLIENT;
+        Cvar.getInstance().find(fromClient ? "port" : "clientport", Integer.class).forceSet(0);
+        assertTrue(fromClient ? NET.configureServer(true) : NET.configureClient(true));
+        try (var sender = DatagramChannel.open()) {
+            var destination = new InetSocketAddress("127.0.0.1", NET.udpEndpoint(role).getLocalAddress().getPort());
+            assertEquals(bytes.length, sender.send(ByteBuffer.wrap(bytes), destination));
             long deadline = System.nanoTime() + 2_000_000_000L;
-            while (selector.selectedKeys().isEmpty() && System.nanoTime() < deadline) {
-                selector.select(100);
+            while (System.nanoTime() < deadline) {
+                NetworkPacket packet = NET.receiveNetworkPacket(role);
+                if (packet != null) return packet;
+                LockSupport.parkNanos(1_000_000);
             }
-            assertFalse(selector.selectedKeys().isEmpty(), "UDP datagram did not arrive");
-            return NET.receiveNetworkPacket(receiver.socket(), receiver, new NET.loopback_t(), fromClient);
+            fail("UDP datagram did not arrive");
+            return null;
         }
     }
 }

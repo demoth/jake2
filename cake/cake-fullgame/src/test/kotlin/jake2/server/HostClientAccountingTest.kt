@@ -77,7 +77,7 @@ class HostClientAccountingTest {
 
     private fun drainPackets() {
         for (side in listOf(Defines.NS_CLIENT, Defines.NS_SERVER)) {
-            while (NET.receiveNetworkPacket(null, null, NET.loopbacks[side], side == Defines.NS_SERVER) != null) { }
+            while (NET.receiveLoopbackPacket(side) != null) { }
         }
     }
 
@@ -354,7 +354,7 @@ class HostClientAccountingTest {
             try {
                 val request = byteArrayOf(-1, -1, -1, -1) + "status".toByteArray()
                 receiver.send(java.net.DatagramPacket(request, request.size, loopback,
-                    NET.ip_sockets[Defines.NS_SERVER]!!.localPort))
+                    NET.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port))
                 val response = java.net.DatagramPacket(ByteArray(2048), 2048)
                 // The UDP receive path is nonblocking; allow delivery before pumping it again.
                 val deadline = System.nanoTime() + 2_000_000_000L
@@ -385,7 +385,7 @@ class HostClientAccountingTest {
         // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
         val address = netadr_t().apply { port = 12345 }
         host.handleConnectionlessPacket(address, "getchallenge")
-        val reply = NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false)!!.connectionlessMessage
+        val reply = NET.receiveLoopbackPacket(Defines.NS_CLIENT)!!.connectionlessMessage
         val challenge = reply.trim().substringAfterLast(' ')
         val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
         first.frameNum = 9000
