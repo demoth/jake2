@@ -206,6 +206,11 @@ class Cake(
 
     override fun create() {
         initializeShaderCompatibility()
+        host.initialize {
+            if (networkState != DISCONNECTED && !localConnection)
+                "Disconnect from the remote server before starting a local game."
+            else null
+        }
         configureProfileContent(startup.activeProfile)
         reloadProfileBackground()
 
@@ -684,7 +689,9 @@ class Cake(
             host.setPaused(menuVisible || consoleVisible || uiSample.isOpen || applicationPaused)
             host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
                 Globals.fixedtime.typedValue, Globals.timescale.typedValue))
-            if (awaitingNewGame && host.state == HostState.RUNNING) {
+            // Console/startup commands can start a Host without going through a menu.
+            // Existing local transitions and remote connections retain their handshake paths.
+            if (networkState == DISCONNECTED && host.state == HostState.RUNNING) {
                 awaitingNewGame = false
                 beginConnection(netadr_t(), local = true)
                 menuVisible = false
@@ -939,7 +946,11 @@ class Cake(
     override fun dispose() {
         closeUiSample()
         uiSample.dispose()
-        disconnect()
+        try {
+            disconnect()
+        } finally {
+            host.dispose()
+        }
         profilePersistence.saveConfig()
         menuStages.dispose()
         consoleStage.dispose()
@@ -1483,12 +1494,21 @@ class Cake(
 
     private fun autodetectSteamBasedir(): String? = CakeStartupBootstrap.autodetectSteamBasedir()
 
-    /** Switching is permitted only while disconnected with the local host stopped.
-     * Persist selection before changing runtime content so rejected saves leave it untouched.
-     */
+    /** Validate hosted storage before persisting selection; roll back the Host if persistence fails. */
     private fun activateGameProfile(profile: CakeGameProfile, persistSelection: () -> String): String {
         profilePersistence.saveConfig()
-        val path = persistSelection()
+        val previousProfile = activeGameProfile
+        host.activateProfile(profile)
+        val path = try {
+            persistSelection()
+        } catch (failure: Exception) {
+            try {
+                host.activateProfile(previousProfile)
+            } catch (rollbackFailure: Exception) {
+                failure.addSuppressed(rollbackFailure)
+            }
+            throw failure
+        }
         applyGameProfile(profile)
         profilePersistence.loadConfig()
         return path
@@ -1506,6 +1526,7 @@ class Cake(
 
     private fun configureProfileContent(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
+        host.activateProfile(normalized)
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod

@@ -7,6 +7,13 @@ interface CakeHost {
     val availability: HostAvailability
     val state: HostState
 
+    /** Called after engine bootstrap, before application startup commands. */
+    fun initialize(startupRejection: () -> String? = { null })
+    /** Select content and save storage while disconnected and idle. */
+    fun activateProfile(profile: CakeGameProfile?)
+    /** Release the application-owned Host and its command registrations. */
+    fun dispose()
+
     /** Success means the server is ready for local attachment, not that the client has spawned. */
     fun start(request: HostRequest): HostStartResult
     /** Prepare commands/filesystem before the caller queues the content's newgame alias. */
@@ -45,6 +52,9 @@ class HostFailureException(message: String, cause: Throwable) : RuntimeException
 class UnavailableCakeHost : CakeHost {
     override val availability = HostAvailability.REMOTE_ONLY
     override val state = HostState.STOPPED
+    override fun initialize(startupRejection: () -> String?) = Unit
+    override fun activateProfile(profile: CakeGameProfile?) = Unit
+    override fun dispose() = Unit
     override fun start(request: HostRequest) =
         HostStartResult.Rejected("Hosting requires the Cake fullgame application.")
     override fun update(elapsedMillis: Long) = Unit

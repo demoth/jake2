@@ -9,8 +9,10 @@ import jake2.game.GameExportsImpl
 import jake2.qcommon.Globals
 import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cbuf
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
+import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.Defines.NS_SERVER
 import jake2.qcommon.network.netadr_t
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import java.nio.file.Files
 
 /** Exercises application lifecycle and handshake boundaries without displaying a window. */
 @EnabledIfEnvironmentVariable(named = "CAKE_HOST_GL_TESTS", matches = "1")
@@ -57,10 +60,21 @@ class CakeHostApplicationTest {
                 private var cake: Cake? = null
                 private var step = 0
                 private var frame = 0
+                private lateinit var initialHost: ServerHost
 
                 override fun create() {
                     try {
                         cake = Cake(startup, host = host).also { it.create() }
+                        initialHost = host.server!!
+                        assertEquals(HostState.STOPPED, host.state)
+                        assertNotNull(Cmd.FindCommand("map"))
+                        // Hosted storage rejection must precede persisted profile selection.
+                        val originalRoot = EngineWriteRoot.path()
+                        Files.writeString(temp.resolve(".cake/blocked"), "not a directory")
+                        val content = Path.of("src/test/resources").toAbsolutePath()
+                        Cmd.ExecuteString("cake_profile_set blocked \"$content\"")
+                        assertEquals("application-test", CakeGameProfileStore().readSelectedProfileId())
+                        assertEquals(originalRoot, EngineWriteRoot.path())
                     } catch (error: Throwable) {
                         failure = error
                         Gdx.app.exit()
@@ -90,12 +104,20 @@ class CakeHostApplicationTest {
                                 Cbuf.AddText("connect 127.0.0.1:9")
                                 cake!!.render()
                                 assertEquals(HostState.STOPPED, host.state)
+                                assertSame(initialHost, host.server)
                             }
                             3 -> {
                                 // An old local handshake must not attach while targeting a UDP server.
                                 Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
                                 cake!!.render()
                                 assertEquals("CONNECTING", clientState(cake!!))
+                                val current = temp.resolve(".cake/application-test/save/current/game.ssv.json")
+                                val before = Files.readAllBytes(current)
+                                Cbuf.AddText("map testbox2; gamemap *testbox2; load save0")
+                                cake!!.render()
+                                assertEquals("CONNECTING", clientState(cake!!))
+                                assertEquals(HostState.STOPPED, host.state)
+                                assertArrayEquals(before, Files.readAllBytes(current))
                                 Cbuf.AddText("host_start missing")
                                 cake!!.render()
                                 assertEquals(HostState.STOPPED, host.state)
@@ -108,6 +130,7 @@ class CakeHostApplicationTest {
                                 Cbuf.AddText("host_start testbox")
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
+                                assertSame(initialHost, host.server)
                                 frame = gameFrame(host)
                             }
                             5 -> {
@@ -135,8 +158,10 @@ class CakeHostApplicationTest {
             })
             failure?.let { throw it }
             assertEquals(HostState.STOPPED, host.state, "Application disposal stops the host")
+            assertNull(host.server)
+            assertNull(Cmd.FindCommand("map"))
         } finally {
-            host.stop("test cleanup")
+            host.dispose()
             Globals.fixedtime.forceSet(0)
             System.setProperty("user.home", previousHome)
         }

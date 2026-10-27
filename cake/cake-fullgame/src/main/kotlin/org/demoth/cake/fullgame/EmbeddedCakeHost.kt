@@ -17,7 +17,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** A local server session, created only after Cake has applied its client profile. */
+/** Application-owned embedded Host; games may stop while commands and profile remain active. */
 class EmbeddedCakeHost(
     private val profilesRoot: Path = Path.of(System.getProperty("user.home"), ".cake"),
 ) : CakeHost {
@@ -26,13 +26,41 @@ class EmbeddedCakeHost(
     private var starting = false
     private var ownerThread: Thread? = null
 
-    /**
-     * EngineWriteRoot is process-wide. Hosting temporarily redirects it to the active
-     * profile so existing server save code writes there. Retain the prior root to
-     * restore it on stop or failed startup, so later engine writes do not keep using
-     * the ended session's profile. Null means this host has no root to restore.
-     */
     private var previousWriteRoot: Path? = null
+    private var activeProfile: CakeGameProfile? = null
+    private var startupRejection: () -> String? = { null }
+    private var disposed = false
+
+    override fun initialize(startupRejection: () -> String?) {
+        checkThread()
+        check(!disposed) { "Host has been disposed" }
+        check(server == null) { "Host is already initialized" }
+        this.startupRejection = startupRejection
+        previousWriteRoot = EngineWriteRoot.path()
+        server = ServerHost {
+            when {
+                disposed -> "Host has been disposed"
+                activeProfile == null -> "Select a game profile before hosting."
+                else -> this.startupRejection()
+            }
+        }
+    }
+
+    override fun activateProfile(profile: CakeGameProfile?) {
+        checkThread()
+        check(server != null && !disposed) { "Host is not initialized" }
+        check(state == HostState.STOPPED) { "Stop the local game before changing profile" }
+        startupRejection()?.let { throw IllegalStateException(it) }
+        val normalized = profile?.normalized()
+        if (normalized == activeProfile) return
+        if (normalized != null) {
+            validateProfile(normalized)
+            configureFilesystem(normalized)
+        } else {
+            previousWriteRoot?.let(EngineWriteRoot::setRoot)
+        }
+        activeProfile = normalized
+    }
 
     override val availability = HostAvailability.AVAILABLE
     override val state: HostState
@@ -49,22 +77,23 @@ class EmbeddedCakeHost(
 
     private fun start(request: HostRequest, prepareOnly: Boolean): HostStartResult {
         checkThread()
+        if (disposed || server == null) return HostStartResult.Rejected("Host is not initialized")
+        startupRejection()?.let { return HostStartResult.Rejected(it) }
         try {
             validate(request, prepareOnly)
         } catch (error: IllegalArgumentException) {
             return HostStartResult.Rejected(error.message ?: "Invalid host request")
         }
         stop("Starting a new game")
-        starting = true
         try {
-            configureFilesystem(request)
+            activateProfile(request.profile)
+            starting = true
             if (!prepareOnly && !EngineVfs.exists("maps/${request.map}.bsp")) {
                 stop("Map not found")
                 return HostStartResult.Rejected("Map not found: ${request.map}")
             }
             val cvars = Cvar.getInstance()
-            val manager = ServerHost()
-            server = manager
+            val manager = checkNotNull(server)
             cvars.find<Boolean>("deathmatch").forceSet(request.mode == HostMode.DEATHMATCH)
             cvars.find<Boolean>("coop").forceSet(request.mode == HostMode.COOP)
             cvars.find<Int>("maxclients").forceSet(request.maxClients)
@@ -73,9 +102,16 @@ class EmbeddedCakeHost(
             // Consumed by the new game instance's existing early-cvar transfer.
             cvars.setResult("skill", request.skill.toString())
             if (prepareOnly) return HostStartResult.Started
-            if (!manager.startMap(request.map)) {
-                stop("Map did not start")
-                return HostStartResult.Rejected("Could not start map: ${request.map}")
+            when (val result = manager.map(request.map)) {
+                ServerHost.OperationResult.Completed -> Unit
+                is ServerHost.OperationResult.Rejected -> {
+                    stop("Map did not start")
+                    return HostStartResult.Rejected(result.reason)
+                }
+                is ServerHost.OperationResult.Failed -> {
+                    stop("Map startup failed")
+                    return HostStartResult.Rejected(result.reason)
+                }
             }
             if (request.mode != HostMode.SINGLEPLAYER && NET.ip_sockets[Defines.NS_SERVER] == null) {
                 stop("Server port unavailable")
@@ -107,10 +143,7 @@ class EmbeddedCakeHost(
                     IllegalStateException("No map after newgame"))
             }
         }
-        if (!manager.isRunning) {
-            stop("Server stopped") // e.g. killserver or sv_shutdown from the console
-            return
-        }
+        if (!manager.isRunning) return // An idle Host retains commands and profile context.
         try {
             manager.update(elapsedMillis.coerceAtLeast(0))
         } catch (error: longjmpException) {
@@ -124,23 +157,29 @@ class EmbeddedCakeHost(
 
     override fun stop(reason: String) {
         checkThread()
-        val manager = server
-        val ownedSession = manager != null || starting
-        server = null
         starting = false
         try {
-            manager?.stop("$reason\n", false)
+            server?.stop("$reason\n", false)
         } finally {
-            try {
-                manager?.close()
-            } finally {
-                if (ownedSession) {
-                    // This adapter also owns disposal of the local client's queued traffic.
-                    NET.clearLoopbacks()
-                }
-                previousWriteRoot?.let(EngineWriteRoot::setRoot)
-                previousWriteRoot = null
-            }
+            // The adapter also owns disposal of the local client's queued traffic.
+            if (server != null) NET.clearLoopbacks()
+        }
+    }
+
+    override fun dispose() {
+        checkThread()
+        if (disposed) return
+        disposed = true
+        starting = false
+        val manager = server
+        server = null
+        try {
+            manager?.close()
+        } finally {
+            if (manager != null) NET.clearLoopbacks()
+            previousWriteRoot?.let(EngineWriteRoot::setRoot)
+            previousWriteRoot = null
+            activeProfile = null
         }
     }
 
@@ -153,8 +192,11 @@ class EmbeddedCakeHost(
         cvars.find<Boolean>("paused").forceSet(paused && singlePlayer)
     }
 
-    private fun configureFilesystem(request: HostRequest) {
-        val profile = request.profile.normalized()
+    private fun configureFilesystem(profile: CakeGameProfile) {
+        // Validate writable storage before changing process-wide content selection.
+        val root = profilesRoot.resolve(profile.id)
+        Files.createDirectories(root)
+        if (!Files.isWritable(root)) throw IOException("Save directory is not writable: $root")
         val cvars = Cvar.getInstance()
         val gameMod = profile.gamemod?.takeUnless { it == "baseq2" }
         EngineVfs.configure(VfsConfig(
@@ -166,15 +208,10 @@ class EmbeddedCakeHost(
             .forceSet(gameMod.orEmpty())
         cvars.register("gamedir", CvarTypes.STRING, "", Defines.CVAR_SERVERINFO or Defines.CVAR_NOSET)
             .forceSet(gameMod.orEmpty())
-        val root = profilesRoot.resolve(profile.id)
-        Files.createDirectories(root)
-        if (!Files.isWritable(root)) throw IOException("Save directory is not writable: $root")
-        previousWriteRoot = EngineWriteRoot.path()
         EngineWriteRoot.setRoot(root)
     }
 
-    private fun validate(request: HostRequest, prepareOnly: Boolean) {
-        val profile = request.profile.normalized()
+    private fun validateProfile(profile: CakeGameProfile) {
         fun safeDirectory(value: String) = value.isNotBlank() && value != "." &&
             !value.contains("..") && value.none { it == '/' || it == '\\' || it == ':' }
         require(safeDirectory(profile.id)) { "Invalid profile id" }
@@ -185,6 +222,10 @@ class EmbeddedCakeHost(
         require(profile.gamemod == null || Files.isDirectory(Path.of(profile.basedir).resolve(profile.gamemod))) {
             "Profile mod directory does not exist: ${profile.gamemod}"
         }
+    }
+
+    private fun validate(request: HostRequest, prepareOnly: Boolean) {
+        validateProfile(request.profile.normalized())
         require(prepareOnly || (request.map.matches(Regex("[A-Za-z0-9_/-]+")) && !request.map.startsWith('/'))) {
             "Map must be a relative map name without an extension"
         }

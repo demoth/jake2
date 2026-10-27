@@ -39,7 +39,9 @@ import jake2.server.save.ServerSaveFiles
 import jake2.server.save.ServerSaveJsonStore
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
-class ServerHost : AutoCloseable {
+class ServerHost @JvmOverloads constructor(
+    private val startupRejection: () -> String? = { null },
+) : AutoCloseable {
     // region Host state and command dispatch
 
     private val commands = ServerCommands()
@@ -239,7 +241,8 @@ class ServerHost : AutoCloseable {
         commands.add("status", true) { printStatus() }
         commands.add("serverinfo", true) { printServerInfo() }
         commands.add("dumpuser", true, Command(::dumpUser))
-        commands.add("say", true, Command(::say))
+        // Embedded applications send player chat through their client, including remote games.
+        if (Globals.dedicated.typedValue) commands.add("say", true, Command(::say))
         commands.add("save", true, Command(::saveGame))
 
         commands.add("killserver") {
@@ -481,6 +484,7 @@ class ServerHost : AutoCloseable {
 
     /** Preflight preserves the live session; failures after copying begins leave an idle Host. */
     fun loadGame(slot: String): OperationResult {
+        startupRejection()?.let { return OperationResult.Rejected(it) }
         val saveGame = try {
             ServerSaveJsonStore.normalizeSlot(slot)
         } catch (_: IllegalArgumentException) {
@@ -563,6 +567,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
     fun map(level: String): OperationResult = transitionMap(level, 0, newSession = true)
 
     private fun transitionMap(level: String, clientIndex: Int, newSession: Boolean): OperationResult {
+        startupRejection()?.let { return OperationResult.Rejected(it) }
         val target = try {
             val parsed = prepareMapTarget(level)
             require(clientIndex in 0..clients.size) { "Invalid client index: $clientIndex" }

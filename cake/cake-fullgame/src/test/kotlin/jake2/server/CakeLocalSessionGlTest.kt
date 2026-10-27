@@ -195,7 +195,7 @@ class CakeLocalSessionGlTest {
                 peer.destroy()
                 if (!peer.waitFor(5, TimeUnit.SECONDS)) peer.destroyForcibly()
             }
-            host.stop("test cleanup")
+            host.dispose()
             System.setProperty("user.home", previousHome)
         }
     }

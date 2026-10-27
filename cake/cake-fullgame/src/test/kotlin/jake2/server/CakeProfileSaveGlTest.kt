@@ -46,7 +46,7 @@ class CakeProfileSaveGlTest {
             val source = CakeFileResolver(basedir = installation.toString())
             Files.write(mod.resolve("profilemap.bsp"), source.resolve("maps/base1.bsp")!!.readBytes())
             CakeGameProfileStore().upsertProfile(CakeGameProfile("first", content.toString(), "custom"))
-            val startup = CakeStartupBootstrap.bootstrap()
+            val startup = CakeStartupBootstrap.bootstrap(arguments = listOf("+map", "profilemap"))
             Lwjgl3Application(object : ApplicationAdapter() {
                 private lateinit var cake: Cake
                 private var step = 0
@@ -60,7 +60,6 @@ class CakeProfileSaveGlTest {
                     try {
                         cake = Cake(startup, host = host)
                         cake.create()
-                        Cbuf.AddText("host_start profilemap")
                     } catch (error: Throwable) { fail(error) }
                 }
 
@@ -107,12 +106,12 @@ class CakeProfileSaveGlTest {
                             1 -> if (active("base2")) next("load shared")
                             2 -> if (active("profilemap")) {
                                 assertEquals(73, player().health)
-                                next("host_stop")
+                                next("disconnect")
                             }
                             3 -> {
                                 assertEquals("DISCONNECTED", state())
                                 Cmd.ExecuteString("cake_profile_set second \"$content\"")
-                                next("host_start base2")
+                                next("gamemap *base2")
                             }
                             4 -> if (active("base2")) {
                                 player().health = 41
@@ -124,14 +123,14 @@ class CakeProfileSaveGlTest {
                             5 -> if (active("base1")) next("load shared")
                             6 -> if (active("base2")) {
                                 assertEquals(41, player().health)
-                                next("host_stop")
+                                next("disconnect")
                             }
                             7 -> {
                                 Cmd.ExecuteString("cake_profile_set first \"$content\" custom")
-                                next("host_start base2")
+                                // Idle load must attach directly, without starting a disposable map.
+                                next("load shared")
                             }
-                            8 -> if (active("base2")) next("load shared")
-                            9 -> if (active("profilemap")) {
+                            8 -> if (active("profilemap")) {
                                 assertEquals(73, player().health)
                                 assertEquals(temp.resolve(".cake/first"), EngineWriteRoot.path())
                                 Gdx.app.exit()
@@ -154,7 +153,7 @@ class CakeProfileSaveGlTest {
             })
             failure?.let { throw it }
         } finally {
-            host.stop("test cleanup")
+            host.dispose()
             System.setProperty("user.home", previousHome)
         }
     }

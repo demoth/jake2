@@ -35,6 +35,7 @@ object CakeSessionPeer {
             Cvar.getInstance().find<Int>("port").forceSet(0)
             val host = EmbeddedCakeHost()
             try {
+                host.initialize()
                 check(host.start(HostRequest(profile, "base1", HostMode.DEATHMATCH)) == HostStartResult.Started)
                 Files.writeString(ready, NET.ip_sockets[Defines.NS_SERVER]!!.localPort.toString())
                 var previous = System.nanoTime()
@@ -44,7 +45,7 @@ object CakeSessionPeer {
                     host.update((now - previous) / 1_000_000)
                     previous = now
                 }
-            } finally { host.stop("peer exit") }
+            } finally { host.dispose() }
         } else {
             CakeGameProfileStore().upsertProfile(profile)
             val startup = CakeStartupBootstrap.bootstrap()

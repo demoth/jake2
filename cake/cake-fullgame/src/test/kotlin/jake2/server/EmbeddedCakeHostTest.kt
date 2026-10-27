@@ -44,14 +44,94 @@ class EmbeddedCakeHostTest {
         cvars.find<Int>("clientport").forceSet(0)
         previousRoot = EngineWriteRoot.path()
         host = EmbeddedCakeHost(temp)
+        host.initialize()
     }
 
     @AfterEach
     fun cleanup() {
-        host.stop("test cleanup")
+        host.dispose()
         NET.Config(false)
         EngineWriteRoot.setRoot(previousRoot)
         cvars.clear()
+    }
+
+    @Test
+    fun `idle embedded Host leaves player chat to the client`() {
+        val previous = Cmd.FindCommand("cmd")
+        var forwarded: List<String>? = null
+        Cmd.AddCommand("cmd", true) { forwarded = it.toList() }
+        try {
+            Cmd.ExecuteString("say hello remote player")
+            assertEquals(listOf("cmd", "say", "hello", "remote", "player"), forwarded)
+        } finally {
+            Cmd.RemoveCommand("cmd")
+            if (previous != null) Cmd.AddCommand("cmd", previous.description, previous.function)
+        }
+    }
+
+    @Test
+    fun `idle commands reject without a profile before accessing save storage`() {
+        val manager = host.server!!
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, manager.map("testbox"))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, manager.changeMap("*testbox"))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, manager.loadGame("missing"))
+        for (command in listOf("map testbox", "gamemap *testbox", "load missing")) {
+            Cmd.ExecuteString(command)
+        }
+        assertEquals(HostState.STOPPED, host.state)
+        assertEquals(previousRoot, EngineWriteRoot.path())
+        assertFalse(Files.exists(temp.resolve("session")))
+        assertTrue(NET.ip_sockets.all { it == null })
+    }
+
+    @Test
+    fun `profile activation and game restarts retain one Host until disposal`() {
+        val manager = host.server!!
+        val mapCommand = Cmd.FindCommand("map")
+        host.activateProfile(profile)
+        repeat(2) {
+            Cmd.ExecuteString("map testbox")
+            assertEquals(HostState.RUNNING, host.state)
+            Cmd.ExecuteString("killserver")
+            host.update(0)
+            assertEquals(HostState.STOPPED, host.state)
+            assertSame(manager, host.server)
+            assertSame(mapCommand, Cmd.FindCommand("map"))
+            assertEquals(temp.resolve("session"), EngineWriteRoot.path())
+        }
+        // Loading from idle must also work on the existing manager.
+        assertEquals(ServerHost.OperationResult.Completed, manager.loadGame("save0"))
+        host.stop("done")
+        host.dispose()
+        host.dispose()
+        assertNull(host.server)
+        assertNull(Cmd.FindCommand("map"))
+        assertNull(Cmd.FindCommand("load"))
+        assertNull(Cmd.FindCommand("save"))
+        assertEquals(previousRoot, EngineWriteRoot.path())
+        assertTrue(NET.ip_sockets.all { it == null })
+        assertThrows(IllegalStateException::class.java) { host.initialize() }
+    }
+
+    @Test
+    fun `remote connection policy guards console and typed startup without changing files`() {
+        host.dispose()
+        host = EmbeddedCakeHost(temp)
+        var remote = false
+        host.initialize { if (remote) "Disconnect from remote first" else null }
+        host.activateProfile(profile)
+        remote = true
+        val manager = host.server!!
+        for (result in listOf(manager.map("testbox"), manager.changeMap("*testbox"), manager.loadGame("missing"))) {
+            assertEquals(ServerHost.OperationResult.Rejected("Disconnect from remote first"), result)
+        }
+        for (command in listOf("map testbox", "gamemap *testbox", "load missing")) Cmd.ExecuteString(command)
+        assertInstanceOf(HostStartResult.Rejected::class.java, host.start(request()))
+        assertFalse(Files.exists(temp.resolve("session/save")))
+        assertSame(manager, host.server)
+        assertEquals(HostState.STOPPED, host.state)
+        remote = false
+        assertEquals(ServerHost.OperationResult.Completed, manager.map("testbox"))
     }
 
     @Test
@@ -117,7 +197,7 @@ class EmbeddedCakeHostTest {
         assertInstanceOf(HostStartResult.Rejected::class.java, result)
         assertEquals(HostState.STOPPED, host.state)
         assertEquals(previousRoot, EngineWriteRoot.path())
-        assertNull(Cmd.FindCommand("map"))
+        assertNotNull(Cmd.FindCommand("map"))
         assertEquals(HostStartResult.Started, host.start(request()))
     }
 
@@ -149,7 +229,7 @@ class EmbeddedCakeHostTest {
     }
 
     @Test
-    fun `start uses profile files and saves and stop unregisters the session`() {
+    fun `start uses profile files and saves and stop retains the Host`() {
         assertEquals(HostState.STOPPED, host.state)
         assertEquals(HostStartResult.Started, host.start(request(skill = 2)))
         assertEquals(HostState.RUNNING, host.state)
@@ -165,10 +245,10 @@ class EmbeddedCakeHostTest {
         host.stop("done")
         host.stop("again")
         assertEquals(HostState.STOPPED, host.state)
-        assertNull(host.server)
-        assertNull(Cmd.FindCommand("map"))
-        assertNull(Cmd.FindCommand("save"))
-        assertEquals(previousRoot, EngineWriteRoot.path())
+        assertNotNull(host.server)
+        assertNotNull(Cmd.FindCommand("map"))
+        assertNotNull(Cmd.FindCommand("save"))
+        assertEquals(temp.resolve("session"), EngineWriteRoot.path())
         assertEquals(HostStartResult.Started, host.start(request(skill = 3)))
         assertEquals(3, game().gameCvars.skill.typedValue)
     }
@@ -193,13 +273,16 @@ class EmbeddedCakeHostTest {
     }
 
     @Test
-    fun `shutdown restores the command that preceded a session across map changes`() {
+    fun `disposal restores the command that preceded the Host across map changes`() {
+        host.dispose()
         var called = false
         Cmd.AddCommand("status") { called = true }
+        host = EmbeddedCakeHost(temp)
+        host.initialize()
         try {
             assertEquals(HostStartResult.Started, host.start(request()))
             Cmd.ExecuteString("gamemap testbox2")
-            host.stop("done")
+            host.dispose()
             Cmd.ExecuteString("status")
             assertTrue(called)
         } finally {
@@ -242,7 +325,7 @@ class EmbeddedCakeHostTest {
             assertEquals(HostState.STOPPED, host.state)
             assertTrue(NET.ip_sockets.all { it == null })
             assertTrue(NET.ip_channels.all { it == null })
-            assertNull(Cmd.FindCommand("map"))
+            assertNotNull(Cmd.FindCommand("map"))
         }
         assertEquals(HostStartResult.Started, host.start(request(HostMode.COOP)))
         assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
@@ -253,12 +336,12 @@ class EmbeddedCakeHostTest {
     fun `missing map and bad save directory reject cleanly and allow retry`() {
         assertInstanceOf(HostStartResult.Rejected::class.java, host.start(request().copy(map = "missing")))
         assertEquals(HostState.STOPPED, host.state)
-        assertNull(Cmd.FindCommand("map"))
+        assertNotNull(Cmd.FindCommand("map"))
         Files.writeString(temp.resolve("blocked"), "not a directory")
         assertInstanceOf(HostStartResult.Rejected::class.java,
             host.start(request().copy(profile = profile.copy(id = "blocked"))))
         assertEquals(HostState.STOPPED, host.state)
-        assertEquals(previousRoot, EngineWriteRoot.path())
+        assertEquals(temp.resolve("session"), EngineWriteRoot.path())
         assertEquals(HostStartResult.Started, host.start(request()))
     }
 
@@ -281,8 +364,8 @@ class EmbeddedCakeHostTest {
             Cbuf.Execute()
             assertFalse(ran)
             assertEquals(HostState.STOPPED, host.state)
-            assertNull(Cmd.FindCommand("killserver"))
-            assertNull(Cmd.FindCommand("map"))
+            assertNotNull(Cmd.FindCommand("killserver"))
+            assertNotNull(Cmd.FindCommand("map"))
         } finally {
             Cmd.RemoveCommand("host_test_deferred")
         }
@@ -294,11 +377,11 @@ class EmbeddedCakeHostTest {
         assertThrows(longjmpException::class.java) { Com.Error(Defines.ERR_DROP, "test drop") }
         host.update(0)
         assertEquals(HostState.STOPPED, host.state)
-        assertNull(Cmd.FindCommand("save"))
+        assertNotNull(Cmd.FindCommand("save"))
         assertEquals(HostStartResult.Started, host.start(request()))
         var called = false
         Cmd.AddCommand("status", true) { called = true }
-        host.stop("done")
+        host.dispose()
         try {
             Cmd.ExecuteString("status")
             assertTrue(called)
