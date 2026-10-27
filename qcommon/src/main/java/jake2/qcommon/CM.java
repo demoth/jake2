@@ -1008,6 +1008,8 @@ public class CM {
     }
 
 
+    // TODO: Make CM_BoxLeafnums scratch state local to each query and pass it through traversal
+    // so queries are reentrant even on the same CM instance.
     private int leaf_count;
     private int leaf_maxcount;
 
