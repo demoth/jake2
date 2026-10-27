@@ -299,7 +299,8 @@ class EmbeddedCakeHost(
             null -> null
         }
         return HostSaveEntry(entry.slot, entry.comment, entry.mapName, entry.savedAtMillis, mode,
-            entry.problem ?: if (mode != HostMode.SINGLEPLAYER) "This save is not a singleplayer game." else null)
+            entry.problem ?: if (mode != HostMode.SINGLEPLAYER) "This save is not a singleplayer game." else null,
+            entry.mapTitle)
     }
 
     private fun ServerHost.OperationResult.toHostSaveResult(slot: String): HostSaveResult = when (this) {

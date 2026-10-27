@@ -153,7 +153,7 @@ class MenuStagesGlTest {
 
     private fun verifySavedGames(viewport: UiViewport, style: GameUiStyle) {
         val entries = listOf(
-            HostSaveEntry("save0", "Autosave", "base1", 1000L, HostMode.SINGLEPLAYER, null),
+            HostSaveEntry("save0", "Autosave", "base1", 1000L, HostMode.SINGLEPLAYER, null, mapTitle = "Outer Base"),
             HostSaveEntry("manual", "Checkpoint", "base2", 2000L, HostMode.SINGLEPLAYER, null),
         ) + (1..24).map { HostSaveEntry("manual-$it", "Checkpoint $it", "base2", 2000L, HostMode.SINGLEPLAYER, null) }
         val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.SAVE_GAME,
@@ -166,6 +166,8 @@ class MenuStagesGlTest {
             val scroll = stage.root.findActor<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>("save-list-scroll")
             val preview = stage.root.findActor<Actor>("save-preview")
             assertTrue(scroll.widget is com.badlogic.gdx.scenes.scene2d.ui.List<*>)
+            val firstRow = (scroll.widget as com.badlogic.gdx.scenes.scene2d.ui.List<*>).items.first().toString()
+            assertTrue(firstRow.matches(Regex("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2} - Outer Base - base1")), firstRow)
             assertTrue(scroll.maxY > 0, "Checkpoint list must scroll within its own pane")
             val listPosition = scroll.localToStageCoordinates(com.badlogic.gdx.math.Vector2())
             val previewPosition = preview.localToStageCoordinates(com.badlogic.gdx.math.Vector2())

@@ -114,6 +114,8 @@ class EmbeddedCakeSavesTest {
         }
         val created = assertInstanceOf(HostSaveResult.Completed::class.java, host.saveGame())
         assertTrue(created.slot.startsWith("manual-"))
+        assertEquals(host.server!!.games.getValue("default").configstrings[Defines.CS_NAME],
+            entries().single { it.slot == created.slot }.mapTitle)
         val file = root.resolve("first/save/${created.slot}/game.ssv.json")
         val before = Files.readAllBytes(file)
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.saveGame(created.slot))

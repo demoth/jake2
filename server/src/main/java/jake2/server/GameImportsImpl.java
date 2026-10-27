@@ -1220,7 +1220,7 @@ public class GameImportsImpl implements GameImports {
                 comment = new Date() + " " + configstrings[Defines.CS_NAME];
             }
 
-            store.writeMapCommand("current", comment, mapcmd);
+            store.writeMapCommand("current", comment, mapcmd, configstrings[Defines.CS_NAME]);
 
             writeLatchedCvars(store);
         } catch (Exception e) {

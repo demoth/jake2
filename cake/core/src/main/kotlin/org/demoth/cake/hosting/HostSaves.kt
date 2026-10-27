@@ -11,6 +11,7 @@ data class HostSaveEntry(
     val savedAtMillis: Long?,
     val mode: HostMode?,
     val loadRejectionReason: String?,
+    val mapTitle: String? = null,
 ) {
     val autosave: Boolean get() = slot == "save0"
 }

@@ -28,8 +28,10 @@ class SavedGamesStage(
         override fun toString(): String {
             val date = entry.savedAtMillis?.let {
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(it))
-            }.orEmpty()
-            return "${if (entry.autosave) "Autosave: " else ""}${entry.mapName ?: entry.slot}  $date"
+            } ?: "Unknown date"
+            val map = entry.mapName ?: entry.slot
+            val title = entry.mapTitle?.replace(Regex("\\s+"), " ")?.trim()?.takeIf { it.isNotEmpty() } ?: map
+            return "$date - $title - $map"
         }
     }
 
@@ -40,7 +42,7 @@ class SavedGamesStage(
     private val slots = SceneList<Choice>(style.menuWidgets.list).apply { name = "save-slots" }
     private val listScroll = ScrollPane(slots, style.menuWidgets.scrollPane).apply {
         name = "save-list-scroll"
-        setScrollingDisabled(true, false)
+        setScrollingDisabled(false, false)
         setFadeScrollBars(false)
         setFlickScroll(false)
     }
@@ -155,7 +157,8 @@ class SavedGamesStage(
         detail.setText(when {
             state.entries.isEmpty() -> "No saved games for this profile."
             saving && selected?.autosave == true -> "Autosave is reserved. Choose New Save or another slot."
-            else -> listOfNotNull(selected?.comment, selected?.loadRejectionReason).joinToString("\n")
+            else -> listOfNotNull(if (selected?.autosave == true) "Autosave" else null,
+                selected?.comment, selected?.loadRejectionReason).joinToString("\n")
         })
         status.setText(state.statusMessage.ifBlank { reason.orEmpty() })
     }
