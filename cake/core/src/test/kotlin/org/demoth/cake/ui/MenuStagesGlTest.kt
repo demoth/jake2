@@ -153,12 +153,12 @@ class MenuStagesGlTest {
 
     private fun verifySavedGames(viewport: UiViewport, style: GameUiStyle) {
         val entries = listOf(
-            HostSaveEntry("save0", "Autosave", "base1", 1000L, HostMode.SINGLEPLAYER, null, mapTitle = "Outer Base"),
+            HostSaveEntry("autosave", "Autosave", "base1", 1000L, HostMode.SINGLEPLAYER, null, mapTitle = "Outer Base"),
             HostSaveEntry("manual", "Checkpoint", "base2", 2000L, HostMode.SINGLEPLAYER, null),
         ) + (1..24).map { HostSaveEntry("manual-$it", "Checkpoint $it", "base2", 2000L, HostMode.SINGLEPLAYER, null) }
         val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.SAVE_GAME,
             saveAccess = HostSaveAccess(null, null),
-            savedGames = SavedGamesState("profile", entries, "save0")))
+            savedGames = SavedGamesState("profile", entries, "autosave")))
         val stage = SavedGamesStage(viewport, bus, style, saving = true)
         try {
             stage.act(0f)

@@ -100,7 +100,7 @@ class EmbeddedCakeHostTest {
             assertEquals(temp.resolve("session"), EngineWriteRoot.path())
         }
         // Loading from idle must also work on the existing manager.
-        assertEquals(ServerHost.OperationResult.Completed, manager.loadGame("save0"))
+        assertEquals(ServerHost.OperationResult.Completed, manager.loadGame("autosave"))
         host.stop("done")
         host.dispose()
         host.dispose()
@@ -236,7 +236,7 @@ class EmbeddedCakeHostTest {
         assertEquals(2, game().gameCvars.skill.typedValue)
         assertEquals("", cvars.find<String>("gamedir").typedValue)
         assertEquals(temp.resolve("session"), EngineWriteRoot.path())
-        assertTrue(Files.exists(temp.resolve("session/save/save0/game.ssv.json")))
+        assertTrue(Files.exists(temp.resolve("session/save/autosave/game.ssv.json")))
         assertTrue(NET.ip_sockets.all { it == null })
         val frame = game().level.framenum
         host.update(100)
@@ -266,7 +266,7 @@ class EmbeddedCakeHostTest {
         assertEquals("custom", cvars.find<String>("game").typedValue)
         assertEquals("custom", cvars.find<String>("gamedir").typedValue)
         assertEquals("modmap", cvars.find<String>("mapname").typedValue)
-        assertTrue(Files.exists(temp.resolve("mod-session/save/save0/game.ssv.json")))
+        assertTrue(Files.exists(temp.resolve("mod-session/save/autosave/game.ssv.json")))
         host.stop("switch back")
         assertEquals(HostStartResult.Started, host.start(request()))
         assertEquals("", cvars.find<String>("gamedir").typedValue)

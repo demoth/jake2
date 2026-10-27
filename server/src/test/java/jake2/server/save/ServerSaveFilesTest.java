@@ -62,9 +62,9 @@ class ServerSaveFilesTest {
     void initialAutosaveDoesNotRequireArchivedLevels() throws Exception {
         write(temp, "current", "server_mapcmd.ssv.json", "map");
         ServerSaveFiles files = new ServerSaveFiles(temp);
-        files.copy("current", "save0");
+        files.copy("current", "autosave");
         files.wipe("missing");
-        assertEquals("map", Files.readString(temp.resolve("save/save0/server_mapcmd.ssv.json")));
+        assertEquals("map", Files.readString(temp.resolve("save/autosave/server_mapcmd.ssv.json")));
     }
 
     @Test

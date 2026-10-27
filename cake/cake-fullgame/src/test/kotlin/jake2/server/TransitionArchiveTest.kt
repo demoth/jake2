@@ -111,7 +111,7 @@ class TransitionArchiveTest {
         assertSame(originalGameplay, first.gameExports)
         assertEquals(ServerStates.SS_GAME, first.state)
         assertEquals("default", host.clients[0].gameName)
-        assertFalse(Files.exists(root.resolve("save/save0")), "Failed archival must not continue to autosave")
+        assertFalse(Files.exists(root.resolve("save/autosave")), "Failed archival must not continue to autosave")
         if (extension == "sv2") {
             assertFalse(Files.exists(root.resolve("save/current/testbox.sav.json")),
                 "Server-state failure must stop before gameplay serialization")

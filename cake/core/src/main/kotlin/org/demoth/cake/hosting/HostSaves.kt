@@ -13,7 +13,7 @@ data class HostSaveEntry(
     val loadRejectionReason: String?,
     val mapTitle: String? = null,
 ) {
-    val autosave: Boolean get() = slot == "save0"
+    val autosave: Boolean get() = slot == "autosave"
 }
 
 sealed interface HostSaveCatalogResult {

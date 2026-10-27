@@ -234,7 +234,7 @@ class EmbeddedCakeHost(
         saveStorageRejection()?.let { return HostSaveResult.Rejected(it) }
         val destination = normalizedSaveSlot(slot ?: "manual-${UUID.randomUUID()}")
             ?: return HostSaveResult.Rejected("Invalid save slot.")
-        if (destination == "current" || destination == "save0") {
+        if (destination == "current" || destination == "autosave") {
             return HostSaveResult.Rejected("This slot is reserved for the game.")
         }
         val path = profileRoot(checkNotNull(activeProfile)).resolve("save").resolve(destination)

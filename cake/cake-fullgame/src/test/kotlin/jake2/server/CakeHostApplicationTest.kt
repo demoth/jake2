@@ -123,7 +123,7 @@ class CakeHostApplicationTest {
                                 assertEquals("CONNECTING", clientState(cake!!))
                                 val current = temp.resolve(".cake/application-test/save/current/game.ssv.json")
                                 val before = Files.readAllBytes(current)
-                                Cbuf.AddText("map testbox2; gamemap *testbox2; load save0")
+                                Cbuf.AddText("map testbox2; gamemap *testbox2; load autosave")
                                 cake!!.render()
                                 assertEquals("CONNECTING", clientState(cake!!))
                                 assertEquals(HostState.STOPPED, host.state)

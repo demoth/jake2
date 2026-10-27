@@ -15,8 +15,8 @@ class HostAvailabilityTest {
         assertNotNull(host.saveAccess().saveRejectionReason)
         assertInstanceOf(HostSaveCatalogResult.Rejected::class.java, host.listSaves())
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.saveGame())
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("save0"))
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("autosave"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("autosave"))
     }
 
     @Test

@@ -34,7 +34,7 @@ class ServerSaveCatalogTest {
     fun `catalog sorts checkpoints retains autosave and isolates malformed entries`() {
         metadata("current", 5000)
         metadata("console checkpoint", 1000)
-        metadata("save0", 3000)
+        metadata("autosave", 3000)
         metadata("coop", 2000, coop = true)
         metadata("deathmatch", 2000, deathmatch = true)
         metadata("broken", 4000)
@@ -43,10 +43,10 @@ class ServerSaveCatalogTest {
         Files.writeString(root.resolve("save/readme.txt"), "not a slot")
         val entries = ServerSaveCatalog(root).list()
         assertFalse(entries.any { it.slot == "current" || it.slot == "readme.txt" })
-        assertEquals(listOf("save0", "coop", "deathmatch", "console checkpoint"),
+        assertEquals(listOf("autosave", "coop", "deathmatch", "console checkpoint"),
             entries.filter { it.problem == null }.map { it.slot })
-        assertEquals("testbox", entries.first { it.slot == "save0" }.mapName)
-        assertEquals("Test Box", entries.first { it.slot == "save0" }.mapTitle)
+        assertEquals("testbox", entries.first { it.slot == "autosave" }.mapName)
+        assertEquals("Test Box", entries.first { it.slot == "autosave" }.mapTitle)
         assertEquals(SavedGameMode.COOP, entries.first { it.slot == "coop" }.mode)
         assertEquals(SavedGameMode.DEATHMATCH, entries.first { it.slot == "deathmatch" }.mode)
         assertNotNull(entries.first { it.slot == "broken" }.problem)
@@ -56,17 +56,17 @@ class ServerSaveCatalogTest {
     @Test
     fun `existing saves get map titles from level archives or autosave comments`() {
         metadata("manual", 1)
-        metadata("save0", 2)
+        metadata("autosave", 2)
         val store = ServerSaveJsonStore.forWriteDir(root.toString())
         store.writeMapCommand("manual", "old checkpoint comment", "testbox")
-        store.writeMapCommand("save0", "Autosave in Entry Title", "testbox")
+        store.writeMapCommand("autosave", "Autosave in Entry Title", "testbox")
         val strings = arrayOfNulls<String>(jake2.qcommon.Defines.MAX_CONFIGSTRINGS)
         strings[jake2.qcommon.Defines.CS_NAME] = "Archived Title"
         jake2.server.save.ServerLevelJsonStore.forWriteDir(root.toString())
             .writeLevelState("manual", "testbox", strings, BooleanArray(0))
         val entries = ServerSaveCatalog(root).list().associateBy { it.slot }
         assertEquals("Archived Title", entries.getValue("manual").mapTitle)
-        assertEquals("Entry Title", entries.getValue("save0").mapTitle)
+        assertEquals("Entry Title", entries.getValue("autosave").mapTitle)
     }
 
     @Test

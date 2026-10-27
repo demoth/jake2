@@ -61,7 +61,7 @@ class HostSessionPreparationTest {
             assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
             host.stop("start deathmatch", false)
         }
-        val autosave = root.resolve("save/save0")
+        val autosave = root.resolve("save/autosave")
         fun contents(): Map<String, List<Byte>> = if (!Files.exists(autosave)) emptyMap() else
             Files.walk(autosave).use { paths -> paths.filter(Files::isRegularFile).toList()
                 .associate { autosave.relativize(it).toString() to Files.readAllBytes(it).toList() } }
@@ -314,7 +314,7 @@ class HostSessionPreparationTest {
     fun `level entry autosave without archives remains loadable`() {
         host.map(listOf("map", "testbox"))
         host.stop("test", false)
-        host.loadGame(listOf("load", "save0"))
+        host.loadGame(listOf("load", "autosave"))
         assertEquals("testbox", host.games.getValue("default").mapName)
     }
 
@@ -450,7 +450,7 @@ class HostSessionPreparationTest {
     @ValueSource(booleans = [false, true])
     fun `map autosave failure leaves idle Host and permits restart`(newSession: Boolean) {
         save(false)
-        val blocked = root.resolve("save/save0/game.ssv.json")
+        val blocked = root.resolve("save/autosave/game.ssv.json")
         Files.delete(blocked)
         Files.createDirectory(blocked)
         Files.writeString(blocked.resolve("blocker"), "prevent replacement")

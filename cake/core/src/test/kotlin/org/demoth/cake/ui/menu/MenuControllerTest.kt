@@ -107,13 +107,13 @@ class MenuControllerTest {
 
     @Test
     fun saveRequiresConfirmationAndRejectsStaleProfileAndAutosaveRequests() {
-        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("save0"), savedEntry("manual")) }
+        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("autosave"), savedEntry("manual")) }
         val bus = MenuEventBus()
         val controller = MenuController(backend, bus)
         controller.initialize()
         fun post(intent: MenuIntent) { bus.postIntent(intent); controller.pumpIntents() }
         post(MenuIntent.OpenSaveGame)
-        post(MenuIntent.SaveGameRequested("default", "save0"))
+        post(MenuIntent.SaveGameRequested("default", "autosave"))
         assertNull(bus.latestState().savedGames.pendingOverwriteSlot)
         post(MenuIntent.SaveGameRequested("default", "manual"))
         assertEquals("manual", bus.latestState().savedGames.pendingOverwriteSlot)

@@ -74,22 +74,22 @@ class EmbeddedCakeSavesTest {
         remote = true
         assertNotNull(host.saveAccess().loadRejectionReason)
         assertInstanceOf(HostSaveCatalogResult.Rejected::class.java, host.listSaves())
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("save0"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("autosave"))
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.saveGame("slot", true))
         assertFalse(Files.exists(root.resolve("first/save")))
         host.dispose()
         assertInstanceOf(HostSaveCatalogResult.Rejected::class.java, host.listSaves())
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("save0"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("autosave"))
     }
 
     @Test
     fun `catalog and load follow selected profile while idle and use profile rather than shared root`() {
         start()
-        ServerSaveFiles(root.resolve("first")).copy("save0", "console slot")
+        ServerSaveFiles(root.resolve("first")).copy("autosave", "console slot")
         host.stop("browse")
-        assertEquals(setOf("save0", "console slot"), entries().map { it.slot }.toSet())
+        assertEquals(setOf("autosave", "console slot"), entries().map { it.slot }.toSet())
         EngineWriteRoot.setRoot(root.resolve("unrelated"))
-        assertEquals(setOf("save0", "console slot"), entries().map { it.slot }.toSet())
+        assertEquals(setOf("autosave", "console slot"), entries().map { it.slot }.toSet())
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("console slot"))
         EngineWriteRoot.setRoot(root.resolve("first"))
         host.activateProfile(profile.copy(id = "second"))
@@ -109,7 +109,7 @@ class EmbeddedCakeSavesTest {
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.saveGame("dead"))
         spawn()
         assertNull(host.saveAccess().saveRejectionReason)
-        for (slot in listOf("current", "save0", "../outside")) {
+        for (slot in listOf("current", "autosave", "../outside")) {
             assertInstanceOf(HostSaveResult.Rejected::class.java, host.saveGame(slot, true))
         }
         val created = assertInstanceOf(HostSaveResult.Completed::class.java, host.saveGame())
@@ -150,13 +150,13 @@ class EmbeddedCakeSavesTest {
         val manager = host.server!!
         val live = manager.games.getValue("default")
         val files = ServerSaveFiles(root.resolve("first"))
-        files.copy("save0", "corrupt")
+        files.copy("autosave", "corrupt")
         Files.writeString(root.resolve("first/save/corrupt/server_mapcmd.ssv.json"), "bad json")
         assertNotNull(entries().single { it.slot == "corrupt" }.loadRejectionReason)
-        assertNull(entries().single { it.slot == "save0" }.loadRejectionReason)
+        assertNull(entries().single { it.slot == "autosave" }.loadRejectionReason)
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("corrupt"))
         // Browsing reads metadata only; authoritative preflight still rejects a corrupt game envelope.
-        files.copy("save0", "bad-game")
+        files.copy("autosave", "bad-game")
         Files.writeString(root.resolve("first/save/bad-game/game.ssv.json"), "bad json")
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("bad-game"))
         assertSame(live, manager.games["default"])
@@ -207,8 +207,8 @@ class EmbeddedCakeSavesTest {
         assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("../first"))
         host.stop("profile switch")
         host.activateProfile(profile.copy(id = "second"))
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
-        assertTrue(Files.exists(root.resolve("first/save/save0/game.ssv.json")))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("autosave"))
+        assertTrue(Files.exists(root.resolve("first/save/autosave/game.ssv.json")))
         Files.createDirectories(root.resolve("second/save/corrupt"))
         Files.writeString(root.resolve("second/save/corrupt/junk"), "not a valid save")
         assertEquals(HostSaveResult.Completed("corrupt"), host.deleteSave("corrupt"))
@@ -219,11 +219,11 @@ class EmbeddedCakeSavesTest {
     fun `deletion rejects remote context and mismatched storage without removing the checkpoint`() {
         start()
         remote = true
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("autosave"))
         remote = false
         EngineWriteRoot.setRoot(root.resolve("other"))
-        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
-        assertTrue(Files.exists(root.resolve("first/save/save0/game.ssv.json")))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("autosave"))
+        assertTrue(Files.exists(root.resolve("first/save/autosave/game.ssv.json")))
         EngineWriteRoot.setRoot(root.resolve("first"))
     }
 

@@ -72,7 +72,7 @@ class GameContinuationTest {
     @ValueSource(booleans = [false, true])
     fun `continuation autosave eligibility follows its Game mode`(deathmatch: Boolean) {
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
-        val autosave = root.resolve("save/save0")
+        val autosave = root.resolve("save/autosave")
         fun contents() = Files.walk(autosave).use { paths -> paths.filter(Files::isRegularFile).toList()
             .associate { autosave.relativize(it).toString() to Files.readAllBytes(it).toList() } }
         val before = contents()
@@ -93,7 +93,7 @@ class GameContinuationTest {
         if (deathmatch) assertEquals(before, contents()) else {
             assertNotEquals(before, contents())
             assertEquals("testbox2", jake2.server.save.ServerSaveJsonStore.forWriteDir(root.toString())
-                .readMapCommand("save0").mapCommand())
+                .readMapCommand("autosave").mapCommand())
         }
     }
 
@@ -381,7 +381,7 @@ class GameContinuationTest {
         assertTrue(NET.configureServer(true))
         val broken = when (stage) {
             "wipe" -> root.resolve("save/current/game.ssv.json")
-            "autosave" -> root.resolve("save/save0/game.ssv.json")
+            "autosave" -> root.resolve("save/autosave/game.ssv.json")
             else -> root.resolve("save/current/testbox.sav.json")
         }
         if (stage == "restore") {
