@@ -38,10 +38,22 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.BiFunction;
 
 @SuppressWarnings("deprecation")
 public class CM {
+    private final BiFunction<Integer, String, ? extends RuntimeException> failureFactory;
+
+    /** Preserve the legacy client error policy until its execution boundary is migrated. */
     public CM() {
+        this(CM::legacyFailure);
+    }
+
+    /** Let the owner classify collision failures without introducing shutdown into collision code. */
+    public CM(BiFunction<Integer, String, ? extends RuntimeException> failureFactory) {
+        this.failureFactory = Objects.requireNonNull(failureFactory);
+
         for (int n = 0; n < Defines.MAX_MAP_BRUSHSIDES; n++)
             map_brushsides[n] = new cbrushside_t();
         for (int n = 0; n < Defines.MAX_MAP_TEXINFO; n++)
@@ -61,6 +73,11 @@ public class CM {
         for (int n = 0; n < Defines.MAX_MAP_AREAPORTALS; n++)
             map_areaportals[n] = new qfiles.dareaportal_t();
 
+    }
+
+    private static RuntimeException legacyFailure(int severity, String message) {
+        Com.Error(severity, message);
+        return new IllegalStateException(message); // Defensive fallback if legacy dispatch ever returns.
     }
 
     public static class cnode_t {
@@ -188,7 +205,7 @@ public class CM {
     public cmodel_t CM_LoadMapFile(byte[] buf, String name, int[] checksum) {
 
         if (buf == null)
-            Com.Error(Defines.ERR_DROP, "Couldn't load " + name);
+            throw failureFactory.apply(Defines.ERR_DROP, "Couldn't load " + name);
 
         int length = buf.length;
 
@@ -200,7 +217,7 @@ public class CM {
         BspHeader header = new BspHeader(bbuf.slice());
 
         if (header.version != Defines.BSPVERSION)
-            Com.Error(Defines.ERR_DROP, "CMod_LoadBrushModel: " + name
+            throw failureFactory.apply(Defines.ERR_DROP, "CMod_LoadBrushModel: " + name
                     + " has wrong version number (" + header.version
                     + " should be " + Defines.BSPVERSION + ")");
 
@@ -286,14 +303,14 @@ public class CM {
         int i, j, count;
 
         if ((l.length % qfiles.dmodel_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "CMod_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "CMod_LoadBmodel: funny lump size");
 
         count = l.length / qfiles.dmodel_t.SIZE;
 
         if (count < 1)
-            Com.Error(Defines.ERR_DROP, "Map with no models");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map with no models");
         if (count > Defines.MAX_MAP_MODELS)
-            Com.Error(Defines.ERR_DROP, "Map has too many models");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many models");
 
         Com.DPrintf(" numcmodels=" + count + "\n");
         numcmodels = count;
@@ -333,13 +350,13 @@ public class CM {
         int i, count;
 
         if ((l.length % texinfo_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         count = l.length / texinfo_t.SIZE;
         if (count < 1)
-            Com.Error(Defines.ERR_DROP, "Map with no surfaces");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map with no surfaces");
         if (count > Defines.MAX_MAP_TEXINFO)
-            Com.Error(Defines.ERR_DROP, "Map has too many surfaces");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many surfaces");
 
         numtexinfo = count;
         Com.DPrintf(" numtexinfo=" + count + "\n");
@@ -374,14 +391,14 @@ public class CM {
         int i, j, count;
 
         if ((l.length % qfiles.dnode_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size:"
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size:"
                     + l.offset + "," + qfiles.dnode_t.SIZE);
         count = l.length / qfiles.dnode_t.SIZE;
 
         if (count < 1)
-            Com.Error(Defines.ERR_DROP, "Map has no nodes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has no nodes");
         if (count > Defines.MAX_MAP_NODES)
-            Com.Error(Defines.ERR_DROP, "Map has too many nodes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many nodes");
 
         numnodes = count;
         Com.DPrintf(" numnodes=" + count + "\n");
@@ -415,12 +432,12 @@ public class CM {
         int i, count;
 
         if ((l.length % qfiles.dbrush_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         count = l.length / qfiles.dbrush_t.SIZE;
 
         if (count > Defines.MAX_MAP_BRUSHES)
-            Com.Error(Defines.ERR_DROP, "Map has too many brushes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many brushes");
 
         numbrushes = count;
         Com.DPrintf(" numbrushes=" + count + "\n");
@@ -452,16 +469,16 @@ public class CM {
         int count;
 
         if ((l.length % qfiles.dleaf_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         count = l.length / qfiles.dleaf_t.SIZE;
 
         if (count < 1)
-            Com.Error(Defines.ERR_DROP, "Map with no leafs");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map with no leafs");
 
         // need to save space for box planes
         if (count > Defines.MAX_MAP_PLANES)
-            Com.Error(Defines.ERR_DROP, "Map has too many planes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
         Com.DPrintf(" numleafes=" + count + "\n");
 
@@ -495,7 +512,7 @@ public class CM {
         Com.DPrintf(" numclusters=" + numclusters + "\n");
 
         if (map_leafs[0].contents != Defines.CONTENTS_SOLID)
-            Com.Error(Defines.ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
 
         solidleaf = 0;
         emptyleaf = -1;
@@ -508,7 +525,7 @@ public class CM {
         }
 
         if (emptyleaf == -1)
-            Com.Error(Defines.ERR_DROP, "Map does not have an empty leaf");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map does not have an empty leaf");
     }
 
     /** Loads planes. */
@@ -521,16 +538,16 @@ public class CM {
         int bits;
 
         if ((l.length % qfiles.dplane_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         count = l.length / qfiles.dplane_t.SIZE;
 
         if (count < 1)
-            Com.Error(Defines.ERR_DROP, "Map with no planes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map with no planes");
 
         // need to save space for box planes
         if (count > Defines.MAX_MAP_PLANES)
-            Com.Error(Defines.ERR_DROP, "Map has too many planes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
         Com.DPrintf(" numplanes=" + count + "\n");
 
@@ -572,18 +589,18 @@ public class CM {
         Com.DPrintf("CMod_LoadLeafBrushes()\n");
 
         if ((l.length % 2) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         int count = l.length / 2;
 
         Com.DPrintf(" numbrushes=" + count + "\n");
 
         if (count < 1)
-            Com.Error(Defines.ERR_DROP, "Map with no planes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map with no planes");
 
         // need to save space for box planes
         if (count > Defines.MAX_MAP_LEAFBRUSHES)
-            Com.Error(Defines.ERR_DROP, "Map has too many leafbrushes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many leafbrushes");
 
         int[] out = map_leafbrushes;
         numleafbrushes = count;
@@ -613,12 +630,12 @@ public class CM {
         int num;
 
         if ((l.length % qfiles.dbrushside_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
         count = l.length / qfiles.dbrushside_t.SIZE;
 
         // need to save space for box planes
         if (count > Defines.MAX_MAP_BRUSHSIDES)
-            Com.Error(Defines.ERR_DROP, "Map has too many planes");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
         numbrushsides = count;
 
@@ -642,7 +659,7 @@ public class CM {
             j = in.texinfo;
 
             if (j >= numtexinfo)
-                Com.Error(Defines.ERR_DROP, "Bad brushside texinfo");
+                throw failureFactory.apply(Defines.ERR_DROP, "Bad brushside texinfo");
 
             // java specific handling of -1
             if (j == -1)
@@ -665,12 +682,12 @@ public class CM {
         int count;
 
         if ((l.length % qfiles.darea_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         count = l.length / qfiles.darea_t.SIZE;
 
         if (count > Defines.MAX_MAP_AREAS)
-            Com.Error(Defines.ERR_DROP, "Map has too many areas");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many areas");
 
         Com.DPrintf(" numareas=" + count + "\n");
         numareas = count;
@@ -705,11 +722,11 @@ public class CM {
         int count;
 
         if ((l.length % qfiles.dareaportal_t.SIZE) != 0)
-            Com.Error(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
+            throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
         count = l.length / qfiles.dareaportal_t.SIZE;
 
         if (count > Defines.MAX_MAP_AREAS)
-            Com.Error(Defines.ERR_DROP, "Map has too many areas");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too many areas");
 
         numareaportals = count;
         Com.DPrintf(" numareaportals=" + count + "\n");
@@ -742,7 +759,7 @@ public class CM {
         Com.DPrintf(" numvisibility=" + numvisibility + "\n");
 
         if (l.length > Defines.MAX_MAP_VISIBILITY)
-            Com.Error(Defines.ERR_DROP, "Map has too large visibility lump");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too large visibility lump");
 
         if (l.length == 0) {
             Com.Warn("Map has no visibility lump; PVS/PHS culling disabled (all clusters treated as visible)");
@@ -751,7 +768,7 @@ public class CM {
         }
 
         if (l.length < Integer.BYTES) {
-            Com.Error(Defines.ERR_DROP, "Map has truncated visibility lump (" + l.length + " bytes)");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has truncated visibility lump (" + l.length + " bytes)");
         }
 
         System.arraycopy(cmod_base, l.offset, map_visibility, 0, l.length);
@@ -761,17 +778,17 @@ public class CM {
 
         int visClusters = bb.getInt();
         if (visClusters < 0 || visClusters > Defines.MAX_MAP_LEAFS) {
-            Com.Error(Defines.ERR_DROP, "Map has invalid visibility cluster count " + visClusters);
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has invalid visibility cluster count " + visClusters);
         }
 
         long headerSize = Integer.BYTES + (long) visClusters * 2L * Integer.BYTES;
         if (headerSize > l.length) {
-            Com.Error(Defines.ERR_DROP, "Map has truncated visibility header: expected at least "
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has truncated visibility header: expected at least "
                     + headerSize + " bytes but lump has " + l.length);
         }
 
         if (visClusters < numclusters) {
-            Com.Error(Defines.ERR_DROP, "Map visibility cluster count " + visClusters
+            throw failureFactory.apply(Defines.ERR_DROP, "Map visibility cluster count " + visClusters
                     + " is smaller than leaf cluster count " + numclusters);
         }
 
@@ -779,7 +796,7 @@ public class CM {
         try {
             map_vis = new qfiles.dvis_t(bb);
         } catch (IllegalArgumentException ex) {
-            Com.Error(Defines.ERR_DROP, "Invalid visibility lump: " + ex.getMessage());
+            throw failureFactory.apply(Defines.ERR_DROP, "Invalid visibility lump: " + ex.getMessage());
         }
 
         int minDataOffset = (int) headerSize;
@@ -790,7 +807,7 @@ public class CM {
                     continue;
                 }
                 if (bitOffset < minDataOffset || bitOffset >= l.length) {
-                    Com.Error(Defines.ERR_DROP, "Map has invalid visibility offset " + bitOffset
+                    throw failureFactory.apply(Defines.ERR_DROP, "Map has invalid visibility offset " + bitOffset
                             + " for cluster " + i);
                 }
             }
@@ -805,7 +822,7 @@ public class CM {
         numentitychars = l.length;
 
         if (l.length > Defines.MAX_MAP_ENTSTRING)
-            Com.Error(Defines.ERR_DROP, "Map has too large entity lump");
+            throw failureFactory.apply(Defines.ERR_DROP, "Map has too large entity lump");
 
         int x = 0;
         for (; x < l.length && cmod_base[x + l.offset] != 0; x++);
@@ -819,12 +836,12 @@ public class CM {
     /** Returns the model with a given id "*" + <number> */
     public cmodel_t InlineModel(String name) {
         if (name == null || name.charAt(0) != '*')
-            Com.Error(Defines.ERR_DROP, "CM_InlineModel: bad name");
+            throw failureFactory.apply(Defines.ERR_DROP, "CM_InlineModel: bad name");
 
         int num = Lib.atoi(name.substring(1));
 
         if (num < 1 || num >= numcmodels)
-            Com.Error(Defines.ERR_DROP, "CM_InlineModel: bad number");
+            throw failureFactory.apply(Defines.ERR_DROP, "CM_InlineModel: bad number");
 
         return map_cmodels[num];
     }
@@ -843,19 +860,19 @@ public class CM {
 
     public int CM_LeafContents(int leafnum) {
         if (leafnum < 0 || leafnum >= numleafs)
-            Com.Error(Defines.ERR_DROP, "CM_LeafContents: bad number");
+            throw failureFactory.apply(Defines.ERR_DROP, "CM_LeafContents: bad number");
         return map_leafs[leafnum].contents;
     }
 
     public int CM_LeafCluster(int leafnum) {
         if (leafnum < 0 || leafnum >= numleafs)
-            Com.Error(Defines.ERR_DROP, "CM_LeafCluster: bad number");
+            throw failureFactory.apply(Defines.ERR_DROP, "CM_LeafCluster: bad number");
         return map_leafs[leafnum].cluster;
     }
 
     public int CM_LeafArea(int leafnum) {
         if (leafnum < 0 || leafnum >= numleafs)
-            Com.Error(Defines.ERR_DROP, "CM_LeafArea: bad number");
+            throw failureFactory.apply(Defines.ERR_DROP, "CM_LeafArea: bad number");
         return map_leafs[leafnum].area;
     }
 
@@ -887,7 +904,7 @@ public class CM {
                 || numleafbrushes + 1 > Defines.MAX_MAP_LEAFBRUSHES
                 || numbrushsides + 6 > Defines.MAX_MAP_BRUSHSIDES
                 || numplanes + 12 > Defines.MAX_MAP_PLANES)
-            Com.Error(Defines.ERR_DROP, "Not enough room for box tree");
+            throw failureFactory.apply(Defines.ERR_DROP, "Not enough room for box tree");
 
         box_brush = map_brushes[numbrushes];
         box_brush.numsides = 6;
@@ -994,11 +1011,11 @@ public class CM {
     private int leaf_count;
     private int leaf_maxcount;
 
-    private static int[] leaf_list;
-    private static float[] leaf_mins;
-    private static float[] leaf_maxs;
+    private int[] leaf_list;
+    private float[] leaf_mins;
+    private float[] leaf_maxs;
 
-    private static int leaf_topnode;
+    private int leaf_topnode;
 
     /** Recursively fills in a list of all the leafs touched. */    
     private void CM_BoxLeafnums_r(int nodenum) {
@@ -1691,7 +1708,7 @@ public class CM {
         if (area.floodvalid == floodvalid) {
             if (area.floodnum == floodnum)
                 return;
-            Com.Error(Defines.ERR_DROP, "FloodArea_r: reflooded");
+            throw failureFactory.apply(Defines.ERR_DROP, "FloodArea_r: reflooded");
         }
 
         area.floodnum = floodnum;
@@ -1735,7 +1752,7 @@ public class CM {
      */
     public void CM_SetAreaPortalState(int portalnum, boolean open) {
         if (portalnum > numareaportals)
-            Com.Error(Defines.ERR_DROP, "areaportal > numareaportals");
+            throw failureFactory.apply(Defines.ERR_DROP, "areaportal > numareaportals");
 
         portalopen[portalnum] = open;
         FloodAreaConnections();
@@ -1750,7 +1767,7 @@ public class CM {
             return true;
 
         if (area1 > numareas || area2 > numareas)
-            Com.Error(Defines.ERR_DROP, "area > numareas");
+            throw failureFactory.apply(Defines.ERR_DROP, "area > numareas");
 
         if (map_areas[area1].floodnum == map_areas[area2].floodnum)
             return true;
@@ -1818,7 +1835,7 @@ public class CM {
         try {
             f.readFully(buf);
         } catch (IOException e) {
-            Com.Error(Defines.ERR_FATAL, e.toString());
+            throw failureFactory.apply(Defines.ERR_FATAL, e.toString());
         }
 
         ByteBuffer bb = ByteBuffer.wrap(buf);

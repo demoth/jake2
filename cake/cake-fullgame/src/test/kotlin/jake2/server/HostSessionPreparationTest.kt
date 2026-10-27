@@ -655,6 +655,33 @@ class HostSessionPreparationTest {
     }
 
     @Test
+    fun `malformed BSP propagates Game failure without global client drop`() {
+        val content = root.resolve("content")
+        val map = content.resolve("baseq2/maps/broken.bsp")
+        Files.createDirectories(map.parent)
+        val bytes = Files.readAllBytes(Path.of("src/test/resources/baseq2/maps/testbox.bsp"))
+        java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN).putInt(8 + Defines.LUMP_TEXINFO * 8 + 4, 1)
+        Files.write(map, bytes)
+        EngineVfs.configure(VfsConfig(content, "baseq2", null,
+            true, false, false, emptyList(), setOf("pak")))
+        val previous = jake2.qcommon.exec.Cmd.FindCommand("cl_drop")
+        var clientDropped = false
+        jake2.qcommon.exec.Cmd.AddCommand("cl_drop", true) { clientDropped = true }
+        try {
+            val result = host.map("broken")
+            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
+            assertInstanceOf(GameFailure::class.java, (result as ServerHost.OperationResult.Failed).cause, result.cause.stackTraceToString())
+            assertTrue(result.reason.contains("funny lump size"))
+            assertFalse(clientDropped)
+            assertFalse(host.isRunning)
+            assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
+        } finally {
+            jake2.qcommon.exec.Cmd.RemoveCommand("cl_drop")
+            previous?.let { jake2.qcommon.exec.Cmd.AddCommand("cl_drop", it.function) }
+        }
+    }
+
+    @Test
     fun `unreadable allocation metadata preserves running session`() {
         save(false)
         val game = host.games.getValue("default")

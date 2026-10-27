@@ -201,15 +201,19 @@ class GameContinuationTest {
         assertEquals("testbox", host.games.getValue("default").mapName)
     }
 
-    @Test
-    fun `Game frame failure stops only its owner and other Game runs in the same tick`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `Game frame failure stops only its owner and other Game runs in the same tick`(collision: Boolean) {
         val first = game("default", "testbox")
         val second = game("other", "testbox2")
         val a = bind(0, first)
         val b = bind(1, second)
         var secondFrames = 0
         first.gameExports = object : GameExports by first.gameExports {
-            override fun G_RunFrame() { first.configstring(-1, "invalid") }
+            override fun G_RunFrame() {
+                if (collision) first.cm.InlineModel("invalid")
+                else first.configstring(-1, "invalid")
+            }
         }
         second.gameExports = object : GameExports by second.gameExports {
             override fun G_RunFrame() { secondFrames++ }

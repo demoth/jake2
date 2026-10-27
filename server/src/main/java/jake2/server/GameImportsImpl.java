@@ -162,7 +162,7 @@ public class GameImportsImpl implements GameImports {
 
         spawncount = Lib.rand();
 
-        cm = new CM();
+        cm = new CM((severity, message) -> new GameFailure(this, message));
         clientEntityStates = new entity_state_t[serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64];
         for (int i = 0; i < clientEntityStates.length; i++) clientEntityStates[i] = new entity_state_t();
 
