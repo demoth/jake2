@@ -89,6 +89,28 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.monsters.M_Supertank",
                     "jake2.game.monsters.M_Tank",
                     "jake2.game.items.GameItems",
+                    // Kotlin callbacks must exist before restoring saved entity behavior.
+                    "jake2.game.LightKt",
+                    "jake2.game.TriggersKt",
+                    "jake2.game.PathKt",
+                    "jake2.game.InfoEntitiesKt",
+                    "jake2.game.TurretKt",
+                    "jake2.game.TargetEntitiesKt",
+                    "jake2.game.MiscEntitiesKt",
+                    "jake2.game.func.Func_commonKt",
+                    "jake2.game.func.Func_objectKt",
+                    "jake2.game.func.AreaportalKt",
+                    "jake2.game.func.ClockKt",
+                    "jake2.game.func.DoorKt",
+                    "jake2.game.func.ButtonKt",
+                    "jake2.game.func.ConveyorKt",
+                    "jake2.game.func.RotatingKt",
+                    "jake2.game.func.PlatKt",
+                    "jake2.game.func.TrainKt",
+                    "jake2.game.func.KillboxKt",
+                    "jake2.game.func.WallKt",
+                    "jake2.game.func.TimerKt",
+                    "jake2.game.func.ExplosiveKt",
             };
 
     /////////////////////////////////////
@@ -159,13 +181,12 @@ public class GameExportsImpl implements GameExports {
         this.gameImports = imports;
         gameImports.dprintf("==== InitGame ====\n");
 
-        // preload all classes to register the adapters
-        // fixme
+        // Register callbacks before reading a save, including those first used during simulation.
         for (String className : preloadclasslist) {
             try {
                 Class.forName(className);
             } catch (Exception e) {
-                gameImports.dprintf("error loading class: " + e.getClass().getSimpleName() + " : " + e.getMessage());
+                throw new IllegalStateException("Could not initialize saved-game callbacks: " + className, e);
             }
         }
 

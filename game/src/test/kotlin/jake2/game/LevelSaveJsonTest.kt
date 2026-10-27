@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
@@ -21,6 +22,19 @@ import java.nio.file.Path
 class LevelSaveJsonTest {
     @TempDir
     lateinit var tempDir: Path
+
+    @Test
+    fun `unknown and incorrectly typed saved callbacks fail during restoration`() {
+        val entity = GameEntity(0)
+        val wrongType = SuperAdapter.registerUse("test.level.wrongThinkType") { _, _, _, _ -> }
+        for (id in listOf("test.level.unregisteredThink", wrongType.iD)) {
+            val snapshot = LevelSaveSnapshots.snapshot(0, entity).copy(thinkActionId = id)
+            val error = assertThrows(IllegalArgumentException::class.java) {
+                LevelSaveSnapshots.apply(entity, snapshot, emptyList(), arrayOf(entity), emptyArray())
+            }
+            assertTrue(error.message!!.contains(id))
+        }
+    }
 
     @Test
     fun levelLocalsAndEntitySnapshotsRoundTripRepresentativeState() {
