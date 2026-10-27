@@ -256,7 +256,8 @@ public class GameImportsImpl implements GameImports {
     /** Overlay this Game's map, mode and rules on the remaining shared server-info settings. */
     public String serverInfo() {
         String info = Cvar.getInstance().Serverinfo();
-        info = Info.Info_SetValueForKey(info, "mapname", mapName);
+        // Never retain another Game's compatibility value if this value cannot fit.
+        info = Info.Info_SetValueForKey(Info.Info_RemoveKey(info, "mapname"), "mapname", mapName);
         info = Info.Info_SetValueForKey(info, "deathmatch", deathmatch.getRawString());
         info = Info.Info_SetValueForKey(info, "coop", coop.getRawString());
         for (String rule : List.of("dmflags", "fraglimit", "timelimit")) {

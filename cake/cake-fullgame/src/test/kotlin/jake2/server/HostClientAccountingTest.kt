@@ -344,6 +344,43 @@ class HostClientAccountingTest {
     }
 
     @Test
+    fun `UDP status reply reports default Games map instead of global map`() {
+        cvars.find<String>("mapname").forceSet("another-game-map")
+        cvars.find<Int>("port").forceSet(0)
+        val loopback = java.net.InetAddress.getByName("127.0.0.1")
+        java.net.DatagramSocket(0, loopback).use { receiver ->
+            receiver.soTimeout = 2000
+            assertTrue(NET.configureServer(true))
+            try {
+                val request = byteArrayOf(-1, -1, -1, -1) + "status".toByteArray()
+                receiver.send(java.net.DatagramPacket(request, request.size, loopback,
+                    NET.ip_sockets[Defines.NS_SERVER]!!.localPort))
+                val response = java.net.DatagramPacket(ByteArray(2048), 2048)
+                // The UDP receive path is nonblocking; allow delivery before pumping it again.
+                val deadline = System.nanoTime() + 2_000_000_000L
+                receiver.soTimeout = 20
+                while (true) {
+                    host.readPackets()
+                    try {
+                        receiver.receive(response)
+                        break
+                    } catch (waiting: java.net.SocketTimeoutException) {
+                        if (System.nanoTime() >= deadline) throw waiting
+                    }
+                }
+                assertEquals(-1, java.nio.ByteBuffer.wrap(response.data).int)
+                val text = String(response.data, 4, response.length - 4)
+                assertTrue(text.startsWith("print\n"))
+                val info = text.substringAfter('\n').substringBefore('\n')
+                assertEquals(first.mapName, Info.Info_ValueForKey(info, "mapname"))
+                assertFalse(text.contains("another-game-map"))
+            } finally {
+                NET.configureServer(false)
+            }
+        }
+    }
+
+    @Test
     fun `remote reconnect uses Host acceptance time across Game frame changes`() {
         // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
         val address = netadr_t().apply { port = 12345 }

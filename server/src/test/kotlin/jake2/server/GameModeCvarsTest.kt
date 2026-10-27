@@ -45,6 +45,14 @@ class GameModeCvarsTest {
         }
 
     @Test
+    fun `unrepresentable map name cannot fall back to another Games map`() {
+        cvars.find<String>("mapname").forceSet("other-map")
+        val oversized = GameImportsImpl(host, ChangeMapInfo("x".repeat(64) + ".pcx", false, false))
+        assertEquals("", jake2.qcommon.Info.Info_ValueForKey(oversized.serverInfo(), "mapname"))
+        assertEquals("other-map", cvars.find<String>("mapname").typedValue)
+    }
+
+    @Test
     fun `local rule edits stay isolated and validate without changing defaults`() {
         val first = game().apply { name = "default" }
         val second = game().apply { name = "other" }
