@@ -56,6 +56,31 @@ class HostSessionPreparationTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
+    fun `deathmatch map and gamemap never create or overwrite autosave`(existingSingleplayerSave: Boolean) {
+        if (existingSingleplayerSave) {
+            assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+            host.stop("start deathmatch", false)
+        }
+        val autosave = root.resolve("save/save0")
+        fun contents(): Map<String, List<Byte>> = if (!Files.exists(autosave)) emptyMap() else
+            Files.walk(autosave).use { paths -> paths.filter(Files::isRegularFile).toList()
+                .associate { autosave.relativize(it).toString() to Files.readAllBytes(it).toList() } }
+        val before = contents()
+        assertEquals(existingSingleplayerSave, before.isNotEmpty())
+        cvars.find<Boolean>("deathmatch").forceSet(true)
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+        assertTrue(host.games.getValue("default").isDeathmatch)
+        assertEquals(before, contents())
+        assertEquals(ServerHost.OperationResult.Completed, host.changeMap("testbox2"))
+        assertEquals("testbox2", host.games.getValue("default").mapName)
+        assertEquals(before, contents())
+        assertEquals(existingSingleplayerSave, Files.exists(autosave))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("manual-dm"))
+        assertFalse(Files.exists(root.resolve("save/manual-dm")))
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
     fun `load after stop prepares saved capacity before Game allocation`(coop: Boolean) {
         save(coop)
         host.stop("test", false)

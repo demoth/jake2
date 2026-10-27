@@ -644,7 +644,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         }
 
         // copy off the level to the autosave slot
-        if (!Globals.dedicated.typedValue) {
+        if (!Globals.dedicated.typedValue && !game.isDeathmatch) {
             game.SV_WriteServerFile(true)
             ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
         }
@@ -1619,7 +1619,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             val replacement = spawnServerInstance(target, previous, routedClients)
             replacement.name = previous.name
             games[replacement.name] = replacement
-            if (!Globals.dedicated.typedValue) {
+            if (!Globals.dedicated.typedValue && !replacement.isDeathmatch) {
                 replacement.SV_WriteServerFile(true)
                 ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
             }

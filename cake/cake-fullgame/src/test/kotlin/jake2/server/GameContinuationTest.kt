@@ -68,6 +68,35 @@ class GameContinuationTest {
     private fun finish(client: ClientNetworkInfo, game: GameImportsImpl) =
         host.executeClientCommand(client, "nextserver ${game.spawncount}")
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `continuation autosave eligibility follows its Game mode`(deathmatch: Boolean) {
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+        val autosave = root.resolve("save/save0")
+        fun contents() = Files.walk(autosave).use { paths -> paths.filter(Files::isRegularFile).toList()
+            .associate { autosave.relativize(it).toString() to Files.readAllBytes(it).toList() } }
+        val before = contents()
+        assertTrue(before.isNotEmpty())
+        host.stop("cinematic", false)
+        val cvars = Cvar.getInstance()
+        cvars.find<Boolean>("deathmatch").forceSet(deathmatch)
+        cvars.find<Int>("maxclients").forceSet(if (deathmatch) 3 else 1)
+        host.resetClients()
+        val cinematic = game("default", "intro.cin+testbox2")
+        // Changed Host defaults must not decide persistence for an existing Game.
+        cvars.find<Boolean>("deathmatch").forceSet(!deathmatch)
+        finish(bind(0, cinematic), cinematic)
+        host.update(100)
+        val replacement = host.games.getValue("default")
+        assertEquals("testbox2", replacement.mapName)
+        assertEquals(deathmatch, replacement.isDeathmatch)
+        if (deathmatch) assertEquals(before, contents()) else {
+            assertNotEquals(before, contents())
+            assertEquals("testbox2", jake2.server.save.ServerSaveJsonStore.forWriteDir(root.toString())
+                .readMapCommand("save0").mapCommand())
+        }
+    }
+
     @Test
     fun `live timelimit ends only its owning Game`() {
         Cvar.getInstance().find<Boolean>("deathmatch").forceSet(true)
