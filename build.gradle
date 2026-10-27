@@ -10,7 +10,7 @@ subprojects {
   apply plugin: 'jacoco'
 
   group = 'org.demoth'
-  version = '1.2.4'
+  version = '1.2.5'
   ext.appName = 'cake'
 
   kotlin {
