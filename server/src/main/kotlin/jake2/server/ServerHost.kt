@@ -1859,12 +1859,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         unreliable.addAll(client.unreliable)
         client.unreliable.clear()
         // send the datagram
-        client.frames[gameImports.frameNum and Defines.UPDATE_MASK].senttime = realtime
-        client.netchan.transmit(unreliable)
+        val sent = client.netchan.transmit(unreliable)
+        if (sent) client.frames[gameImports.frameNum and Defines.UPDATE_MASK].senttime = realtime
 
         // record the size for rate estimation
         client.message_size[frameNum % Defines.RATE_MESSAGES] =
-            unreliable.sumOf { it.size }
+            if (sent) unreliable.sumOf { it.size } else 0
     }
 
     // endregion

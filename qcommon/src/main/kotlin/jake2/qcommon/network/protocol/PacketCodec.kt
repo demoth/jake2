@@ -5,8 +5,22 @@ import jake2.qcommon.network.transport.PacketBytes
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-/** Stateless envelope decoding. No sockets, Cvars, logging, or mutable channel state. */
+/** Stateless envelope encoding/decoding. No sockets, Cvars, logging, or mutable channel state. */
 object PacketCodec {
+    /** Encode the wire header and already-serialized body without changing channel state. */
+    @JvmStatic
+    fun encodeSequenced(sequence: Int, sequenceAck: Int, qport: Int?, payload: PacketBytes): PacketBytes {
+        require(sequence != -1) { "Sequence -1 is reserved for connectionless packets" }
+        require(qport == null || qport in 0..65535) { "Qport out of range" }
+        val headerSize = if (qport == null) 8 else 10
+        require(payload.size <= Defines.MAX_MSGLEN - headerSize) { "Packet exceeds protocol limit" }
+        val writer = ByteBuffer.allocate(headerSize + payload.size).order(ByteOrder.LITTLE_ENDIAN)
+        writer.putInt(sequence).putInt(sequenceAck)
+        if (qport != null) writer.putShort(qport.toShort())
+        writer.put(payload.readOnlyBuffer())
+        return PacketBytes.copyOf(writer.array())
+    }
+
     @JvmStatic
     fun decode(bytes: PacketBytes, direction: PacketDirection): PacketDecodeResult {
         if (bytes.size > Defines.MAX_MSGLEN) return PacketDecodeResult.Rejected(PacketRejection.OVERSIZED)

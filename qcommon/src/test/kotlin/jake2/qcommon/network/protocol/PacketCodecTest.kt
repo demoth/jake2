@@ -54,6 +54,8 @@ class PacketCodecTest {
         assertEquals(if (direction == PacketDirection.FROM_CLIENT) 65534 else null, envelope.qport)
         assertEquals(direction.sequencedHeaderSize, envelope.headerSize)
         assertArrayEquals(wire, envelope.bytes.toByteArray())
+        assertArrayEquals(wire, PacketCodec.encodeSequenced(envelope.sequence, envelope.sequenceAck,
+            envelope.qport, PacketBytes.copyOf(byteArrayOf(0x23, 0x45))).toByteArray())
 
         val source = NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(127, 0, 0, 1)), 27910)
         val packet = NetworkPacket.fromEnvelope(source, envelope)

@@ -540,8 +540,9 @@ class Cake(
     }
 
     private fun transmitAndRecord(unreliable: Collection<NetworkMessage>?) {
-        netchan.transmit(unreliable)
-        networkDebugSampler.recordOutbound(netchan.last_sent_size, Globals.curtime)
+        if (netchan.transmit(unreliable)) {
+            networkDebugSampler.recordOutbound(netchan.last_sent_size, Globals.curtime)
+        }
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {

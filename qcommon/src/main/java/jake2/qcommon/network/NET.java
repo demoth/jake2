@@ -36,6 +36,7 @@ import jake2.qcommon.network.transport.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 
 import static jake2.qcommon.Defines.NS_SERVER;
 
@@ -96,25 +97,30 @@ public final class NET {
         return packet;
     }
 
-    public static void SendPacket(int role, int length, byte[] data, netadr_t to) {
+    public static SendResult SendPacket(int role, int length, byte[] data, netadr_t to) {
+        return sendPacket(role, PacketBytes.copyOf(data, length), to);
+    }
+
+    public static SendResult sendPacket(int role, PacketBytes payload, netadr_t to) {
         if (to.type == NetAddrType.NA_LOOPBACK) {
-            SendLoopPacket(role, length, data, to);
-            return;
+            return localEndpoint(role).send(localEndpoint(role ^ 1).getLocalAddress(), payload);
         }
         UdpDatagramEndpoint endpoint = udpEndpoints[role];
-        if (endpoint == null) return;
+        if (endpoint == null) return new SendResult.Failed(new ClosedChannelException());
         if (to.type != NetAddrType.NA_BROADCAST && to.type != NetAddrType.NA_IP) {
             throw new IllegalArgumentException("NET_SendPacket: unsupported address type " + to.type);
         }
         try {
             NetworkAddress.Udp destination = new NetworkAddress.Udp(
                     IpAddress.fromInetAddress(to.getInetAddress()), to.port);
-            SendResult result = endpoint.send(destination, PacketBytes.copyOf(data, length));
+            SendResult result = endpoint.send(destination, payload);
             if (result instanceof SendResult.Failed failure) {
                 Com.Println("NET_SendPacket ERROR: " + failure.getCause() + " to " + to);
             }
+            return result;
         } catch (IOException | IllegalArgumentException error) {
             Com.Println("NET_SendPacket ERROR: " + error + " to " + to);
+            return new SendResult.Failed(error instanceof IOException io ? io : new IOException(error));
         }
     }
 

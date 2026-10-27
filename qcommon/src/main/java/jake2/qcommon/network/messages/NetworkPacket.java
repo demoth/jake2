@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class NetworkPacket {
+    private PacketEnvelope envelope;
 
     // Long, -1 for connectionless
     public int sequence;
@@ -41,6 +42,7 @@ public class NetworkPacket {
     /** Adapt a validated envelope to the mutable legacy channel/message reader. */
     public static NetworkPacket fromEnvelope(NetworkAddress source, PacketEnvelope envelope) {
         NetworkPacket packet = new NetworkPacket();
+        packet.envelope = envelope;
         packet.buffer.data = envelope.getBytes().toByteArray();
         packet.buffer.cursize = packet.buffer.data.length;
         packet.buffer.maxsize = packet.buffer.data.length;
@@ -68,6 +70,11 @@ public class NetworkPacket {
 
     public boolean isConnectionless() {
         return sequence == -1;
+    }
+
+    public PacketEnvelope.Sequenced sequencedEnvelope() {
+        if (envelope instanceof PacketEnvelope.Sequenced sequenced) return sequenced;
+        throw new IllegalStateException("Connectionless packet has no channel header");
     }
 
     public Collection<ServerMessage> parseBodyFromServer() {
