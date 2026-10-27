@@ -10,6 +10,15 @@ sealed interface MenuIntent {
     data object RequestStateSync : MenuIntent
     data object OpenProfileEditor : MenuIntent
     data object OpenMainMenu : MenuIntent
+    data object OpenLoadGame : MenuIntent
+    data object OpenSaveGame : MenuIntent
+    data object RefreshSavedGames : MenuIntent
+    data class SelectSaveSlot(val profileId: String, val slot: String) : MenuIntent
+    data class LoadGameRequested(val profileId: String, val slot: String) : MenuIntent
+    data class SaveGameRequested(val profileId: String, val slot: String? = null) : MenuIntent
+    data class ConfirmOverwrite(val profileId: String, val slot: String) : MenuIntent
+    data object CancelOverwrite : MenuIntent
+    data object ResumeGame : MenuIntent
     data object OpenMultiplayerMenu : MenuIntent
     data class OpenHostingSetup(val singleplayer: Boolean) : MenuIntent
     data class StartHosting(val singleplayer: Boolean, val form: HostGameFormState) : MenuIntent

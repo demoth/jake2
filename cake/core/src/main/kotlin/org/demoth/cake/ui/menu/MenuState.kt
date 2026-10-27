@@ -1,7 +1,12 @@
 package org.demoth.cake.ui.menu
 
+import org.demoth.cake.hosting.HostSaveAccess
+import org.demoth.cake.hosting.HostSaveEntry
+
 enum class MenuScreen {
     MAIN,
+    LOAD_GAME,
+    SAVE_GAME,
     PROFILE_EDIT,
     MULTIPLAYER,
     SINGLEPLAYER,
@@ -73,6 +78,9 @@ data class OptionsSectionState(
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val canHostGame: Boolean = false,
+    val canResumeGame: Boolean = false,
+    val saveAccess: HostSaveAccess = HostSaveAccess("Save/load is unavailable.", "Save/load is unavailable."),
+    val savedGames: SavedGamesState = SavedGamesState(),
     val singleplayer: HostingSetupState = HostingSetupState(),
     val hostGame: HostingSetupState = HostingSetupState(),
     val mainMenu: MainMenuState = MainMenuState(),
@@ -82,6 +90,14 @@ data class MenuStateSnapshot(
     val playerSetup: PlayerSetupState = PlayerSetupState(),
     val optionsHub: OptionsHubState = OptionsHubState(),
     val optionsSection: OptionsSectionState = OptionsSectionState(),
+)
+
+data class SavedGamesState(
+    val profileId: String = "",
+    val entries: List<HostSaveEntry> = emptyList(),
+    val selectedSlot: String? = null,
+    val pendingOverwriteSlot: String? = null,
+    val statusMessage: String = "",
 )
 
 /** Raw text stays in the form so rejected input can be corrected without losing it. */

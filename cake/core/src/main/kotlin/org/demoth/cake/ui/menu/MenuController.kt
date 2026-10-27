@@ -2,8 +2,14 @@ package org.demoth.cake.ui.menu
 
 import jake2.qcommon.Defines.PORT_SERVER
 import jake2.qcommon.network.netadr_t
+import org.demoth.cake.hosting.*
 
 interface MenuBackend {
+    fun saveAccess(): HostSaveAccess = HostSaveAccess("Save/load is unavailable.", "Save/load is unavailable.")
+    fun listSaves(): HostSaveCatalogResult = HostSaveCatalogResult.Rejected("Save/load is unavailable.")
+    fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult = HostSaveResult.Rejected("Saving is unavailable.")
+    fun loadGame(slot: String): HostSaveResult = HostSaveResult.Rejected("Loading is unavailable.")
+    fun canResumeGame(): Boolean = false
     fun hostMaps(): List<HostMap> = emptyList()
     fun hostingUnavailableReason(): String? = "Hosting requires the Cake fullgame application."
     fun startHosting(singleplayer: Boolean, form: HostGameFormState): String =
@@ -66,6 +72,12 @@ class MenuController(
 
     fun refreshExternalState() {
         if (hostingMapsDirty && state.activeScreen == MenuScreen.HOST_GAME) refreshHostingMaps()
+        if (state.savedGames.profileId != backend.activeProfileId()) {
+            if (isSaveScreen()) refreshSavedGames() else state = state.copy(savedGames = SavedGamesState())
+        }
+        if (backend.saveAccess().saveRejectionReason != null && state.savedGames.pendingOverwriteSlot != null) {
+            state = state.copy(savedGames = state.savedGames.copy(pendingOverwriteSlot = null))
+        }
         refreshState(
             activeScreen = state.activeScreen,
             formOverride = state.profileEditor.form,
@@ -75,6 +87,47 @@ class MenuController(
 
     private fun handleIntent(intent: MenuIntent) {
         when (intent) {
+            MenuIntent.OpenLoadGame, MenuIntent.OpenSaveGame -> {
+                state = state.copy(activeScreen = if (intent == MenuIntent.OpenLoadGame) MenuScreen.LOAD_GAME else MenuScreen.SAVE_GAME)
+                refreshSavedGames()
+                refreshState()
+                bus.postSignal(MenuSignal.ShowMenu)
+            }
+            MenuIntent.RefreshSavedGames -> if (isSaveScreen()) {
+                refreshSavedGames()
+                refreshState()
+            }
+            is MenuIntent.SelectSaveSlot -> if (isCurrentSaveProfile(intent.profileId) &&
+                state.savedGames.entries.any { it.slot == intent.slot }) {
+                state = state.copy(savedGames = state.savedGames.copy(selectedSlot = intent.slot,
+                    pendingOverwriteSlot = null, statusMessage = ""))
+                refreshState()
+            }
+            is MenuIntent.LoadGameRequested -> {
+                if (state.activeScreen != MenuScreen.LOAD_GAME || !isCurrentSaveProfile(intent.profileId)) return
+                val entry = state.savedGames.entries.firstOrNull { it.slot == intent.slot } ?: return
+                val reason = backend.saveAccess().loadRejectionReason ?: entry.loadRejectionReason
+                if (reason != null) saveStatus(reason) else handleSaveResult(backend.loadGame(intent.slot), loading = true)
+            }
+            is MenuIntent.SaveGameRequested -> {
+                if (state.activeScreen != MenuScreen.SAVE_GAME || !isCurrentSaveProfile(intent.profileId)) return
+                val reason = backend.saveAccess().saveRejectionReason
+                if (reason != null) saveStatus(reason) else if (intent.slot == null) {
+                    handleSaveResult(backend.saveGame(null, overwrite = false), loading = false)
+                } else if (state.savedGames.entries.any { it.slot == intent.slot && !it.autosave }) {
+                    state = state.copy(savedGames = state.savedGames.copy(selectedSlot = intent.slot,
+                        pendingOverwriteSlot = intent.slot, statusMessage = "Replace this saved game?"))
+                    refreshState()
+                }
+            }
+            is MenuIntent.ConfirmOverwrite -> {
+                if (state.activeScreen != MenuScreen.SAVE_GAME || !isCurrentSaveProfile(intent.profileId) ||
+                    state.savedGames.pendingOverwriteSlot != intent.slot) return
+                val reason = backend.saveAccess().saveRejectionReason
+                if (reason != null) saveStatus(reason) else handleSaveResult(backend.saveGame(intent.slot, overwrite = true), loading = false)
+            }
+            MenuIntent.CancelOverwrite -> saveStatus("")
+            MenuIntent.ResumeGame -> if (backend.canResumeGame()) bus.postSignal(MenuSignal.CloseMenu)
             is MenuIntent.OpenUiSample -> bus.postSignal(MenuSignal.OpenUiSample(intent.game))
             MenuIntent.CloseUiSample -> bus.postSignal(MenuSignal.CloseUiSample)
             is MenuIntent.CaptureUiSample ->
@@ -354,6 +407,46 @@ class MenuController(
         }
     }
 
+    private fun isSaveScreen() = state.activeScreen == MenuScreen.LOAD_GAME || state.activeScreen == MenuScreen.SAVE_GAME
+
+    private fun isCurrentSaveProfile(profileId: String): Boolean =
+        profileId == backend.activeProfileId() && profileId == state.savedGames.profileId
+
+    private fun refreshSavedGames(selectedSlot: String? = state.savedGames.selectedSlot) {
+        val profileId = backend.activeProfileId()
+        val catalog = backend.listSaves()
+        val entries = (catalog as? HostSaveCatalogResult.Available)?.takeIf { it.profileId == profileId }?.entries.orEmpty()
+        val status = when (catalog) {
+            is HostSaveCatalogResult.Available -> if (catalog.profileId == profileId) "" else "The selected profile changed. Refresh saved games."
+            is HostSaveCatalogResult.Rejected -> catalog.reason
+            is HostSaveCatalogResult.Failed -> "Could not list saved games: ${catalog.reason}"
+        }
+        val selected = selectedSlot?.takeIf { state.savedGames.profileId == profileId && entries.any { entry -> entry.slot == it } }
+            ?: entries.firstOrNull { if (state.activeScreen == MenuScreen.SAVE_GAME) !it.autosave else it.loadRejectionReason == null }?.slot
+            ?: entries.firstOrNull()?.slot
+        state = state.copy(savedGames = SavedGamesState(profileId, entries, selected, statusMessage = status))
+    }
+
+    private fun saveStatus(message: String) {
+        state = state.copy(savedGames = state.savedGames.copy(statusMessage = message, pendingOverwriteSlot = null))
+        refreshState()
+    }
+
+    private fun handleSaveResult(result: HostSaveResult, loading: Boolean) {
+        when (result) {
+            is HostSaveResult.Completed -> {
+                refreshSavedGames(result.slot)
+                saveStatus(if (loading) "Loading game..." else "Game saved.")
+                if (loading) bus.postSignal(MenuSignal.CloseMenu)
+            }
+            is HostSaveResult.Rejected -> saveStatus(result.reason)
+            is HostSaveResult.Failed -> {
+                saveStatus("${if (loading) "Load" else "Save"} failed: ${result.reason}")
+                bus.postSignal(MenuSignal.ShowMenu)
+            }
+        }
+    }
+
     private fun refreshState(
         activeScreen: MenuScreen = state.activeScreen,
         formOverride: ProfileFormState? = null,
@@ -430,6 +523,9 @@ class MenuController(
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             canHostGame = backend.hostingUnavailableReason() == null,
+            canResumeGame = backend.canResumeGame(),
+            saveAccess = backend.saveAccess(),
+            savedGames = state.savedGames,
             singleplayer = state.singleplayer,
             hostGame = state.hostGame,
             mainMenu = mainMenuState,
@@ -458,7 +554,7 @@ class MenuController(
         return when (screen) {
             MenuScreen.MAIN -> 0
             MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS, MenuScreen.SINGLEPLAYER,
-            MenuScreen.CONTENT_BROWSER -> 1
+            MenuScreen.CONTENT_BROWSER, MenuScreen.LOAD_GAME, MenuScreen.SAVE_GAME -> 1
             MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION, MenuScreen.HOST_GAME -> 2
         }
     }

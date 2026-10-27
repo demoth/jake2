@@ -48,6 +48,8 @@ class MenuStages(
         for (screen in MenuScreen.entries) {
             stages[screen] = when (screen) {
                 MenuScreen.MAIN -> MainMenuStage(viewport, menuEventBus, style, showHosting)
+                MenuScreen.LOAD_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = false)
+                MenuScreen.SAVE_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = true)
                 MenuScreen.PROFILE_EDIT -> ProfileEditStage(viewport, menuEventBus, style)
                 MenuScreen.MULTIPLAYER -> MultiplayerMenuStage(viewport, menuEventBus, style, showHosting)
                 MenuScreen.SINGLEPLAYER -> HostingSetupStage(viewport, menuEventBus, style, true)

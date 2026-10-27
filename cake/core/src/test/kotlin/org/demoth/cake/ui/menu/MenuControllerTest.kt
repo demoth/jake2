@@ -5,10 +5,133 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
+import org.demoth.cake.hosting.*
 import org.junit.jupiter.api.Test
 
 /** Checks menu intent navigation and deferred option edits using a local cvar registry. */
 class MenuControllerTest {
+
+    private fun savedEntry(slot: String, reason: String? = null) =
+        HostSaveEntry(slot, "Checkpoint", "base1", 1000L, HostMode.SINGLEPLAYER, reason)
+
+    @Test
+    fun saveCatalogRefreshesOnEntryAndProfileChangeWithoutPerFrameIO() {
+        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("manual")) }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenLoadGame)
+        controller.pumpIntents()
+        repeat(3) { controller.refreshExternalState() }
+        assertEquals(1, backend.saveListReads)
+        assertEquals("manual", bus.latestState().savedGames.selectedSlot)
+        backend.applyProfile("other")
+        backend.saves = emptyList()
+        controller.refreshExternalState()
+        assertEquals(2, backend.saveListReads)
+        assertEquals("other", bus.latestState().savedGames.profileId)
+        assertTrue(bus.latestState().savedGames.entries.isEmpty())
+        bus.postIntent(MenuIntent.LoadGameRequested("default", "manual"))
+        controller.pumpIntents()
+        assertTrue(backend.loads.isEmpty())
+    }
+
+    @Test
+    fun saveRequiresConfirmationAndRejectsStaleProfileAndAutosaveRequests() {
+        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("save0"), savedEntry("manual")) }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        fun post(intent: MenuIntent) { bus.postIntent(intent); controller.pumpIntents() }
+        post(MenuIntent.OpenSaveGame)
+        post(MenuIntent.SaveGameRequested("default", "save0"))
+        assertNull(bus.latestState().savedGames.pendingOverwriteSlot)
+        post(MenuIntent.SaveGameRequested("default", "manual"))
+        assertEquals("manual", bus.latestState().savedGames.pendingOverwriteSlot)
+        assertTrue(backend.savesWritten.isEmpty())
+        post(MenuIntent.CancelOverwrite)
+        post(MenuIntent.ConfirmOverwrite("default", "manual"))
+        assertTrue(backend.savesWritten.isEmpty())
+        post(MenuIntent.SaveGameRequested("default", "manual"))
+        post(MenuIntent.ConfirmOverwrite("default", "manual"))
+        assertEquals(listOf("manual" to true), backend.savesWritten)
+        assertEquals("Game saved.", bus.latestState().savedGames.statusMessage)
+        post(MenuIntent.SaveGameRequested("default", "manual"))
+        backend.applyProfile("other")
+        post(MenuIntent.ConfirmOverwrite("default", "manual"))
+        assertEquals(1, backend.savesWritten.size)
+    }
+
+    @Test
+    fun saveEligibilityIsRecheckedBeforePendingOverwriteAndNewSave() {
+        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("manual")) }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenSaveGame)
+        bus.postIntent(MenuIntent.SaveGameRequested("default", "manual"))
+        controller.pumpIntents()
+        backend.access = HostSaveAccess(null, "Cannot save while dead")
+        bus.postIntent(MenuIntent.ConfirmOverwrite("default", "manual"))
+        controller.pumpIntents()
+        assertEquals("Cannot save while dead", bus.latestState().savedGames.statusMessage)
+        bus.postIntent(MenuIntent.SaveGameRequested("default"))
+        controller.pumpIntents()
+        assertTrue(backend.savesWritten.isEmpty())
+        assertNull(bus.latestState().savedGames.pendingOverwriteSlot)
+    }
+
+    @Test
+    fun loadFailureStaysVisibleAndSuccessClosesMenuOnlyAfterBackendCompletes() {
+        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("manual"), savedEntry("corrupt", "Invalid save")) }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        fun post(intent: MenuIntent): List<MenuSignal> {
+            bus.drainSignals { }
+            bus.postIntent(intent)
+            controller.pumpIntents()
+            return mutableListOf<MenuSignal>().also { result -> bus.drainSignals { result += it } }
+        }
+        assertTrue(post(MenuIntent.OpenLoadGame).contains(MenuSignal.ShowMenu))
+        post(MenuIntent.LoadGameRequested("default", "corrupt"))
+        assertTrue(backend.loads.isEmpty())
+        assertEquals("Invalid save", bus.latestState().savedGames.statusMessage)
+        backend.loadOutcome = HostSaveResult.Failed("Restore failed", java.io.IOException("disk failure"))
+        assertFalse(post(MenuIntent.LoadGameRequested("default", "manual")).contains(MenuSignal.CloseMenu))
+        assertEquals(MenuScreen.LOAD_GAME, bus.latestState().activeScreen)
+        assertEquals("Load failed: Restore failed", bus.latestState().savedGames.statusMessage)
+        backend.loadOutcome = HostSaveResult.Completed("manual")
+        assertTrue(post(MenuIntent.LoadGameRequested("default", "manual")).contains(MenuSignal.CloseMenu))
+        assertEquals(listOf("manual", "manual"), backend.loads)
+    }
+
+    @Test
+    fun saveListFailureAndEmptyCatalogAreDistinctAndRepeatedOpenClearsConfirmation() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenLoadGame)
+        controller.pumpIntents()
+        assertTrue(bus.latestState().savedGames.entries.isEmpty())
+        assertEquals("", bus.latestState().savedGames.statusMessage)
+        backend.catalogFailure = HostSaveCatalogResult.Failed("disk unavailable", java.io.IOException())
+        bus.postIntent(MenuIntent.RefreshSavedGames)
+        controller.pumpIntents()
+        assertEquals("Could not list saved games: disk unavailable", bus.latestState().savedGames.statusMessage)
+        backend.catalogFailure = null
+        backend.saves = listOf(savedEntry("manual"))
+        bus.postIntent(MenuIntent.OpenSaveGame)
+        bus.postIntent(MenuIntent.SaveGameRequested("default", "manual"))
+        controller.pumpIntents()
+        assertEquals("manual", bus.latestState().savedGames.pendingOverwriteSlot)
+        bus.postIntent(MenuIntent.OpenSaveGame)
+        controller.pumpIntents()
+        assertNull(bus.latestState().savedGames.pendingOverwriteSlot)
+    }
 
     @Test
     fun hostingMapsRefreshOnEntryAndInvalidationButNotEveryFrame() {
@@ -447,6 +570,26 @@ class MenuControllerTest {
     }
 
     private class FakeMenuBackend : MenuBackend {
+        var access = HostSaveAccess(null, null)
+        var saves = emptyList<HostSaveEntry>()
+        var saveListReads = 0
+        var catalogFailure: HostSaveCatalogResult? = null
+        var loadOutcome: HostSaveResult = HostSaveResult.Completed("manual")
+        val loads = mutableListOf<String>()
+        val savesWritten = mutableListOf<Pair<String?, Boolean>>()
+        override fun saveAccess() = access
+        override fun listSaves(): HostSaveCatalogResult {
+            saveListReads++
+            return catalogFailure ?: HostSaveCatalogResult.Available(activeProfileId(), saves)
+        }
+        override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {
+            savesWritten += slot to overwrite
+            return HostSaveResult.Completed(slot ?: "new")
+        }
+        override fun loadGame(slot: String): HostSaveResult {
+            loads += slot
+            return loadOutcome
+        }
         var maps = emptyList<HostMap>()
         var mapReads = 0
         override fun hostMaps(): List<HostMap> {

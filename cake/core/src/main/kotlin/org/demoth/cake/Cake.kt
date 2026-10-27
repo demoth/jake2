@@ -382,6 +382,12 @@ class Cake(
         }
 
         Cmd.AddCommand("disconnect", "Disconnect and stop any local server") { disconnect() }
+        Cmd.AddCommand("menu_loadgame", "Open the Load Game menu") {
+            menuEventBus.postIntent(MenuIntent.OpenLoadGame)
+        }
+        Cmd.AddCommand("menu_savegame", "Open the Save Game menu") {
+            menuEventBus.postIntent(MenuIntent.OpenSaveGame)
+        }
 
         Cmd.AddCommand("loading", "(internal) Prepare local map-change presentation") {
             if (host.state != HostState.STOPPED && game3dScreen != null) {
@@ -976,6 +982,16 @@ class Cake(
     private fun drainMenuSignals(maxItems: Int = MenuEventBus.DEFAULT_DRAIN_LIMIT) {
         menuEventBus.drainSignals(maxItems) { signal ->
             when (signal) {
+                MenuSignal.ShowMenu -> {
+                    menuVisible = true
+                    consoleVisible = false
+                    updateInputHandlers(consoleVisible, menuVisible)
+                }
+                MenuSignal.CloseMenu -> {
+                    menuVisible = false
+                    consoleVisible = false
+                    updateInputHandlers(consoleVisible, menuVisible)
+                }
                 is MenuSignal.OpenUiSample -> openUiSample(signal.game)
                 MenuSignal.CloseUiSample -> closeUiSample()
                 is MenuSignal.CaptureUiSample -> {
@@ -1572,6 +1588,21 @@ class Cake(
     }
 
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
+        override fun saveAccess(): HostSaveAccess = host.saveAccess()
+        override fun listSaves(): HostSaveCatalogResult = host.listSaves()
+        override fun canResumeGame(): Boolean = networkState == ACTIVE && game3dScreen != null
+        override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult =
+            finishSaveOperation(host.saveGame(slot, overwrite))
+        override fun loadGame(slot: String): HostSaveResult = finishSaveOperation(host.loadGame(slot))
+
+        private fun finishSaveOperation(result: HostSaveResult): HostSaveResult {
+            if (result is HostSaveResult.Failed && host.state == HostState.STOPPED) {
+                // Late failure sent disconnect packets; clear the old client before presenting the error.
+                disconnect()
+            }
+            return result
+        }
+
         override fun hostingUnavailableReason(): String? = when {
             host.availability != HostAvailability.AVAILABLE -> "Hosting requires Cake fullgame."
             activeGameProfile == null -> "Select a game profile first."

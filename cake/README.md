@@ -133,6 +133,16 @@ The Host Game menu configures these settings for you.
 Saves are stored in `~/.cake/<profileId>/save/`. Console `load <slot>` restores a
 game even while disconnected. `save <slot>` requires an active game.
 
+Fullgame's main menu provides Load Game and Save Game for singleplayer. New Save
+creates a checkpoint; Overwrite asks before replacing a manual save. Autosave is
+listed for loading and reserved against manual overwrite. Save requires a living,
+spawned local player. Loading is available from startup and during singleplayer;
+the singleplayer respawn action opens Load Game automatically.
+
+`menu_loadgame` and `menu_savegame` open those screens from the console. Errors
+remain visible in the menu so an invalid save or failed restore can be retried.
+Deathmatch does not create autosaves. Coop save/load remains console-only.
+
 ## Subsystem Guides
 
 - [Desktop video configuration](cake-client/README.md)

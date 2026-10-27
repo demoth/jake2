@@ -15,6 +15,11 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import org.demoth.cake.stages.HostingSetupStage
+import org.demoth.cake.stages.SavedGamesStage
+import org.demoth.cake.hosting.HostSaveAccess
+import org.demoth.cake.hosting.HostSaveEntry
+import org.demoth.cake.hosting.HostMode
+import org.demoth.cake.ui.menu.SavedGamesState
 import org.demoth.cake.ui.menu.HostMap
 import org.demoth.cake.ui.menu.HostGameFormState
 import org.demoth.cake.ui.menu.HostingSetupState
@@ -65,6 +70,7 @@ class MenuStagesGlTest {
         val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false) { null }
         try {
             verifyHostMapSelection(viewport, style)
+            verifySavedGames(viewport, style)
             menus.rebuild(style)
             val main = menus.inputProcessor
             assertFalse(menus.select(MenuScreen.MAIN))
@@ -137,6 +143,48 @@ class MenuStagesGlTest {
             assertTrue(start.isDisabled)
             assertTrue(dropdown.isDisabled)
             assertTrue(labels(stage.root).contains("No maps found"))
+        } finally {
+            stage.dispose()
+        }
+    }
+
+    private fun verifySavedGames(viewport: UiViewport, style: GameUiStyle) {
+        val entries = listOf(
+            HostSaveEntry("save0", "Autosave", "base1", 1000L, HostMode.SINGLEPLAYER, null),
+            HostSaveEntry("manual", "Checkpoint", "base2", 2000L, HostMode.SINGLEPLAYER, null),
+        )
+        val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.SAVE_GAME,
+            canResumeGame = true, saveAccess = HostSaveAccess(null, null),
+            savedGames = SavedGamesState("profile", entries, "save0")))
+        val stage = SavedGamesStage(viewport, bus, style, saving = true)
+        try {
+            stage.act(0f)
+            stage.draw()
+            val primary = stage.root.findActor<TextButton>("save-new")
+            val overwrite = stage.root.findActor<TextButton>("save-overwrite")
+            assertFalse(primary.isDisabled)
+            assertTrue(overwrite.isDisabled)
+            bus.postState(bus.latestState().copy(savedGames = bus.latestState().savedGames.copy(
+                selectedSlot = "manual", pendingOverwriteSlot = "manual", statusMessage = "Replace this saved game?")))
+            stage.act(0f)
+            stage.draw()
+            assertTrue(primary.isDisabled)
+            assertTrue(overwrite.isDisabled)
+            val confirm = stage.root.findActor<TextButton>("confirm-overwrite")
+            val position = confirm.localToStageCoordinates(com.badlogic.gdx.math.Vector2())
+            assertTrue(confirm.width > 0 && confirm.height > 0)
+            assertTrue(position.y >= 0 && position.y + confirm.height <= viewport.worldHeight)
+            confirm.listeners.filterIsInstance<ClickListener>().forEach { it.clicked(InputEvent(), 0f, 0f) }
+            val intents = mutableListOf<MenuIntent>()
+            bus.drainIntents { intents += it }
+            assertTrue(intents.contains(MenuIntent.ConfirmOverwrite("profile", "manual")))
+            assertTrue(stage.keyUp(Input.Keys.ESCAPE))
+            bus.drainIntents { intents += it }
+            assertEquals(MenuIntent.CancelOverwrite, intents.last())
+            bus.postState(bus.latestState().copy(savedGames = SavedGamesState("other")))
+            stage.act(0f)
+            assertTrue(overwrite.isDisabled)
+            assertTrue(labels(stage.root).contains("No saved games for this profile."))
         } finally {
             stage.dispose()
         }
