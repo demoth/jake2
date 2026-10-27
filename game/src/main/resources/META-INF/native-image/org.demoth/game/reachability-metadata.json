@@ -1,0 +1,328 @@
+{
+  "reflection": [
+    {
+      "type": "jake2.game.adapters.AIAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntBlockedAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntDieAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntDodgeAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntInteractAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntPainAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntThinkAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntTouchAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.EntUseAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.ItemDropAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.ItemUseAdapter"
+    },
+    {
+      "type": "jake2.game.adapters.SuperAdapter"
+    },
+    {
+      "type": "jake2.game.PlayerWeapon"
+    },
+    {
+      "type": "jake2.game.EdictIterator"
+    },
+    {
+      "type": "jake2.game.EdictFindFilter"
+    },
+    {
+      "type": "jake2.game.GameAI"
+    },
+    {
+      "type": "jake2.game.GameBase"
+    },
+    {
+      "type": "jake2.game.GameChase"
+    },
+    {
+      "type": "jake2.game.GameCombat"
+    },
+    {
+      "type": "jake2.game.GameMisc"
+    },
+    {
+      "type": "jake2.game.GameSpawn"
+    },
+    {
+      "type": "jake2.game.GameUtil"
+    },
+    {
+      "type": "jake2.game.GameWeapon"
+    },
+    {
+      "type": "jake2.qcommon.Info"
+    },
+    {
+      "type": "jake2.game.Monster"
+    },
+    {
+      "type": "jake2.game.PlayerClient"
+    },
+    {
+      "type": "jake2.game.PlayerHud"
+    },
+    {
+      "type": "jake2.game.PlayerTrail"
+    },
+    {
+      "type": "jake2.game.PlayerView"
+    },
+    {
+      "type": "jake2.game.monsters.M_Berserk"
+    },
+    {
+      "type": "jake2.game.monsters.M_Hornet"
+    },
+    {
+      "type": "jake2.game.monsters.M_Makron_Idle"
+    },
+    {
+      "type": "jake2.game.monsters.M_Makron_Jorg"
+    },
+    {
+      "type": "jake2.game.monsters.M_Makron"
+    },
+    {
+      "type": "jake2.game.monsters.M_Brain"
+    },
+    {
+      "type": "jake2.game.monsters.M_Chick"
+    },
+    {
+      "type": "jake2.qcommon.M_Flash"
+    },
+    {
+      "type": "jake2.game.monsters.M_Flipper"
+    },
+    {
+      "type": "jake2.game.monsters.M_Float"
+    },
+    {
+      "type": "jake2.game.monsters.M_Flyer"
+    },
+    {
+      "type": "jake2.game.monsters.M_Gladiator"
+    },
+    {
+      "type": "jake2.game.monsters.M_Gunner"
+    },
+    {
+      "type": "jake2.game.monsters.M_Hover"
+    },
+    {
+      "type": "jake2.game.monsters.M_Infantry"
+    },
+    {
+      "type": "jake2.game.monsters.M_Insane"
+    },
+    {
+      "type": "jake2.game.monsters.M_Medic"
+    },
+    {
+      "type": "jake2.game.monsters.M_Mutant"
+    },
+    {
+      "type": "jake2.game.monsters.M_Parasite"
+    },
+    {
+      "type": "jake2.game.monsters.M_Player"
+    },
+    {
+      "type": "jake2.game.monsters.M_Soldier"
+    },
+    {
+      "type": "jake2.game.monsters.M_Supertank"
+    },
+    {
+      "type": "jake2.game.monsters.M_Tank"
+    },
+    {
+      "type": "jake2.game.items.GameItems"
+    },
+    {
+      "type": "jake2.game.LightKt"
+    },
+    {
+      "type": "jake2.game.TriggersKt"
+    },
+    {
+      "type": "jake2.game.PathKt"
+    },
+    {
+      "type": "jake2.game.InfoEntitiesKt"
+    },
+    {
+      "type": "jake2.game.TurretKt"
+    },
+    {
+      "type": "jake2.game.TargetEntitiesKt"
+    },
+    {
+      "type": "jake2.game.MiscEntitiesKt"
+    },
+    {
+      "type": "jake2.game.func.Func_commonKt"
+    },
+    {
+      "type": "jake2.game.func.Func_objectKt"
+    },
+    {
+      "type": "jake2.game.func.AreaportalKt"
+    },
+    {
+      "type": "jake2.game.func.ClockKt"
+    },
+    {
+      "type": "jake2.game.func.DoorKt"
+    },
+    {
+      "type": "jake2.game.func.ButtonKt"
+    },
+    {
+      "type": "jake2.game.func.ConveyorKt"
+    },
+    {
+      "type": "jake2.game.func.RotatingKt"
+    },
+    {
+      "type": "jake2.game.func.PlatKt"
+    },
+    {
+      "type": "jake2.game.func.TrainKt"
+    },
+    {
+      "type": "jake2.game.func.KillboxKt"
+    },
+    {
+      "type": "jake2.game.func.WallKt"
+    },
+    {
+      "type": "jake2.game.func.TimerKt"
+    },
+    {
+      "type": "jake2.game.func.ExplosiveKt"
+    },
+    {
+      "type": "jake2.game.GamePlayerSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.GameSaveFileSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.EntityStateSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.MonsterFrameSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.MonsterMoveSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.MonsterInfoSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.LevelLocalsSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.LevelEntitySnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.LevelSaveFileSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.EntityComponentsSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.components.MoveInfoSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.components.Medkit",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.components.Light",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.components.LightRamp",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.components.AreaPortal",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.components.Earthquake",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.game.func.MovementState",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    }
+  ]
+}

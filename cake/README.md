@@ -96,6 +96,7 @@ experimental native executable:
 ```sh
 ./gradlew -PenableGraalNative=true :cake:cake-client:nativeCompile
 ./gradlew -PenableGraalNative=true :cake:cake-viewer:nativeCompile
+./gradlew -PenableGraalNative=true :cake:cake-fullgame:nativeCompile
 ```
 
 These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
@@ -103,9 +104,13 @@ that installation; Gradle can continue running on the regular project JDK.
 Native resources are detected from the runtime classpath, including repository
 assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
 All three launchers use the shared native configuration and explicit reflection
-metadata for audio and Scene2D skin/pool classes. Native compilation and basic
-startup are verified on Linux ARM64; fullgame hosting and save/load still need
-runtime validation.
+metadata for audio and Scene2D skin/pool classes. The `game` module supplies
+type registrations for its callback preload list; keep these aligned with
+`GameExportsImpl.preloadclasslist`. The `qcommon`, `server`, and `game` modules
+also register their save DTOs for Jackson reflection.
+Native compilation, basic startup, local map transitions, and console save/load
+are verified on Linux ARM64. Multiplayer hosting still needs native runtime
+validation.
 
 ## Playing and hosting
 
