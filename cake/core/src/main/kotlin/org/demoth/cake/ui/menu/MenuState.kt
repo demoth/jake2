@@ -79,7 +79,6 @@ data class OptionsSectionState(
 data class MenuStateSnapshot(
     val activeScreen: MenuScreen = MenuScreen.MAIN,
     val canHostGame: Boolean = false,
-    val canResumeGame: Boolean = false,
     val saveAccess: HostSaveAccess = HostSaveAccess("Save/load is unavailable.", "Save/load is unavailable."),
     val savedGames: SavedGamesState = SavedGamesState(),
     val singleplayer: HostingSetupState = HostingSetupState(),

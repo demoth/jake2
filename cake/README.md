@@ -136,6 +136,7 @@ game even while disconnected. `save <slot>` requires an active game.
 Fullgame's Singleplayer submenu contains New Game, Load Game and Save Game.
 New Game opens difficulty selection. The submenu stays accessible during play,
 with each action enabled when eligible; Back from these screens returns there.
+Escape goes back through the menus and returns to gameplay from the main menu.
 New Save
 creates a checkpoint; Overwrite asks before replacing a manual save. Autosave is
 listed for loading and reserved against manual overwrite. Save requires a living,

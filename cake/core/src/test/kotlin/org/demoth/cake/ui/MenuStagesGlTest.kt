@@ -157,7 +157,7 @@ class MenuStagesGlTest {
             HostSaveEntry("manual", "Checkpoint", "base2", 2000L, HostMode.SINGLEPLAYER, null),
         )
         val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.SAVE_GAME,
-            canResumeGame = true, saveAccess = HostSaveAccess(null, null),
+            saveAccess = HostSaveAccess(null, null),
             savedGames = SavedGamesState("profile", entries, "save0")))
         val stage = SavedGamesStage(viewport, bus, style, saving = true)
         try {
@@ -197,7 +197,7 @@ class MenuStagesGlTest {
     }
 
     private fun verifySingleplayerHub(viewport: UiViewport, style: GameUiStyle) {
-        val bus = MenuEventBus(MenuStateSnapshot(canHostGame = false, canResumeGame = true,
+        val bus = MenuEventBus(MenuStateSnapshot(canHostGame = false,
             saveAccess = HostSaveAccess(null, null)))
         val main = MainMenuStage(viewport, bus, style, showHosting = true)
         val hub = SingleplayerMenuStage(viewport, bus, style)
@@ -212,7 +212,7 @@ class MenuStagesGlTest {
             assertTrue(hub.root.findActor<TextButton>("new-game-menu").isDisabled)
             assertFalse(hub.root.findActor<TextButton>("load-game-menu").isDisabled)
             assertFalse(hub.root.findActor<TextButton>("save-game-menu").isDisabled)
-            bus.postState(bus.latestState().copy(canHostGame = true, canResumeGame = false,
+            bus.postState(bus.latestState().copy(canHostGame = true,
                 saveAccess = HostSaveAccess(null, "Start a game first")))
             hub.act(0f)
             assertFalse(hub.root.findActor<TextButton>("new-game-menu").isDisabled)

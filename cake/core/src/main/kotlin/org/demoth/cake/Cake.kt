@@ -1590,7 +1590,6 @@ class Cake(
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
         override fun saveAccess(): HostSaveAccess = host.saveAccess()
         override fun listSaves(): HostSaveCatalogResult = host.listSaves()
-        override fun canResumeGame(): Boolean = networkState == ACTIVE && game3dScreen != null
         override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult =
             finishSaveOperation(host.saveGame(slot, overwrite))
         override fun loadGame(slot: String): HostSaveResult = finishSaveOperation(host.loadGame(slot))

@@ -21,9 +21,6 @@ class SingleplayerMenuStage(
     private val save = createMenuButton("Save Game", style.menuWidgets.button) {
         menuEventBus.postIntent(MenuIntent.OpenSaveGame)
     }.apply { name = "save-game-menu" }
-    private val resume = createMenuButton("Resume Game", style.menuWidgets.button) {
-        menuEventBus.postIntent(MenuIntent.ResumeGame)
-    }
 
     init {
         addActor(createHubMenuTable().apply {
@@ -31,7 +28,6 @@ class SingleplayerMenuStage(
             add(newGame).row()
             add(load).row()
             add(save).row()
-            add(resume).row()
             add(createBackButton(style = style.menuWidgets.button)).row()
         })
     }
@@ -42,6 +38,5 @@ class SingleplayerMenuStage(
         newGame.isDisabled = !state.canHostGame
         load.isDisabled = state.saveAccess.loadRejectionReason != null
         save.isDisabled = state.saveAccess.saveRejectionReason != null
-        resume.isDisabled = !state.canResumeGame
     }
 }

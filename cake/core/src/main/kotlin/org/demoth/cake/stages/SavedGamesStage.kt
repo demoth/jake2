@@ -55,9 +55,6 @@ class SavedGamesStage(
             menuEventBus.postIntent(MenuIntent.CancelOverwrite)
         }.apply { name = "cancel-overwrite" }).pad(4f)
     }
-    private val resume = createMenuButton("Resume Game", style.menuWidgets.button) {
-        menuEventBus.postIntent(MenuIntent.ResumeGame)
-    }
 
     init {
         slots.addListener(object : ChangeListener() {
@@ -80,7 +77,7 @@ class SavedGamesStage(
             row()
             add(confirmation).colspan(2).row()
             add(status).colspan(2).width(560f).row()
-            add(resume); add(createBackButton(style = style.menuWidgets.button)).row()
+            add(createBackButton(style = style.menuWidgets.button)).colspan(2).row()
         }
         addCenteredForm(root, style.menuWidgets.scrollPane)
     }
@@ -106,7 +103,6 @@ class SavedGamesStage(
         overwrite.isDisabled = pending || reason != null || selected == null || selected.autosave
         confirmation.isVisible = pending
         confirmation.cells.forEach { it.height(if (pending) 68f else 0f) }
-        resume.isDisabled = !snapshot.canResumeGame
         detail.setText(when {
             state.entries.isEmpty() -> "No saved games for this profile."
             saving && selected?.autosave == true -> "Autosave is reserved. Choose New Save or another slot."

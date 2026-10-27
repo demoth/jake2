@@ -19,7 +19,6 @@ sealed interface MenuIntent {
     data class SaveGameRequested(val profileId: String, val slot: String? = null) : MenuIntent
     data class ConfirmOverwrite(val profileId: String, val slot: String) : MenuIntent
     data object CancelOverwrite : MenuIntent
-    data object ResumeGame : MenuIntent
     data object OpenMultiplayerMenu : MenuIntent
     data class OpenHostingSetup(val singleplayer: Boolean) : MenuIntent
     data class StartHosting(val singleplayer: Boolean, val form: HostGameFormState) : MenuIntent

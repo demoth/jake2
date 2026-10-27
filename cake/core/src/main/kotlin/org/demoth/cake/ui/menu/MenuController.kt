@@ -9,7 +9,6 @@ interface MenuBackend {
     fun listSaves(): HostSaveCatalogResult = HostSaveCatalogResult.Rejected("Save/load is unavailable.")
     fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult = HostSaveResult.Rejected("Saving is unavailable.")
     fun loadGame(slot: String): HostSaveResult = HostSaveResult.Rejected("Loading is unavailable.")
-    fun canResumeGame(): Boolean = false
     fun hostMaps(): List<HostMap> = emptyList()
     fun hostingUnavailableReason(): String? = "Hosting requires the Cake fullgame application."
     fun startHosting(singleplayer: Boolean, form: HostGameFormState): String =
@@ -127,7 +126,6 @@ class MenuController(
                 if (reason != null) saveStatus(reason) else handleSaveResult(backend.saveGame(intent.slot, overwrite = true), loading = false)
             }
             MenuIntent.CancelOverwrite -> saveStatus("")
-            MenuIntent.ResumeGame -> if (backend.canResumeGame()) bus.postSignal(MenuSignal.CloseMenu)
             is MenuIntent.OpenUiSample -> bus.postSignal(MenuSignal.OpenUiSample(intent.game))
             MenuIntent.CloseUiSample -> bus.postSignal(MenuSignal.CloseUiSample)
             is MenuIntent.CaptureUiSample ->
@@ -526,7 +524,6 @@ class MenuController(
         state = MenuStateSnapshot(
             activeScreen = activeScreen,
             canHostGame = backend.hostingUnavailableReason() == null,
-            canResumeGame = backend.canResumeGame(),
             saveAccess = backend.saveAccess(),
             savedGames = state.savedGames,
             singleplayer = state.singleplayer,
