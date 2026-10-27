@@ -92,10 +92,6 @@ class MenuController(
                 refreshState(activeScreen = if (intent == MenuIntent.OpenLoadGame) MenuScreen.LOAD_GAME else MenuScreen.SAVE_GAME)
                 bus.postSignal(MenuSignal.ShowMenu)
             }
-            MenuIntent.RefreshSavedGames -> if (isSaveScreen()) {
-                refreshSavedGames()
-                refreshState()
-            }
             is MenuIntent.SelectSaveSlot -> if (isCurrentSaveProfile(intent.profileId) &&
                 state.savedGames.entries.any { it.slot == intent.slot }) {
                 state = state.copy(savedGames = state.savedGames.copy(selectedSlot = intent.slot,
@@ -418,7 +414,7 @@ class MenuController(
         val catalog = backend.listSaves()
         val entries = (catalog as? HostSaveCatalogResult.Available)?.takeIf { it.profileId == profileId }?.entries.orEmpty()
         val status = when (catalog) {
-            is HostSaveCatalogResult.Available -> if (catalog.profileId == profileId) "" else "The selected profile changed. Refresh saved games."
+            is HostSaveCatalogResult.Available -> if (catalog.profileId == profileId) "" else "The selected profile changed. Reopen this menu."
             is HostSaveCatalogResult.Rejected -> catalog.reason
             is HostSaveCatalogResult.Failed -> "Could not list saved games: ${catalog.reason}"
         }

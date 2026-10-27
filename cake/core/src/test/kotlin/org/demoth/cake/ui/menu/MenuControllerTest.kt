@@ -143,7 +143,7 @@ class MenuControllerTest {
         assertTrue(bus.latestState().savedGames.entries.isEmpty())
         assertEquals("", bus.latestState().savedGames.statusMessage)
         backend.catalogFailure = HostSaveCatalogResult.Failed("disk unavailable", java.io.IOException())
-        bus.postIntent(MenuIntent.RefreshSavedGames)
+        bus.postIntent(MenuIntent.OpenLoadGame)
         controller.pumpIntents()
         assertEquals("Could not list saved games: disk unavailable", bus.latestState().savedGames.statusMessage)
         backend.catalogFailure = null

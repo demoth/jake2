@@ -13,7 +13,6 @@ sealed interface MenuIntent {
     data object OpenSingleplayerMenu : MenuIntent
     data object OpenLoadGame : MenuIntent
     data object OpenSaveGame : MenuIntent
-    data object RefreshSavedGames : MenuIntent
     data class SelectSaveSlot(val profileId: String, val slot: String) : MenuIntent
     data class LoadGameRequested(val profileId: String, val slot: String) : MenuIntent
     data class SaveGameRequested(val profileId: String, val slot: String? = null) : MenuIntent

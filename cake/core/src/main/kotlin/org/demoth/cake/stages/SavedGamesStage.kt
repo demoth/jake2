@@ -70,10 +70,8 @@ class SavedGamesStage(
             add(profile).colspan(2).row()
             add(slots).colspan(2).width(560f).row()
             add(detail).colspan(2).width(560f).row()
-            add(primary)
-            if (saving) add(overwrite) else add(createMenuButton("Refresh", style.menuWidgets.button) {
-                menuEventBus.postIntent(MenuIntent.RefreshSavedGames)
-            })
+            add(primary).colspan(if (saving) 1 else 2)
+            if (saving) add(overwrite)
             row()
             add(confirmation).colspan(2).row()
             add(status).colspan(2).width(560f).row()
