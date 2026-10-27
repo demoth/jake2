@@ -7,7 +7,6 @@ import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.longjmpException;
-import jake2.qcommon.sys.Sys;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 import jake2.server.ServerHost;
@@ -20,7 +19,6 @@ import static jake2.qcommon.MainCommon.debugLogTraces;
 
 public class Jake2Dedicated {
 
-    @SuppressWarnings("deprecation")
     public static void main(String[] args) {
 
 
@@ -33,7 +31,6 @@ public class Jake2Dedicated {
         if (argc > 1) {
             System.arraycopy(args, 0, c_args, 1, argc - 1);
         }
-        ServerHost serverMain = null;
         try {
 
             // prepare enough of the subsystems to handle
@@ -59,24 +56,27 @@ public class Jake2Dedicated {
             // init commands and vars
 
             Netchan.Netchan_Init();
-            serverMain = new ServerHost();	//ok
+            runHost(args1);
+        } catch (longjmpException e) {
+            throw new IllegalStateException("Error during dedicated initialization", e);
+        }
+    }
 
-            // add + commands from command line
-            if (Cbuf.AddLateCommands(args1)) {
+    /** Own the Host through late-command startup and the loop, including exceptional exits. */
+    static void runHost(List<String> args) {
+        try (ServerHost host = new ServerHost()) {
+            if (Cbuf.AddLateCommands(args)) {
                 Cbuf.AddText("dedicated_start\n");
                 Cbuf.Execute();
             }
-
             Com.Printf("====== Quake2 Initialized ======\n\n");
-
-            // save config when configuration is completed
-
-        } catch (longjmpException e) {
-            Sys.Error("Error during initialization");
+            runLoop(host);
         }
+    }
 
+    private static void runLoop(ServerHost host) {
         int oldtime = Timer.Milliseconds();
-        while (true) {
+        while (!Thread.currentThread().isInterrupted()) {
             // find time spending rendering last frame
             int newtime = Timer.Milliseconds();
             int time = newtime - oldtime;
@@ -90,7 +90,8 @@ public class Jake2Dedicated {
 
                     Cbuf.Execute();
 
-                    serverMain.update(adjustedTime);
+                    // A command can request orderly termination by interrupting the loop thread.
+                    if (!Thread.currentThread().isInterrupted()) host.update(adjustedTime);
 
                 } catch (longjmpException e) {
                     Com.DPrintf("longjmp exception:" + e);
