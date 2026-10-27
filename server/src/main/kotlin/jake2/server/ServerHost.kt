@@ -1208,27 +1208,27 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     /**
-     * Called when the player is totally leaving the server, either willingly or
-     * unwillingly. This is NOT called if the entire server is quiting or
-     * crashing.
+     * End one connection, retaining its channel and routing for disconnect retransmission.
+     * Release connection resources even if gameplay fails; callers handle Game failures
+     * after unwinding their iteration. Repeated drops must not repeat gameplay callbacks.
      */
     fun dropClient(client: ClientNetworkInfo) {
-        // add the disconnect
-        client.netchan.reliablePending.add(DisconnectMessage())
-
-        if (client.state == ClientStates.CS_SPAWNED) {
-            // call the prog function for removing a client
-            // this will remove the body, among other things
-            games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
-        }
-
-        if (client.download != null) {
+        if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE) return
+        try {
+            client.netchan.reliablePending.add(DisconnectMessage())
+            if (client.state == ClientStates.CS_SPAWNED) {
+                games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
+            }
+        } finally {
             client.download = null
+            client.downloadsize = 0
+            client.downloadcount = 0
+            client.unreliable.clear()
+            client.edict = null
+            client.lastmessage = realtime // start the zombie grace period on the Host clock
+            client.state = ClientStates.CS_ZOMBIE
+            client.name = ""
         }
-
-        client.lastmessage = realtime // start the zombie grace period on the Host clock
-        client.state = ClientStates.CS_ZOMBIE // become free in a few seconds
-        client.name = ""
     }
 
     // endregion
@@ -1355,6 +1355,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             } else {
                 Com.Printf("SV_ReadClientMessage: unknown command: " + msg.type + "\n")
                 dropClient(cl)
+                return // Never execute the remainder of a rejected packet.
             }
         }
     }
@@ -1880,7 +1881,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // print directly, because the dropped client won't get the
         // SV_BroadcastPrintf message
         client.queuePrint(Defines.PRINT_HIGH, "You were kicked from the game\n")
-        dropClient(client)
+        withGameFailureBoundary { dropClient(client) }
     }
 
     private fun printStatus() {

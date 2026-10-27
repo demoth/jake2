@@ -128,6 +128,93 @@ class HostClientAccountingTest {
     }
 
     @Test
+    fun `failed disconnect callback still releases connection and is not repeated`() {
+        val client = bind(0, first)
+        val peer = bind(1, first)
+        client.state = ClientStates.CS_SPAWNED
+        client.download = byteArrayOf(1)
+        client.downloadsize = 1
+        client.downloadcount = 1
+        client.unreliable.add(jake2.qcommon.network.messages.server.StuffTextMessage("stale"))
+        val failure = IllegalStateException("broken callback")
+        var callbacks = 0
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun ClientDisconnect(ent: ServerEntity) {
+                callbacks++
+                throw failure
+            }
+        }
+        assertSame(failure, assertThrows(IllegalStateException::class.java) { host.dropClient(client) })
+        assertEquals(ClientStates.CS_ZOMBIE, client.state)
+        assertNull(client.download)
+        assertEquals(0, client.downloadsize)
+        assertEquals(0, client.downloadcount)
+        assertNull(client.edict)
+        assertTrue(client.unreliable.isEmpty())
+        assertEquals(first.name, client.gameName, "Zombie routing remains until disconnect is delivered")
+        assertEquals(ClientStates.CS_CONNECTED, peer.state)
+        host.dropClient(client)
+        assertEquals(1, callbacks)
+    }
+
+    @Test
+    fun `reliable overflow disconnects only offending connection and peers still receive messages`() {
+        val client = bind(0, first)
+        val peer = bind(1, first)
+        client.netchan.reliablePending.add(
+            jake2.qcommon.network.messages.server.StuffTextMessage("x".repeat(Defines.MAX_MSGLEN)))
+        peer.netchan.reliablePending.add(jake2.qcommon.network.messages.server.StuffTextMessage("peer"))
+        val previousSequence = peer.netchan.outgoing_sequence
+        host.sendClientMessages()
+        assertEquals(ClientStates.CS_ZOMBIE, client.state)
+        assertEquals(ClientStates.CS_CONNECTED, peer.state)
+        assertTrue(peer.netchan.outgoing_sequence > previousSequence)
+        assertSame(first, host.games[first.name])
+        assertSame(second, host.games[second.name])
+    }
+
+    @Test
+    fun `rejected client packet cannot execute trailing commands`() {
+        val client = bind(0, first)
+        val peer = bind(1, first)
+        val invalid = object : jake2.qcommon.network.messages.client.ClientMessage(
+            jake2.qcommon.network.messages.client.ClientMessageType.CLC_BAD) {
+            override fun writeProperties(buffer: sizebuf_t) = Unit
+            override fun parse(buffer: sizebuf_t) = Unit
+            override fun getSize() = 1
+        }
+        host.handleClientMessages(client, listOf(invalid,
+            jake2.qcommon.network.messages.client.UserInfoMessage("\\name\\must_not_apply")))
+        assertEquals(ClientStates.CS_ZOMBIE, client.state)
+        assertEquals("", client.userinfo)
+        assertEquals(ClientStates.CS_CONNECTED, peer.state)
+        assertSame(first, host.games[first.name])
+    }
+
+    @Test
+    fun `console kick escalates gameplay failure to its Game and continues command buffer`() {
+        val client = bind(0, first)
+        val other = bind(1, second)
+        client.state = ClientStates.CS_SPAWNED
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun ClientDisconnect(ent: ServerEntity) { first.error("disconnect failed") }
+        }
+        var continued = false
+        jake2.qcommon.exec.Cmd.AddCommand("test_after_kick") { continued = true }
+        try {
+            jake2.qcommon.exec.Cbuf.AddText("kick 0; test_after_kick")
+            jake2.qcommon.exec.Cbuf.Execute()
+            assertTrue(continued)
+            assertFalse(host.games.containsKey(first.name))
+            assertEquals(ClientStates.CS_FREE, client.state)
+            assertSame(second, host.games[second.name])
+            assertEquals(ClientStates.CS_CONNECTED, other.state)
+        } finally {
+            jake2.qcommon.exec.Cmd.RemoveCommand("test_after_kick")
+        }
+    }
+
+    @Test
     fun `snapshots use Game identity but Host send time and rate bucket`() {
         val client = bind(0, first)
         client.state = ClientStates.CS_SPAWNED
