@@ -24,9 +24,7 @@ package jake2.server
 import jake2.qcommon.*
 import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
-import jake2.qcommon.network.NET
 import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.*
@@ -40,6 +38,7 @@ import jake2.server.save.ServerSaveJsonStore
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
 class ServerHost @JvmOverloads constructor(
+    private val network: ServerNetwork = LegacyServerNetwork,
     private val startupRejection: () -> String? = { null },
 ) : AutoCloseable {
     // region Host state and command dispatch
@@ -297,8 +296,10 @@ class ServerHost @JvmOverloads constructor(
 
     /** Release this manager's console hooks after ending its last session.  */
     override fun close() {
-        commands.use {
-            stop("Server stopped\n", false)
+        network.use {
+            commands.use {
+                stop("Server stopped\n", false)
+            }
         }
     }
 
@@ -323,9 +324,7 @@ class ServerHost @JvmOverloads constructor(
             challengeOrder = 0
             // Ordinary queued commands may start the next session (killserver; gamemap ...).
             Cbuf.ClearDeferred()
-            NET.configureServer(false)
-            // Keep outgoing final messages available to the local client.
-            NET.clearLoopback(Defines.NS_SERVER)
+            network.stop()
         }
     }
 
@@ -373,7 +372,7 @@ class ServerHost @JvmOverloads constructor(
 
         // Clear all clients
         clients = MutableList(max) {
-            ClientNetworkInfo().apply { lastcmd = usercmd_t() }
+            ClientNetworkInfo(network.newChannel()).apply { lastcmd = usercmd_t() }
         }
     }
 
@@ -392,7 +391,7 @@ class ServerHost @JvmOverloads constructor(
             Cvar.getInstance().find<Int>("maxclients").forceSet(savedMaxClients)
             savedMaxClients > 1
         }
-        check(NET.configureServer(multiplayer)) { "Could not open the server UDP port" }
+        check(network.configure(multiplayer)) { "Could not open the server UDP port" }
         if (savedMaxClients == null || clients.size != savedMaxClients) resetClients()
     }
 
@@ -825,7 +824,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (delay > 0) {
             // Bound the dedicated sleep while waiting for the next scheduled tick.
             delay = delay.coerceAtMost(100)
-            NET.Sleep(delay.toInt())
+            network.sleep(delay.toInt())
             return
         }
 
@@ -1020,8 +1019,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val version = if (args.size >= 2) Lib.atoi(args[1]) else 0
 
         if (version != Defines.PROTOCOL_VERSION) {
-            Netchan.sendConnectionlessPacket(
-                Defines.NS_SERVER, adr, ConnectionlessCommand.print,
+            network.sendConnectionless(adr, ConnectionlessCommand.print,
                 "\nServer is version " + Globals.VERSION + "\n"
             )
             Com.DPrintf("    rejected connect from version $version\n")
@@ -1043,9 +1041,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 if (adr.CompareBaseAdr(challenges[j].adr)) {
                     if (challenge == challenges[j].challenge) break // good
 
-                    Netchan.sendConnectionlessPacket(
-                        Defines.NS_SERVER,
-                        adr,
+                    network.sendConnectionless(adr,
                         ConnectionlessCommand.print,
                         "\nBad challenge.\n"
                     )
@@ -1054,9 +1050,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 j++
             }
             if (j == Defines.MAX_CHALLENGES) {
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    adr,
+                network.sendConnectionless(adr,
                     ConnectionlessCommand.print,
                     "\nNo challenge for address.\n"
                 )
@@ -1094,7 +1088,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             i++
         }
         if (index == -1) {
-            Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.print, "\nServer is full.\n")
+            network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
             Com.DPrintf("Rejected a connection.\n")
             return
         }
@@ -1123,16 +1117,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // userinfo
         if (!(gameImports.gameExports.ClientConnect(ent, userinfo))) {
             if (Info.Info_ValueForKey(userinfo, "rejmsg") != null) {
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    adr,
+                network.sendConnectionless(adr,
                     ConnectionlessCommand.print,
                     "\n" + Info.Info_ValueForKey(userinfo, "rejmsg") + "\nConnection refused.\n"
                 )
             } else {
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    adr,
+                network.sendConnectionless(adr,
                     ConnectionlessCommand.print,
                     "\nConnection refused.\n"
                 )
@@ -1145,7 +1135,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.userinfo = userinfo
         updateClientUserinfo(client)
 
-        Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.client_connect, "")
+        network.sendConnectionless(adr, ConnectionlessCommand.client_connect, "")
 
         client.netchan.setup(Defines.NS_SERVER, adr, qport)
 
@@ -1174,24 +1164,20 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         when (cmd) {
             ConnectionlessCommand.ping ->                 // SVC_Ping, Just responds with an acknowledgement.
-                Netchan.sendConnectionlessPacket(Defines.NS_SERVER, from, ConnectionlessCommand.ack, "")
+                network.sendConnectionless(from, ConnectionlessCommand.ack, "")
 
             ConnectionlessCommand.ack ->                 //SVC_Ack
                 Com.Printf("Ping acknowledge from $from\n")
 
             ConnectionlessCommand.status ->                 // SVC_Status, Responds with all the info that qplug or qspy can see
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
+                network.sendConnectionless(from,
                     ConnectionlessCommand.print,
                     "\n" + buildStatusResponse()
                 )
 
             ConnectionlessCommand.info -> {
                 val info = buildInfoResponse(args)
-                if (info != null) Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
+                if (info != null) network.sendConnectionless(from,
                     ConnectionlessCommand.info,
                     "\n" + info
                 )
@@ -1199,9 +1185,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             ConnectionlessCommand.getchallenge -> {
                 val challenge = getChallenge(from)
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
+                network.sendConnectionless(from,
                     ConnectionlessCommand.challenge,
                     " $challenge"
                 )
@@ -1246,7 +1230,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      */
     fun readPackets() {
         while (true) {
-            val networkPacket = NET.receiveNetworkPacket(Defines.NS_SERVER)
+            val networkPacket = network.receive()
 
             if (networkPacket == null) break
 
@@ -2014,35 +1998,34 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return args.size >= 2 && args[1] == rconPassword
         }
 
-        /**
-         * A client issued an rcon command. Shift down the remaining args Redirect
-         * all printfs from the server to the client.
-         */
-        private fun executeRemoteCommand(args: List<String>, from: netadr_t?) {
-            val rconIsValid: Boolean = isRconAuthorized(args)
+    }
 
-            if (rconIsValid) {
-                Com.Printf("Rcon from $from:\n$args\n")
-            } else {
-                Com.Printf("Bad rcon from $from:\n$args\n")
-            }
+    /**
+     * A client issued an rcon command. Shift down the remaining args Redirect
+     * all printfs from the server to the client.
+     */
+    private fun executeRemoteCommand(args: List<String>, from: netadr_t) {
+        val rconIsValid: Boolean = isRconAuthorized(args)
 
-            Com.BeginRedirect { buffer ->
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
-                    ConnectionlessCommand.print,
-                    "\n" + buffer.toString()
-                )
-            }
-            if (rconIsValid) {
-                Cmd.ExecuteString(Cmd.getArguments(args, 2))
-            } else {
-                // redirected to client
-                Com.Printf("Bad rcon_password.\n")
-            }
-
-            Com.EndRedirect()
+        if (rconIsValid) {
+            Com.Printf("Rcon from $from:\n$args\n")
+        } else {
+            Com.Printf("Bad rcon from $from:\n$args\n")
         }
+
+        Com.BeginRedirect { buffer ->
+            network.sendConnectionless(from,
+                ConnectionlessCommand.print,
+                "\n" + buffer.toString()
+            )
+        }
+        if (rconIsValid) {
+            Cmd.ExecuteString(Cmd.getArguments(args, 2))
+        } else {
+            // redirected to client
+            Com.Printf("Bad rcon_password.\n")
+        }
+
+        Com.EndRedirect()
     }
 }

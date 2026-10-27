@@ -39,6 +39,11 @@ import java.util.Collection;
 public class ClientNetworkInfo {
 
 	public ClientNetworkInfo() {
+        this(new netchan_t());
+    }
+
+    public ClientNetworkInfo(netchan_t channel) {
+        this.netchan = java.util.Objects.requireNonNull(channel);
 		for (int n = 0; n < Defines.UPDATE_BACKUP; n++) {
 			frames[n] = new client_frame_t();
 		}
@@ -90,7 +95,7 @@ public class ClientNetworkInfo {
 
 	int challenge; // challenge of this user, randomly generated
 
-	netchan_t netchan = new netchan_t();
+	netchan_t netchan;
 
     /** Queue text only when it meets this connection's requested message level. */
     void queuePrint(int level, String text) {
