@@ -31,6 +31,8 @@ interface CakeHost {
     /** Null creates a generated slot; replacing an existing manual slot requires overwrite. */
     fun saveGame(slot: String? = null, overwrite: Boolean = false): HostSaveResult
     fun loadGame(slot: String): HostSaveResult
+    /** Delete one selected checkpoint after the caller has confirmed the action. */
+    fun deleteSave(slot: String): HostSaveResult
 }
 
 enum class HostAvailability { REMOTE_ONLY, NOT_READY, AVAILABLE }
@@ -72,4 +74,5 @@ class UnavailableCakeHost : CakeHost {
     override fun listSaves() = HostSaveCatalogResult.Rejected(saveUnavailable)
     override fun saveGame(slot: String?, overwrite: Boolean) = HostSaveResult.Rejected(saveUnavailable)
     override fun loadGame(slot: String) = HostSaveResult.Rejected(saveUnavailable)
+    override fun deleteSave(slot: String) = HostSaveResult.Rejected(saveUnavailable)
 }

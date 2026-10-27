@@ -98,6 +98,7 @@ data class SavedGamesState(
     val selectedSlot: String? = null,
     val pendingOverwriteSlot: String? = null,
     val statusMessage: String = "",
+    val pendingDeleteSlot: String? = null,
 )
 
 /** Raw text stays in the form so rejected input can be corrected without losing it. */

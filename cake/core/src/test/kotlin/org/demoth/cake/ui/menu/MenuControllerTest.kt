@@ -41,6 +41,49 @@ class MenuControllerTest {
         HostSaveEntry(slot, "Checkpoint", "base1", 1000L, HostMode.SINGLEPLAYER, reason)
 
     @Test
+    fun deletionRequiresCurrentProfileConfirmationAndSelectsTheNextCheckpoint() {
+        val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("one"), savedEntry("two"), savedEntry("three")) }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        fun post(intent: MenuIntent) { bus.postIntent(intent); controller.pumpIntents() }
+        post(MenuIntent.OpenLoadGame)
+        post(MenuIntent.DeleteSaveRequested("default", "two"))
+        assertEquals("two", bus.latestState().savedGames.pendingDeleteSlot)
+        assertTrue(backend.deletedSaves.isEmpty())
+        post(MenuIntent.CancelSaveConfirmation)
+        post(MenuIntent.ConfirmDeleteSave("default", "two"))
+        assertTrue(backend.deletedSaves.isEmpty())
+        post(MenuIntent.DeleteSaveRequested("default", "two"))
+        post(MenuIntent.ConfirmDeleteSave("default", "two"))
+        assertEquals(listOf("two"), backend.deletedSaves)
+        assertEquals("three", bus.latestState().savedGames.selectedSlot)
+        assertEquals("Saved game deleted.", bus.latestState().savedGames.statusMessage)
+        post(MenuIntent.DeleteSaveRequested("default", "one"))
+        backend.applyProfile("other")
+        post(MenuIntent.ConfirmDeleteSave("default", "one"))
+        assertEquals(listOf("two"), backend.deletedSaves)
+    }
+
+    @Test
+    fun deleteFailureRemainsVisibleWithoutLosingSelectionOrClosingMenu() {
+        val backend = FakeMenuBackend().apply {
+            saves = listOf(savedEntry("corrupt", "Invalid save"))
+            deleteOutcome = HostSaveResult.Failed("Permission denied", java.io.IOException())
+        }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenSaveGame)
+        bus.postIntent(MenuIntent.DeleteSaveRequested("default", "corrupt"))
+        bus.postIntent(MenuIntent.ConfirmDeleteSave("default", "corrupt"))
+        controller.pumpIntents()
+        assertEquals(MenuScreen.SAVE_GAME, bus.latestState().activeScreen)
+        assertEquals("corrupt", bus.latestState().savedGames.selectedSlot)
+        assertEquals("Delete failed: Permission denied", bus.latestState().savedGames.statusMessage)
+    }
+
+    @Test
     fun saveCatalogRefreshesOnEntryAndProfileChangeWithoutPerFrameIO() {
         val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("manual")) }
         val bus = MenuEventBus()
@@ -75,7 +118,7 @@ class MenuControllerTest {
         post(MenuIntent.SaveGameRequested("default", "manual"))
         assertEquals("manual", bus.latestState().savedGames.pendingOverwriteSlot)
         assertTrue(backend.savesWritten.isEmpty())
-        post(MenuIntent.CancelOverwrite)
+        post(MenuIntent.CancelSaveConfirmation)
         post(MenuIntent.ConfirmOverwrite("default", "manual"))
         assertTrue(backend.savesWritten.isEmpty())
         post(MenuIntent.SaveGameRequested("default", "manual"))
@@ -601,6 +644,14 @@ class MenuControllerTest {
         var loadOutcome: HostSaveResult = HostSaveResult.Completed("manual")
         val loads = mutableListOf<String>()
         val savesWritten = mutableListOf<Pair<String?, Boolean>>()
+        val deletedSaves = mutableListOf<String>()
+        var deleteOutcome: HostSaveResult? = null
+        override fun deleteSave(slot: String): HostSaveResult {
+            deletedSaves += slot
+            val result = deleteOutcome ?: HostSaveResult.Completed(slot)
+            if (result is HostSaveResult.Completed) saves = saves.filter { it.slot != slot }
+            return result
+        }
         override fun saveAccess() = access
         override fun listSaves(): HostSaveCatalogResult {
             saveListReads++

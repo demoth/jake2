@@ -1593,6 +1593,7 @@ class Cake(
         override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult =
             finishSaveOperation(host.saveGame(slot, overwrite))
         override fun loadGame(slot: String): HostSaveResult = finishSaveOperation(host.loadGame(slot))
+        override fun deleteSave(slot: String): HostSaveResult = host.deleteSave(slot)
 
         private fun finishSaveOperation(result: HostSaveResult): HostSaveResult {
             if (result is HostSaveResult.Failed && host.state == HostState.STOPPED) {

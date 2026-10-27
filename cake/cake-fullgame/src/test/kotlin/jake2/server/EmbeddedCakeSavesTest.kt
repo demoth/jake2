@@ -189,6 +189,43 @@ class EmbeddedCakeSavesTest {
     }
 
     @Test
+    fun `deleting a checkpoint is profile scoped and leaves the loaded Game running`() {
+        start()
+        spawn()
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.saveGame("checkpoint"))
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.loadGame("checkpoint"))
+        val live = host.server!!.games.getValue("default")
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave(" checkpoint "))
+        assertTrue(Files.exists(root.resolve("first/save/checkpoint")))
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.deleteSave("checkpoint"))
+        assertSame(live, host.server!!.games["default"])
+        assertFalse(entries().any { it.slot == "checkpoint" })
+        assertTrue(Files.exists(root.resolve("first/save/current/game.ssv.json")))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("current"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("../first"))
+        host.stop("profile switch")
+        host.activateProfile(profile.copy(id = "second"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
+        assertTrue(Files.exists(root.resolve("first/save/save0/game.ssv.json")))
+        Files.createDirectories(root.resolve("second/save/corrupt"))
+        Files.writeString(root.resolve("second/save/corrupt/junk"), "not a valid save")
+        assertEquals(HostSaveResult.Completed("corrupt"), host.deleteSave("corrupt"))
+        assertFalse(Files.exists(root.resolve("second/save/corrupt")))
+    }
+
+    @Test
+    fun `deletion rejects remote context and mismatched storage without removing the checkpoint`() {
+        start()
+        remote = true
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
+        remote = false
+        EngineWriteRoot.setRoot(root.resolve("other"))
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.deleteSave("save0"))
+        assertTrue(Files.exists(root.resolve("first/save/save0/game.ssv.json")))
+        EngineWriteRoot.setRoot(root.resolve("first"))
+    }
+
+    @Test
     fun `catalog IO failure is distinct from an empty save list`() {
         host.activateProfile(profile)
         Files.writeString(root.resolve("first/save"), "not a directory")

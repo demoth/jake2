@@ -10,6 +10,8 @@ The developer console has [its own documentation](console/README.md).
 | Screen | Purpose |
 |---|---|
 | `MainMenuStage` | Main navigation and profile/options entry points |
+| `SingleplayerMenuStage` | New Game, Load Game, Save Game and Back |
+| `SavedGamesStage` | Scrolling checkpoint list, placeholder preview/details and confirmed save/delete actions |
 | `ProfileEditStage` | Profile selection, creation, autodetection, and editing |
 | `MultiplayerMenuStage` | Join Game, optional Host Game, and Player Setup |
 | `HostingSetupStage` | Singleplayer difficulty and multiplayer host settings |

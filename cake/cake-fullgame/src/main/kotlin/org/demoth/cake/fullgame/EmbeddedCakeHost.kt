@@ -15,6 +15,7 @@ import jake2.server.ServerSaveCatalog
 import jake2.server.SavedGameEntry
 import jake2.server.SavedGameMode
 import jake2.server.save.ServerSaveJsonStore
+import jake2.server.save.deleteSaveSlot
 import org.demoth.cake.hosting.*
 import org.demoth.cake.profile.CakeGameProfile
 import java.io.IOException
@@ -255,6 +256,21 @@ class EmbeddedCakeHost(
         return checkNotNull(server).loadGame(source).toHostSaveResult(source)
     }
 
+    override fun deleteSave(slot: String): HostSaveResult {
+        checkThread()
+        saveAccess().loadRejectionReason?.let { return HostSaveResult.Rejected(it) }
+        saveStorageRejection()?.let { return HostSaveResult.Rejected(it) }
+        val target = normalizedSaveSlot(slot) ?: return HostSaveResult.Rejected("Invalid save slot.")
+        return try {
+            deleteSaveSlot(profileRoot(checkNotNull(activeProfile)), target)
+            HostSaveResult.Completed(target)
+        } catch (failure: IllegalArgumentException) {
+            HostSaveResult.Rejected(failure.message ?: "Invalid save directory.")
+        } catch (failure: Exception) {
+            HostSaveResult.Failed(failure.message ?: "Could not delete saved game.", failure)
+        }
+    }
+
     private fun saveContextRejection(): String? = when {
         disposed || server == null -> "Host is not initialized."
         activeProfile == null -> "Select a game profile first."
@@ -270,7 +286,7 @@ class EmbeddedCakeHost(
         profilesRoot.resolve(profile.id).toAbsolutePath().normalize()
 
     private fun normalizedSaveSlot(slot: String): String? = try {
-        ServerSaveJsonStore.normalizeSlot(slot)
+        ServerSaveJsonStore.normalizeSlot(slot).takeIf { it == slot }
     } catch (_: IllegalArgumentException) {
         null
     }

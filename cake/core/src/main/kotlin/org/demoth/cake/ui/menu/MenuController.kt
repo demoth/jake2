@@ -9,6 +9,7 @@ interface MenuBackend {
     fun listSaves(): HostSaveCatalogResult = HostSaveCatalogResult.Rejected("Save/load is unavailable.")
     fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult = HostSaveResult.Rejected("Saving is unavailable.")
     fun loadGame(slot: String): HostSaveResult = HostSaveResult.Rejected("Loading is unavailable.")
+    fun deleteSave(slot: String): HostSaveResult = HostSaveResult.Rejected("Deleting saves is unavailable.")
     fun hostMaps(): List<HostMap> = emptyList()
     fun hostingUnavailableReason(): String? = "Hosting requires the Cake fullgame application."
     fun startHosting(singleplayer: Boolean, form: HostGameFormState): String =
@@ -95,7 +96,7 @@ class MenuController(
             is MenuIntent.SelectSaveSlot -> if (isCurrentSaveProfile(intent.profileId) &&
                 state.savedGames.entries.any { it.slot == intent.slot }) {
                 state = state.copy(savedGames = state.savedGames.copy(selectedSlot = intent.slot,
-                    pendingOverwriteSlot = null, statusMessage = ""))
+                    pendingOverwriteSlot = null, pendingDeleteSlot = null, statusMessage = ""))
                 refreshState()
             }
             is MenuIntent.LoadGameRequested -> {
@@ -111,7 +112,7 @@ class MenuController(
                     handleSaveResult(backend.saveGame(null, overwrite = false), loading = false)
                 } else if (state.savedGames.entries.any { it.slot == intent.slot && !it.autosave }) {
                     state = state.copy(savedGames = state.savedGames.copy(selectedSlot = intent.slot,
-                        pendingOverwriteSlot = intent.slot, statusMessage = "Replace this saved game?"))
+                        pendingOverwriteSlot = intent.slot, pendingDeleteSlot = null, statusMessage = "Replace this saved game?"))
                     refreshState()
                 }
             }
@@ -121,7 +122,34 @@ class MenuController(
                 val reason = backend.saveAccess().saveRejectionReason
                 if (reason != null) saveStatus(reason) else handleSaveResult(backend.saveGame(intent.slot, overwrite = true), loading = false)
             }
-            MenuIntent.CancelOverwrite -> saveStatus("")
+            is MenuIntent.DeleteSaveRequested -> {
+                if (!isSaveScreen() || !isCurrentSaveProfile(intent.profileId) ||
+                    state.savedGames.entries.none { it.slot == intent.slot }) return
+                val reason = backend.saveAccess().loadRejectionReason
+                if (reason != null) saveStatus(reason) else {
+                    state = state.copy(savedGames = state.savedGames.copy(selectedSlot = intent.slot,
+                        pendingDeleteSlot = intent.slot, pendingOverwriteSlot = null, statusMessage = "Delete this saved game?"))
+                    refreshState()
+                }
+            }
+            is MenuIntent.ConfirmDeleteSave -> {
+                if (!isSaveScreen() || !isCurrentSaveProfile(intent.profileId) ||
+                    state.savedGames.pendingDeleteSlot != intent.slot) return
+                val reason = backend.saveAccess().loadRejectionReason
+                if (reason != null) saveStatus(reason) else {
+                    val index = state.savedGames.entries.indexOfFirst { it.slot == intent.slot }
+                    val remaining = state.savedGames.entries.filter { it.slot != intent.slot }
+                    val nextSlot = remaining.getOrNull(index.coerceAtMost(remaining.lastIndex))?.slot
+                    val result = backend.deleteSave(intent.slot)
+                    refreshSavedGames(if (result is HostSaveResult.Completed) nextSlot else state.savedGames.selectedSlot)
+                    saveStatus(when (result) {
+                        is HostSaveResult.Completed -> "Saved game deleted."
+                        is HostSaveResult.Rejected -> result.reason
+                        is HostSaveResult.Failed -> "Delete failed: ${result.reason}"
+                    })
+                }
+            }
+            MenuIntent.CancelSaveConfirmation -> saveStatus("")
             is MenuIntent.OpenUiSample -> bus.postSignal(MenuSignal.OpenUiSample(intent.game))
             MenuIntent.CloseUiSample -> bus.postSignal(MenuSignal.CloseUiSample)
             is MenuIntent.CaptureUiSample ->
@@ -425,7 +453,8 @@ class MenuController(
     }
 
     private fun saveStatus(message: String) {
-        state = state.copy(savedGames = state.savedGames.copy(statusMessage = message, pendingOverwriteSlot = null))
+        state = state.copy(savedGames = state.savedGames.copy(statusMessage = message,
+            pendingOverwriteSlot = null, pendingDeleteSlot = null))
         refreshState()
     }
 

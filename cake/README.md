@@ -138,8 +138,10 @@ New Game opens difficulty selection. The submenu stays accessible during play,
 with each action enabled when eligible; Back from these screens returns there.
 Escape goes back through the menus and returns to gameplay from the main menu.
 Saved games refresh automatically whenever Load Game or Save Game is opened.
-New Save
-creates a checkpoint; Overwrite asks before replacing a manual save. Autosave is
+Each screen shows a scrolling checkpoint list alongside preview space and save
+details, with actions along the bottom. Preview thumbnails are not captured yet.
+New Save creates a checkpoint; Save asks before replacing the selected manual save.
+Delete asks before removing the selected checkpoint. Autosave is
 listed for loading and reserved against manual overwrite. Save requires a living,
 spawned local player. Loading is available from startup and during singleplayer;
 the singleplayer respawn action opens Load Game automatically.

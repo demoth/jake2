@@ -22,6 +22,7 @@ import org.demoth.cake.hosting.HostState
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.stages.MenuStages
+import org.demoth.cake.ui.writeScreenshot
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuScreen
 import org.junit.jupiter.api.Assertions.*
@@ -121,7 +122,7 @@ class CakeSaveMenusGlTest {
                             }
                             4 -> {
                                 assertEquals(slot, state().pendingOverwriteSlot)
-                                click("cancel-overwrite")
+                                click("cancel-save-confirmation")
                                 next()
                             }
                             5 -> {
@@ -204,6 +205,32 @@ class CakeSaveMenusGlTest {
                             }
                             17 -> if (active()) {
                                 assertEquals(41, player().health)
+                                Cmd.ExecuteString("menu_savegame")
+                                next()
+                            }
+                            18 -> { click("save-new"); next() }
+                            19 -> {
+                                assertNotEquals(slot, state().selectedSlot)
+                                click("delete-save")
+                                next()
+                            }
+                            20 -> {
+                                assertNotNull(state().pendingDeleteSlot)
+                                click("cancel-save-confirmation")
+                                next()
+                            }
+                            21 -> {
+                                assertNull(state().pendingDeleteSlot)
+                                assertEquals(2, state().entries.count { !it.autosave })
+                                click("delete-save")
+                                next()
+                            }
+                            22 -> { click("confirm-delete"); next() }
+                            23 -> {
+                                assertEquals("Saved game deleted.", state().statusMessage)
+                                assertEquals(listOf(slot), state().entries.filter { !it.autosave }.map { it.slot })
+                                assertTrue(Files.exists(checkpoint()))
+                                writeScreenshot(Gdx.files.local("build/reports/save-menu-layout.png"))
                                 Gdx.app.exit()
                             }
                         }

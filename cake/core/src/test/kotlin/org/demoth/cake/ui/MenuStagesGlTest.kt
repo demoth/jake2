@@ -155,7 +155,7 @@ class MenuStagesGlTest {
         val entries = listOf(
             HostSaveEntry("save0", "Autosave", "base1", 1000L, HostMode.SINGLEPLAYER, null),
             HostSaveEntry("manual", "Checkpoint", "base2", 2000L, HostMode.SINGLEPLAYER, null),
-        )
+        ) + (1..24).map { HostSaveEntry("manual-$it", "Checkpoint $it", "base2", 2000L, HostMode.SINGLEPLAYER, null) }
         val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.SAVE_GAME,
             saveAccess = HostSaveAccess(null, null),
             savedGames = SavedGamesState("profile", entries, "save0")))
@@ -163,6 +163,13 @@ class MenuStagesGlTest {
         try {
             stage.act(0f)
             stage.draw()
+            val scroll = stage.root.findActor<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>("save-list-scroll")
+            val preview = stage.root.findActor<Actor>("save-preview")
+            assertTrue(scroll.widget is com.badlogic.gdx.scenes.scene2d.ui.List<*>)
+            assertTrue(scroll.maxY > 0, "Checkpoint list must scroll within its own pane")
+            val listPosition = scroll.localToStageCoordinates(com.badlogic.gdx.math.Vector2())
+            val previewPosition = preview.localToStageCoordinates(com.badlogic.gdx.math.Vector2())
+            assertTrue(previewPosition.x >= listPosition.x + scroll.width)
             val primary = stage.root.findActor<TextButton>("save-new")
             val overwrite = stage.root.findActor<TextButton>("save-overwrite")
             assertFalse(primary.isDisabled)
@@ -183,7 +190,15 @@ class MenuStagesGlTest {
             assertTrue(intents.contains(MenuIntent.ConfirmOverwrite("profile", "manual")))
             assertTrue(stage.keyUp(Input.Keys.ESCAPE))
             bus.drainIntents { intents += it }
-            assertEquals(MenuIntent.CancelOverwrite, intents.last())
+            assertEquals(MenuIntent.CancelSaveConfirmation, intents.last())
+            bus.postState(bus.latestState().copy(savedGames = bus.latestState().savedGames.copy(
+                pendingOverwriteSlot = null, pendingDeleteSlot = "manual", statusMessage = "Delete this saved game?")))
+            stage.act(0f)
+            val deleteConfirm = stage.root.findActor<TextButton>("confirm-delete")
+            assertEquals("Delete Save", deleteConfirm.text.toString())
+            deleteConfirm.listeners.filterIsInstance<ClickListener>().forEach { it.clicked(InputEvent(), 0f, 0f) }
+            bus.drainIntents { intents += it }
+            assertEquals(MenuIntent.ConfirmDeleteSave("profile", "manual"), intents.last())
             bus.postState(bus.latestState().copy(savedGames = SavedGamesState("other")))
             stage.act(0f)
             assertTrue(overwrite.isDisabled)
