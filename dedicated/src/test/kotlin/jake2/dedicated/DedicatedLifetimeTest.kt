@@ -60,6 +60,17 @@ class DedicatedLifetimeTest {
     }
 
     @Test
+    fun `output buffer failure unwinds the loop and closes Host`() {
+        Cmd.AddCommand("test_start") { assertTrue(NET.configureServer(true)) }
+        Cmd.AddCommand("test_end") { jake2.qcommon.sizebuf_t(1).writeInt(123) }
+        val failure = assertThrows(IllegalStateException::class.java) {
+            Jake2Dedicated.runHost(listOf("Jake2", "+test_start", "+wait", "+test_end"))
+        }
+        assertTrue(failure.message!!.contains("SZ_GetSpace"))
+        assertReleased()
+    }
+
+    @Test
     fun `loop interruption closes Host and permits another dedicated lifetime`() {
         var starts = 0
         Cmd.AddCommand("test_start") {

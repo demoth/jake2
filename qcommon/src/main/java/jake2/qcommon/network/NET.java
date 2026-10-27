@@ -157,8 +157,7 @@ public final class NET {
             return;
 
         if (to.type != NetAddrType.NA_BROADCAST && to.type != NetAddrType.NA_IP) {
-            Com.Error(Defines.ERR_FATAL, "NET_SendPacket: bad address type");
-            return;
+            throw new IllegalArgumentException("NET_SendPacket: unsupported address type " + to.type);
         }
 
         try {
