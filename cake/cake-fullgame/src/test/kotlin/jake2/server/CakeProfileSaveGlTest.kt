@@ -16,6 +16,8 @@ import org.demoth.cake.Cake
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.fullgame.EmbeddedCakeHost
+import org.demoth.cake.hosting.HostSaveCatalogResult
+import org.demoth.cake.hosting.HostSaveResult
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.junit.jupiter.api.Assertions.*
@@ -31,7 +33,7 @@ class CakeProfileSaveGlTest {
     @TempDir lateinit var temp: Path
 
     @Test
-    fun `mod resolution and console saves remain isolated across profile switches`() {
+    fun `mod resolution and console and typed saves remain isolated across profile switches`() {
         val installation = Path.of(requireNotNull(System.getenv("CAKE_TEST_BASEDIR")))
         val content = Files.createDirectories(temp.resolve("content"))
         Files.createSymbolicLink(content.resolve("baseq2"), installation.resolve("baseq2"))
@@ -75,6 +77,11 @@ class CakeProfileSaveGlTest {
                     stageStart = System.nanoTime()
                     Cbuf.AddText(command)
                 }
+                private fun loadShared() {
+                    next("")
+                    assertEquals(HostSaveResult.Completed("shared"), host.loadGame("shared"))
+                }
+                private fun catalog() = assertInstanceOf(HostSaveCatalogResult.Available::class.java, host.listSaves())
                 private fun active(map: String) = ticks > 2 && state() == "ACTIVE" &&
                     Cvar.getInstance().find<String>("mapname").typedValue == map
                 private fun state() = Cake::class.java.getDeclaredField("networkState").apply {
@@ -108,10 +115,11 @@ class CakeProfileSaveGlTest {
                                 assertEquals(temp.resolve(".cake/first"), EngineWriteRoot.path())
                                 player().health = 73
                                 Cmd.ExecuteString("save shared")
+                                assertNull(catalog().entries.single { it.slot == "shared" }.loadRejectionReason)
                                 firstSave = Files.readString(firstSlot)
                                 next("gamemap base2")
                             }
-                            1 -> if (active("base2")) next("load shared")
+                            1 -> if (active("base2")) loadShared()
                             2 -> if (active("profilemap")) {
                                 assertEquals(73, player().health)
                                 // Stage changes while live; a profile switch must discard these too.
@@ -122,6 +130,8 @@ class CakeProfileSaveGlTest {
                             3 -> {
                                 assertEquals("DISCONNECTED", state())
                                 Cmd.ExecuteString("cake_profile_set second \"$content\"")
+                                assertEquals("second", catalog().profileId)
+                                assertTrue(catalog().entries.isEmpty())
                                 next("gamemap *base2")
                             }
                             4 -> if (active("base2")) {
@@ -130,12 +140,12 @@ class CakeProfileSaveGlTest {
                                 assertEquals(4, settings().flood_msgs.typedValue)
                                 assertEquals("second", Cvar.getInstance().find<String>("hostname").typedValue)
                                 player().health = 41
-                                Cmd.ExecuteString("save shared")
+                                assertEquals(HostSaveResult.Completed("shared"), host.saveGame("shared"))
                                 assertTrue(Files.exists(secondSlot))
                                 assertEquals(firstSave, Files.readString(firstSlot))
                                 next("gamemap base1")
                             }
-                            5 -> if (active("base1")) next("load shared")
+                            5 -> if (active("base1")) loadShared()
                             6 -> if (active("base2")) {
                                 assertEquals(41, player().health)
                                 next("disconnect")
@@ -143,7 +153,8 @@ class CakeProfileSaveGlTest {
                             7 -> {
                                 Cmd.ExecuteString("cake_profile_set first \"$content\" custom")
                                 // Idle load must attach directly, without starting a disposable map.
-                                next("load shared")
+                                assertEquals("first", catalog().profileId)
+                                loadShared()
                             }
                             8 -> if (active("profilemap")) {
                                 // Saves restore latched settings; non-saved runtime options use defaults.

@@ -11,11 +11,17 @@ import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.vfs.VfsConfig
 import jake2.server.ServerHost
+import jake2.server.ServerSaveCatalog
+import jake2.server.SavedGameEntry
+import jake2.server.SavedGameMode
+import jake2.server.save.ServerSaveJsonStore
 import org.demoth.cake.hosting.*
 import org.demoth.cake.profile.CakeGameProfile
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.LinkOption.NOFOLLOW_LINKS
 import java.nio.file.Path
+import java.util.UUID
 
 /** Application-owned embedded Host; games may stop while commands and profile remain active. */
 class EmbeddedCakeHost(
@@ -190,6 +196,100 @@ class EmbeddedCakeHost(
         val game = server?.games?.get("default") ?: return
         val singlePlayer = !game.isDeathmatch && !game.isCoop && server?.clients?.size == 1
         cvars.find<Boolean>("paused").forceSet(paused && singlePlayer)
+    }
+
+    override fun saveAccess(): HostSaveAccess {
+        checkThread()
+        val manager = server
+        val game = manager?.games?.get("default")
+        val loadReason = saveContextRejection() ?: when {
+            starting -> "Wait for the game to finish starting."
+            manager?.isRunning == true && (manager.games.size != 1 || game == null ||
+                game.isCoop || game.isDeathmatch || manager.clients.size != 1) ->
+                "Save/load menus are available only in singleplayer."
+            else -> null
+        }
+        val saveReason = loadReason ?: game?.saveRejectionReason() ?: if (game == null) {
+            "Start a singleplayer game before saving."
+        } else null
+        return HostSaveAccess(loadReason, saveReason)
+    }
+
+    override fun listSaves(): HostSaveCatalogResult {
+        checkThread()
+        saveContextRejection()?.let { return HostSaveCatalogResult.Rejected(it) }
+        val profile = checkNotNull(activeProfile)
+        return try {
+            val entries = ServerSaveCatalog(profileRoot(profile)).list().map(::toHostSaveEntry)
+            HostSaveCatalogResult.Available(profile.id, entries)
+        } catch (failure: Exception) {
+            HostSaveCatalogResult.Failed(failure.message ?: "Could not read saved games.", failure)
+        }
+    }
+
+    override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {
+        checkThread()
+        saveAccess().saveRejectionReason?.let { return HostSaveResult.Rejected(it) }
+        saveStorageRejection()?.let { return HostSaveResult.Rejected(it) }
+        val destination = normalizedSaveSlot(slot ?: "manual-${UUID.randomUUID()}")
+            ?: return HostSaveResult.Rejected("Invalid save slot.")
+        if (destination == "current" || destination == "save0") {
+            return HostSaveResult.Rejected("This slot is reserved for the game.")
+        }
+        val path = profileRoot(checkNotNull(activeProfile)).resolve("save").resolve(destination)
+        if (Files.exists(path, NOFOLLOW_LINKS)) {
+            if (!Files.isDirectory(path, NOFOLLOW_LINKS)) return HostSaveResult.Rejected("Invalid save directory.")
+            if (!overwrite) return HostSaveResult.Rejected("Confirm replacing this saved game.")
+        }
+        return checkNotNull(server).saveGame(destination).toHostSaveResult(destination)
+    }
+
+    override fun loadGame(slot: String): HostSaveResult {
+        checkThread()
+        saveAccess().loadRejectionReason?.let { return HostSaveResult.Rejected(it) }
+        saveStorageRejection()?.let { return HostSaveResult.Rejected(it) }
+        val source = normalizedSaveSlot(slot) ?: return HostSaveResult.Rejected("Invalid save slot.")
+        if (source == "current") return HostSaveResult.Rejected("The working save is internal.")
+        val entry = toHostSaveEntry(ServerSaveCatalog(profileRoot(checkNotNull(activeProfile))).inspect(source))
+        entry.loadRejectionReason?.let { return HostSaveResult.Rejected(it) }
+        return checkNotNull(server).loadGame(source).toHostSaveResult(source)
+    }
+
+    private fun saveContextRejection(): String? = when {
+        disposed || server == null -> "Host is not initialized."
+        activeProfile == null -> "Select a game profile first."
+        else -> startupRejection()
+    }
+
+    // Browsing uses the profile directly. Backend operations still use the shared write root.
+    private fun saveStorageRejection(): String? = if (
+        EngineWriteRoot.path().toAbsolutePath().normalize() != profileRoot(checkNotNull(activeProfile))
+    ) "The active save directory does not match the selected profile." else null
+
+    private fun profileRoot(profile: CakeGameProfile): Path =
+        profilesRoot.resolve(profile.id).toAbsolutePath().normalize()
+
+    private fun normalizedSaveSlot(slot: String): String? = try {
+        ServerSaveJsonStore.normalizeSlot(slot)
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+
+    private fun toHostSaveEntry(entry: SavedGameEntry): HostSaveEntry {
+        val mode = when (entry.mode) {
+            SavedGameMode.SINGLEPLAYER -> HostMode.SINGLEPLAYER
+            SavedGameMode.COOP -> HostMode.COOP
+            SavedGameMode.DEATHMATCH -> HostMode.DEATHMATCH
+            null -> null
+        }
+        return HostSaveEntry(entry.slot, entry.comment, entry.mapName, entry.savedAtMillis, mode,
+            entry.problem ?: if (mode != HostMode.SINGLEPLAYER) "This save is not a singleplayer game." else null)
+    }
+
+    private fun ServerHost.OperationResult.toHostSaveResult(slot: String): HostSaveResult = when (this) {
+        ServerHost.OperationResult.Completed -> HostSaveResult.Completed(slot)
+        is ServerHost.OperationResult.Rejected -> HostSaveResult.Rejected(reason)
+        is ServerHost.OperationResult.Failed -> HostSaveResult.Failed(reason, cause)
     }
 
     private fun configureFilesystem(profile: CakeGameProfile) {

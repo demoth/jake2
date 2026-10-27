@@ -24,6 +24,13 @@ interface CakeHost {
     fun stop(reason: String)
     /** Implementations only pause singleplayer; multiplayer must keep running. */
     fun setPaused(paused: Boolean)
+
+    /** Singleplayer UI policy; operations recheck eligibility before doing any work. */
+    fun saveAccess(): HostSaveAccess
+    fun listSaves(): HostSaveCatalogResult
+    /** Null creates a generated slot; replacing an existing manual slot requires overwrite. */
+    fun saveGame(slot: String? = null, overwrite: Boolean = false): HostSaveResult
+    fun loadGame(slot: String): HostSaveResult
 }
 
 enum class HostAvailability { REMOTE_ONLY, NOT_READY, AVAILABLE }
@@ -50,6 +57,7 @@ class HostFailureException(message: String, cause: Throwable) : RuntimeException
 
 /** Remote-only builds can accept the same application wiring without server side effects. */
 class UnavailableCakeHost : CakeHost {
+    private val saveUnavailable = "Save/load requires Cake fullgame."
     override val availability = HostAvailability.REMOTE_ONLY
     override val state = HostState.STOPPED
     override fun initialize(startupRejection: () -> String?) = Unit
@@ -60,4 +68,8 @@ class UnavailableCakeHost : CakeHost {
     override fun update(elapsedMillis: Long) = Unit
     override fun stop(reason: String) = Unit
     override fun setPaused(paused: Boolean) = Unit
+    override fun saveAccess() = HostSaveAccess(saveUnavailable, saveUnavailable)
+    override fun listSaves() = HostSaveCatalogResult.Rejected(saveUnavailable)
+    override fun saveGame(slot: String?, overwrite: Boolean) = HostSaveResult.Rejected(saveUnavailable)
+    override fun loadGame(slot: String) = HostSaveResult.Rejected(saveUnavailable)
 }

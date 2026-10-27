@@ -9,6 +9,16 @@ import org.junit.jupiter.api.Test
 
 class HostAvailabilityTest {
     @Test
+    fun `remote-only save API reports unavailable without a server`() {
+        val host: CakeHost = UnavailableCakeHost()
+        assertNotNull(host.saveAccess().loadRejectionReason)
+        assertNotNull(host.saveAccess().saveRejectionReason)
+        assertInstanceOf(HostSaveCatalogResult.Rejected::class.java, host.listSaves())
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.saveGame())
+        assertInstanceOf(HostSaveResult.Rejected::class.java, host.loadGame("save0"))
+    }
+
+    @Test
     fun `host construction and invalid starts do not bootstrap server state`() {
         val cvars = Cvar.getInstance()
         val mapCommand = Cmd.FindCommand("map")

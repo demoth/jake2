@@ -848,7 +848,7 @@ public class GameImportsImpl implements GameImports {
     // currently share EngineWriteRoot/save/current; transitions and unit resets can overwrite
     // another Game's archives. Multi-Game persistence is explicitly deferred; save targets the default Game.
     /** Return a user-facing rejection reason, or null when this Game can be saved. */
-    String saveRejectionReason() {
+    public String saveRejectionReason() {
         if (state != ServerStates.SS_GAME) return "You must be in a game to save.";
         if (isDeathmatch()) return "Can't savegame in a deathmatch";
 
