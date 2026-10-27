@@ -28,7 +28,9 @@ import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.network.messages.NetworkPacket;
-
+import jake2.qcommon.network.protocol.PacketCodec;
+import jake2.qcommon.network.protocol.PacketDecodeResult;
+import jake2.qcommon.network.protocol.PacketDirection;
 import jake2.qcommon.network.transport.*;
 
 import java.io.IOException;
@@ -60,35 +62,38 @@ public final class NET {
 
     /** Receive only local traffic, including final messages after the UDP role has stopped. */
     public static NetworkPacket receiveLoopbackPacket(int role) {
-        return decode(localEndpoint(role).receive(), role == NS_SERVER);
+        return adaptReceived(localEndpoint(role).receive(), role == NS_SERVER);
     }
 
     public static NetworkPacket receiveNetworkPacket(int role) {
         NetworkPacket local = receiveLoopbackPacket(role);
         if (local != null) return local;
         UdpDatagramEndpoint endpoint = udpEndpoints[role];
-        return endpoint == null ? null : decode(endpoint.receive(), role == NS_SERVER);
+        return endpoint == null ? null : adaptReceived(endpoint.receive(), role == NS_SERVER);
     }
 
-    // Packet decoding stays in the compatibility facade until the PacketCodec extraction.
-    private static NetworkPacket decode(ReceiveResult result, boolean fromClient) {
+    // Legacy nullable API and trace output; decoding itself has explicit, side-effect-free outcomes.
+    private static NetworkPacket adaptReceived(ReceiveResult result, boolean fromClient) {
         if (result instanceof ReceiveResult.Failed failure) {
             Com.Println("NET receive ERROR: " + failure.getCause());
         }
         if (!(result instanceof ReceiveResult.Received received)) return null;
         Datagram datagram = received.getDatagram();
-        byte[] data = datagram.getPayload().toByteArray();
-        try {
-            if (datagram.getSource() instanceof NetworkAddress.Local) {
-                return NetworkPacket.fromLoopback(fromClient, data, data.length);
+        PacketDecodeResult decoded = PacketCodec.decode(datagram.getPayload(),
+                fromClient ? PacketDirection.FROM_CLIENT : PacketDirection.FROM_SERVER);
+        if (decoded instanceof PacketDecodeResult.Rejected rejected) {
+            if (Netchan.showdrop != null && Netchan.showdrop.getTypedValue()) {
+                Com.Println("NET dropped packet from " + datagram.getSource() + ": " + rejected.getReason());
             }
-            NetworkAddress.Udp source = (NetworkAddress.Udp) datagram.getSource();
-            return NetworkPacket.fromSocket(fromClient, data, data.length,
-                    source.getIp().toByteArray(), source.getPort());
-        } catch (RuntimeException malformedPacket) {
-            // Preserve legacy packet rejection until decoding has explicit outcomes.
             return null;
         }
+        NetworkPacket packet = NetworkPacket.fromEnvelope(datagram.getSource(),
+                ((PacketDecodeResult.Decoded) decoded).getEnvelope());
+        if (packet.isConnectionless() && Netchan.printNetwork != null && Netchan.printNetwork.getTypedValue()) {
+            Com.Printf("Network: Received from " + (fromClient ? "client" : "server")
+                    + " connectionless: " + packet.connectionlessMessage + "\n");
+        }
+        return packet;
     }
 
     public static void SendPacket(int role, int length, byte[] data, netadr_t to) {

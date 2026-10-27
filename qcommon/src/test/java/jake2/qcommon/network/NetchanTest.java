@@ -2,6 +2,12 @@ package jake2.qcommon.network;
 
 import jake2.qcommon.Globals;
 import jake2.qcommon.network.messages.NetworkPacket;
+import jake2.qcommon.network.protocol.PacketCodec;
+import jake2.qcommon.network.protocol.PacketDecodeResult;
+import jake2.qcommon.network.protocol.PacketDirection;
+import jake2.qcommon.network.transport.IpAddress;
+import jake2.qcommon.network.transport.NetworkAddress;
+import jake2.qcommon.network.transport.PacketBytes;
 import jake2.qcommon.sizebuf_t;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,6 +57,9 @@ class NetchanTest {
         sizebuf_t buffer = new sizebuf_t(8);
         buffer.writeInt(sequence);
         buffer.writeInt(sequenceAck);
-        return NetworkPacket.fromLoopback(false, buffer.data, buffer.cursize);
+        var decoded = (PacketDecodeResult.Decoded) PacketCodec.decode(
+                PacketBytes.copyOf(buffer.data, buffer.cursize), PacketDirection.FROM_SERVER);
+        return NetworkPacket.fromEnvelope(
+                new NetworkAddress.Udp(IpAddress.fromBytes(new byte[]{127, 0, 0, 1}), 27910), decoded.getEnvelope());
     }
 }

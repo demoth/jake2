@@ -4,6 +4,8 @@ import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.network.Netchan;
 import jake2.qcommon.network.NetAddrType;
+import jake2.qcommon.network.protocol.PacketEnvelope;
+import jake2.qcommon.network.transport.NetworkAddress;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.client.EndOfClientPacketMessage;
 import jake2.qcommon.network.messages.client.MoveMessage;
@@ -16,9 +18,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class NetworkPacket {
-
-    // should parse port
-    private final boolean fromClient;
 
     // Long, -1 for connectionless
     public int sequence;
@@ -39,61 +38,36 @@ public class NetworkPacket {
 
     public sizebuf_t buffer = new sizebuf_t();
 
-    public static NetworkPacket fromLoopback(boolean fromClient, byte[] data, int datalen) {
-        // localhost by default
-        NetworkPacket loopbackPacket = new NetworkPacket(fromClient);
-        loopbackPacket.buffer.data = new byte[datalen];
-        loopbackPacket.buffer.cursize = datalen;
-        System.arraycopy(data, 0, loopbackPacket.buffer.data, 0, datalen);
-        loopbackPacket.parseHeader();
-        return loopbackPacket;
+    /** Adapt a validated envelope to the mutable legacy channel/message reader. */
+    public static NetworkPacket fromEnvelope(NetworkAddress source, PacketEnvelope envelope) {
+        NetworkPacket packet = new NetworkPacket();
+        packet.buffer.data = envelope.getBytes().toByteArray();
+        packet.buffer.cursize = packet.buffer.data.length;
+        packet.buffer.maxsize = packet.buffer.data.length;
+        if (source instanceof NetworkAddress.Udp udp) {
+            packet.from.type = NetAddrType.NA_IP;
+            packet.from.ip = udp.getIp().toByteArray();
+            packet.from.port = udp.getPort();
+        }
+        if (envelope instanceof PacketEnvelope.Sequenced sequenced) {
+            packet.sequence = sequenced.getSequence();
+            packet.sequenceAck = sequenced.getSequenceAck();
+            packet.qport = sequenced.getQport() == null ? 0 : sequenced.getQport();
+            packet.buffer.readcount = sequenced.getHeaderSize();
+        } else if (envelope instanceof PacketEnvelope.Connectionless connectionless) {
+            packet.sequence = -1;
+            packet.connectionlessMessage = connectionless.getCommandLine();
+            packet.connectionlessParameters = connectionless.getParameters();
+            packet.buffer.readcount = packet.buffer.cursize;
+        }
+        return packet;
     }
 
-    public static NetworkPacket fromSocket(boolean fromClient, byte[] data, int datalen, byte[] address, int port) {
-        NetworkPacket networkPacket = new NetworkPacket(fromClient);
-        networkPacket.from.ip = address;
-        networkPacket.from.port = port;
-        networkPacket.from.type = NetAddrType.NA_IP;
-        networkPacket.buffer.cursize = datalen;
-        networkPacket.buffer.data = data;
-        // Reads are bounded by cursize; the backing array needs no sentinel byte.
-        networkPacket.parseHeader();
-        return networkPacket;
-    }
-
-    private NetworkPacket(boolean fromClient) {
-        this.fromClient = fromClient;
+    private NetworkPacket() {
     }
 
     public boolean isConnectionless() {
         return sequence == -1;
-    }
-
-    public void parseHeader() {
-        sequence = buffer.readInt();
-
-        if (isConnectionless()) {
-            connectionlessMessage = buffer.readString();
-            if (Netchan.printNetwork.getTypedValue()) {
-                Com.Printf("Network: Received from " + (fromClient ? "client" : "server") + " connectionless: " + connectionlessMessage + "\n");
-            }
-            if (!fromClient) {
-                switch (connectionlessMessage) {
-                    case "info":
-                    case "print":
-                        connectionlessParameters = buffer.readString();
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-        } else {
-            sequenceAck = buffer.readInt();
-
-            if (fromClient)
-                qport = buffer.readShort() & 0xffff;
-        }
     }
 
     public Collection<ServerMessage> parseBodyFromServer() {

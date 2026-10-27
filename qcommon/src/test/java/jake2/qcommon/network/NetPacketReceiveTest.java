@@ -2,6 +2,13 @@ package jake2.qcommon.network;
 
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.network.messages.NetworkPacket;
+import jake2.qcommon.network.messages.ConnectionlessCommand;
+import jake2.qcommon.network.protocol.PacketCodec;
+import jake2.qcommon.network.protocol.PacketDecodeResult;
+import jake2.qcommon.network.protocol.PacketDirection;
+import jake2.qcommon.network.transport.IpAddress;
+import jake2.qcommon.network.transport.NetworkAddress;
+import jake2.qcommon.network.transport.PacketBytes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,8 +59,10 @@ class NetPacketReceiveTest {
     @Test
     void socketPacketAcceptsAnExactlySizedArray() {
         byte[] bytes = sequencedPacket(MAX_MSGLEN, true);
-        NetworkPacket packet = NetworkPacket.fromSocket(true, bytes, bytes.length,
-                new byte[]{127, 0, 0, 1}, 27910);
+        var decoded = assertInstanceOf(PacketDecodeResult.Decoded.class,
+                PacketCodec.decode(PacketBytes.copyOf(bytes), PacketDirection.FROM_CLIENT));
+        NetworkPacket packet = NetworkPacket.fromEnvelope(
+                new NetworkAddress.Udp(IpAddress.fromBytes(new byte[]{127, 0, 0, 1}), 27910), decoded.getEnvelope());
 
         assertEquals(MAX_MSGLEN, packet.buffer.cursize);
         assertEquals(7, packet.sequence);
@@ -71,8 +80,32 @@ class NetPacketReceiveTest {
         assertTrue(packet.isConnectionless());
         assertEquals("x".repeat(MAX_MSGLEN - 4), packet.connectionlessMessage);
 
-        NetworkPacket loopback = NetworkPacket.fromLoopback(true, bytes, bytes.length);
+        NET.SendPacket(NS_CLIENT, bytes.length, bytes, new netadr_t());
+        NetworkPacket loopback = NET.receiveLoopbackPacket(NS_SERVER);
+        assertNotNull(loopback);
         assertEquals(loopback.connectionlessMessage, packet.connectionlessMessage);
+    }
+
+    @Test
+    void truncatedLoopbackHeaderIsDroppedWithoutConsumingFollowingPacket() {
+        NET.SendPacket(NS_CLIENT, 8, sequencedPacket(8, false), new netadr_t());
+        Netchan.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+
+        assertNull(NET.receiveLoopbackPacket(NS_SERVER));
+        NetworkPacket next = NET.receiveLoopbackPacket(NS_SERVER);
+        assertNotNull(next);
+        assertEquals("getchallenge", next.connectionlessMessage);
+    }
+
+    @Test
+    void serverPrintReplySeparatesCommandFromMultilineParameters() {
+        Netchan.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.print,
+                "\nFirst line\nSecond line\n");
+
+        NetworkPacket packet = NET.receiveLoopbackPacket(NS_CLIENT);
+        assertNotNull(packet);
+        assertEquals("print", packet.connectionlessMessage);
+        assertEquals("First line\nSecond line\n", packet.connectionlessParameters);
     }
 
     private static byte[] sequencedPacket(int length, boolean fromClient) {
