@@ -17,3 +17,11 @@ dependencies {
     runtimeOnly(project(":game"))
     testImplementation(project(":game"))
 }
+
+// Real-application tests bootstrap process-wide engine state and replace user.home.
+// Keep each opt-in test class in its own application process.
+tasks.test {
+    if (providers.environmentVariable("CAKE_HOST_GAME_TESTS").orNull == "1") {
+        forkEvery = 1
+    }
+}
