@@ -2,6 +2,7 @@ package jake2.server
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.Graphics
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
@@ -18,6 +19,8 @@ import jake2.qcommon.Defines.NS_SERVER
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import org.demoth.cake.Cake
+import org.demoth.cake.ui.menu.MenuBackend
+import org.demoth.cake.ui.menu.HostGameFormState
 import org.demoth.cake.CakeCvars
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.fullgame.EmbeddedCakeHost
@@ -68,6 +71,8 @@ class CakeHostApplicationTest {
                         initialHost = host.server!!
                         assertEquals(HostState.STOPPED, host.state)
                         assertNotNull(Cmd.FindCommand("map"))
+                        assertNull(Cmd.FindCommand("host_start"))
+                        assertNull(Cmd.FindCommand("host_stop"))
                         // Hosted storage rejection must precede persisted profile selection.
                         val originalRoot = EngineWriteRoot.path()
                         Files.writeString(temp.resolve(".cake/blocked"), "not a directory")
@@ -86,7 +91,12 @@ class CakeHostApplicationTest {
                     try {
                         when (step++) {
                             0 -> {
-                                Cbuf.AddText("host_start testbox coop")
+                                val backend = Cake::class.java.getDeclaredMethod("createMenuBackend").apply {
+                                    isAccessible = true
+                                }.invoke(cake) as MenuBackend
+                                assertEquals("Starting game...", backend.startHosting(false,
+                                    HostGameFormState(map = "testbox", coop = true, maxClients = "4")))
+                                assertEquals("DISCONNECTED", clientState(cake!!))
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
                                 frame = gameFrame(host)
@@ -118,7 +128,7 @@ class CakeHostApplicationTest {
                                 assertEquals("CONNECTING", clientState(cake!!))
                                 assertEquals(HostState.STOPPED, host.state)
                                 assertArrayEquals(before, Files.readAllBytes(current))
-                                Cbuf.AddText("host_start missing")
+                                Cbuf.AddText("disconnect; map missing")
                                 cake!!.render()
                                 assertEquals(HostState.STOPPED, host.state)
                             }
@@ -127,15 +137,16 @@ class CakeHostApplicationTest {
                                 Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
                                 cake!!.render()
                                 assertEquals("DISCONNECTED", clientState(cake!!))
-                                Cbuf.AddText("host_start testbox")
+                                Cbuf.AddText("set coop 0; set deathmatch 0; set maxclients 1; map testbox")
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
                                 assertSame(initialHost, host.server)
                                 frame = gameFrame(host)
                             }
                             5 -> {
+                                cake!!.keyUp(Input.Keys.GRAVE)
                                 cake!!.render()
-                                assertEquals(frame, gameFrame(host), "The main menu pauses singleplayer")
+                                assertEquals(frame, gameFrame(host), "The console pauses singleplayer")
                                 Gdx.app.exit()
                             }
                         }

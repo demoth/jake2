@@ -326,7 +326,7 @@ class Cake(
             }
             if (target.type == NetAddrType.NA_LOOPBACK) {
                 if (host.state != HostState.RUNNING) {
-                    Com.Warn("No local server is running. Use host_start or connect to a UDP address.\n")
+                    Com.Warn("No local server is running. Use map to start a local game or connect to a UDP address.\n")
                     return@AddCommand
                 }
                 resetClientConnection()
@@ -382,24 +382,6 @@ class Cake(
 
         Cmd.AddCommand("disconnect", "Disconnect and stop any local server") { disconnect() }
 
-        Cmd.AddCommand("host_start", "Start a local server: host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]") { args ->
-            val profile = activeGameProfile
-            if (profile == null) {
-                Com.Warn("Select a game profile before hosting.\n")
-                return@AddCommand
-            }
-            val request = parseHostRequest(args, profile)
-            if (request == null) {
-                Com.Printf("usage: host_start <map> [singleplayer|deathmatch|coop] [skill 0..3] [maxclients]\n")
-                return@AddCommand
-            }
-            if (host.availability != HostAvailability.AVAILABLE) {
-                Com.Warn("Hosting is unavailable in this application.\n")
-                return@AddCommand
-            }
-            startHostedGame(request)
-        }
-        Cmd.AddCommand("host_stop", "Stop the local game and disconnect") { disconnect() }
         Cmd.AddCommand("loading", "(internal) Prepare local map-change presentation") {
             if (host.state != HostState.STOPPED && game3dScreen != null) {
                 beginMapTransitionRetainingConfigAssets()
@@ -489,14 +471,13 @@ class Cake(
         Cbuf.AddLateCommands(startup.startupCommands)
     }
 
-    /** Shared entrypoint for the console and Host Game menu. */
+    /** Menu startup uses the same automatic local attachment as console commands. */
     private fun startHostedGame(request: HostRequest): HostStartResult {
         disconnect()
         val result = host.start(request)
         when (result) {
             HostStartResult.Started -> {
                 Com.Printf("Local server started: ${request.map}\n")
-                beginConnection(netadr_t(), local = true)
             }
             is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
         }

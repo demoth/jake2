@@ -59,7 +59,7 @@ class CakeLocalSessionGlTest {
                     try {
                         cake = Cake(startup, host = host)
                         cake.create()
-                        Cbuf.AddText("host_start base1")
+                        Cbuf.AddText("map base1")
                     } catch (error: Throwable) { fail(error) }
                 }
 
@@ -104,12 +104,12 @@ class CakeLocalSessionGlTest {
                                 next("reconnect")
                             }
                             4 -> if (ticks > 2 && state(cake) == "ACTIVE") {
-                                next("host_stop")
+                                next("disconnect")
                             }
                             5 -> {
                                 assertEquals(HostState.STOPPED, host.state)
                                 assertEquals("DISCONNECTED", state(cake))
-                                next("host_start base1")
+                                next("map base1")
                             }
                             6 -> if (state(cake) == "ACTIVE") next("killserver")
                             7 -> {
@@ -117,7 +117,7 @@ class CakeLocalSessionGlTest {
                                 assertEquals("DISCONNECTED", state(cake))
                                 assertTrue(NET.ip_channels.all { it == null })
                                 Cvar.getInstance().find<Int>("port").forceSet(0)
-                                next("host_start base1 coop")
+                                next("set coop 1; set deathmatch 0; set maxclients 4; map base1")
                             }
                             8 -> if (state(cake) == "ACTIVE") {
                                 serverSocket = NET.ip_sockets[Defines.NS_SERVER]!!
@@ -133,7 +133,7 @@ class CakeLocalSessionGlTest {
                             10 -> if (ticks > 2 && state(cake) == "ACTIVE" && mapName() == "base2" && spawnedClients(host) == 2) {
                                 assertSame(serverSocket, NET.ip_sockets[Defines.NS_SERVER])
                                 clientPeer.destroy()
-                                next("host_start base1 deathmatch")
+                                next("disconnect; set coop 0; set deathmatch 1; set maxclients 8; map base1")
                             }
                             11 -> if (state(cake) == "ACTIVE") {
                                 Files.deleteIfExists(clientReady)

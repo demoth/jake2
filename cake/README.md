@@ -117,12 +117,16 @@ profiles or starting another session.
 
 Console equivalents:
 
-- `host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]`
-- `host_stop` — disconnect and stop hosting.
-- `map <map>` / `gamemap <map>` — change maps while hosting.
+- `map <map>` / `gamemap <map>` — start a local game or change maps while hosting.
+- `disconnect` — disconnect and stop the local game, retaining the idle Host.
+- `killserver` — stop the hosted game, retaining the idle Host.
 
-Saves are stored in `~/.cake/<profileId>/save/`. Console `save <slot>` and
-`load <slot>` currently require an active game.
+For multiplayer, set `coop`, `deathmatch`, and `maxclients` before starting the
+map, for example `set coop 1; set deathmatch 0; set maxclients 4; map base1`.
+The Host Game menu configures these settings for you.
+
+Saves are stored in `~/.cake/<profileId>/save/`. Console `load <slot>` restores a
+game even while disconnected. `save <slot>` requires an active game.
 
 ## Subsystem Guides
 
