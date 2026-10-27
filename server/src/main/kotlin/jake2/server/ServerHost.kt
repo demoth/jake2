@@ -1332,7 +1332,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     return
                 }
 
-                if (!paused.typedValue) {
+                if (!games[cl.gameName]!!.isPaused) {
                     var droppedPackets = cl.netchan.dropped
                     if (droppedPackets < 20) {
                         //if (droppedPackets > 2)

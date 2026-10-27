@@ -247,9 +247,16 @@ public class GameImportsImpl implements GameImports {
 
     public boolean isCoop() { return coop.getTypedValue(); }
 
-    /** Overlay this Game's mode and rules on the remaining shared server-info settings. */
+    /** Effective pause policy shared by simulation and client movement. */
+    boolean isPaused() {
+        return serverMain.isPaused() && !isDeathmatch() && !isCoop()
+                && serverMain.getClients().size() <= 1;
+    }
+
+    /** Overlay this Game's map, mode and rules on the remaining shared server-info settings. */
     public String serverInfo() {
         String info = Cvar.getInstance().Serverinfo();
+        info = Info.Info_SetValueForKey(info, "mapname", mapName);
         info = Info.Info_SetValueForKey(info, "deathmatch", deathmatch.getRawString());
         info = Info.Info_SetValueForKey(info, "coop", coop.getRawString());
         for (String rule : List.of("dmflags", "fraglimit", "timelimit")) {
@@ -871,7 +878,7 @@ public class GameImportsImpl implements GameImports {
         // has the "current" frame
         frameNum++;
 
-        if (serverMain.isPaused() && !isDeathmatch() && !isCoop() && serverMain.getClients().size() <= 1) {
+        if (isPaused()) {
             return;
         }
 

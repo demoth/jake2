@@ -104,6 +104,8 @@ class HostClientAccountingTest {
         assertNotEquals(first.name, client.gameName)
         assertEquals("testbox2", host.games.getValue(client.gameName).mapName)
         assertSame(second, host.games[second.name])
+        assertEquals("testbox2", Info.Info_ValueForKey(host.games.getValue(client.gameName).serverInfo(), "mapname"))
+        assertEquals("testbox", Info.Info_ValueForKey(second.serverInfo(), "mapname"))
         assertEquals(100L, client.lastmessage)
         assertEquals(100L, client.lastconnect)
         host.timeout.forceSet(0.5f)
@@ -212,6 +214,37 @@ class HostClientAccountingTest {
         } finally {
             jake2.qcommon.exec.Cmd.RemoveCommand("test_after_kick")
         }
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource(
+        "false,false,1,true", "true,false,1,false", "false,true,1,false", "false,false,2,false")
+    fun `simulation and movement share effective Game pause policy`(
+        coop: Boolean, deathmatch: Boolean, slots: Int, expectedPaused: Boolean
+    ) {
+        cvars.find<Int>("maxclients").forceSet(slots)
+        host.resetClients()
+        first.findCvar("coop", Boolean::class.java).forceSet(coop)
+        first.findCvar("deathmatch", Boolean::class.java).forceSet(deathmatch)
+        val client = bind(0, first)
+        client.state = ClientStates.CS_SPAWNED
+        var frames = 0
+        var moves = 0
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun G_RunFrame() { frames++ }
+            override fun ClientThink(ent: ServerEntity, cmd: usercmd_t) { moves++ }
+        }
+        val move = MoveMessage(false, -1, usercmd_t(), usercmd_t(), usercmd_t(), 0).apply { valid = true }
+        cvars.find<Boolean>("paused").forceSet(true) // Direct console request, bypassing menu filtering.
+        first.runFrame()
+        host.handleClientMessages(client, listOf(move))
+        assertEquals(if (expectedPaused) 0 else 1, frames)
+        assertEquals(frames, moves)
+        cvars.find<Boolean>("paused").forceSet(false)
+        first.runFrame()
+        host.handleClientMessages(client, listOf(move))
+        assertEquals(if (expectedPaused) 1 else 2, frames)
+        assertEquals(frames, moves)
     }
 
     @Test
