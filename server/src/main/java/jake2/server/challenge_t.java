@@ -24,9 +24,10 @@ package jake2.server;
 
 import jake2.qcommon.network.netadr_t;
 
+/** One entry in the Host's bounded connection-challenge cache; see ServerHost.getChallenge. */
 public class challenge_t {
-	//mem
 	netadr_t		adr = new netadr_t();
 	int			challenge;
-	int			time;
+	// Host-local eviction order, not a timestamp or wire value; zero denotes an unused entry.
+	long		issuedOrder;
 }

@@ -51,6 +51,7 @@ class ServerHost : AutoCloseable {
     val games: MutableMap<String, GameImportsImpl> = HashMap()
 
     private val challenges = Array(Defines.MAX_CHALLENGES) { challenge_t() }
+    private var challengeOrder = 0L
 
     var clients: MutableList<ClientNetworkInfo> = mutableListOf()
         private set
@@ -316,6 +317,7 @@ class ServerHost : AutoCloseable {
             paused.forceSet(false)
             Cvar.getInstance().find<String>("mapname").forceSet("")
             for (i in challenges.indices) challenges[i] = challenge_t()
+            challengeOrder = 0
             // Ordinary queued commands may start the next session (killserver; gamemap ...).
             Cbuf.ClearDeferred()
             NET.configureServer(false)
@@ -973,41 +975,47 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     /**
-     * Returns a challenge number that can be used in a subsequent
-     * client_connect command. We do this to prevent denial of service attacks
-     * that flood the server with invalid connection IPs. With a challenge, they
-     * must give a valid IP address.
+     * Issue or reuse the token for the connectionless getchallenge -> challenge -> connect handshake.
+     * A remote client echoes the token in its connect request; [connectClient] checks it against
+     * the cached source IP (UDP port is ignored). Local connections bypass that check.
+     *
+     * This makes blind source-IP spoofing harder: the requester normally needs to receive the
+     * reply before it can connect. The legacy 15-bit random token is not authentication or a
+     * general denial-of-service defence; it can be guessed and does not prevent request floods.
+     *
+     * The bounded Host cache has no time-based expiry. Repeated requests reuse the token without
+     * refreshing its position. New addresses take an unused entry or evict the earliest-issued
+     * entry. A Host-owned counter orders issuance even within one clock tick and across global
+     * clock resets/wrap. Session stop clears the cache and counter; this order is never sent.
      */
     private fun getChallenge(from: netadr_t): Int {
         var oldest = 0
-        var oldestTime = 0x7fffffff
+        var oldestOrder = Long.MAX_VALUE
 
         var i: Int
         i = 0
         while (i < Defines.MAX_CHALLENGES) {
             if (from.CompareBaseAdr(challenges[i].adr)) break
-            if (challenges[i].time < oldestTime) {
-                oldestTime = challenges[i].time
+            if (challenges[i].issuedOrder < oldestOrder) {
+                oldestOrder = challenges[i].issuedOrder
                 oldest = i
             }
             i++
         }
 
         if (i == Defines.MAX_CHALLENGES) {
-            // overwrite the oldest
+            // Unused entries have order zero and are selected before issued entries.
             challenges[oldest].challenge = Lib.rand().toInt() and 0x7fff
             challenges[oldest].adr = from
-            challenges[oldest].time = Globals.curtime
+            // Eviction needs issuance order, not wall time or Game simulation time.
+            challenges[oldest].issuedOrder = ++challengeOrder
             i = oldest
         }
 
-        // send it back
         return challenges[i].challenge
     }
 
-    /**
-     * A connection request that did not come from the master.
-     */
+    /** Validate a direct connect request, including its remote-address challenge, before admission. */
     private fun connectClient(args: List<String>, adr: netadr_t) {
         Com.DPrintf("SVC_DirectConnect ()\n")
 
@@ -1029,7 +1037,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // force the IP key/value pair so the game can filter based on ip
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", adr.toString())
 
-        // see if the challenge is valid
+        // Match the source IP and echoed token before allocating/reusing a client slot.
         var j: Int
         if (!adr.IsLocalAddress()) {
             j = 0

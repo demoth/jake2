@@ -259,6 +259,58 @@ class HostClientAccountingTest {
     }
 
     @Test
+    fun `challenge eviction follows issuance order despite global clock reversal`() {
+        val previousTime = Globals.curtime
+        val loopback = java.net.InetAddress.getByName("127.0.0.1")
+        java.net.DatagramSocket(0, loopback).use { receiver ->
+            receiver.soTimeout = 2000
+            fun reply(): String {
+                val packet = java.net.DatagramPacket(ByteArray(2048), 2048)
+                receiver.receive(packet)
+                return String(packet.data, 4, packet.length - 4).trim()
+            }
+            val address = netadr_t().apply {
+                type = NetAddrType.NA_IP
+                ip = loopback.address
+                port = receiver.localPort
+            }
+            cvars.find<Int>("port").forceSet(0)
+            try {
+                assertTrue(NET.configureServer(true))
+                Globals.curtime = 1000
+                host.handleConnectionlessPacket(address, "getchallenge")
+                val issued = reply()
+                val challenge = issued.substringAfterLast(' ')
+                NET.configureServer(false)
+                // No UDP socket while filling synthetic remote addresses: no external packets.
+                Globals.curtime = -1000
+                repeat(Defines.MAX_CHALLENGES - 1) { index ->
+                    val remote = netadr_t().apply {
+                        type = NetAddrType.NA_IP
+                        ip = byteArrayOf(192.toByte(), 0, (index / 256).toByte(), (index % 256).toByte())
+                    }
+                    host.handleConnectionlessPacket(remote, "getchallenge")
+                }
+                assertTrue(NET.configureServer(true))
+                host.handleConnectionlessPacket(address, "getchallenge")
+                assertEquals(issued, reply(), "Repeated requests retain the existing challenge")
+                NET.configureServer(false)
+                host.handleConnectionlessPacket(netadr_t().apply {
+                    type = NetAddrType.NA_IP
+                    ip = byteArrayOf(198.toByte(), 51, 100, 1)
+                }, "getchallenge")
+                assertTrue(NET.configureServer(true))
+                host.handleConnectionlessPacket(address,
+                    "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester")
+                assertTrue(reply().contains("No challenge for address"))
+            } finally {
+                Globals.curtime = previousTime
+                NET.configureServer(false)
+            }
+        }
+    }
+
+    @Test
     fun `remote reconnect uses Host acceptance time across Game clock changes`() {
         // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
         val address = netadr_t().apply { port = 12345 }
