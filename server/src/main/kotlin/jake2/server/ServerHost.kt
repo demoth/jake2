@@ -803,9 +803,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (games.isEmpty()) return
 
         realtime += msec
-        for (game in games.values) {
-            game.realtime += msec.toInt()
-        }
 
         // keep the random time dependent
         Lib.rand()
@@ -819,14 +816,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (games.isEmpty()) return
 
         // identify if we need to update the game or it's too early (sleep or skip this update).
-        // fixedtime - the time of the next scheduled game update.
         var delay = nextFrameTime - realtime
         if (delay > 0) {
-            // never let the time get too far off
-            if (delay > 100) { // how is it even possible?
-                for (game in games.values) game.realtime = (nextFrameTime - 100)
-                delay = 100
-            }
+            // Bound the dedicated sleep while waiting for the next scheduled tick.
+            delay = delay.coerceAtMost(100)
             NET.Sleep(delay.toInt())
             return
         }
@@ -844,7 +837,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // let everything in the world think and move
         for (game in games.values.toList()) {
             if (games[game.name] !== game) continue
-            withGameFailureBoundary { game.SV_RunGameFrame(nextFrameTime.toLong()) }
+            withGameFailureBoundary { game.runFrame() }
         }
         if (games.isEmpty()) return
 

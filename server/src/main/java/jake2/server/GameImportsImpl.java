@@ -75,7 +75,6 @@ public class GameImportsImpl implements GameImports {
     final String[] configstrings = new String[Defines.MAX_CONFIGSTRINGS];
     final entity_state_t[] baselines = new entity_state_t[Defines.MAX_EDICTS];
 
-    public int realtime; // always increasing, no clamping, etc
     // todo: remove
     public int spawncount; // incremented each server start
 
@@ -863,10 +862,8 @@ public class GameImportsImpl implements GameImports {
         new ServerSaveFiles(EngineWriteRoot.path()).copy("current", slot);
     }
 
-    /**
-     * SV_RunGameFrame.
-     */
-    void SV_RunGameFrame(long fixedtime) {
+    /** Advance this Game by one simulation tick; scheduling belongs to the Host. */
+    void runFrame() {
 
         // we always need to bump framenum, even if we
         // don't run the world, otherwise the delta
@@ -879,11 +876,6 @@ public class GameImportsImpl implements GameImports {
         }
 
         gameExports.G_RunFrame();
-
-        // never get more than one tic behind
-        if (fixedtime < realtime) {
-            realtime = (int) fixedtime;
-        }
 
     }
 

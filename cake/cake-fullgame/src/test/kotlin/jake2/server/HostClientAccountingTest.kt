@@ -82,16 +82,16 @@ class HostClientAccountingTest {
     }
 
     @Test
-    fun `timeout survives Game clock reset and expires at Host boundary`() {
+    fun `timeout survives Game frame reset and expires at Host boundary`() {
         val client = bind(0, first)
         host.timeout.forceSet(0.5f)
-        first.realtime = -10000
+        first.frameNum = 10000
         host.update(500)
         assertEquals(ClientStates.CS_CONNECTED, client.state)
         assertEquals(100L, client.lastmessage)
         // Simulate transfer to a newly allocated Game with a different clock.
         client.gameName = second.name
-        second.realtime = 0
+        second.frameNum = 0
         host.update(1)
         assertEquals(ClientStates.CS_FREE, client.state)
     }
@@ -122,7 +122,7 @@ class HostClientAccountingTest {
         assertEquals(500L, client.lastmessage)
         host.update(500)
         assertEquals(ClientStates.CS_ZOMBIE, client.state)
-        first.realtime = -10000
+        first.frameNum = 10000
         host.update(1)
         assertEquals(ClientStates.CS_FREE, client.state)
     }
@@ -218,7 +218,7 @@ class HostClientAccountingTest {
     fun `snapshots use Game identity but Host send time and rate bucket`() {
         val client = bind(0, first)
         client.state = ClientStates.CS_SPAWNED
-        first.realtime = -9000
+        first.frameNum = 9000
         host.sendClientMessages()
         val snapshot = first.frameNum
         assertEquals(100L, client.frames[snapshot and Defines.UPDATE_MASK].senttime)
@@ -227,7 +227,7 @@ class HostClientAccountingTest {
 
         client.state = ClientStates.CS_CONNECTED
         host.update(100)
-        first.realtime = 0
+        first.frameNum = 0
         val move = MoveMessage(false, snapshot, usercmd_t(), usercmd_t(), usercmd_t(), 0)
         host.handleClientMessages(client, listOf(move))
         client.state = ClientStates.CS_SPAWNED
@@ -311,14 +311,14 @@ class HostClientAccountingTest {
     }
 
     @Test
-    fun `remote reconnect uses Host acceptance time across Game clock changes`() {
+    fun `remote reconnect uses Host acceptance time across Game frame changes`() {
         // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
         val address = netadr_t().apply { port = 12345 }
         host.handleConnectionlessPacket(address, "getchallenge")
         val reply = NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false)!!.connectionlessMessage
         val challenge = reply.trim().substringAfterLast(' ')
         val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
-        first.realtime = -9000
+        first.frameNum = 9000
         host.handleConnectionlessPacket(address, connect)
         val client = host.clients[0]
         assertEquals(ClientStates.CS_CONNECTED, client.state)
@@ -326,7 +326,7 @@ class HostClientAccountingTest {
         drainPackets()
         cvars.find<Float>("sv_reconnect_limit").forceSet(0.5f)
         host.update(499)
-        first.realtime = 50000
+        first.frameNum = 50000
         host.handleConnectionlessPacket(address, connect)
         assertEquals(100L, client.lastconnect, "Reconnect before the boundary must be rejected")
         host.update(1)

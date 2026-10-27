@@ -58,7 +58,7 @@ public class GameImportsTest {
         manager = new ServerHost();
         GameImportsImpl testInstance = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
 
-        testInstance.SV_RunGameFrame(100);
+        testInstance.runFrame();
 
         Assertions.assertEquals(1, testInstance.frameNum);
     }
@@ -80,7 +80,7 @@ public class GameImportsTest {
         first.configstrings[jake2.qcommon.Defines.CS_NAME] = "changed first map";
         first.baselines[1].modelindex = 7;
         first.state = ServerStates.SS_GAME;
-        first.SV_RunGameFrame(100);
+        first.runFrame();
 
         Assertions.assertEquals(1, first.frameNum);
         Assertions.assertEquals(0, second.frameNum);
