@@ -56,7 +56,7 @@ public class NetworkPacket {
         networkPacket.from.type = NetAddrType.NA_IP;
         networkPacket.buffer.cursize = datalen;
         networkPacket.buffer.data = data;
-        networkPacket.buffer.data[datalen] = 0; // set the sentinel
+        // Reads are bounded by cursize; the backing array needs no sentinel byte.
         networkPacket.parseHeader();
         return networkPacket;
     }

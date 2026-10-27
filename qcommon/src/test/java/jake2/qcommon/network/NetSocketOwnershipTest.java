@@ -6,8 +6,12 @@ import jake2.qcommon.network.messages.ConnectionlessCommand;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import static jake2.qcommon.Defines.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,6 +62,33 @@ class NetSocketOwnershipTest {
             assertNull(NET.ip_channels[NS_SERVER]);
         }
         assertTrue(NET.configureServer(true));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {PORT_ANY, 0})
+    void explicitBindAddressSupportsEphemeralPorts(int port) throws Exception {
+        Cvar.getInstance().find("ip", String.class).forceSet("127.0.0.1");
+        Cvar.getInstance().find("port", Integer.class).forceSet(port);
+
+        assertTrue(NET.configureServer(true));
+        assertEquals(InetAddress.getByName("127.0.0.1"), NET.ip_sockets[NS_SERVER].getLocalAddress());
+        assertTrue(NET.ip_sockets[NS_SERVER].getLocalPort() > 0);
+    }
+
+    @Test
+    void occupiedClientPortFallsBackOnExplicitBindAddress() throws Exception {
+        Cvar.getInstance().find("ip", String.class).forceSet("127.0.0.1");
+        try (var occupied = new DatagramSocket(new InetSocketAddress("127.0.0.1", 0))) {
+            Cvar.getInstance().find("clientport", Integer.class).forceSet(occupied.getLocalPort());
+
+            assertTrue(NET.configureClient(true));
+            var client = NET.ip_sockets[NS_CLIENT];
+            assertEquals(occupied.getLocalAddress(), client.getLocalAddress());
+            assertTrue(client.getLocalPort() > 0);
+            assertNotEquals(occupied.getLocalPort(), client.getLocalPort());
+            assertTrue(NET.ip_channels[NS_CLIENT].isOpen());
+            assertFalse(NET.ip_channels[NS_CLIENT].isBlocking());
+        }
     }
 
     @Test

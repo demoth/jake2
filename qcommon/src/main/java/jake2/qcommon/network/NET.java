@@ -126,14 +126,16 @@ public final class NET {
             return null;
 
         try {
-            byte[] bytes = new byte[MAX_MSGLEN];
+            // Receive one extra byte so oversized datagrams can be detected even
+            // when DatagramChannel truncates them to the buffer capacity.
+            byte[] bytes = new byte[MAX_MSGLEN + 1];
             ByteBuffer receiveBuffer = ByteBuffer.wrap(bytes);
 
             InetSocketAddress srcSocket = (InetSocketAddress) channel.receive(receiveBuffer);
             if (srcSocket == null)
                 return null;
 
-            if (receiveBuffer.position() > MAX_MSGLEN) // how it is possible?
+            if (receiveBuffer.position() > MAX_MSGLEN)
                 return null;
 
             return NetworkPacket.fromSocket(fromClient, bytes, receiveBuffer.position(), srcSocket.getAddress().getAddress(), srcSocket.getPort());
@@ -255,18 +257,13 @@ public final class NET {
             if (ip_channels[sock] == null || !ip_channels[sock].isOpen())
                 ip_channels[sock] = DatagramChannel.open();
 
+            int bindPort = port == Defines.PORT_ANY ? 0 : port;
+            newsocket = ip_channels[sock].socket();
             if (ip == null || ip.length() == 0 || ip.equals("localhost")) {
-                if (port == Defines.PORT_ANY) {
-                    newsocket = ip_channels[sock].socket();
-                    newsocket.bind(new InetSocketAddress(0));
-                } else {
-                    newsocket = ip_channels[sock].socket();
-                    newsocket.bind(new InetSocketAddress(port));
-                }
+                newsocket.bind(new InetSocketAddress(bindPort));
             } else {
                 InetAddress ia = InetAddress.getByName(ip);
-                newsocket = ip_channels[sock].socket();
-                newsocket.bind(new InetSocketAddress(ia, port));
+                newsocket.bind(new InetSocketAddress(ia, bindPort));
             }
 
             // nonblocking channel
