@@ -16,6 +16,8 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import org.demoth.cake.stages.HostingSetupStage
 import org.demoth.cake.stages.SavedGamesStage
+import org.demoth.cake.stages.SingleplayerMenuStage
+import org.demoth.cake.stages.MainMenuStage
 import org.demoth.cake.hosting.HostSaveAccess
 import org.demoth.cake.hosting.HostSaveEntry
 import org.demoth.cake.hosting.HostMode
@@ -71,6 +73,7 @@ class MenuStagesGlTest {
         try {
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
+            verifySingleplayerHub(viewport, style)
             menus.rebuild(style)
             val main = menus.inputProcessor
             assertFalse(menus.select(MenuScreen.MAIN))
@@ -185,8 +188,52 @@ class MenuStagesGlTest {
             stage.act(0f)
             assertTrue(overwrite.isDisabled)
             assertTrue(labels(stage.root).contains("No saved games for this profile."))
+            stage.keyUp(Input.Keys.ESCAPE)
+            bus.drainIntents { intents += it }
+            assertEquals(MenuIntent.OpenSingleplayerMenu, intents.last())
         } finally {
             stage.dispose()
+        }
+    }
+
+    private fun verifySingleplayerHub(viewport: UiViewport, style: GameUiStyle) {
+        val bus = MenuEventBus(MenuStateSnapshot(canHostGame = false, canResumeGame = true,
+            saveAccess = HostSaveAccess(null, null)))
+        val main = MainMenuStage(viewport, bus, style, showHosting = true)
+        val hub = SingleplayerMenuStage(viewport, bus, style)
+        val difficulty = HostingSetupStage(viewport, bus, style, true)
+        val load = SavedGamesStage(viewport, bus, style, saving = false)
+        try {
+            main.act(0f)
+            assertFalse(main.root.findActor<TextButton>("singleplayer-menu").isDisabled)
+            assertFalse(labels(main.root).any { it == "Load Game" || it == "Save Game" })
+            hub.act(0f)
+            hub.draw()
+            assertTrue(hub.root.findActor<TextButton>("new-game-menu").isDisabled)
+            assertFalse(hub.root.findActor<TextButton>("load-game-menu").isDisabled)
+            assertFalse(hub.root.findActor<TextButton>("save-game-menu").isDisabled)
+            bus.postState(bus.latestState().copy(canHostGame = true, canResumeGame = false,
+                saveAccess = HostSaveAccess(null, "Start a game first")))
+            hub.act(0f)
+            assertFalse(hub.root.findActor<TextButton>("new-game-menu").isDisabled)
+            assertFalse(hub.root.findActor<TextButton>("load-game-menu").isDisabled)
+            assertTrue(hub.root.findActor<TextButton>("save-game-menu").isDisabled)
+            val button = hub.root.findActor<TextButton>("new-game-menu")
+            bus.drainIntents { }
+            button.listeners.filterIsInstance<ClickListener>().forEach { it.clicked(InputEvent(), 0f, 0f) }
+            val intents = mutableListOf<MenuIntent>()
+            bus.drainIntents { intents += it }
+            assertEquals(listOf(MenuIntent.OpenHostingSetup(true)), intents)
+            for (stage in listOf(difficulty, load)) {
+                stage.keyUp(Input.Keys.ESCAPE)
+                bus.drainIntents { intents += it }
+                assertEquals(MenuIntent.OpenSingleplayerMenu, intents.last())
+            }
+            hub.keyUp(Input.Keys.ESCAPE)
+            bus.drainIntents { intents += it }
+            assertEquals(MenuIntent.OpenMainMenu, intents.last())
+        } finally {
+            listOf(main, hub, difficulty, load).forEach { it.dispose() }
         }
     }
 

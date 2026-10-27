@@ -3,7 +3,6 @@ package org.demoth.cake.stages
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
-import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.exec.Cbuf
 import org.demoth.cake.BuildVersion
@@ -40,9 +39,6 @@ class MainMenuStage(
 ) {
     private var currentProfileLabel: Label
     private var switchProfileButton: TextButton
-    private var singleplayerButton: TextButton? = null
-    private var loadButton: TextButton? = null
-    private var saveButton: TextButton? = null
     private var disconnectButton: TextButton
     private var renderedProfileId: String = ""
     private var lastCanDisconnectState: Boolean = false
@@ -70,21 +66,9 @@ class MainMenuStage(
             row()
 
             if (showHosting) {
-                singleplayerButton = createMenuButton("Singleplayer", buttonStyle) {
-                    menuEventBus.postIntent(MenuIntent.OpenHostingSetup(true))
-                }
-                add(singleplayerButton)
-                row()
-                loadButton = createMenuButton("Load Game", buttonStyle) {
-                    menuEventBus.postIntent(MenuIntent.OpenLoadGame)
-                }.apply { labelCell.minWidth(0f) }
-                saveButton = createMenuButton("Save Game", buttonStyle) {
-                    menuEventBus.postIntent(MenuIntent.OpenSaveGame)
-                }.apply { labelCell.minWidth(0f) }
-                add(Table().apply {
-                    add(loadButton).growX().padRight(4f)
-                    add(saveButton).growX().padLeft(4f)
-                })
+                add(createMenuButton("Singleplayer", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.OpenSingleplayerMenu)
+                }.apply { name = "singleplayer-menu" })
                 row()
             }
 
@@ -118,9 +102,6 @@ class MainMenuStage(
     override fun act(delta: Float) {
         super.act(delta)
         val snapshot = menuEventBus.latestState()
-        singleplayerButton?.isDisabled = !snapshot.canHostGame
-        loadButton?.isDisabled = snapshot.saveAccess.loadRejectionReason != null
-        saveButton?.isDisabled = snapshot.saveAccess.saveRejectionReason != null
         val state = snapshot.mainMenu
         val active = state.activeProfileId.trim()
         if (active != renderedProfileId) {

@@ -83,7 +83,7 @@ class CakeNewGameGlTest {
                             cake.render() // The queued HostingFailed intent reaches the menu.
                             assertEquals(HostState.STOPPED, host.state)
                             assertEquals("DISCONNECTED", state())
-                            assertEquals(MenuScreen.SINGLEPLAYER, bus.latestState().activeScreen)
+                            assertEquals(MenuScreen.NEW_GAME, bus.latestState().activeScreen)
                             assertTrue(bus.latestState().singleplayer.statusMessage.contains("did not start a map"))
                             assertEquals(true, field("menuVisible"))
                             assertSame(manager, host.server)

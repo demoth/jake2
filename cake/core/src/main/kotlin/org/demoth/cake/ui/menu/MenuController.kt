@@ -87,10 +87,10 @@ class MenuController(
 
     private fun handleIntent(intent: MenuIntent) {
         when (intent) {
+            MenuIntent.OpenSingleplayerMenu -> refreshState(activeScreen = MenuScreen.SINGLEPLAYER)
             MenuIntent.OpenLoadGame, MenuIntent.OpenSaveGame -> {
-                state = state.copy(activeScreen = if (intent == MenuIntent.OpenLoadGame) MenuScreen.LOAD_GAME else MenuScreen.SAVE_GAME)
-                refreshSavedGames()
-                refreshState()
+                refreshSavedGames(saving = intent == MenuIntent.OpenSaveGame)
+                refreshState(activeScreen = if (intent == MenuIntent.OpenLoadGame) MenuScreen.LOAD_GAME else MenuScreen.SAVE_GAME)
                 bus.postSignal(MenuSignal.ShowMenu)
             }
             MenuIntent.RefreshSavedGames -> if (isSaveScreen()) {
@@ -136,7 +136,7 @@ class MenuController(
                 if (!intent.singleplayer) refreshHostingMaps()
                 state = if (intent.singleplayer) state.copy(singleplayer = state.singleplayer.copy(statusMessage = ""))
                     else state.copy(hostGame = state.hostGame.copy(statusMessage = ""))
-                refreshState(activeScreen = if (intent.singleplayer) MenuScreen.SINGLEPLAYER else MenuScreen.HOST_GAME)
+                refreshState(activeScreen = if (intent.singleplayer) MenuScreen.NEW_GAME else MenuScreen.HOST_GAME)
             }
             is MenuIntent.UpdateHostingDraft -> {
                 val setup = (if (intent.singleplayer) state.singleplayer else state.hostGame).copy(form = intent.form)
@@ -150,7 +150,7 @@ class MenuController(
                 refreshState()
             }
             is MenuIntent.HostingFailed -> {
-                state = state.copy(activeScreen = MenuScreen.SINGLEPLAYER,
+                state = state.copy(activeScreen = MenuScreen.NEW_GAME,
                     singleplayer = state.singleplayer.copy(statusMessage = intent.reason))
                 refreshState()
             }
@@ -412,7 +412,10 @@ class MenuController(
     private fun isCurrentSaveProfile(profileId: String): Boolean =
         profileId == backend.activeProfileId() && profileId == state.savedGames.profileId
 
-    private fun refreshSavedGames(selectedSlot: String? = state.savedGames.selectedSlot) {
+    private fun refreshSavedGames(
+        selectedSlot: String? = state.savedGames.selectedSlot,
+        saving: Boolean = state.activeScreen == MenuScreen.SAVE_GAME,
+    ) {
         val profileId = backend.activeProfileId()
         val catalog = backend.listSaves()
         val entries = (catalog as? HostSaveCatalogResult.Available)?.takeIf { it.profileId == profileId }?.entries.orEmpty()
@@ -422,7 +425,7 @@ class MenuController(
             is HostSaveCatalogResult.Failed -> "Could not list saved games: ${catalog.reason}"
         }
         val selected = selectedSlot?.takeIf { state.savedGames.profileId == profileId && entries.any { entry -> entry.slot == it } }
-            ?: entries.firstOrNull { if (state.activeScreen == MenuScreen.SAVE_GAME) !it.autosave else it.loadRejectionReason == null }?.slot
+            ?: entries.firstOrNull { if (saving) !it.autosave else it.loadRejectionReason == null }?.slot
             ?: entries.firstOrNull()?.slot
         state = state.copy(savedGames = SavedGamesState(profileId, entries, selected, statusMessage = status))
     }
@@ -554,8 +557,9 @@ class MenuController(
         return when (screen) {
             MenuScreen.MAIN -> 0
             MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS, MenuScreen.SINGLEPLAYER,
-            MenuScreen.CONTENT_BROWSER, MenuScreen.LOAD_GAME, MenuScreen.SAVE_GAME -> 1
-            MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION, MenuScreen.HOST_GAME -> 2
+            MenuScreen.CONTENT_BROWSER -> 1
+            MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION, MenuScreen.HOST_GAME,
+            MenuScreen.NEW_GAME, MenuScreen.LOAD_GAME, MenuScreen.SAVE_GAME -> 2
         }
     }
 

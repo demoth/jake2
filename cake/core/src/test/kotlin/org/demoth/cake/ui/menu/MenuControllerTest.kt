@@ -13,6 +13,30 @@ import org.junit.jupiter.api.Test
 /** Checks menu intent navigation and deferred option edits using a local cvar registry. */
 class MenuControllerTest {
 
+    @Test
+    fun singleplayerHubOwnsNewGameLoadAndSaveNavigation() {
+        val bus = MenuEventBus()
+        val controller = MenuController(FakeMenuBackend(), bus)
+        controller.initialize()
+        bus.drainSignals { }
+        fun open(intent: MenuIntent, screen: MenuScreen, sound: MenuUiSoundEffect) {
+            bus.postIntent(intent)
+            controller.pumpIntents()
+            assertEquals(screen, bus.latestState().activeScreen)
+            assertEquals(listOf(sound), drainedSoundEffects(bus))
+        }
+        open(MenuIntent.OpenSingleplayerMenu, MenuScreen.SINGLEPLAYER, MenuUiSoundEffect.ENTER_SUBMENU)
+        open(MenuIntent.OpenHostingSetup(true), MenuScreen.NEW_GAME, MenuUiSoundEffect.ENTER_SUBMENU)
+        open(MenuIntent.OpenSingleplayerMenu, MenuScreen.SINGLEPLAYER, MenuUiSoundEffect.EXIT_SUBMENU)
+        open(MenuIntent.OpenLoadGame, MenuScreen.LOAD_GAME, MenuUiSoundEffect.ENTER_SUBMENU)
+        open(MenuIntent.OpenSingleplayerMenu, MenuScreen.SINGLEPLAYER, MenuUiSoundEffect.EXIT_SUBMENU)
+        open(MenuIntent.OpenSaveGame, MenuScreen.SAVE_GAME, MenuUiSoundEffect.ENTER_SUBMENU)
+        bus.postIntent(MenuIntent.HostingFailed("Campaign could not start"))
+        controller.pumpIntents()
+        assertEquals(MenuScreen.NEW_GAME, bus.latestState().activeScreen)
+        assertEquals("Campaign could not start", bus.latestState().singleplayer.statusMessage)
+    }
+
     private fun savedEntry(slot: String, reason: String? = null) =
         HostSaveEntry(slot, "Checkpoint", "base1", 1000L, HostMode.SINGLEPLAYER, reason)
 

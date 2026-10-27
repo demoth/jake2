@@ -133,7 +133,10 @@ The Host Game menu configures these settings for you.
 Saves are stored in `~/.cake/<profileId>/save/`. Console `load <slot>` restores a
 game even while disconnected. `save <slot>` requires an active game.
 
-Fullgame's main menu provides Load Game and Save Game for singleplayer. New Save
+Fullgame's Singleplayer submenu contains New Game, Load Game and Save Game.
+New Game opens difficulty selection. The submenu stays accessible during play,
+with each action enabled when eligible; Back from these screens returns there.
+New Save
 creates a checkpoint; Overwrite asks before replacing a manual save. Autosave is
 listed for loading and reserved against manual overwrite. Save requires a living,
 spawned local player. Loading is available from startup and during singleplayer;

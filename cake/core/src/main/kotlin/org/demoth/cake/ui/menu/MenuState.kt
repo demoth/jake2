@@ -10,6 +10,7 @@ enum class MenuScreen {
     PROFILE_EDIT,
     MULTIPLAYER,
     SINGLEPLAYER,
+    NEW_GAME,
     HOST_GAME,
     JOIN_GAME,
     PLAYER_SETUP,

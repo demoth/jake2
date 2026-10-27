@@ -10,6 +10,7 @@ sealed interface MenuIntent {
     data object RequestStateSync : MenuIntent
     data object OpenProfileEditor : MenuIntent
     data object OpenMainMenu : MenuIntent
+    data object OpenSingleplayerMenu : MenuIntent
     data object OpenLoadGame : MenuIntent
     data object OpenSaveGame : MenuIntent
     data object RefreshSavedGames : MenuIntent

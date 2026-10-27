@@ -20,7 +20,7 @@ class SavedGamesStage(
     menuEventBus: MenuEventBus,
     style: GameUiStyle,
     private val saving: Boolean,
-) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenMainMenu) {
+) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenSingleplayerMenu) {
     private data class Choice(val entry: HostSaveEntry) {
         override fun toString(): String {
             val date = entry.savedAtMillis?.let {
