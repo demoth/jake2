@@ -30,6 +30,9 @@ import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.protocol.*;
 import jake2.qcommon.network.transport.PacketBytes;
 import jake2.qcommon.network.transport.SendResult;
+import jake2.qcommon.network.transport.NetworkAddress;
+import jake2.qcommon.network.transport.IpAddress;
+import jake2.qcommon.network.runtime.NetworkTransport;
 import jake2.qcommon.sizebuf_t;
 
 import java.util.ArrayList;
@@ -62,6 +65,7 @@ public class netchan_t {
     public final Collection<NetworkMessage> reliablePending = new ArrayList<>();
 
     private final LongSupplier clockMillis;
+    private final NetworkTransport transport;
     private ReliableChannel channel = new ReliableChannel(ChannelRole.CLIENT, 0);
 
     public netchan_t() {
@@ -69,6 +73,12 @@ public class netchan_t {
     }
 
     public netchan_t(LongSupplier clockMillis) {
+        this(null, clockMillis);
+    }
+
+    /** The channel borrows its owner's transport; clearing a connection never closes it. */
+    public netchan_t(NetworkTransport transport, LongSupplier clockMillis) {
+        this.transport = transport;
         this.clockMillis = clockMillis;
     }
 
@@ -120,7 +130,7 @@ public class netchan_t {
             }
             PrepareSendResult.Prepared transmission = (PrepareSendResult.Prepared) result;
             try {
-                sent = NET.sendPacket(sock, transmission.getBytes(), remote_address) instanceof SendResult.Sent;
+                sent = send(transmission.getBytes()) instanceof SendResult.Sent;
             } finally {
                 channel.completeSend(transmission, sent, clockMillis.getAsLong());
             }
@@ -141,6 +151,20 @@ public class netchan_t {
                 else channel.discardPending(); // Leave unsent message staging available to existing cancellation paths.
             }
             syncState();
+        }
+    }
+
+    private SendResult send(PacketBytes bytes) {
+        if (transport == null) return NET.sendPacket(sock, bytes, remote_address);
+        if (remote_address.type == NetAddrType.NA_LOOPBACK)
+            return transport.send(transport.getLocalPeer(), bytes);
+        if (remote_address.type != NetAddrType.NA_IP && remote_address.type != NetAddrType.NA_BROADCAST)
+            throw new IllegalArgumentException("Unsupported address type " + remote_address.type);
+        try {
+            return transport.send(new NetworkAddress.Udp(
+                    IpAddress.fromInetAddress(remote_address.getInetAddress()), remote_address.port), bytes);
+        } catch (java.io.IOException error) {
+            return new SendResult.Failed(error);
         }
     }
 
