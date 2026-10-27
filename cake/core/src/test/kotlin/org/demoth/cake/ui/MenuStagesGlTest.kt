@@ -159,7 +159,15 @@ class MenuStagesGlTest {
         val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.SAVE_GAME,
             saveAccess = HostSaveAccess(null, null),
             savedGames = SavedGamesState("profile", entries, "autosave")))
-        val stage = SavedGamesStage(viewport, bus, style, saving = true)
+        val pixels = com.badlogic.gdx.graphics.Pixmap(32, 24, com.badlogic.gdx.graphics.Pixmap.Format.RGB888)
+        pixels.setColor(com.badlogic.gdx.graphics.Color.RED)
+        pixels.fill()
+        val png = try { encodeSavePreview(pixels) } finally { pixels.dispose() }
+        var reads = 0
+        val stage = SavedGamesStage(viewport, bus, style, saving = true, readPreview = { _, slot ->
+            reads++
+            when (slot) { "manual" -> png; "manual-1" -> byteArrayOf(1, 2, 3); else -> null }
+        })
         try {
             stage.act(0f)
             stage.draw()
@@ -182,6 +190,16 @@ class MenuStagesGlTest {
             stage.draw()
             assertTrue(primary.isDisabled)
             assertTrue(overwrite.isDisabled)
+            val image = stage.root.findActor<com.badlogic.gdx.scenes.scene2d.ui.Image>("save-preview-image")
+            assertNotNull(image.drawable)
+            val previousReads = reads
+            stage.act(0f)
+            assertEquals(previousReads, reads, "Unchanged selection must not reload the image")
+            stage.hidePreview()
+            assertNull(image.drawable)
+            stage.act(0f)
+            assertNotNull(image.drawable)
+            assertEquals(previousReads + 1, reads)
             val confirm = stage.root.findActor<TextButton>("confirm-overwrite")
             val position = confirm.localToStageCoordinates(com.badlogic.gdx.math.Vector2())
             assertTrue(confirm.width > 0 && confirm.height > 0)
@@ -201,6 +219,10 @@ class MenuStagesGlTest {
             deleteConfirm.listeners.filterIsInstance<ClickListener>().forEach { it.clicked(InputEvent(), 0f, 0f) }
             bus.drainIntents { intents += it }
             assertEquals(MenuIntent.ConfirmDeleteSave("profile", "manual"), intents.last())
+            bus.postState(bus.latestState().copy(savedGames = SavedGamesState("profile", entries, "manual-1")))
+            stage.act(0f)
+            assertNull(image.drawable, "Corrupt preview falls back to placeholder")
+            assertFalse(overwrite.isDisabled, "A corrupt preview must not disable checkpoint actions")
             bus.postState(bus.latestState().copy(savedGames = SavedGamesState("other")))
             stage.act(0f)
             assertTrue(overwrite.isDisabled)

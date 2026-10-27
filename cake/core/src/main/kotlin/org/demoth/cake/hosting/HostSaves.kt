@@ -24,7 +24,7 @@ sealed interface HostSaveCatalogResult {
 
 /** Completed means backend IO/restore completed; the client handshake may still be pending. */
 sealed interface HostSaveResult {
-    data class Completed(val slot: String) : HostSaveResult
+    data class Completed(val slot: String, val warning: String? = null) : HostSaveResult
     data class Rejected(val reason: String) : HostSaveResult
     data class Failed(val reason: String, val cause: Exception) : HostSaveResult
 }

@@ -139,7 +139,11 @@ with each action enabled when eligible; Back from these screens returns there.
 Escape goes back through the menus and returns to gameplay from the main menu.
 Saved games refresh automatically whenever Load Game or Save Game is opened.
 Each screen shows a scrolling checkpoint list alongside preview space and save
-details, with actions along the bottom. Preview thumbnails are not captured yet.
+details, with actions along the bottom. Manual saves from the menu include a
+thumbnail of the scene without menus (up to 320×240). Missing or unreadable
+thumbnails show a placeholder; image capture/write failures leave the save usable
+and display a warning. Autosaves and console saves do not capture thumbnails.
+Replacing a checkpoint clears its old contents, including any previous thumbnail.
 New Save creates a checkpoint; Save asks before replacing the selected manual save.
 Delete asks before removing the selected checkpoint. Autosave is
 listed for loading and reserved against manual overwrite. Save requires a living,

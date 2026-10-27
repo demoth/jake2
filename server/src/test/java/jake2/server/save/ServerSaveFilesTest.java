@@ -22,10 +22,12 @@ class ServerSaveFilesTest {
         write(root, "current", "base1.sv2.json", "portals");
         write(root, "current", "orphan.sv2.json", "no matching level");
         write(root, "current", "notes.txt", "not a save file");
+        write(root, "current", "preview.png", "working preview must not be copied");
         write(root, "manual", "game.ssv.json", "longer old game contents");
         write(root, "manual", "old.sav.json", "old level");
         write(root, "manual", "old.sv2.json", "old portals");
         write(root, "manual", "notes.txt", "keep me");
+        write(root, "manual", "preview.png", "stale image");
 
         new ServerSaveFiles(root).copy("current", "manual");
 
@@ -37,7 +39,9 @@ class ServerSaveFilesTest {
         assertFalse(Files.exists(root.resolve("save/manual/old.sav.json")));
         assertFalse(Files.exists(root.resolve("save/manual/old.sv2.json")));
         assertFalse(Files.exists(root.resolve("save/manual/orphan.sv2.json")));
-        assertEquals("keep me", Files.readString(root.resolve("save/manual/notes.txt")));
+        assertFalse(Files.exists(root.resolve("save/manual/notes.txt")));
+        assertFalse(Files.exists(root.resolve("save/manual/preview.png")));
+        assertEquals("not a save file", Files.readString(root.resolve("save/current/notes.txt")));
     }
 
     @Test
@@ -86,7 +90,11 @@ class ServerSaveFilesTest {
         Files.writeString(blocked.resolve("child"), "prevents deletion");
         ServerSaveFiles files = new ServerSaveFiles(temp);
         assertThrows(UncheckedIOException.class, () -> files.wipe("manual"));
-        assertThrows(UncheckedIOException.class, () -> files.copy("current", "manual"));
+        Files.delete(blocked.resolve("child"));
+        Files.delete(blocked);
+        Files.delete(blocked.getParent());
+        Files.writeString(blocked.getParent(), "not a checkpoint directory");
+        assertThrows(IllegalArgumentException.class, () -> files.copy("current", "manual"));
     }
 
     private Path write(Path root, String slot, String name, String content) throws Exception {

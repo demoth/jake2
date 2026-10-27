@@ -381,12 +381,12 @@ class GameContinuationTest {
         assertTrue(NET.configureServer(true))
         val broken = when (stage) {
             "wipe" -> root.resolve("save/current/game.ssv.json")
-            "autosave" -> root.resolve("save/autosave/game.ssv.json")
+            "autosave" -> root.resolve("save/autosave")
             else -> root.resolve("save/current/testbox.sav.json")
         }
-        if (stage == "restore") {
+        if (stage == "restore" || stage == "autosave") {
             Files.createDirectories(broken.parent)
-            Files.writeString(broken, "invalid level")
+            Files.writeString(broken, "invalid level or checkpoint directory")
         } else {
             Files.createDirectories(broken)
             Files.writeString(broken.resolve("blocker"), "prevent replacement")
@@ -401,7 +401,7 @@ class GameContinuationTest {
         assertTrue(host.games.isEmpty(), "Remaining queued continuation must not restart a Game")
 
         if (stage != "restore") {
-            Files.delete(broken.resolve("blocker"))
+            if (stage != "autosave") Files.delete(broken.resolve("blocker"))
             Files.delete(broken)
         }
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))

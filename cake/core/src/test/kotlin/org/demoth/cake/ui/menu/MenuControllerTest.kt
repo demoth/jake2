@@ -41,6 +41,19 @@ class MenuControllerTest {
         HostSaveEntry(slot, "Checkpoint", "base1", 1000L, HostMode.SINGLEPLAYER, reason)
 
     @Test
+    fun successfulSaveWithMissingPreviewShowsWarningAsSuccess() {
+        val backend = FakeMenuBackend().apply { saveWarning = "Preview unavailable." }
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenSaveGame)
+        bus.postIntent(MenuIntent.SaveGameRequested("default"))
+        controller.pumpIntents()
+        assertEquals("Game saved. Preview unavailable.", bus.latestState().savedGames.statusMessage)
+        assertEquals(MenuScreen.SAVE_GAME, bus.latestState().activeScreen)
+    }
+
+    @Test
     fun deletionRequiresCurrentProfileConfirmationAndSelectsTheNextCheckpoint() {
         val backend = FakeMenuBackend().apply { saves = listOf(savedEntry("one"), savedEntry("two"), savedEntry("three")) }
         val bus = MenuEventBus()
@@ -644,6 +657,7 @@ class MenuControllerTest {
         var loadOutcome: HostSaveResult = HostSaveResult.Completed("manual")
         val loads = mutableListOf<String>()
         val savesWritten = mutableListOf<Pair<String?, Boolean>>()
+        var saveWarning: String? = null
         val deletedSaves = mutableListOf<String>()
         var deleteOutcome: HostSaveResult? = null
         override fun deleteSave(slot: String): HostSaveResult {
@@ -659,7 +673,7 @@ class MenuControllerTest {
         }
         override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {
             savesWritten += slot to overwrite
-            return HostSaveResult.Completed(slot ?: "new")
+            return HostSaveResult.Completed(slot ?: "new", saveWarning)
         }
         override fun loadGame(slot: String): HostSaveResult {
             loads += slot

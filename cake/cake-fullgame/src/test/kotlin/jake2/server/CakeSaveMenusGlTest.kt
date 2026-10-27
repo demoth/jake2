@@ -3,6 +3,8 @@ package jake2.server
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.scenes.scene2d.InputEvent
@@ -83,6 +85,19 @@ class CakeSaveMenusGlTest {
                 }
                 private fun next() { step++; ticks = 0 }
                 private fun checkpoint() = temp.resolve(".cake/first/save/$slot/game.ssv.json")
+                private fun verifyPreview() {
+                    val image = checkpoint().parent.resolve("preview.png")
+                    assertTrue(Files.isRegularFile(image))
+                    val bytes = Files.readAllBytes(image)
+                    val pixels = Pixmap(bytes, 0, bytes.size)
+                    try {
+                        assertEquals(320, pixels.width)
+                        assertEquals(240, pixels.height)
+                    } finally { pixels.dispose() }
+                    assertNotNull(stage().root.findActor<Image>("save-preview-image").drawable)
+                    assertFalse(Files.exists(temp.resolve(".cake/first/save/current/preview.png")))
+                    assertFalse(Files.exists(temp.resolve(".cake/first/save/autosave/preview.png")))
+                }
                 private fun blocker() = temp.resolve(".cake/first/save/current/game.ssv.json")
                 private fun fail(error: Throwable) { failure = error; Gdx.app.exit() }
 
@@ -115,6 +130,7 @@ class CakeSaveMenusGlTest {
                             3 -> {
                                 assertEquals("Game saved.", state().statusMessage)
                                 slot = state().selectedSlot!!
+                                verifyPreview()
                                 originalSave = Files.readString(checkpoint())
                                 player().health = 41
                                 click("save-overwrite")
@@ -135,6 +151,7 @@ class CakeSaveMenusGlTest {
                             7 -> {
                                 assertEquals("Game saved.", state().statusMessage)
                                 assertNotEquals(originalSave, Files.readString(checkpoint()))
+                                verifyPreview()
                                 player().health = 5
                                 Cmd.ExecuteString("menu_loadgame")
                                 next()
@@ -191,6 +208,7 @@ class CakeSaveMenusGlTest {
                             }
                             15 -> {
                                 assertEquals("second", state().profileId)
+                                assertNull(stage().root.findActor<Image>("save-preview-image").drawable)
                                 assertTrue(state().entries.isEmpty())
                                 assertTrue(button("load-game").isDisabled)
                                 Cmd.ExecuteString("cake_profile_set first \"$content\"")
@@ -200,6 +218,7 @@ class CakeSaveMenusGlTest {
                             16 -> {
                                 assertEquals("first", state().profileId)
                                 assertTrue(state().entries.any { it.slot == slot })
+                                verifyPreview()
                                 click("load-game")
                                 next()
                             }
@@ -230,6 +249,7 @@ class CakeSaveMenusGlTest {
                                 assertEquals("Saved game deleted.", state().statusMessage)
                                 assertEquals(listOf(slot), state().entries.filter { !it.autosave }.map { it.slot })
                                 assertTrue(Files.exists(checkpoint()))
+                                verifyPreview()
                                 writeScreenshot(Gdx.files.local("build/reports/save-menu-layout.png"))
                                 Gdx.app.exit()
                             }

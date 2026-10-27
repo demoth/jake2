@@ -1,14 +1,21 @@
 package org.demoth.cake.stages
 
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Touchable
 import com.badlogic.gdx.scenes.scene2d.ui.Cell
 import com.badlogic.gdx.scenes.scene2d.ui.Label
+import com.badlogic.gdx.scenes.scene2d.ui.Image
+import com.badlogic.gdx.scenes.scene2d.ui.Stack
 import com.badlogic.gdx.scenes.scene2d.ui.List as SceneList
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable
+import com.badlogic.gdx.utils.Scaling
 import com.badlogic.gdx.utils.viewport.Viewport
 import org.demoth.cake.hosting.HostSaveEntry
 import org.demoth.cake.ui.GameUiStyle
@@ -23,6 +30,7 @@ class SavedGamesStage(
     menuEventBus: MenuEventBus,
     private val style: GameUiStyle,
     private val saving: Boolean,
+    private val readPreview: (String, String) -> ByteArray? = { _, _ -> null },
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenSingleplayerMenu) {
     private data class Choice(val entry: HostSaveEntry) {
         override fun toString(): String {
@@ -47,6 +55,12 @@ class SavedGamesStage(
         setFlickScroll(false)
     }
     private val detail = Label("", style.menuWidgets.label).apply { setWrap(true) }
+    private val previewImage = Image().apply { name = "save-preview-image"; setScaling(Scaling.fit) }
+    private val noPreview = Label("No preview available", style.menuWidgets.label).apply { setAlignment(com.badlogic.gdx.utils.Align.center) }
+    private var previewTexture: Texture? = null
+    private var previewEntries: List<HostSaveEntry>? = null
+    private var previewProfile: String? = null
+    private var previewSlot: String? = null
     private val status = Label("", style.menuWidgets.label).apply { name = "save-status"; setWrap(true) }
     private fun action(label: String, name: String, run: () -> Unit) =
         createMenuButton(label, style.menuWidgets.button, run).apply {
@@ -91,7 +105,7 @@ class SavedGamesStage(
         val preview = Table().apply {
             background = style.menuWidgets.controlPanel
             name = "save-preview"
-            add(Label("No preview available", style.menuWidgets.label)).expand().center()
+            add(Stack(previewImage, noPreview)).grow().pad(4f)
         }
         val right = Table().apply {
             top()
@@ -141,6 +155,26 @@ class SavedGamesStage(
             listScroll.scrollTo(0f, slots.height - (slots.selectedIndex + 1) * slots.itemHeight, 0f, slots.itemHeight)
         }
         val selected = state.entries.firstOrNull { it.slot == state.selectedSlot }
+        if (previewEntries !== state.entries || previewProfile != state.profileId || previewSlot != selected?.slot) {
+            hidePreview()
+            previewEntries = state.entries
+            previewProfile = state.profileId
+            previewSlot = selected?.slot
+            try {
+                val png = selected?.let { readPreview(state.profileId, it.slot) }
+                if (png != null) {
+                    val pixels = Pixmap(png, 0, png.size)
+                    try {
+                        require(pixels.width <= 320 && pixels.height <= 240) { "Oversized checkpoint preview" }
+                        previewTexture = Texture(pixels).apply { setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear) }
+                        previewImage.drawable = TextureRegionDrawable(previewTexture)
+                    } finally { pixels.dispose() }
+                }
+            } catch (failure: Exception) {
+                Gdx.app.error("Saved games", "Could not load checkpoint preview", failure)
+            }
+            noPreview.isVisible = previewTexture == null
+        }
         val pending = state.pendingOverwriteSlot != null || state.pendingDeleteSlot != null
         val reason = if (saving) snapshot.saveAccess.saveRejectionReason else snapshot.saveAccess.loadRejectionReason
         profile.setText("Profile: ${state.profileId.ifBlank { "<unset>" }}")
@@ -170,5 +204,22 @@ class SavedGamesStage(
             return true
         }
         return super.keyUp(keycode)
+    }
+
+    /** Only the selected preview is retained; hide/rebuild/profile changes release its texture. */
+    fun hidePreview() {
+        if (previewTexture == null && previewEntries == null) return
+        previewImage.drawable = null
+        previewTexture?.dispose()
+        previewTexture = null
+        previewEntries = null
+        previewProfile = null
+        previewSlot = null
+        noPreview.isVisible = true
+    }
+
+    override fun dispose() {
+        hidePreview()
+        super.dispose()
     }
 }

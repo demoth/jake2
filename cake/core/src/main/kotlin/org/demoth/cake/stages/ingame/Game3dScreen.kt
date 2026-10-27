@@ -353,10 +353,10 @@ class Game3dScreen(
     /**
      * Captures the latest scene framebuffer content as a pixmap.
      *
-     * Intended for short-lived transition backdrops owned by outer runtime (`Cake`).
+     * Used for transition backdrops and checkpoint previews owned by outer runtime (`Cake`).
      * Caller owns and must dispose the returned pixmap.
      */
-    fun captureScenePixmapForTransition(): Pixmap? {
+    fun captureScenePixmap(): Pixmap? {
         val frameBuffer = sceneFrameBuffer?.resolved ?: return null
         frameBuffer.begin()
         return try {

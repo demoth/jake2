@@ -462,7 +462,7 @@ class MenuController(
         when (result) {
             is HostSaveResult.Completed -> {
                 refreshSavedGames(result.slot)
-                saveStatus(if (loading) "Loading game..." else "Game saved.")
+                saveStatus(if (loading) "Loading game..." else listOfNotNull("Game saved.", result.warning).joinToString(" "))
                 if (loading) bus.postSignal(MenuSignal.CloseMenu)
             }
             is HostSaveResult.Rejected -> saveStatus(result.reason)

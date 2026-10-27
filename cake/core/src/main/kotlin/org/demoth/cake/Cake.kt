@@ -56,6 +56,7 @@ import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.sample.UiSamplePreview
 import org.demoth.cake.ui.writeScreenshot
+import org.demoth.cake.ui.encodeSavePreview
 import org.demoth.cake.ui.menu.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -238,6 +239,9 @@ class Cake(
         val initialStyle = resolveCurrentGameUiStyle()
         menuStages = MenuStages(uiViewport, menuEventBus, assetManager, fileResolver,
             showHosting = host.availability != HostAvailability.REMOTE_ONLY,
+            readSavePreview = { profileId, slot ->
+                if (activeGameProfile?.id == profileId) host.readSavePreview(slot) else null
+            },
             activeProfileId = { activeGameProfile?.id })
         rebuildContentStyledMenuStages(initialStyle)
         // todo: gather all early logging (which is generated before the console is created)
@@ -722,9 +726,12 @@ class Cake(
             }
 
             if (uiSample.isOpen) {
+                menuStages.hideSavedGamePreviews()
                 uiSample.render(deltaSeconds)
             } else if (menuVisible) {
                 menuStages.render(deltaSeconds)
+            } else {
+                menuStages.hideSavedGamePreviews()
             }
 
             // Engine console and diagnostics stay in unscaled window coordinates.
@@ -1306,7 +1313,7 @@ class Cake(
      * This is used as a light-weight visual bridge during level transitions.
      */
     private fun captureTransitionBackdropFromActiveScreen() {
-        val scenePixmap = game3dScreen?.captureScenePixmapForTransition() ?: return
+        val scenePixmap = game3dScreen?.captureScenePixmap() ?: return
         transitionBackdropTexture?.dispose()
         val snapshotTexture = Texture(scenePixmap)
         scenePixmap.dispose()
@@ -1590,8 +1597,19 @@ class Cake(
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
         override fun saveAccess(): HostSaveAccess = host.saveAccess()
         override fun listSaves(): HostSaveCatalogResult = host.listSaves()
-        override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult =
-            finishSaveOperation(host.saveGame(slot, overwrite))
+        override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {
+            val preview = try {
+                val image = if (localConnection && networkState == ACTIVE && !transitionBackdropActive &&
+                    game3dScreen?.canRenderPresentationFrame() == true) game3dScreen?.captureScenePixmap() else null
+                image?.let { try { encodeSavePreview(it) } finally { it.dispose() } }
+            } catch (failure: Exception) {
+                Com.Warn("Could not capture save preview: ${failure.message}\n")
+                null
+            }
+            val result = finishSaveOperation(host.saveGame(slot, overwrite, preview))
+            return if (result is HostSaveResult.Completed && preview == null)
+                result.copy(warning = "Preview unavailable.") else result
+        }
         override fun loadGame(slot: String): HostSaveResult = finishSaveOperation(host.loadGame(slot))
         override fun deleteSave(slot: String): HostSaveResult = host.deleteSave(slot)
 

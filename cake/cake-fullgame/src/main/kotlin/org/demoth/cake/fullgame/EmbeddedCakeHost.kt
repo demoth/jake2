@@ -1,6 +1,7 @@
 package org.demoth.cake.fullgame
 
 import jake2.qcommon.Defines
+import jake2.qcommon.Com
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
@@ -228,7 +229,7 @@ class EmbeddedCakeHost(
         }
     }
 
-    override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {
+    override fun saveGame(slot: String?, overwrite: Boolean, previewPng: ByteArray?): HostSaveResult {
         checkThread()
         saveAccess().saveRejectionReason?.let { return HostSaveResult.Rejected(it) }
         saveStorageRejection()?.let { return HostSaveResult.Rejected(it) }
@@ -242,7 +243,22 @@ class EmbeddedCakeHost(
             if (!Files.isDirectory(path, NOFOLLOW_LINKS)) return HostSaveResult.Rejected("Invalid save directory.")
             if (!overwrite) return HostSaveResult.Rejected("Confirm replacing this saved game.")
         }
-        return checkNotNull(server).saveGame(destination).toHostSaveResult(destination)
+        val result = checkNotNull(server).saveGame(destination).toHostSaveResult(destination)
+        if (result is HostSaveResult.Completed && previewPng != null) {
+            try {
+                SavePreviewStore(profileRoot(checkNotNull(activeProfile))).write(destination, previewPng)
+            } catch (failure: Exception) {
+                Com.Warn("Saved checkpoint, but preview failed: ${failure.message}\n")
+                return result.copy(warning = "Preview could not be saved.")
+            }
+        }
+        return result
+    }
+
+    override fun readSavePreview(slot: String): ByteArray? {
+        checkThread()
+        if (saveContextRejection() != null) return null
+        return SavePreviewStore(profileRoot(checkNotNull(activeProfile))).read(slot)
     }
 
     override fun loadGame(slot: String): HostSaveResult {

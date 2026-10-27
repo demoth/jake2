@@ -27,6 +27,7 @@ class MenuStages(
     private val assetManager: AssetManager,
     private val fileResolver: CakeFileResolver,
     private val showHosting: Boolean,
+    private val readSavePreview: (String, String) -> ByteArray? = { _, _ -> null },
     private val activeProfileId: () -> String?,
 ) : Disposable {
     private val stages = linkedMapOf<MenuScreen, BackNavigableMenuStage>()
@@ -48,8 +49,8 @@ class MenuStages(
         for (screen in MenuScreen.entries) {
             stages[screen] = when (screen) {
                 MenuScreen.MAIN -> MainMenuStage(viewport, menuEventBus, style, showHosting)
-                MenuScreen.LOAD_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = false)
-                MenuScreen.SAVE_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = true)
+                MenuScreen.LOAD_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = false, readPreview = readSavePreview)
+                MenuScreen.SAVE_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = true, readPreview = readSavePreview)
                 MenuScreen.PROFILE_EDIT -> ProfileEditStage(viewport, menuEventBus, style)
                 MenuScreen.MULTIPLAYER -> MultiplayerMenuStage(viewport, menuEventBus, style, showHosting)
                 MenuScreen.SINGLEPLAYER -> SingleplayerMenuStage(viewport, menuEventBus, style)
@@ -77,6 +78,7 @@ class MenuStages(
         if (screen == activeScreen) return false
         if (activeScreen == MenuScreen.CONTENT_BROWSER) contentBrowserStage.hide()
         if (activeScreen == MenuScreen.PLAYER_SETUP) playerSetupStage.hide()
+        (activeStage as? SavedGamesStage)?.hidePreview()
         activeStage.resetMenuInteractionState()
         activeScreen = screen
         if (activeScreen == MenuScreen.CONTENT_BROWSER) refreshContentBrowser()
@@ -97,6 +99,12 @@ class MenuStages(
     fun hideContentPreviews() {
         contentBrowserStage.hide()
         playerSetupStage.hide()
+        hideSavedGamePreviews()
+    }
+
+    fun hideSavedGamePreviews() {
+        (stages[MenuScreen.LOAD_GAME] as? SavedGamesStage)?.hidePreview()
+        (stages[MenuScreen.SAVE_GAME] as? SavedGamesStage)?.hidePreview()
     }
 
     override fun dispose() {

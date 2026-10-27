@@ -450,10 +450,9 @@ class HostSessionPreparationTest {
     @ValueSource(booleans = [false, true])
     fun `map autosave failure leaves idle Host and permits restart`(newSession: Boolean) {
         save(false)
-        val blocked = root.resolve("save/autosave/game.ssv.json")
-        Files.delete(blocked)
-        Files.createDirectory(blocked)
-        Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        val blocked = root.resolve("save/autosave")
+        jake2.server.save.deleteSaveSlot(root, "autosave")
+        Files.writeString(blocked, "not a checkpoint directory")
         val result = if (newSession) host.map("testbox2") else host.changeMap("testbox2")
         assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
         assertTrue(host.games.isEmpty())
@@ -462,7 +461,6 @@ class HostSessionPreparationTest {
         assertNull(NET.ip_sockets[Defines.NS_SERVER])
         assertEquals(ServerStates.SS_DEAD, Globals.server_state)
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
-        Files.delete(blocked.resolve("blocker"))
         Files.delete(blocked)
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
     }
@@ -568,11 +566,16 @@ class HostSessionPreparationTest {
         save(true)
         val game = host.games.getValue("default")
         val client = host.clients[0]
-        val blocked = if (stage == "destination") root.resolve("save/slot/game.ssv.json")
+        val blocked = if (stage == "destination") root.resolve("save/slot")
             else root.resolve("save/current/$stage")
-        Files.delete(blocked)
-        Files.createDirectory(blocked)
-        Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        if (stage == "destination") {
+            jake2.server.save.deleteSaveSlot(root, "slot")
+            Files.writeString(blocked, "not a checkpoint directory")
+        } else {
+            Files.delete(blocked)
+            Files.createDirectory(blocked)
+            Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        }
         val result = host.saveGame("slot")
         assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
         assertSame(game, host.games["default"])
@@ -580,7 +583,7 @@ class HostSessionPreparationTest {
         assertTrue(host.isRunning)
         assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
         host.update(100)
-        Files.delete(blocked.resolve("blocker"))
+        if (stage != "destination") Files.delete(blocked.resolve("blocker"))
         Files.delete(blocked)
         assertEquals(ServerHost.OperationResult.Completed, host.saveGame("slot"))
         assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))

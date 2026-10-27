@@ -169,7 +169,7 @@ class EmbeddedCakeSavesTest {
         assertEquals(HostSaveResult.Completed("checkpoint"), host.saveGame("checkpoint"))
         val manager = host.server!!
         val live = manager.games.getValue("default")
-        val blocked = root.resolve("first/save/checkpoint/game.ssv.json")
+        val blocked = root.resolve("first/save/current/server_mapcmd.ssv.json")
         Files.delete(blocked)
         Files.createDirectory(blocked)
         Files.writeString(blocked.resolve("blocker"), "do not replace")
@@ -188,6 +188,48 @@ class EmbeddedCakeSavesTest {
         Files.delete(current.resolve("blocker"))
         Files.delete(current)
         assertEquals(HostSaveResult.Completed("checkpoint"), host.loadGame("checkpoint"))
+    }
+
+    @Test
+    fun `manual previews follow profile slots and never enter the working save`() {
+        start()
+        spawn()
+        val png = byteArrayOf(1, 2, 3)
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.saveGame("checkpoint", previewPng = png))
+        assertArrayEquals(png, host.readSavePreview("checkpoint"))
+        assertNull(host.readSavePreview("autosave"))
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.loadGame("checkpoint"))
+        assertFalse(Files.exists(root.resolve("first/save/current/preview.png")))
+        assertArrayEquals(png, host.readSavePreview("checkpoint"))
+        host.stop("switch")
+        host.activateProfile(profile.copy(id = "second"))
+        assertNull(host.readSavePreview("checkpoint"))
+        assertNull(host.readSavePreview("../first"))
+        host.activateProfile(profile)
+        assertArrayEquals(png, host.readSavePreview("checkpoint"))
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.deleteSave("checkpoint"))
+        assertNull(host.readSavePreview("checkpoint"))
+        assertFalse(Files.exists(root.resolve("first/save/checkpoint")))
+    }
+
+    @Test
+    fun `overwrite clears previews and preview failure does not fail the checkpoint`() {
+        start()
+        spawn()
+        val live = host.server!!.games.getValue("default")
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.saveGame("checkpoint", previewPng = byteArrayOf(1)))
+        val oversized = ByteArray(1024 * 1024 + 1)
+        val result = assertInstanceOf(HostSaveResult.Completed::class.java, host.saveGame("checkpoint", true, oversized))
+        assertNotNull(result.warning)
+        assertSame(live, host.server!!.games["default"])
+        assertNull(host.readSavePreview("checkpoint"))
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.loadGame("checkpoint"))
+        spawn()
+        assertEquals(HostSaveResult.Completed("checkpoint"), host.saveGame("checkpoint", true, byteArrayOf(2)))
+        assertArrayEquals(byteArrayOf(2), host.readSavePreview("checkpoint"))
+        // Console/backend saves have no capture, but must not retain the old image.
+        assertEquals(ServerHost.OperationResult.Completed, host.server!!.saveGame("checkpoint"))
+        assertNull(host.readSavePreview("checkpoint"))
     }
 
     @Test

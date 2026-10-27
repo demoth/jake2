@@ -11,7 +11,7 @@ The developer console has [its own documentation](console/README.md).
 |---|---|
 | `MainMenuStage` | Main navigation and profile/options entry points |
 | `SingleplayerMenuStage` | New Game, Load Game, Save Game and Back |
-| `SavedGamesStage` | Scrolling checkpoint list, placeholder preview/details and confirmed save/delete actions |
+| `SavedGamesStage` | Scrolling checkpoint list, selected thumbnail/details and confirmed save/delete actions; owns and releases the preview texture on selection, hide and disposal |
 | `ProfileEditStage` | Profile selection, creation, autodetection, and editing |
 | `MultiplayerMenuStage` | Join Game, optional Host Game, and Player Setup |
 | `HostingSetupStage` | Singleplayer difficulty and multiplayer host settings |
