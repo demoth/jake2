@@ -50,7 +50,7 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"server.PrintMessage.highbit", new PrintMessage(2, "caf\u00e9\n\u0080\u00fe")});
         testMessages.add(new Object[]{"server.ConfigStringMessage", new ConfigStringMessage(4, "config")});
         // expect only PROTOCOL_VERSION(34)
-        testMessages.add(new Object[]{"server.ServerDataMessage", new ServerDataMessage(PROTOCOL_VERSION, 3, false, "hello quake", 1, "q3dm6")});
+        testMessages.add(new Object[]{"server.ServerDataMessage", ServerDataMessage.forClient(3, false, "hello quake", 1, "q3dm6")});
         testMessages.add(new Object[]{"server.StuffTextMessage", StuffTextMessage.command("stuff")});
         testMessages.add(new Object[]{"server.FrameHeaderMessage", new FrameHeaderMessage(1, 2, 3, 4, new byte[]{1, 1, 1, 1})});
         testMessages.add(new Object[]{"server.InventoryMessage", new InventoryMessage(new int[MAX_ITEMS])});

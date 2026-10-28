@@ -1348,8 +1348,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         client.netchan.reliablePending.add(
-            ServerDataMessage(
-                Defines.PROTOCOL_VERSION,
+            ServerDataMessage.forClient(
                 gameImports.spawncount,
                 gameImports.isDemo,
                 gamedir,

@@ -369,9 +369,9 @@ public class GameImportsTest {
             manager.executeClientCommand(firstClient, "new");
             manager.executeClientCommand(secondClient, "new");
             Assertions.assertEquals("first game",
-                    ((ServerDataMessage) firstClient.netchan.reliablePending.iterator().next()).levelString);
+                    ((ServerDataMessage) firstClient.netchan.reliablePending.iterator().next()).getLevelString());
             Assertions.assertEquals("second game",
-                    ((ServerDataMessage) secondClient.netchan.reliablePending.iterator().next()).levelString);
+                    ((ServerDataMessage) secondClient.netchan.reliablePending.iterator().next()).getLevelString());
             firstClient.netchan.reliablePending.clear();
             manager.executeClientCommand(firstClient, "configstrings " + first.spawncount + " 0");
             Assertions.assertTrue(firstClient.netchan.reliablePending.contains(

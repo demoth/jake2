@@ -116,10 +116,10 @@ internal class IngameSoundMessageHandler(
             Com.Warn("Ignoring WeaponSoundMessage with invalid entity index ${msg.entityIndex}")
             return
         }
-        // weapon type is stored in last 7 bits of the msg.type
-        val weaponType = msg.type and 0x7F
-        // the silenced flag is stored in the first bit
-        val silenced = (msg.type and Defines.MZ_SILENCED) != 0
+        // The weapon type occupies the low seven bits of the packed flash type.
+        val weaponType = msg.flashType and 0x7F
+        // The silenced flag occupies the high bit.
+        val silenced = (msg.flashType and Defines.MZ_SILENCED) != 0
         val volume = if (silenced) 0.2f else 1f
 
         spawnWeaponMuzzleFlashLight(msg.entityIndex, weaponType, silenced)

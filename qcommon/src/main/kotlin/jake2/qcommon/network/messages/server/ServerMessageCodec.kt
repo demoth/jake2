@@ -1,6 +1,7 @@
 package jake2.qcommon.network.messages.server
 
 import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
+import jake2.qcommon.Defines.MAX_EDICTS
 import jake2.qcommon.network.protocol.MessageReadException
 import jake2.qcommon.network.protocol.MessageReader
 import jake2.qcommon.network.protocol.MessageRejection
@@ -17,6 +18,16 @@ object ServerMessageCodec {
             is LayoutMessage -> buffer.writeString(message.layout)
             is StuffTextMessage -> buffer.writeString(message.text)
             is ConfigStringMessage -> { buffer.writeShort(message.index); buffer.writeString(message.config) }
+            is ServerDataMessage -> {
+                buffer.writeInt(message.protocol)
+                buffer.writeInt(message.spawnCount)
+                buffer.writeByte(if (message.demo) 1 else 0)
+                buffer.writeString(message.gameName)
+                buffer.writeShort(message.playerNumber)
+                buffer.writeString(message.levelString)
+            }
+            is WeaponSoundMessage -> { buffer.writeShort(message.entityIndex); buffer.writeByte(message.flashType.toByte()) }
+            is MuzzleFlash2Message -> { buffer.writeShort(message.entityIndex); buffer.writeByte(message.flashType.toByte()) }
             DisconnectMessage, ReconnectMessage, NopMessage, EndOfServerPacketMessage -> Unit
             is LegacyServerMessage -> message.writeLegacyProperties(buffer)
             else -> error("Unsupported server message ${message.javaClass.name}")
@@ -31,6 +42,8 @@ object ServerMessageCodec {
         is LayoutMessage -> 2 + message.layout.length
         is StuffTextMessage -> 2 + message.text.length
         is ConfigStringMessage -> 4 + message.config.length
+        is ServerDataMessage -> 14 + message.gameName.length + message.levelString.length
+        is WeaponSoundMessage, is MuzzleFlash2Message -> 4
         DisconnectMessage, ReconnectMessage, NopMessage, EndOfServerPacketMessage -> 1
         is LegacyServerMessage -> message.size
         else -> error("Unsupported server message ${message.javaClass.name}")
@@ -54,6 +67,12 @@ object ServerMessageCodec {
             ServerMessageType.svc_centerprint -> PrintCenterMessage(buffer.readString())
             ServerMessageType.svc_layout -> LayoutMessage(buffer.readString())
             ServerMessageType.svc_stufftext -> StuffTextMessage(buffer.readString())
+            ServerMessageType.svc_serverdata -> ServerDataMessage(
+                buffer.readInt(), buffer.readInt(), buffer.readUnsignedByte() != 0,
+                buffer.readString(), buffer.readSignedShort(), buffer.readString(),
+            )
+            ServerMessageType.svc_muzzleflash -> WeaponSoundMessage(readEntityIndex(buffer), buffer.readUnsignedByte())
+            ServerMessageType.svc_muzzleflash2 -> MuzzleFlash2Message(readEntityIndex(buffer), buffer.readUnsignedByte())
             ServerMessageType.svc_configstring -> {
                 val index = buffer.readUnsignedShort()
                 if (index >= MAX_CONFIGSTRINGS)
@@ -64,5 +83,12 @@ object ServerMessageCodec {
                 buffer.readcount - 1, "Invalid server opcode $opcode")
             else -> ServerMessage.readLegacyProperties(type, buffer)
         }
+    }
+
+    private fun readEntityIndex(buffer: MessageReader): Int {
+        val index = buffer.readUnsignedShort()
+        if (index >= MAX_EDICTS)
+            throw MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "Invalid entity number $index")
+        return index
     }
 }

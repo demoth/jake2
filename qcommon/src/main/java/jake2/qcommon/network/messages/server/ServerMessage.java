@@ -145,20 +145,11 @@ public abstract class ServerMessage implements NetworkMessage {
         switch (type) {
             default:
                 throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Invalid server opcode " + type);
-            case svc_muzzleflash:
-                msg = new WeaponSoundMessage();
-                break;
-            case svc_muzzleflash2:
-                msg = new MuzzleFlash2Message();
-                break;
             case svc_inventory:
                 msg = new InventoryMessage();
                 break;
             case svc_sound:
                 msg = new SoundMessage();
-                break;
-            case svc_serverdata:
-                msg = new ServerDataMessage();
                 break;
             case svc_frame:
                 msg = new FrameHeaderMessage();
