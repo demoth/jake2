@@ -28,6 +28,7 @@ package jake2.qcommon;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -168,7 +169,9 @@ public class sizebuf_t {
     }
 
     /**
-     * Read at most 2048 single byte characters
+     * Read at most 2047 single byte characters using the writer's Latin-1 encoding.
+     * NUL and the legacy 0xff sentinel terminate a string; embedded newlines are payload.
+     * The bounded network reader rejects underruns; legacy readers retain their sentinel outcome.
      */
     public String readString() {
         // 2k read buffer.
@@ -184,7 +187,7 @@ public class sizebuf_t {
             l++;
         } while (l < 2047);
 
-        return new String(readbuf, 0, l);
+        return new String(readbuf, 0, l, StandardCharsets.ISO_8859_1);
     }
 
     public void writeCoord(float f) {
