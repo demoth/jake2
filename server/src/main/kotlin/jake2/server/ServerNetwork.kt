@@ -25,6 +25,7 @@ interface ServerNetwork : AutoCloseable {
 }
 
 /** Compatibility composition until application roots supply their own local link. */
+@Deprecated("Compatibility adapter scheduled for removal; inject TransportServerNetwork with an owned NetworkTransport")
 internal object LegacyServerNetwork : ServerNetwork {
     override fun configure(multiplayer: Boolean) = NET.configureServer(multiplayer)
     override fun newChannel() = netchan_t()

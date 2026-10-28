@@ -12,6 +12,17 @@ class NetworkTransport(
     private val local: LoopbackLink.Endpoint,
     val localPeer: NetworkAddress.Local,
 ) : AutoCloseable {
+    companion object {
+        /** Remote-only application: no in-process peer may send to or receive from this owner. */
+        @JvmStatic fun standalone(side: LocalSide): NetworkTransport {
+            val link = LoopbackLink()
+            val local = if (side == LocalSide.FIRST) link.first else link.second
+            val peer = if (side == LocalSide.FIRST) link.second else link.first
+            peer.close()
+            return NetworkTransport(local, peer.localAddress)
+        }
+    }
+
     var udpEndpoint: UdpDatagramEndpoint? = null
         private set
     private var localFirst = true

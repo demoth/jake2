@@ -13,6 +13,20 @@ class NetworkTransportTest {
             NetworkTransport(link.second, link.first.localAddress)
     }
 
+    @Test
+    fun `standalone owners have no local peer and close independently`() {
+        NetworkTransport.standalone(LocalSide.FIRST).use { client ->
+            NetworkTransport.standalone(LocalSide.SECOND).use { server ->
+                assertTrue(client.send(client.localPeer, bytes) is SendResult.Failed)
+                assertTrue(server.send(server.localPeer, bytes) is SendResult.Failed)
+                assertEquals(ReceiveResult.Empty, client.receive())
+                assertEquals(ReceiveResult.Empty, server.receive())
+                client.close()
+                assertEquals(ReceiveResult.Empty, server.receive())
+            }
+        }
+    }
+
     private val bytes = PacketBytes.copyOf(byteArrayOf(1, 2, 3))
 
     @Test

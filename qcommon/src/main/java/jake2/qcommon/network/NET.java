@@ -41,6 +41,8 @@ import java.nio.channels.ClosedChannelException;
 
 import static jake2.qcommon.Defines.NS_SERVER;
 
+/** @deprecated Compatibility facade; inject an owned NetworkTransport through the client/server network boundary. */
+@Deprecated
 public final class NET {
 
     /** Legacy address bridge; transport endpoints themselves use immutable addresses. */

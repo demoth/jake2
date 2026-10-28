@@ -68,10 +68,14 @@ public class netchan_t {
     private final NetworkTransport transport;
     private ReliableChannel channel = new ReliableChannel(ChannelRole.CLIENT, 0);
 
+    /** @deprecated Inject NetworkTransport and a clock instead of using the global transport. */
+    @Deprecated
     public netchan_t() {
         this(() -> System.nanoTime() / 1_000_000L);
     }
 
+    /** @deprecated Inject NetworkTransport alongside the clock. */
+    @Deprecated
     public netchan_t(LongSupplier clockMillis) {
         this(null, clockMillis);
     }

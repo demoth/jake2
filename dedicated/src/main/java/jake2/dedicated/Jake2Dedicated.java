@@ -10,6 +10,10 @@ import jake2.qcommon.longjmpException;
 import jake2.qcommon.sys.Timer;
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 import jake2.server.ServerHost;
+import jake2.server.ServerNetwork;
+import jake2.server.TransportServerNetwork;
+import jake2.qcommon.network.runtime.NetworkTransport;
+import jake2.qcommon.network.transport.LocalSide;
 
 import java.util.Arrays;
 import java.util.List;
@@ -64,7 +68,11 @@ public class Jake2Dedicated {
 
     /** Own the Host through late-command startup and the loop, including exceptional exits. */
     static void runHost(List<String> args) {
-        try (ServerHost host = new ServerHost()) {
+        runHost(args, new TransportServerNetwork(NetworkTransport.standalone(LocalSide.SECOND)));
+    }
+
+    static void runHost(List<String> args, ServerNetwork network) {
+        try (ServerHost host = new ServerHost(network)) {
             if (Cbuf.AddLateCommands(args)) {
                 Cbuf.AddText("dedicated_start\n");
                 Cbuf.Execute();

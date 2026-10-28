@@ -24,6 +24,7 @@ interface ClientNetwork : AutoCloseable {
 }
 
 /** Compatibility composition until application roots supply their own local link. */
+@Deprecated("Compatibility adapter scheduled for removal; inject TransportClientNetwork with an owned NetworkTransport")
 object LegacyClientNetwork : ClientNetwork {
     override fun configure(multiplayer: Boolean) = NET.configureClient(multiplayer)
     override fun newChannel() = netchan_t()

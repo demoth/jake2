@@ -3,6 +3,9 @@ package org.demoth.cake.hosting
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.network.ClientNetwork
 import org.demoth.cake.network.LegacyClientNetwork
+import org.demoth.cake.network.TransportClientNetwork
+import jake2.qcommon.network.runtime.NetworkTransport
+import jake2.qcommon.network.transport.LocalSide
 
 /** Application-thread boundary between Cake and an optional embedded server. */
 interface CakeHost {
@@ -65,12 +68,14 @@ class HostFailureException(message: String, cause: Throwable) : RuntimeException
 
 /** Remote-only builds can accept the same application wiring without server side effects. */
 class UnavailableCakeHost : CakeHost {
+    override val clientNetwork = TransportClientNetwork(
+        NetworkTransport.standalone(LocalSide.FIRST))
     private val saveUnavailable = "Save/load requires Cake fullgame."
     override val availability = HostAvailability.REMOTE_ONLY
     override val state = HostState.STOPPED
     override fun initialize(startupRejection: () -> String?) = Unit
     override fun activateProfile(profile: CakeGameProfile?) = Unit
-    override fun dispose() = Unit
+    override fun dispose() = clientNetwork.close()
     override fun start(request: HostRequest) =
         HostStartResult.Rejected("Hosting requires the Cake fullgame application.")
     override fun update(elapsedMillis: Long) = Unit
