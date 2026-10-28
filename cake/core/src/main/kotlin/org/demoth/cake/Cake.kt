@@ -1099,19 +1099,15 @@ class Cake(
     }
 
     private fun CL_ReadPackets() {
-        while (true) {
-            val networkPacket = network.receive()
-
-            if (networkPacket == null) break
-
+        network.poll { networkPacket ->
             if (networkPacket.isConnectionless) {
                 CL_ConnectionlessPacket(networkPacket)
-                continue
+                return@poll
             }
 
             if (networkState == CONNECTING || networkState == DISCONNECTED) {
                 // dump it if not connected
-                continue
+                return@poll
             }
             //
             // packet from server
@@ -1119,7 +1115,7 @@ class Cake(
             if (networkPacket.from.type != netchan.remote_address.type ||
                 !networkPacket.from.compareIp(netchan.remote_address)) {
                 Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
-                continue
+                return@poll
             }
 
             if (netchan.accept(networkPacket)) {

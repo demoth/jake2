@@ -5,19 +5,28 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.transport.*
 import jake2.qcommon.network.runtime.NetworkTransport
+import jake2.qcommon.network.runtime.PacketNetwork
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class ServerNetworkTest {
-    private class Peer : AutoCloseable {
-        private val link = LoopbackLink()
+    private class Peer(capacity: Int = 4) : AutoCloseable {
+        private val link = LoopbackLink(capacity)
         val client = NetworkTransport(link.first, link.second.localAddress)
         val server = NetworkTransport(link.second, link.first.localAddress)
         val network = TransportServerNetwork(server)
         val host = ServerHost(network)
-        fun ping() {
+        fun queuePing() {
             client.send(client.localPeer, PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "ping".toByteArray()))
+        }
+        fun ping() {
+            queuePing()
             host.readPackets()
+        }
+        fun countReplies(): Int {
+            var count = 0
+            while (client.receive() is ReceiveResult.Received) count++
+            return count
         }
         fun reply(): String {
             val received = client.receive() as ReceiveResult.Received
@@ -26,6 +35,26 @@ class ServerNetworkTest {
         override fun close() {
             host.close()
             client.close()
+        }
+    }
+
+    @Test
+    fun `Host packet pass bounds malformed and valid traffic and resumes next pass`() {
+        Cvar.getInstance().clear()
+        MainCommon.registerCvars(false)
+        Netchan.Netchan_Init()
+        try {
+            val budget = PacketNetwork.DEFAULT_POLL_BUDGET
+            Peer(capacity = budget + 1).use { peer ->
+                peer.client.send(peer.client.localPeer, PacketBytes.copyOf(byteArrayOf(1)))
+                repeat(budget) { peer.queuePing() }
+                peer.host.readPackets()
+                assertEquals(budget - 1, peer.countReplies())
+                peer.host.readPackets()
+                assertEquals(1, peer.countReplies())
+            }
+        } finally {
+            Cvar.getInstance().clear()
         }
     }
 

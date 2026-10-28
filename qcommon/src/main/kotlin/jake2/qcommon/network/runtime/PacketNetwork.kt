@@ -24,6 +24,11 @@ class PacketNetwork(
     private val transport: NetworkTransport,
     private val role: NetworkRole,
 ) : AutoCloseable {
+    companion object {
+        /** Maximum datagrams consumed per receive pass, including malformed and dropped traffic. */
+        const val DEFAULT_POLL_BUDGET = 256
+    }
+
     private var closed = false
     private val label = if (role == NetworkRole.CLIENT) "Client" else "Server"
     private val direction = if (role == NetworkRole.CLIENT) PacketDirection.FROM_SERVER else PacketDirection.FROM_CLIENT
@@ -66,7 +71,14 @@ class PacketNetwork(
 
     /** Compatibility nullable view; explicit transport/codec outcomes remain below this adapter. */
     fun receive(): NetworkPacket? {
-        val received = transport.receive()
+        return decode(transport.receive())
+    }
+
+    /** Bound transport work, rather than only successfully decoded packets. */
+    fun poll(budget: Int = DEFAULT_POLL_BUDGET, consume: (NetworkPacket) -> Unit): Int =
+        transport.poll(budget) { received -> decode(received)?.let(consume) }
+
+    private fun decode(received: ReceiveResult): NetworkPacket? {
         if (received is ReceiveResult.Failed) Com.Println("$label receive error: ${received.cause}")
         if (received !is ReceiveResult.Received) return null
         val datagram = received.datagram

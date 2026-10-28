@@ -8,9 +8,54 @@ import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.transport.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import java.net.DatagramSocket
 
 class PacketNetworkTest {
+    @ParameterizedTest
+    @EnumSource(NetworkRole::class)
+    fun `malformed traffic consumes the default budget and remaining packets wait for next pass`(role: NetworkRole) {
+        val budget = PacketNetwork.DEFAULT_POLL_BUDGET
+        LoopbackLink(capacity = budget + 1).use { link ->
+            val transport = NetworkTransport(link.first, link.second.localAddress)
+            PacketNetwork(transport, role).use { network ->
+                repeat(budget) { link.second.send(link.first.localAddress, PacketBytes.copyOf(byteArrayOf(1))) }
+                val ping = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "ping".toByteArray())
+                link.second.send(link.first.localAddress, ping)
+                assertEquals(budget, network.poll { fail("Malformed datagrams must not reach consumers") })
+                var delivered = 0
+                assertEquals(1, network.poll {
+                    delivered++
+                    assertEquals("ping", it.connectionlessMessage)
+                })
+                assertEquals(1, delivered)
+                assertEquals(0, network.poll { fail("Queue should be empty") })
+            }
+        }
+    }
+
+    @Test
+    fun `poll continues past malformed packets within budget and bounds self-replenishing traffic`() {
+        LoopbackLink().use { link ->
+            val transport = NetworkTransport(link.first, link.second.localAddress)
+            PacketNetwork(transport, NetworkRole.CLIENT).use { network ->
+                val ping = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "ping".toByteArray())
+                link.second.send(link.first.localAddress, PacketBytes.copyOf(byteArrayOf(1)))
+                link.second.send(link.first.localAddress, ping)
+                var delivered = 0
+                assertEquals(5, network.poll(5) {
+                    delivered++
+                    link.second.send(link.first.localAddress, ping)
+                })
+                assertEquals(4, delivered)
+                assertEquals(0, network.poll(0) { fail("Zero budget must not consume traffic") })
+                assertThrows(IllegalArgumentException::class.java) { network.poll(-1) {} }
+                assertEquals("ping", network.receive()!!.connectionlessMessage)
+            }
+        }
+    }
+
     @Test
     fun `shared packet adapter preserves direction and Latin-1 packet size boundaries`() {
         LoopbackLink().use { link ->

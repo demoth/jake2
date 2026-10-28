@@ -1229,14 +1229,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * Reads packets from the network or loopback.
      */
     fun readPackets() {
-        while (true) {
-            val networkPacket = network.receive()
-
-            if (networkPacket == null) break
-
+        network.poll { networkPacket ->
             if (networkPacket.isConnectionless) {
                 handleConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage)
-                continue
+                return@poll
             }
 
             // Match incoming packet with the existing client.
