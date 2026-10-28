@@ -31,6 +31,6 @@ import org.demoth.cake.fullgame.EmbeddedCakeHost;
 /** Desktop composition root for Cake with the embedded server distribution. */
 public final class Jake2 {
     public static void main(String[] args) {
-        CakeDesktopLauncher.launch(args, new EmbeddedCakeHost());
+        CakeDesktopLauncher.launch(args, EmbeddedCakeHost.owned());
     }
 }

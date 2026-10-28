@@ -22,7 +22,7 @@ import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
+import org.demoth.cake.network.ClientNetwork
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -32,7 +32,6 @@ import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.netchan_t
 import jake2.qcommon.vfs.VfsDebugCommands
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
@@ -78,6 +77,7 @@ class Cake(
     startupContext: CakeStartupContext? = null,
     private val videoPlatform: CakeVideoPlatform? = null,
     val host: CakeHost = UnavailableCakeHost(),
+    private val network: ClientNetwork = host.clientNetwork,
 ) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
         private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
@@ -135,7 +135,7 @@ class Cake(
     private var localConnection = false
     private var challenge = 0
     private var reconnectTimeout = 0f // fire first connect attempt immediately
-    private val netchan = netchan_t()
+    private val netchan = network.newChannel()
 
     private val downloads = CakeDownloadSession(sendReliable = { command ->
         netchan.reliablePending.add(StringCmdMessage(command))
@@ -378,11 +378,11 @@ class Cake(
                 }
             }
 
-            if (to.type != NetAddrType.NA_LOOPBACK && !NET.configureClient(true)) {
+            if (to.type != NetAddrType.NA_LOOPBACK && !network.configure(true)) {
                 Com.Warn("Could not open the client UDP socket\n")
                 return@AddCommand
             }
-            Netchan.sendConnectionlessPacket(NS_CLIENT, to, ConnectionlessCommand.rcon, message)
+            network.sendConnectionless(to, ConnectionlessCommand.rcon, message)
         }
 
         Cmd.AddCommand("disconnect", "Disconnect and stop any local server") { disconnect() }
@@ -496,11 +496,11 @@ class Cake(
     }
 
     private fun beginConnection(target: netadr_t, local: Boolean) {
-        if (!local && !NET.configureClient(true)) {
+        if (!local && !network.configure(true)) {
             Com.Warn("Could not open the client UDP socket\n")
             return
         }
-        if (local) NET.configureClient(false)
+        if (local) network.configure(false)
         Com.Printf("Connecting to ${if (local) "local server" else target}...\n")
         connectionTarget = target
         localConnection = local
@@ -515,8 +515,7 @@ class Cake(
         resetClientConnection()
         host.stop("Disconnected")
         hostClock.reset()
-        NET.configureClient(false)
-        NET.clearLoopbacks()
+        network.stop()
     }
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
@@ -945,7 +944,7 @@ class Cake(
         try {
             disconnect()
         } finally {
-            host.dispose()
+            try { host.dispose() } finally { network.close() }
         }
         profilePersistence.saveConfig()
         menuStages.dispose()
@@ -1076,7 +1075,7 @@ class Cake(
                 // The server already trusts in-process loopback; use its normal connect path.
                 SendConnectPacket()
             } else {
-                Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
+                network.sendConnectionless(adr, ConnectionlessCommand.getchallenge, "\n")
             }
             reconnectTimeout = CONNECT_RETRY_TIMEOUT_SECONDS
         } else {
@@ -1093,9 +1092,7 @@ class Cake(
         val port = Cvar.getInstance().find<Int>("qport").typedValue
         Globals.userinfo_modified = false
 
-        Netchan.sendConnectionlessPacket(
-            NS_CLIENT,
-            adr,
+        network.sendConnectionless(adr,
             ConnectionlessCommand.connect,
             " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
         )
@@ -1103,7 +1100,7 @@ class Cake(
 
     private fun CL_ReadPackets() {
         while (true) {
-            val networkPacket = NET.receiveNetworkPacket(NS_CLIENT)
+            val networkPacket = network.receive()
 
             if (networkPacket == null) break
 

@@ -1,9 +1,13 @@
 package org.demoth.cake.hosting
 
 import org.demoth.cake.profile.CakeGameProfile
+import org.demoth.cake.network.ClientNetwork
+import org.demoth.cake.network.LegacyClientNetwork
 
 /** Application-thread boundary between Cake and an optional embedded server. */
 interface CakeHost {
+    val clientNetwork: ClientNetwork
+        get() = LegacyClientNetwork
     val availability: HostAvailability
     val state: HostState
 

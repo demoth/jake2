@@ -7,6 +7,11 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
 import jake2.qcommon.exec.find
 import jake2.qcommon.longjmpException
+import jake2.qcommon.network.transport.LoopbackLink
+import jake2.qcommon.network.runtime.NetworkTransport
+import jake2.server.TransportServerNetwork
+import org.demoth.cake.network.TransportClientNetwork
+import org.demoth.cake.network.LegacyClientNetwork
 import jake2.qcommon.network.NET
 import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
@@ -28,7 +33,30 @@ import java.util.UUID
 /** Application-owned embedded Host; games may stop while commands and profile remain active. */
 class EmbeddedCakeHost(
     private val profilesRoot: Path = Path.of(System.getProperty("user.home"), ".cake"),
+    private val localLink: LoopbackLink? = null,
 ) : CakeHost {
+    companion object {
+        @JvmStatic fun owned() = EmbeddedCakeHost(localLink = LoopbackLink())
+    }
+    private val clientTransport = localLink?.let {
+        NetworkTransport(it.first, it.second.localAddress)
+    }
+    private val serverTransport = localLink?.let {
+        NetworkTransport(it.second, it.first.localAddress)
+    }
+    override val clientNetwork = clientTransport?.let { TransportClientNetwork(it) }
+        ?: LegacyClientNetwork
+
+    internal fun udpEndpoint(role: Int) = if (localLink == null) NET.udpEndpoint(role)
+        else if (role == Defines.NS_CLIENT) clientTransport?.udpEndpoint else serverTransport?.udpEndpoint
+
+    private fun clearLocalTraffic() {
+        if (localLink == null) NET.clearLoopbacks() else {
+            localLink.first.clearIncoming()
+            localLink.second.clearIncoming()
+        }
+    }
+
     internal var server: ServerHost? = null
         private set
     private var starting = false
@@ -45,13 +73,15 @@ class EmbeddedCakeHost(
         check(server == null) { "Host is already initialized" }
         this.startupRejection = startupRejection
         previousWriteRoot = EngineWriteRoot.path()
-        server = ServerHost {
+        val rejection = {
             when {
                 disposed -> "Host has been disposed"
                 activeProfile == null -> "Select a game profile before hosting."
                 else -> this.startupRejection()
             }
         }
+        server = if (serverTransport == null) ServerHost(startupRejection = rejection)
+            else ServerHost(TransportServerNetwork(serverTransport), rejection)
     }
 
     override fun activateProfile(profile: CakeGameProfile?) {
@@ -121,7 +151,7 @@ class EmbeddedCakeHost(
                     return HostStartResult.Rejected(result.reason)
                 }
             }
-            if (request.mode != HostMode.SINGLEPLAYER && NET.udpEndpoint(Defines.NS_SERVER) == null) {
+            if (request.mode != HostMode.SINGLEPLAYER && udpEndpoint(Defines.NS_SERVER) == null) {
                 stop("Server port unavailable")
                 return HostStartResult.Rejected("Could not open the server UDP port")
             }
@@ -170,7 +200,7 @@ class EmbeddedCakeHost(
             server?.stop("$reason\n", false)
         } finally {
             // The adapter also owns disposal of the local client's queued traffic.
-            if (server != null) NET.clearLoopbacks()
+            if (server != null) clearLocalTraffic()
         }
     }
 
@@ -184,7 +214,8 @@ class EmbeddedCakeHost(
         try {
             manager?.close()
         } finally {
-            if (manager != null) NET.clearLoopbacks()
+            if (manager != null) clearLocalTraffic()
+            if (localLink != null) clientNetwork.close()
             previousWriteRoot?.let(EngineWriteRoot::setRoot)
             previousWriteRoot = null
             activeProfile = null
