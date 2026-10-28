@@ -4,6 +4,10 @@ import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.messages.server.PlayerInfoMessage
 import jake2.qcommon.network.messages.server.ServerMessage
+import jake2.qcommon.network.messages.server.SpawnBaselineMessage
+import jake2.qcommon.network.messages.server.EntityUpdate
+import jake2.qcommon.network.messages.server.DeltaEntityHeader
+import jake2.qcommon.entity_state_t
 import jake2.qcommon.player_state_t
 import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,6 +18,34 @@ import org.junit.jupiter.api.Test
 
 /** Checks frame selection from parsed messages; registers only entity cvars before consumer construction. */
 class ClientEntityManagerFrameSelectionTest {
+
+    @Test
+    fun immutableBaselineReconstructsTheFirstEntityFrameWithoutSharingProducerState() {
+        CakeCvars.registerEntities()
+        val manager = ClientEntityManager()
+        try {
+            val source = entity_state_t(1).apply {
+                origin = floatArrayOf(1.125f, 2.25f, 3.5f)
+                angles = floatArrayOf(45f, -90f, 0f)
+                modelindex = 7; event = 2
+            }
+            val queued = SpawnBaselineMessage(source)
+            source.clear()
+            val buffer = sizebuf_t(queued.size).apply { queued.writeTo(this) }
+            manager.processBaselineMessage(ServerMessage.parseFromBuffer(buffer) as SpawnBaselineMessage)
+            manager.processServerFrameHeader(FrameHeaderMessage(1, -1, 0, 0, byteArrayOf()))
+            val updates = PacketEntitiesMessage().apply { this.updates.add(EntityUpdate(DeltaEntityHeader(0, 1), entity_state_t(1))) }
+            assertTrue(manager.processPacketEntitiesMessage(updates))
+            assertArrayEquals(floatArrayOf(1.125f, 2.25f, 3.5f), manager.getEntityOrigin(1)!!.let { floatArrayOf(it.x, it.y, it.z) })
+            assertArrayEquals(floatArrayOf(45f, -90f, 0f), manager.getEntityAngles(1))
+            manager.forEachCurrentEntityState {
+                assertEquals(7, it.modelindex)
+                assertEquals(0, it.event, "Baseline impulse events must not repeat in subsequent entity updates")
+            }
+        } finally {
+            manager.dispose()
+        }
+    }
 
     @Test
     fun shorterAreaBitsClearThePreviousVisibilityTail() {

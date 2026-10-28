@@ -100,7 +100,7 @@ class ClientEntityManager : Disposable {
     }
 
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
-        clientEntities[msg.entityState.index].baseline.set(msg.entityState)
+        msg.entityState.copyTo(clientEntities[msg.entityState.index].baseline)
     }
 
     // Cross-reference: old client iterates dynamic collision entities from

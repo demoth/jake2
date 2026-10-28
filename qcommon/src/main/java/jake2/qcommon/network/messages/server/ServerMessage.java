@@ -148,9 +148,6 @@ public abstract class ServerMessage implements NetworkMessage {
             case svc_playerinfo:
                 msg = new PlayerInfoMessage();
                 break;
-            case svc_spawnbaseline:
-                msg = new SpawnBaselineMessage();
-                break;
             case svc_packetentities:
                 msg = new PacketEntitiesMessage();
                 break;
