@@ -384,26 +384,37 @@ class HostClientAccountingTest {
 
     @Test
     fun `remote reconnect uses Host acceptance time across Game frame changes`() {
-        // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
-        val address = netadr_t().apply { port = 12345 }
-        host.handleConnectionlessPacket(address, "getchallenge")
-        val reply = network.receiveLocal(Defines.NS_CLIENT)!!.connectionlessMessage
-        val challenge = reply.trim().substringAfterLast(' ')
-        val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
-        first.frameNum = 9000
-        host.handleConnectionlessPacket(address, connect)
-        val client = host.clients[0]
-        assertEquals(ClientStates.CS_CONNECTED, client.state)
-        assertEquals(100L, client.lastconnect)
-        drainPackets()
-        cvars.find<Float>("sv_reconnect_limit").forceSet(0.5f)
-        host.update(499)
-        first.frameNum = 50000
-        host.handleConnectionlessPacket(address, connect)
-        assertEquals(100L, client.lastconnect, "Reconnect before the boundary must be rejected")
-        host.update(1)
-        host.handleConnectionlessPacket(address, connect)
-        assertEquals(600L, client.lastconnect)
-        assertEquals(600L, client.lastmessage)
+        cvars.find<Int>("port").forceSet(0)
+        assertTrue(network.server.configure(true))
+        val loopback = java.net.InetAddress.getByName("127.0.0.1")
+        java.net.DatagramSocket(0, loopback).use { receiver ->
+            receiver.soTimeout = 2000
+            val address = netadr_t().apply {
+                type = NetAddrType.NA_IP
+                ip = loopback.address
+                port = receiver.localPort
+            }
+            host.handleConnectionlessPacket(address, "getchallenge")
+            val response = java.net.DatagramPacket(ByteArray(2048), 2048)
+            receiver.receive(response)
+            val reply = String(response.data, 4, response.length - 4)
+            val challenge = reply.trim().substringAfterLast(' ')
+            val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
+            first.frameNum = 9000
+            host.handleConnectionlessPacket(address, connect)
+            val client = host.clients[0]
+            assertEquals(ClientStates.CS_CONNECTED, client.state)
+            assertEquals(100L, client.lastconnect)
+            drainPackets()
+            cvars.find<Float>("sv_reconnect_limit").forceSet(0.5f)
+            host.update(499)
+            first.frameNum = 50000
+            host.handleConnectionlessPacket(address, connect)
+            assertEquals(100L, client.lastconnect, "Reconnect before the boundary must be rejected")
+            host.update(1)
+            host.handleConnectionlessPacket(address, connect)
+            assertEquals(600L, client.lastconnect)
+            assertEquals(600L, client.lastmessage)
+        }
     }
 }

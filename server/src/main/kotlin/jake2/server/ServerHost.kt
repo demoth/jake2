@@ -51,8 +51,7 @@ class ServerHost @JvmOverloads constructor(
     @JvmField
     val games: MutableMap<String, GameImportsImpl> = HashMap()
 
-    private val challenges = Array(Defines.MAX_CHALLENGES) { challenge_t() }
-    private var challengeOrder = 0L
+    private val connections = ServerConnections()
 
     var clients: MutableList<ClientNetworkInfo> = mutableListOf()
         private set
@@ -320,8 +319,7 @@ class ServerHost @JvmOverloads constructor(
             nextFrameTime = 100
             paused.forceSet(false)
             Cvar.getInstance().find<String>("mapname").forceSet("")
-            for (i in challenges.indices) challenges[i] = challenge_t()
-            challengeOrder = 0
+            connections.reset()
             // Ordinary queued commands may start the next session (killserver; gamemap ...).
             Cbuf.ClearDeferred()
             network.stop()
@@ -971,47 +969,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         return info
     }
 
-    /**
-     * Issue or reuse the token for the connectionless getchallenge -> challenge -> connect handshake.
-     * A remote client echoes the token in its connect request; [connectClient] checks it against
-     * the cached source IP (UDP port is ignored). Local connections bypass that check.
-     *
-     * This makes blind source-IP spoofing harder: the requester normally needs to receive the
-     * reply before it can connect. The legacy 15-bit random token is not authentication or a
-     * general denial-of-service defence; it can be guessed and does not prevent request floods.
-     *
-     * The bounded Host cache has no time-based expiry. Repeated requests reuse the token without
-     * refreshing its position. New addresses take an unused entry or evict the earliest-issued
-     * entry. A Host-owned counter orders issuance even within one clock tick and across global
-     * clock resets/wrap. Session stop clears the cache and counter; this order is never sent.
-     */
-    private fun getChallenge(from: netadr_t): Int {
-        var oldest = 0
-        var oldestOrder = Long.MAX_VALUE
-
-        var i: Int
-        i = 0
-        while (i < Defines.MAX_CHALLENGES) {
-            if (from.CompareBaseAdr(challenges[i].adr)) break
-            if (challenges[i].issuedOrder < oldestOrder) {
-                oldestOrder = challenges[i].issuedOrder
-                oldest = i
-            }
-            i++
-        }
-
-        if (i == Defines.MAX_CHALLENGES) {
-            // Unused entries have order zero and are selected before issued entries.
-            challenges[oldest].challenge = Lib.rand().toInt() and 0x7fff
-            challenges[oldest].adr = from
-            // Eviction needs issuance order, not wall time or Game simulation time.
-            challenges[oldest].issuedOrder = ++challengeOrder
-            i = oldest
-        }
-
-        return challenges[i].challenge
-    }
-
     /** Validate a direct connect request, including its remote-address challenge, before admission. */
     private fun connectClient(args: List<String>, adr: netadr_t) {
         Com.DPrintf("SVC_DirectConnect ()\n")
@@ -1033,66 +990,29 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // force the IP key/value pair so the game can filter based on ip
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", adr.toString())
 
-        // Match the source IP and echoed token before allocating/reusing a client slot.
-        var j: Int
-        if (!adr.IsLocalAddress()) {
-            j = 0
-            while (j < Defines.MAX_CHALLENGES) {
-                if (adr.CompareBaseAdr(challenges[j].adr)) {
-                    if (challenge == challenges[j].challenge) break // good
-
-                    network.sendConnectionless(adr,
-                        ConnectionlessCommand.print,
-                        "\nBad challenge.\n"
-                    )
-                    return
-                }
-                j++
-            }
-            if (j == Defines.MAX_CHALLENGES) {
-                network.sendConnectionless(adr,
-                    ConnectionlessCommand.print,
-                    "\nNo challenge for address.\n"
-                )
+        when (connections.validateChallenge(adr, challenge)) {
+            ServerConnections.ChallengeValidation.BAD -> {
+                network.sendConnectionless(adr, ConnectionlessCommand.print, "\nBad challenge.\n")
                 return
             }
-        }
-
-        // if there is already a slot for this ip, reuse it
-        var i = 0
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_FREE) continue
-            if (adr.CompareBaseAdr(cl.netchan.remote_address)
-                && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)
-            ) {
-                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (reconnectLimit.typedValue * 1000)) {
-                    Com.DPrintf("$adr:reconnect rejected : too soon\n")
-                    return
-                }
-                Com.Printf("$adr:reconnect\n")
-
-                initializeClientConnection(i, challenge, userinfo, adr, qport)
+            ServerConnections.ChallengeValidation.MISSING -> {
+                network.sendConnectionless(adr, ConnectionlessCommand.print, "\nNo challenge for address.\n")
                 return
             }
-            i++
+            ServerConnections.ChallengeValidation.ACCEPTED -> Unit
         }
 
-        // find a client slot
-        var index = -1
-        i = 0
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_FREE) {
-                index = i
-                break
+        when (val admission = connections.selectSlot(clients, adr, qport, realtime, reconnectLimit.typedValue * 1000)) {
+            ServerConnections.Admission.TooSoon -> Com.DPrintf("$adr:reconnect rejected : too soon\n")
+            ServerConnections.Admission.Full -> {
+                network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
+                Com.DPrintf("Rejected a connection.\n")
             }
-            i++
+            is ServerConnections.Admission.Slot -> {
+                if (admission.reconnect) Com.Printf("$adr:reconnect\n")
+                initializeClientConnection(admission.index, challenge, userinfo, adr, qport)
+            }
         }
-        if (index == -1) {
-            network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
-            Com.DPrintf("Rejected a connection.\n")
-            return
-        }
-        initializeClientConnection(index, challenge, userinfo, adr, qport)
     }
 
     /**
@@ -1184,7 +1104,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             ConnectionlessCommand.getchallenge -> {
-                val challenge = getChallenge(from)
+                val challenge = connections.issueChallenge(from)
                 network.sendConnectionless(from,
                     ConnectionlessCommand.challenge,
                     " $challenge"
@@ -1235,27 +1155,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 return@poll
             }
 
-            // Match incoming packet with the existing client.
-            // todo: get client by address (hashmap?)
-            for (cl in clients) {
-                if (cl.state == ClientStates.CS_FREE) continue
-                if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address)) continue
-                if (cl.netchan.qport != networkPacket.qport) continue
-                if (cl.netchan.remote_address.port != networkPacket.from.port) {
-                    Com.Printf("SV_ReadPackets: fixing up a translated port\n")
-                    cl.netchan.remote_address.port = networkPacket.from.port
-                }
-
-                if (cl.netchan.accept(networkPacket)) {
-                    // this is a valid, sequenced packet, so process it
-                    if (cl.state != ClientStates.CS_ZOMBIE) {
-                        cl.lastmessage = realtime // don't timeout
-                        val body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence)
-                        if (body == null) dropClient(cl)
-                        else handleClientMessages(cl, body)
-                    }
-                }
-                break
+            val routed = connections.route(networkPacket, clients) ?: return@poll
+            if (routed.portChanged) Com.Printf("SV_ReadPackets: fixing up a translated port\n")
+            val client = routed.client
+            if (client.state != ClientStates.CS_ZOMBIE) {
+                client.lastmessage = realtime
+                val body = networkPacket.parseBodyFromClient(client.netchan.incoming_sequence)
+                if (body == null) dropClient(client)
+                else handleClientMessages(client, body)
             }
         }
     }
