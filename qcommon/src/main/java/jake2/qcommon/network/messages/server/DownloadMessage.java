@@ -10,7 +10,7 @@ import java.util.Arrays;
  *
  * Fixme: Warning: data.length is limited by signed short (32k)
  */
-public class DownloadMessage extends ServerMessage {
+public class DownloadMessage extends LegacyServerMessage {
 
     public byte[] data;
     public byte percentage;

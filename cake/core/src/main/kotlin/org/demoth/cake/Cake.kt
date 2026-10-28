@@ -1120,7 +1120,7 @@ class Cake(
                     return
                 }
 
-                // NB: it is not sent during map change (instead - StuffTextMessage("reconnect"))
+                // NB: it is not sent during map change (instead - StuffTextMessage.command("reconnect"))
                 // sent on server restart
                 is ReconnectMessage -> {
                     Com.Printf("ReconnectMessage: Reconnecting..\n")

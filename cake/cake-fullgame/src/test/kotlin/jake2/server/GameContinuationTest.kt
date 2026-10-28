@@ -137,9 +137,9 @@ class GameContinuationTest {
         assertSame(second, host.games["other"])
         assertEquals("default", a.gameName)
         assertEquals("default", c.gameName)
-        assertTrue(a.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
-        assertTrue(c.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
-        assertFalse(b.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
+        assertTrue(a.netchan.reliablePending.contains(StuffTextMessage.command("reconnect")))
+        assertTrue(c.netchan.reliablePending.contains(StuffTextMessage.command("reconnect")))
+        assertFalse(b.netchan.reliablePending.contains(StuffTextMessage.command("reconnect")))
 
         finish(b, second)
         host.update(100)
@@ -189,8 +189,8 @@ class GameContinuationTest {
         finish(b, second)
         a.state = ClientStates.CS_SPAWNED
         a.download = byteArrayOf(1)
-        a.netchan.reliablePending.add(StuffTextMessage("stale"))
-        a.unreliable.add(StuffTextMessage("stale"))
+        a.netchan.reliablePending.add(StuffTextMessage.command("stale"))
+        a.unreliable.add(StuffTextMessage.command("stale"))
         a.netchan.remote_address = null // Fail the first final notification.
         first.gameExports = null // Discarding a Game must not call back into its gameplay.
         Cvar.getInstance().find<Int>("port").forceSet(0)
@@ -368,7 +368,7 @@ class GameContinuationTest {
         assertEquals("default", client.gameName)
         assertEquals("testbox2", host.games.getValue("other").mapName)
         assertNull(first.takeNextMap(), "Rejected continuation remains consumed")
-        assertFalse(client.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
+        assertFalse(client.netchan.reliablePending.contains(StuffTextMessage.command("reconnect")))
     }
 
     @ParameterizedTest

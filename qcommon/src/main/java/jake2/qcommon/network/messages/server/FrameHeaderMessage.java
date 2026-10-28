@@ -13,7 +13,7 @@ import static jake2.qcommon.Defines.MAX_MAP_AREAS;
  * Generic information about frame.
  * Sent along together with {@link PacketEntitiesMessage} and {@link PacketEntitiesMessage} every server frame.
  */
-public class FrameHeaderMessage extends ServerMessage {
+public class FrameHeaderMessage extends LegacyServerMessage {
     public int frameNumber;
     public int lastFrame;
     public int suppressCount;

@@ -10,7 +10,7 @@ import jake2.qcommon.network.messages.server.*
  */
 object MessageBodyCodec {
     @JvmStatic fun decodeServer(envelope: PacketEnvelope): MessageDecodeResult<ServerMessage> =
-        decode(envelope, PacketDirection.FROM_SERVER, ServerMessage::parseFromBuffer) { it is EndOfServerPacketMessage }
+        decode(envelope, PacketDirection.FROM_SERVER, ServerMessageCodec::read) { it is EndOfServerPacketMessage }
 
     @JvmStatic fun decodeClient(envelope: PacketEnvelope, sequence: Int): MessageDecodeResult<ClientMessage> =
         decode(envelope, PacketDirection.FROM_CLIENT, { ClientMessageCodec.read(it, sequence) }) { it is EndOfClientPacketMessage }

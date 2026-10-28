@@ -5,7 +5,7 @@ import jake2.qcommon.sizebuf_t;
 /**
  * Effect for player firing (very similar to MuzzleFlash2Message)
  */
-public class WeaponSoundMessage extends ServerMessage {
+public class WeaponSoundMessage extends LegacyServerMessage {
 
     /**
      * @param type - weapon index and silenced flag packed together into 1 byte

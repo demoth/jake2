@@ -7,7 +7,7 @@ import java.util.Collection;
 /**
  * Temp entity
  */
-public abstract class TEMessage extends ServerMessage {
+public abstract class TEMessage extends LegacyServerMessage {
     public TEMessage(int style) {
         super(ServerMessageType.svc_temp_entity);
         validateStyle(style);

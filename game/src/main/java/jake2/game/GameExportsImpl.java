@@ -1169,7 +1169,7 @@ public class GameExportsImpl implements GameExports {
             if (!passwdOK(gameCvars.spectator_password.getTypedValue(), spectator)) {
                 gameImports.cprintf(ent, PRINT_HIGH, "Spectator password incorrect.\n");
                 client.pers.spectator = false;
-                gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 0"), true);
+                gameImports.unicastMessage(ent.index, StuffTextMessage.command("spectator 0"), true);
                 return;
             }
 
@@ -1187,7 +1187,7 @@ public class GameExportsImpl implements GameExports {
                         "Server spectator limit is full.");
                 client.pers.spectator = false;
                 // reset his spectator var
-                gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 0"), true);
+                gameImports.unicastMessage(ent.index, StuffTextMessage.command("spectator 0"), true);
                 return;
             }
         } else {
@@ -1197,7 +1197,7 @@ public class GameExportsImpl implements GameExports {
             if (!passwdOK(gameCvars.password.getTypedValue(), password)) {
                 gameImports.cprintf(ent, PRINT_HIGH, "Password incorrect.\n");
                 client.pers.spectator = true;
-                gameImports.unicastMessage(ent.index, new StuffTextMessage("spectator 1"), true);
+                gameImports.unicastMessage(ent.index, StuffTextMessage.command("spectator 1"), true);
                 return;
             }
         }

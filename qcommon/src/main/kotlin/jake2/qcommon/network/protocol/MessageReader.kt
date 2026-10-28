@@ -33,6 +33,12 @@ class MessageReader(bytes: PacketBytes, offset: Int) : sizebuf_t(bytes.size) {
         requireRemaining(this, 1)
         return super.readByte()
     }
+    /** Unsigned wire byte, widened once at the boundary to 0..255. */
+    fun readUnsignedByte(): Int = readByte()
+
+    /** Unsigned wire short, widened once at the boundary to 0..65535. */
+    fun readUnsignedShort(): Int = readShort().toInt() and 0xffff
+
     override fun readSignedByte(): Byte {
         requireRemaining(this, 1)
         return super.readSignedByte()

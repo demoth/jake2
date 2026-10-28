@@ -23,7 +23,7 @@ class MessageStringEncodingTest {
         val text = (1..254).map(Int::toChar).joinToString("")
         val messages = listOf(
             PrintMessage(2, text), PrintCenterMessage(text), LayoutMessage(text),
-            ConfigStringMessage(4, text), StuffTextMessage(text),
+            ConfigStringMessage(4, text), StuffTextMessage.command(text),
             ServerDataMessage(PROTOCOL_VERSION, 3, false, text, 1, text),
             StringCmdMessage(text), UserInfoMessage(text),
         )

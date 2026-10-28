@@ -139,7 +139,7 @@ class HostClientAccountingTest {
         client.download = byteArrayOf(1)
         client.downloadsize = 1
         client.downloadcount = 1
-        client.unreliable.add(jake2.qcommon.network.messages.server.StuffTextMessage("stale"))
+        client.unreliable.add(jake2.qcommon.network.messages.server.StuffTextMessage.command("stale"))
         val failure = IllegalStateException("broken callback")
         var callbacks = 0
         first.gameExports = object : GameExports by first.gameExports {
@@ -166,8 +166,8 @@ class HostClientAccountingTest {
         val client = bind(0, first)
         val peer = bind(1, first)
         client.netchan.reliablePending.add(
-            jake2.qcommon.network.messages.server.StuffTextMessage("x".repeat(Defines.MAX_MSGLEN)))
-        peer.netchan.reliablePending.add(jake2.qcommon.network.messages.server.StuffTextMessage("peer"))
+            jake2.qcommon.network.messages.server.StuffTextMessage.command("x".repeat(Defines.MAX_MSGLEN)))
+        peer.netchan.reliablePending.add(jake2.qcommon.network.messages.server.StuffTextMessage.command("peer"))
         val previousSequence = peer.netchan.outgoing_sequence
         host.sendClientMessages()
         assertEquals(ClientStates.CS_ZOMBIE, client.state)

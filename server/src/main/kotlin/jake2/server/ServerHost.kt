@@ -684,7 +684,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             if (client.state == ClientStates.CS_SPAWNED) client.state = ClientStates.CS_CONNECTED
             client.lastReceivedFrame = -1
             if (client.state == ClientStates.CS_CONNECTED) {
-                client.netchan.reliablePending.add(StuffTextMessage("changing"))
+                client.netchan.reliablePending.add(StuffTextMessage.command("changing"))
             }
         }
 
@@ -705,7 +705,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         for (client in transitionClients) {
             if (client.state == ClientStates.CS_CONNECTED) {
-                client.netchan.reliablePending.add(StuffTextMessage("reconnect"))
+                client.netchan.reliablePending.add(StuffTextMessage.command("reconnect"))
             }
         }
         return gameImports
@@ -1127,7 +1127,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     fun dropClient(client: ClientNetworkInfo) {
         if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE) return
         try {
-            client.netchan.reliablePending.add(DisconnectMessage())
+            client.netchan.reliablePending.add(DisconnectMessage)
             if (client.state == ClientStates.CS_SPAWNED) {
                 games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
             }
@@ -1369,7 +1369,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             // begin fetching configstrings
             client.netchan.reliablePending.add(
-                StuffTextMessage(
+                StuffTextMessage.command(
                     String.format(
                         "cmd %s %d 0",
                         StringCmdMessage.CONFIG_STRINGS,
@@ -1420,7 +1420,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         } else {
             String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start)
         }
-        client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
+        client.netchan.reliablePending.add(StuffTextMessage.command(nextCmd))
     }
 
     private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
@@ -1463,7 +1463,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // continue from where we finished
             String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start)
         }
-        client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
+        client.netchan.reliablePending.add(StuffTextMessage.command(nextCmd))
     }
 
     private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
@@ -1686,7 +1686,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         for (cl in getClientsForInstance(gameName)) {
             if (cl == null || level < cl.messagelevel) continue
             if (cl.state != ClientStates.CS_SPAWNED) continue
-            cl.netchan.reliablePending.add(PrintMessage(level, message))
+            cl.netchan.reliablePending.add(PrintMessage(level, message.orEmpty()))
         }
     }
 
@@ -1729,10 +1729,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         recipients: List<ClientNetworkInfo> = clients
     ) {
         val msgs: MutableCollection<NetworkMessage> = ArrayList()
-        msgs.add(PrintMessage(Defines.PRINT_HIGH, message))
+        msgs.add(PrintMessage(Defines.PRINT_HIGH, message.orEmpty()))
 
-        if (reconnect) msgs.add(ReconnectMessage())
-        else msgs.add(DisconnectMessage())
+        if (reconnect) msgs.add(ReconnectMessage)
+        else msgs.add(DisconnectMessage)
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers

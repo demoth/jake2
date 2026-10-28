@@ -6,7 +6,7 @@ import jake2.qcommon.sizebuf_t;
 /**
  * Generic server information, sent as a response to {@link jake2.qcommon.network.messages.client.StringCmdMessage.NEW} client command
  */
-public class ServerDataMessage extends ServerMessage {
+public class ServerDataMessage extends LegacyServerMessage {
     public int protocol;
     public int spawnCount;
     public boolean demo;

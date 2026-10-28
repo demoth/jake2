@@ -27,7 +27,7 @@ import java.util.Arrays;
  * or the midpoint of the entity box for bmodels.
  * ==================
  */
-public class SoundMessage extends ServerMessage {
+public class SoundMessage extends LegacyServerMessage {
     public int flags;
     public int soundIndex;
     public float volume;

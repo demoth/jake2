@@ -4,7 +4,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.player_state_t;
 import jake2.qcommon.sizebuf_t;
 
-public class PlayerInfoMessage extends ServerMessage {
+public class PlayerInfoMessage extends LegacyServerMessage {
     private player_state_t previousState;
     // determine what needs to be sent
     public int deltaFlags;

@@ -5,17 +5,13 @@ import jake2.qcommon.entity_state_t;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.network.protocol.MessageReadException;
-import jake2.qcommon.network.protocol.MessageReader;
 import jake2.qcommon.network.protocol.MessageRejection;
 
 /**
  * Common parent for all messages sent from server to client.
  */
 public abstract class ServerMessage implements NetworkMessage {
-    /** Mutable decoding hook retained until server message values move to their codecs. */
-    public abstract void parse(sizebuf_t buffer);
-
-    public ServerMessageType type;
+    public final ServerMessageType type;
 
     public ServerMessage(ServerMessageType type) {
         this.type = type;
@@ -131,70 +127,38 @@ public abstract class ServerMessage implements NetworkMessage {
     }
 
     public final void writeTo(sizebuf_t buffer) {
-        buffer.writeByte((byte) type.type);
-        writeProperties(buffer);
+        ServerMessageCodec.write(this, buffer);
     }
 
-    protected abstract void writeProperties(sizebuf_t buffer);
+    /** Size of the message in bytes, including its opcode. */
+    public int getSize() {
+        return ServerMessageCodec.size(this);
+    }
 
     public static ServerMessage parseFromBuffer(sizebuf_t buffer) {
-        if (!(buffer instanceof MessageReader)) {
-            MessageReader reader = MessageReader.fromBuffer(buffer);
-            try { return parseFromBuffer(reader); } finally { buffer.readcount = reader.readcount; }
-        }
+        return ServerMessageCodec.read(buffer);
+    }
 
-
-        if (buffer.readcount == buffer.cursize) return new EndOfServerPacketMessage();
-        final int cmd = buffer.readByte();
-        if (cmd == -1)
-            return new EndOfServerPacketMessage();
-        ServerMessageType type = ServerMessageType.fromInt(cmd);
-        if (type == null) throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Unknown server opcode " + cmd);
-        final ServerMessage msg;
-        // Explicit end/no-op outcomes are distinct from unsupported wire opcodes.
+    /** Decode the remaining mutable message families until each migrates to a Kotlin value/codec. */
+    static LegacyServerMessage readLegacyProperties(ServerMessageType type, sizebuf_t buffer) {
+        final LegacyServerMessage msg;
         switch (type) {
-            case svc_end:
-                return new EndOfServerPacketMessage();
-            case svc_nop:
-                return null;
-            case svc_bad:
             default:
-                throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Invalid server opcode " + cmd);
+                throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Invalid server opcode " + type);
             case svc_muzzleflash:
                 msg = new WeaponSoundMessage();
                 break;
             case svc_muzzleflash2:
                 msg = new MuzzleFlash2Message();
                 break;
-            case svc_layout:
-                msg = new LayoutMessage();
-                break;
             case svc_inventory:
                 msg = new InventoryMessage();
-                break;
-            case svc_disconnect:
-                msg = new DisconnectMessage();
-                break;
-            case svc_reconnect:
-                msg = new ReconnectMessage();
                 break;
             case svc_sound:
                 msg = new SoundMessage();
                 break;
-            case svc_print:
-                msg = new PrintMessage();
-                break;
-            case svc_stufftext:
-                msg = new StuffTextMessage();
-                break;
             case svc_serverdata:
                 msg = new ServerDataMessage();
-                break;
-            case svc_configstring:
-                msg = new ConfigStringMessage();
-                break;
-            case svc_centerprint:
-                msg = new PrintCenterMessage();
                 break;
             case svc_frame:
                 msg = new FrameHeaderMessage();

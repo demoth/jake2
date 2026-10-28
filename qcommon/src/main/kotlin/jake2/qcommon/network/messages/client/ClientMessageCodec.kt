@@ -37,7 +37,7 @@ object ClientMessageCodec {
             return try { read(reader, incomingSequence) } finally { buffer.readcount = reader.readcount }
         }
         if (buffer.readcount == buffer.cursize) return EndOfClientPacketMessage
-        val opcode = buffer.readByte()
+        val opcode = buffer.readUnsignedByte()
         return when (ClientMessageType.fromByte(opcode.toByte())) {
             ClientMessageType.CLC_BAD -> EndOfClientPacketMessage
             // Clients do not normally send no-op messages directly; retain the accepted wire opcode.

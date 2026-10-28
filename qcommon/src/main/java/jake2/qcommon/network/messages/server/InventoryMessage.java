@@ -10,7 +10,7 @@ import java.util.Arrays;
  * Holds information about how many specific items player holds.
  * The names of the items are sent via {@link ConfigStringMessage} starting from {@link Defines#CS_ITEMS} (Max 256).
  */
-public class InventoryMessage extends ServerMessage {
+public class InventoryMessage extends LegacyServerMessage {
     public int[] inventory;
 
     public InventoryMessage() {

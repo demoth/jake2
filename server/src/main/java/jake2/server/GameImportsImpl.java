@@ -899,7 +899,7 @@ public class GameImportsImpl implements GameImports {
         for (ClientNetworkInfo client : serverMain.getClients()) {
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
                 continue;
-            client.netchan.reliablePending.add(new StuffTextMessage(s));
+            client.netchan.reliablePending.add(StuffTextMessage.command(s));
         }
     }
 

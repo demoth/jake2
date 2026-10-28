@@ -39,19 +39,19 @@ public class NetworkMessageSizeTest {
         //////////////////
         List<Object[]> testMessages = new ArrayList<>();
         // null/empty markers
-        testMessages.add(new Object[]{"server.NopMessage", new NopMessage()});
-        testMessages.add(new Object[]{"server.EndOfServerPacketMessage", new EndOfServerPacketMessage()});
+        testMessages.add(new Object[]{"server.NopMessage", NopMessage.INSTANCE});
+        testMessages.add(new Object[]{"server.EndOfServerPacketMessage", EndOfServerPacketMessage.INSTANCE});
         // ordinary messages
         testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, (byte) 50)});
         testMessages.add(new Object[]{"server.DownloadMessage.empty", new DownloadMessage()});
-        testMessages.add(new Object[]{"server.DisconnectMessage", new DisconnectMessage()});
-        testMessages.add(new Object[]{"server.ReconnectMessage", new ReconnectMessage()});
+        testMessages.add(new Object[]{"server.DisconnectMessage", DisconnectMessage.INSTANCE});
+        testMessages.add(new Object[]{"server.ReconnectMessage", ReconnectMessage.INSTANCE});
         testMessages.add(new Object[]{"server.LayoutMessage", new LayoutMessage("layout")});
         testMessages.add(new Object[]{"server.PrintMessage.highbit", new PrintMessage(2, "caf\u00e9\n\u0080\u00fe")});
         testMessages.add(new Object[]{"server.ConfigStringMessage", new ConfigStringMessage(4, "config")});
         // expect only PROTOCOL_VERSION(34)
         testMessages.add(new Object[]{"server.ServerDataMessage", new ServerDataMessage(PROTOCOL_VERSION, 3, false, "hello quake", 1, "q3dm6")});
-        testMessages.add(new Object[]{"server.StuffTextMessage", new StuffTextMessage("stuff")});
+        testMessages.add(new Object[]{"server.StuffTextMessage", StuffTextMessage.command("stuff")});
         testMessages.add(new Object[]{"server.FrameHeaderMessage", new FrameHeaderMessage(1, 2, 3, 4, new byte[]{1, 1, 1, 1})});
         testMessages.add(new Object[]{"server.InventoryMessage", new InventoryMessage(new int[MAX_ITEMS])});
         testMessages.add(new Object[]{"server.MuzzleFlash2Message", new MuzzleFlash2Message(1, 2)});
@@ -185,8 +185,7 @@ public class NetworkMessageSizeTest {
         else
             parsed = ClientMessage.parseFromBuffer(buffer, 1);
 
-        if (message instanceof NopMessage
-                || message instanceof EndOfServerPacketMessage) {
+        if (message instanceof NopMessage) {
             System.err.println("Skipping test for " + message.getClass());
         } else {
             assertEquals(message, parsed, "Message is different after serialization/deserialization");

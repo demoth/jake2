@@ -10,7 +10,7 @@ import jake2.qcommon.sizebuf_t;
  *
  * Baseline is a snapshot of an entity state at the moment of level instantiation.
  */
-public class SpawnBaselineMessage extends ServerMessage {
+public class SpawnBaselineMessage extends LegacyServerMessage {
 
     public entity_state_t entityState;
     private final entity_state_t base = new entity_state_t();

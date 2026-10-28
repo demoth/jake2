@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Contains state changes for multiple entities.
  */
-public class PacketEntitiesMessage extends ServerMessage {
+public class PacketEntitiesMessage extends LegacyServerMessage {
 
     public final List<EntityUpdate> updates = new ArrayList<>();
 
