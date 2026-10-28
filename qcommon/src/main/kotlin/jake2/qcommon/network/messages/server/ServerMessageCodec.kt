@@ -37,6 +37,7 @@ object ServerMessageCodec {
                 message.origin?.let { buffer.writeCoord(it.x); buffer.writeCoord(it.y); buffer.writeCoord(it.z) }
             }
             is TEMessage -> TemporaryEntityCodec.writeProperties(message, buffer)
+            is PacketEntitiesMessage -> PacketEntitiesCodec.write(message, buffer)
             is SpawnBaselineMessage -> EntityDeltaCodec.write(message.delta, buffer)
             is InventoryMessage -> repeat(MAX_ITEMS) { buffer.writeShort(message[it]) }
             is DownloadMessage.Chunk -> {
@@ -78,6 +79,7 @@ object ServerMessageCodec {
         is DownloadMessage.Failure -> 4
         is FrameHeaderMessage -> 11 + message.areaBits.size
         is TEMessage -> TemporaryEntityCodec.size(message)
+        is PacketEntitiesMessage -> 1 + PacketEntitiesCodec.size(message)
         is SpawnBaselineMessage -> 1 + EntityDeltaCodec.size(message.delta)
         DisconnectMessage, ReconnectMessage, NopMessage, EndOfServerPacketMessage -> 1
         is LegacyServerMessage -> message.size
@@ -110,6 +112,7 @@ object ServerMessageCodec {
             ServerMessageType.svc_muzzleflash2 -> MuzzleFlash2Message(readEntityIndex(buffer), buffer.readUnsignedByte())
             ServerMessageType.svc_sound -> readSound(buffer)
             ServerMessageType.svc_temp_entity -> TemporaryEntityCodec.read(buffer)
+            ServerMessageType.svc_packetentities -> PacketEntitiesCodec.read(buffer)
             ServerMessageType.svc_spawnbaseline -> SpawnBaselineMessage(EntityDeltaCodec.read(buffer))
             ServerMessageType.svc_inventory -> InventoryMessage(IntArray(MAX_ITEMS) { buffer.readSignedShort() })
             ServerMessageType.svc_download -> readDownload(buffer)

@@ -37,7 +37,6 @@ import jake2.qcommon.network.messages.server.FrameHeaderMessage;
 import jake2.qcommon.network.messages.server.PlayerInfoMessage;
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage;
 import jake2.qcommon.network.messages.server.EntityUpdate;
-import jake2.qcommon.network.messages.server.DeltaEntityHeader;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
@@ -1411,7 +1410,7 @@ public class GameImportsImpl implements GameImports {
         int maxClients = serverMain.getClients().size();
         assert baselines.length == Defines.MAX_EDICTS;
         int maxEntityStates = clientEntityStates.length;
-        PacketEntitiesMessage result = new PacketEntitiesMessage();
+        List<EntityUpdate> updates = new ArrayList<>();
 
         // Write delta entity
         int from_num_entities;
@@ -1449,12 +1448,13 @@ public class GameImportsImpl implements GameImports {
                 // Note: players are always 'newentities', this updates
                 // their oldorigin always  and prevents warping
                 final boolean isPlayer = newState.index <= maxClients;
-                result.updates.add(new EntityUpdate(oldState, newState, false, isPlayer));
+                EntityUpdate.Change change = EntityUpdate.plan(oldState, newState, false, isPlayer);
+                if (change != null) updates.add(change);
                 oldindex++;
                 newindex++;
             } else if (newnum < oldnum) {
                 // this is a new entity, send it from the baseline
-                result.updates.add(new EntityUpdate(baselines[newnum], newState, true, true));
+                updates.add(EntityUpdate.plan(baselines[newnum], newState, true, true));
                 newindex++;
             } else {
                 // if (newnum > oldnum) {
@@ -1464,11 +1464,11 @@ public class GameImportsImpl implements GameImports {
                 if (oldnum >= 256)
                     flags |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
 
-                result.updates.add(new EntityUpdate(new DeltaEntityHeader(flags, oldnum)));
+                updates.add(new EntityUpdate.Removal(flags, oldnum));
                 oldindex++;
             }
         }
-        return result;
+        return new PacketEntitiesMessage(updates);
     }
 
     /**

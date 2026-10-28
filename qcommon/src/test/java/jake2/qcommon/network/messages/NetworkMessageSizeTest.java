@@ -115,17 +115,17 @@ public class NetworkMessageSizeTest {
             currentState.stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
         }
         testMessages.add(new Object[]{"server.PlayerInfoMessage", new PlayerInfoMessage(new player_state_t(), currentState)});
-        PacketEntitiesMessage packetEntitiesMessage = new PacketEntitiesMessage();
+        java.util.List<EntityUpdate> updates = new java.util.ArrayList<>();
         {
-            packetEntitiesMessage.updates.add(new EntityUpdate(new DeltaEntityHeader(U_REMOVE, 32)));
+            updates.add(new EntityUpdate.Removal(U_REMOVE, 32));
             entity_state_t newState = new entity_state_t(1);
             {
                 newState.modelindex = 3;
                 newState.origin = new float[]{2, 3, 4};
             }
-            packetEntitiesMessage.updates.add(new EntityUpdate(new entity_state_t(1), newState, false, true));
+            updates.add(EntityUpdate.plan(new entity_state_t(1), newState, false, true));
         }
-        testMessages.add(new Object[]{"server.PacketEntitiesMessage", packetEntitiesMessage});
+        testMessages.add(new Object[]{"server.PacketEntitiesMessage", new PacketEntitiesMessage(updates)});
         //////////////////
         // CLIENT MESSAGES
         //////////////////

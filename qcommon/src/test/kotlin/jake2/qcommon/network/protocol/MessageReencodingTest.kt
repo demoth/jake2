@@ -30,9 +30,10 @@ class MessageReencodingTest {
     fun `forced unchanged updates fit their declared size across entity number widths`() {
         for (index in listOf(1, 255, 256, MAX_EDICTS - 1)) {
             for (force in listOf(false, true)) for (isNew in listOf(false, true)) {
-                val message = PacketEntitiesMessage().apply {
-                    updates.add(EntityUpdate(entity_state_t(index), entity_state_t(index), force, isNew))
+                val entries = mutableListOf<EntityUpdate>().apply {
+                    EntityUpdate.plan(entity_state_t(index), entity_state_t(index), force, isNew)?.let(::add)
                 }
+                val message = PacketEntitiesMessage(entries)
                 if (index < 256 && !isNew) assertEquals(if (force) 5 else 3, message.size)
                 roundTrip(message)
             }
@@ -54,27 +55,29 @@ class MessageReencodingTest {
         )
         for (index in listOf(1, 256, MAX_EDICTS - 1)) for (change in changes) {
             val current = entity_state_t(index).also(change)
-            val message = PacketEntitiesMessage().apply {
-                updates.add(EntityUpdate(entity_state_t(index), current, false, true))
+            val entries = mutableListOf<EntityUpdate>().apply {
+                add(requireNotNull(EntityUpdate.plan(entity_state_t(index), current, false, true)))
                 val flags = U_REMOVE or if (index >= 256) U_NUMBER16 or U_MOREBITS1 else 0
-                updates.add(EntityUpdate(DeltaEntityHeader(flags, index)))
+                add(EntityUpdate.Removal(flags, index))
             }
+            val message = PacketEntitiesMessage(entries)
             roundTrip(message)
             val parsed = parse(write(message)) as PacketEntitiesMessage
-            assertNotNull(parsed.updates[0].newState)
-            assertNull(parsed.updates[1].newState)
+            assertInstanceOf(EntityUpdate.Change::class.java, parsed.updates[0])
+            assertInstanceOf(EntityUpdate.Removal::class.java, parsed.updates[1])
         }
     }
 
     @Test
     fun `explicit zero fields and zero-valued flag extensions survive re-encoding`() {
         val old = entity_state_t(1).apply { modelindex = 5; origin[0] = 10f }
-        val message = PacketEntitiesMessage().apply {
-            updates.add(EntityUpdate(old, entity_state_t(1), false, false))
+        val entries = mutableListOf<EntityUpdate>().apply {
+            add(requireNotNull(EntityUpdate.plan(old, entity_state_t(1), false, false)))
         }
+        val message = PacketEntitiesMessage(entries)
         val decoded = parse(write(message)) as PacketEntitiesMessage
-        assertTrue(decoded.updates.single().header.flags and U_MODEL != 0)
-        assertEquals(0, decoded.updates.single().newState.modelindex)
+        assertTrue((decoded.updates.single() as EntityUpdate.Change).delta.flags and U_MODEL != 0)
+        assertEquals(0, (decoded.updates.single() as EntityUpdate.Change).delta.state.modelIndex)
         roundTrip(message)
         for (bytes in listOf(
             byteArrayOf(18, 128.toByte(), 0, 1, 0, 0),

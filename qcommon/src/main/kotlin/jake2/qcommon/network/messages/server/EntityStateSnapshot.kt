@@ -1,7 +1,6 @@
 package jake2.qcommon.network.messages.server
 
-import jake2.qcommon.Defines.MAX_EDICTS
-import jake2.qcommon.Defines.U_NUMBER16
+import jake2.qcommon.Defines.*
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.math.Vector3f
 
@@ -55,4 +54,31 @@ data class EntityStateSnapshot(
 /** Field presence and widths are part of the wire value; unselected fields are zero in planned and received states. */
 data class EntityDelta(val flags: Int, val state: EntityStateSnapshot) {
     init { require(state.index < 256 || flags and U_NUMBER16 != 0) { "Entity number requires a 16-bit header" } }
+
+    /** Copies selected fields into a reconstructed engine state, controlled by the serialization flags. */
+    fun applyTo(target: entity_state_t) {
+        target.index = state.index
+        if (flags and U_ORIGIN1 != 0) target.origin[0] = state.origin.x
+        if (flags and U_ORIGIN2 != 0) target.origin[1] = state.origin.y
+        if (flags and U_ORIGIN3 != 0) target.origin[2] = state.origin.z
+        if (flags and U_ANGLE1 != 0) target.angles[0] = state.angles.x
+        if (flags and U_ANGLE2 != 0) target.angles[1] = state.angles.y
+        if (flags and U_ANGLE3 != 0) target.angles[2] = state.angles.z
+        if (flags and U_MODEL != 0) target.modelindex = state.modelIndex
+        if (flags and U_MODEL2 != 0) target.modelindex2 = state.modelIndex2
+        if (flags and U_MODEL3 != 0) target.modelindex3 = state.modelIndex3
+        if (flags and U_MODEL4 != 0) target.modelindex4 = state.modelIndex4
+        if (flags and (U_FRAME8 or U_FRAME16) != 0) target.frame = state.frame
+        if (flags and (U_SKIN8 or U_SKIN16) != 0) target.skinnum = state.skinNumber
+        if (flags and (U_EFFECTS8 or U_EFFECTS16) != 0) target.effects = state.effects
+        if (flags and (U_RENDERFX8 or U_RENDERFX16) != 0) target.renderfx = state.renderEffects
+        if (flags and U_SOLID != 0) target.solid = state.solid
+        if (flags and U_SOUND != 0) target.sound = state.sound
+        if (flags and U_EVENT != 0) target.event = state.event
+        if (flags and U_OLDORIGIN != 0) {
+            target.old_origin[0] = state.oldOrigin.x
+            target.old_origin[1] = state.oldOrigin.y
+            target.old_origin[2] = state.oldOrigin.z
+        }
+    }
 }

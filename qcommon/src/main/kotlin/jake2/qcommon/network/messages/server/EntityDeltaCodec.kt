@@ -90,11 +90,19 @@ object EntityDeltaCodec {
     fun write(delta: EntityDelta, buffer: sizebuf_t) {
         val flags = delta.flags
         val state = delta.state
+        writeHeader(flags, state.index, buffer)
+        writePayload(flags, state, buffer)
+    }
+
+    internal fun writeHeader(flags: Int, number: Int, buffer: sizebuf_t) {
         buffer.writeByte(flags.toByte())
         if (flags and U_MOREBITS1 != 0) buffer.writeByte((flags ushr 8).toByte())
         if (flags and U_MOREBITS2 != 0) buffer.writeByte((flags ushr 16).toByte())
         if (flags and U_MOREBITS3 != 0) buffer.writeByte((flags ushr 24).toByte())
-        if (flags and U_NUMBER16 != 0) buffer.writeShort(state.index) else buffer.writeByte(state.index.toByte())
+        if (flags and U_NUMBER16 != 0) buffer.writeShort(number) else buffer.writeByte(number.toByte())
+    }
+
+    private fun writePayload(flags: Int, state: EntityStateSnapshot, buffer: sizebuf_t) {
         if (flags and U_MODEL != 0) buffer.writeByte(state.modelIndex.toByte())
         if (flags and U_MODEL2 != 0) buffer.writeByte(state.modelIndex2.toByte())
         if (flags and U_MODEL3 != 0) buffer.writeByte(state.modelIndex3.toByte())
@@ -127,7 +135,10 @@ object EntityDeltaCodec {
     }
 
     /** CL_ParseEntityBits followed by the former CL_ParseDelta, retaining presence and selected widths. */
-    fun read(buffer: MessageReader): EntityDelta {
+    fun read(buffer: MessageReader): EntityDelta = readPayload(readHeader(buffer), buffer)
+
+    /** Validate indices before a decoded message can address an engine entity table. */
+    internal fun readHeader(buffer: MessageReader): DeltaEntityHeader {
         var flags = buffer.readUnsignedByte()
         if (flags and U_MOREBITS1 != 0) flags = flags or (buffer.readUnsignedByte() shl 8)
         if (flags and U_MOREBITS2 != 0) flags = flags or (buffer.readUnsignedByte() shl 16)
@@ -135,6 +146,12 @@ object EntityDeltaCodec {
         val number = if (flags and U_NUMBER16 != 0) buffer.readUnsignedShort() else buffer.readUnsignedByte()
         if (number >= MAX_EDICTS)
             throw MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "Invalid entity number $number")
+        return DeltaEntityHeader(flags, number)
+    }
+
+    /** Former CL_ParseDelta: read selected fields after the entity header. */
+    internal fun readPayload(header: DeltaEntityHeader, buffer: MessageReader): EntityDelta {
+        val (flags, number) = header
         val model = if (flags and U_MODEL != 0) buffer.readUnsignedByte() else 0
         val model2 = if (flags and U_MODEL2 != 0) buffer.readUnsignedByte() else 0
         val model3 = if (flags and U_MODEL3 != 0) buffer.readUnsignedByte() else 0
@@ -167,14 +184,16 @@ object EntityDeltaCodec {
 
     fun size(delta: EntityDelta): Int {
         val flags = delta.flags
-        var size = 1 + (if (flags and U_NUMBER16 != 0) 2 else 1)
-        size += Integer.bitCount(flags and (U_MOREBITS1 or U_MOREBITS2 or U_MOREBITS3))
+        var size = headerSize(flags)
         size += Integer.bitCount(flags and (U_MODEL or U_MODEL2 or U_MODEL3 or U_MODEL4 or U_FRAME8 or U_SOUND or U_EVENT or U_ANGLE1 or U_ANGLE2 or U_ANGLE3))
         size += 2 * Integer.bitCount(flags and (U_ORIGIN1 or U_ORIGIN2 or U_ORIGIN3 or U_FRAME16 or U_SOLID))
         size += sizedLength(flags, U_SKIN8, U_SKIN16) + sizedLength(flags, U_EFFECTS8, U_EFFECTS16) + sizedLength(flags, U_RENDERFX8, U_RENDERFX16)
         if (flags and U_OLDORIGIN != 0) size += 6
         return size
     }
+
+    internal fun headerSize(flags: Int): Int = 1 + (if (flags and U_NUMBER16 != 0) 2 else 1) +
+        Integer.bitCount(flags and (U_MOREBITS1 or U_MOREBITS2 or U_MOREBITS3))
 
     private fun sizedLength(flags: Int, byte: Int, short: Int): Int = when (flags and (byte or short)) {
         byte or short -> 4

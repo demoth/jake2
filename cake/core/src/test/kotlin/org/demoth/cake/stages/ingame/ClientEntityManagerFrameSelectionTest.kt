@@ -6,7 +6,9 @@ import jake2.qcommon.network.messages.server.PlayerInfoMessage
 import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.network.messages.server.SpawnBaselineMessage
 import jake2.qcommon.network.messages.server.EntityUpdate
-import jake2.qcommon.network.messages.server.DeltaEntityHeader
+import jake2.qcommon.network.messages.server.EntityDelta
+import jake2.qcommon.network.messages.server.EntityStateSnapshot
+import jake2.qcommon.Defines.*
 import jake2.qcommon.entity_state_t
 import jake2.qcommon.player_state_t
 import jake2.qcommon.sizebuf_t
@@ -34,7 +36,7 @@ class ClientEntityManagerFrameSelectionTest {
             val buffer = sizebuf_t(queued.size).apply { queued.writeTo(this) }
             manager.processBaselineMessage(ServerMessage.parseFromBuffer(buffer) as SpawnBaselineMessage)
             manager.processServerFrameHeader(FrameHeaderMessage(1, -1, 0, 0, byteArrayOf()))
-            val updates = PacketEntitiesMessage().apply { this.updates.add(EntityUpdate(DeltaEntityHeader(0, 1), entity_state_t(1))) }
+            val updates = PacketEntitiesMessage(listOf(EntityUpdate.Change(EntityDelta(0, EntityStateSnapshot(1)))))
             assertTrue(manager.processPacketEntitiesMessage(updates))
             assertArrayEquals(floatArrayOf(1.125f, 2.25f, 3.5f), manager.getEntityOrigin(1)!!.let { floatArrayOf(it.x, it.y, it.z) })
             assertArrayEquals(floatArrayOf(45f, -90f, 0f), manager.getEntityAngles(1))
@@ -42,6 +44,45 @@ class ClientEntityManagerFrameSelectionTest {
                 assertEquals(7, it.modelindex)
                 assertEquals(0, it.event, "Baseline impulse events must not repeat in subsequent entity updates")
             }
+        } finally {
+            manager.dispose()
+        }
+    }
+
+    @Test
+    fun packetChangesMergePreviousStatesAndBaselinesWhileClearingEventsAndRemovingEntities() {
+        CakeCvars.registerEntities()
+        val manager = ClientEntityManager()
+        fun state(index: Int) = entity_state_t(index).apply {
+            modelindex = index
+            origin[0] = index.toFloat()
+            event = 2
+        }
+        fun receive(updates: List<EntityUpdate>) {
+            val message = PacketEntitiesMessage(updates)
+            val buffer = sizebuf_t(message.size).apply { message.writeTo(this) }
+            assertTrue(manager.processPacketEntitiesMessage(ServerMessage.parseFromBuffer(buffer) as PacketEntitiesMessage))
+        }
+        try {
+            val first = (1..3).map(::state)
+            manager.processBaselineMessage(SpawnBaselineMessage(state(4)))
+            manager.processServerFrameHeader(FrameHeaderMessage(1, -1, 0, 0, byteArrayOf()))
+            receive(first.map { requireNotNull(EntityUpdate.plan(entity_state_t(it.index), it, true, true)) })
+            manager.processServerFrameHeader(FrameHeaderMessage(2, 1, 0, 0, byteArrayOf()))
+            receive(listOf(
+                // Explicit zeroes reset the old model/origin; entity 2 has no update and survives unchanged.
+                requireNotNull(EntityUpdate.plan(first[0], entity_state_t(1), false, false)),
+                EntityUpdate.Removal(U_REMOVE, 3),
+                // A newly visible entity inherits fields from its baseline.
+                EntityUpdate.Change(EntityDelta(0, EntityStateSnapshot(4))),
+            ))
+            val reconstructed = mutableListOf<entity_state_t>()
+            manager.forEachCurrentEntityState { reconstructed += it.getClone() }
+            assertEquals(listOf(1, 2, 4), reconstructed.map { it.index })
+            assertEquals(listOf(0, 2, 4), reconstructed.map { it.modelindex })
+            assertEquals(listOf(0f, 2f, 4f), reconstructed.map { it.origin[0] })
+            assertEquals(listOf(1f, 2f, 4f), reconstructed.map { it.old_origin[0] })
+            assertEquals(listOf(0, 0, 0), reconstructed.map { it.event })
         } finally {
             manager.dispose()
         }
@@ -95,7 +136,7 @@ class ClientEntityManagerFrameSelectionTest {
                 ),
             ),
         )
-        assertTrue(manager.processPacketEntitiesMessage(PacketEntitiesMessage()))
+        assertTrue(manager.processPacketEntitiesMessage(PacketEntitiesMessage(emptyList())))
     }
 
     private fun playerState(gunFrame: Int): player_state_t {

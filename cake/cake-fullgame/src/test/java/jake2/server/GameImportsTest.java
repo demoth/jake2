@@ -178,9 +178,9 @@ public class GameImportsTest {
         var initial = List.copyOf(first.buildClientFrameMessages(firstClient));
         Assertions.assertEquals(3, initial.size());
         Assertions.assertEquals(-1, ((FrameHeaderMessage) initial.get(0)).getLastFrame());
-        EntityUpdate initialUpdate = ((PacketEntitiesMessage) initial.get(2)).updates.get(0);
-        Assertions.assertTrue(initialUpdate.force);
-        Assertions.assertEquals(11, initialUpdate.newState.modelindex);
+        EntityUpdate.Change initialUpdate = (EntityUpdate.Change) ((PacketEntitiesMessage) initial.get(2)).getUpdates().get(0);
+        Assertions.assertNotEquals(0, initialUpdate.getDelta().getFlags() & Defines.U_OLDORIGIN);
+        Assertions.assertEquals(11, initialUpdate.getDelta().getState().getModelIndex());
         second.buildClientFrameMessages(secondClient);
 
         // Each delta must refer to its own saved snapshot, not the live entity or the other Game.
@@ -195,26 +195,25 @@ public class GameImportsTest {
             FrameHeaderMessage header = (FrameHeaderMessage) messages.get(0);
             Assertions.assertEquals(2, header.getFrameNumber());
             Assertions.assertEquals(1, header.getLastFrame());
-            var updates = ((PacketEntitiesMessage) messages.get(2)).updates;
+            var updates = ((PacketEntitiesMessage) messages.get(2)).getUpdates();
             Assertions.assertEquals(1, updates.size());
-            Assertions.assertEquals(oldModel, updates.get(0).oldState.modelindex);
-            Assertions.assertEquals(oldModel + 1, updates.get(0).newState.modelindex);
-            Assertions.assertFalse(updates.get(0).force);
+            Assertions.assertNotEquals(0, ((EntityUpdate.Change) updates.get(0)).getDelta().getFlags() & Defines.U_MODEL);
+            Assertions.assertEquals(oldModel + 1, ((EntityUpdate.Change) updates.get(0)).getDelta().getState().getModelIndex());
         }
 
         firstClient.lastReceivedFrame = 2;
         first.frameNum = 3;
         firstClient.edict.s.modelindex = 0;
         var removed = List.copyOf(first.buildClientFrameMessages(firstClient));
-        EntityUpdate removal = ((PacketEntitiesMessage) removed.get(2)).updates.get(0);
-        Assertions.assertEquals(1, removal.header.number);
-        Assertions.assertNotEquals(0, removal.header.flags & Defines.U_REMOVE);
+        EntityUpdate.Removal removal = (EntityUpdate.Removal) ((PacketEntitiesMessage) removed.get(2)).getUpdates().get(0);
+        Assertions.assertEquals(1, removal.getNumber());
+        Assertions.assertNotEquals(0, removal.getFlags() & Defines.U_REMOVE);
 
         // An acknowledgement outside the retained frame window falls back to a baseline update.
         second.frameNum += Defines.UPDATE_BACKUP;
         var stale = List.copyOf(second.buildClientFrameMessages(secondClient));
         Assertions.assertEquals(-1, ((FrameHeaderMessage) stale.get(0)).getLastFrame());
-        Assertions.assertTrue(((PacketEntitiesMessage) stale.get(2)).updates.get(0).force);
+        Assertions.assertNotEquals(0, ((EntityUpdate.Change) ((PacketEntitiesMessage) stale.get(2)).getUpdates().get(0)).getDelta().getFlags() & Defines.U_OLDORIGIN);
     }
 
     private ClientNetworkInfo snapshotClient(GameImportsImpl game, int modelIndex) {

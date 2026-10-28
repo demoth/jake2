@@ -171,12 +171,12 @@ class ClientEntityManager : Disposable {
 
         // Process updates in order
         for (update in msg.updates) {
-            val newnum = update.header.number
+            val newnum = update.number
 
             // Bring old pointer up to the current newnum, copying unchanged
             copyUnchangedUntil(newnum)
 
-            if ((update.header.flags and Defines.U_REMOVE) != 0) {
+            if (update !is EntityUpdate.Change) {
                 // Removal: ensure we are at the entity being removed
                 // If due to some earlier mismatch we are still behind, pull forward copying unchanged
                 copyUnchangedUntil(newnum)
@@ -214,7 +214,7 @@ class ClientEntityManager : Disposable {
     /**
      * Update entity based on the delta [update] received from server and it's previous state.
      */
-    private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate?) {
+    private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate.Change?) {
         val entity: ClientEntity = clientEntities[newnum]
         // parse_entities now points to the last state from last frame
         val newState: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
@@ -227,7 +227,7 @@ class ClientEntityManager : Disposable {
         Math3D.VectorCopy(old.origin, newState.old_origin)
 
         if (update != null) {
-            newState.setByFlags(update.newState, update.header.flags)
+            update.delta.applyTo(newState)
         }
 
         // Cake: Decide if we should clear the cached model instance in certain cases.
