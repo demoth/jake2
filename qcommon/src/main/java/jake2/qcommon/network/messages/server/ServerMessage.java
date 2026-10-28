@@ -12,6 +12,9 @@ import jake2.qcommon.network.protocol.MessageRejection;
  * Common parent for all messages sent from server to client.
  */
 public abstract class ServerMessage implements NetworkMessage {
+    /** Mutable decoding hook retained until server message values move to their codecs. */
+    public abstract void parse(sizebuf_t buffer);
+
     public ServerMessageType type;
 
     public ServerMessage(ServerMessageType type) {

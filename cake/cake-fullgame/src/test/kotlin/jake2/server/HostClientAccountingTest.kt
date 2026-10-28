@@ -182,11 +182,7 @@ class HostClientAccountingTest {
         val client = bind(0, first)
         val peer = bind(1, first)
         val invalid = object : jake2.qcommon.network.messages.client.ClientMessage(
-            jake2.qcommon.network.messages.client.ClientMessageType.CLC_BAD) {
-            override fun writeProperties(buffer: sizebuf_t) = Unit
-            override fun parse(buffer: sizebuf_t) = Unit
-            override fun getSize() = 1
-        }
+            jake2.qcommon.network.messages.client.ClientMessageType.CLC_BAD) {}
         host.handleClientMessages(client, listOf(invalid,
             jake2.qcommon.network.messages.client.UserInfoMessage("\\name\\must_not_apply")))
         assertEquals(ClientStates.CS_ZOMBIE, client.state)

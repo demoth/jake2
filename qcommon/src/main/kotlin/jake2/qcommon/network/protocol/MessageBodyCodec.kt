@@ -13,7 +13,7 @@ object MessageBodyCodec {
         decode(envelope, PacketDirection.FROM_SERVER, ServerMessage::parseFromBuffer) { it is EndOfServerPacketMessage }
 
     @JvmStatic fun decodeClient(envelope: PacketEnvelope, sequence: Int): MessageDecodeResult<ClientMessage> =
-        decode(envelope, PacketDirection.FROM_CLIENT, { ClientMessage.parseFromBuffer(it, sequence) }) { it is EndOfClientPacketMessage }
+        decode(envelope, PacketDirection.FROM_CLIENT, { ClientMessageCodec.read(it, sequence) }) { it is EndOfClientPacketMessage }
 
     private fun <T : NetworkMessage> decode(
         envelope: PacketEnvelope, direction: PacketDirection,

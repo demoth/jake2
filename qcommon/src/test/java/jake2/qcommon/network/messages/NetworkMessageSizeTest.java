@@ -129,8 +129,8 @@ public class NetworkMessageSizeTest {
         //////////////////
         // CLIENT MESSAGES
         //////////////////
-        testMessages.add(new Object[]{"client.EndOfClientPacketMessage", new EndOfClientPacketMessage()});
-        testMessages.add(new Object[]{"client.NoopMessage", new NoopMessage()});
+        testMessages.add(new Object[]{"client.EndOfClientPacketMessage", EndOfClientPacketMessage.INSTANCE});
+        testMessages.add(new Object[]{"client.NoopMessage", NoopMessage.INSTANCE});
         testMessages.add(new Object[]{"client.UserInfoMessage", new UserInfoMessage("test/user/info")});
         testMessages.add(new Object[]{"client.StringCmdMessage", new StringCmdMessage("test command")});
         testMessages.add(new Object[]{"client.StringCmdMessage.highbit", new StringCmdMessage("say caf\u00e9\n\u0080\u00fe")});
@@ -186,9 +186,7 @@ public class NetworkMessageSizeTest {
             parsed = ClientMessage.parseFromBuffer(buffer, 1);
 
         if (message instanceof NopMessage
-                || message instanceof EndOfServerPacketMessage
-                || message instanceof EndOfClientPacketMessage
-                || message instanceof NoopMessage) {
+                || message instanceof EndOfServerPacketMessage) {
             System.err.println("Skipping test for " + message.getClass());
         } else {
             assertEquals(message, parsed, "Message is different after serialization/deserialization");

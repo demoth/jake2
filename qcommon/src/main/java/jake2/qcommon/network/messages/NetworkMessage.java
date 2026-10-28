@@ -6,8 +6,6 @@ public interface NetworkMessage {
 
     void writeTo(sizebuf_t buffer);
 
-    void parse(sizebuf_t buffer);
-
     /**
      * size of the message in bytes
      */

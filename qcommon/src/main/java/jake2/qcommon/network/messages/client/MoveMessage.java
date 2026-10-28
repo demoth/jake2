@@ -33,8 +33,8 @@ public class MoveMessage extends ClientMessage {
         this.newCmd = newCmd;
     }
 
-    @Override
-    protected void writeProperties(sizebuf_t buffer) {
+    // Codec delegation while movement state/checksum handling is migrated separately.
+    void writeMovementProperties(sizebuf_t buffer) {
         checksumIndex = buffer.cursize;
         // later we update with right value
         buffer.writeByte((byte) 0);
@@ -56,7 +56,6 @@ public class MoveMessage extends ClientMessage {
         );
     }
 
-    @Override
     public void parse(sizebuf_t buffer) {
         checksumIndex = buffer.readcount;
         int checksum = buffer.readByte();
@@ -198,8 +197,7 @@ public class MoveMessage extends ClientMessage {
         return result;
     }
 
-    @Override
-    public int getSize() {
+    int getMovementSize() {
         int result = 6;
         int deltaFlagsOldest = getDeltaFlags(nullCmd, oldestCmd);
         int deltaFlagsOld = getDeltaFlags(oldestCmd, oldCmd);
