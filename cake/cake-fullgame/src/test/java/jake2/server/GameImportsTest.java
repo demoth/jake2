@@ -251,12 +251,12 @@ public class GameImportsTest {
             var sounds = List.copyOf(firstClient.unreliable);
             Assertions.assertEquals(2, sounds.size());
             SoundMessage earlier = (SoundMessage) sounds.get(0);
-            Assertions.assertArrayEquals(new float[]{12, 0, 0}, earlier.origin);
-            Assertions.assertArrayEquals(new float[]{42, 0, 0}, ((SoundMessage) sounds.get(1)).origin);
+            Assertions.assertArrayEquals(new float[]{12, 0, 0}, earlier.getOrigin().toArray());
+            Assertions.assertArrayEquals(new float[]{42, 0, 0}, ((SoundMessage) sounds.get(1)).getOrigin().toArray());
             Assertions.assertEquals(Defines.SND_ENT | Defines.SND_POS | Defines.SND_VOLUME
-                    | Defines.SND_ATTENUATION | Defines.SND_OFFSET, earlier.flags);
-            Assertions.assertEquals(entity.index, earlier.entityIndex);
-            Assertions.assertEquals(Defines.CHAN_WEAPON, earlier.sendchan);
+                    | Defines.SND_ATTENUATION | Defines.SND_OFFSET, earlier.getFlags());
+            Assertions.assertEquals(entity.index, earlier.getEntityIndex());
+            Assertions.assertEquals(Defines.CHAN_WEAPON, earlier.getChannel());
 
             float[] explicitOrigin = {1, 2, 3};
             first.positioned_sound(explicitOrigin, entity, Defines.CHAN_RELIABLE | Defines.CHAN_VOICE,
@@ -264,7 +264,7 @@ public class GameImportsTest {
             explicitOrigin[0] = 99;
             Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
             SoundMessage reliable = (SoundMessage) firstClient.netchan.reliablePending.iterator().next();
-            Assertions.assertArrayEquals(new float[]{1, 2, 3}, reliable.origin);
+            Assertions.assertArrayEquals(new float[]{1, 2, 3}, reliable.getOrigin().toArray());
             Assertions.assertTrue(secondClient.unreliable.isEmpty());
             Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
         } finally {

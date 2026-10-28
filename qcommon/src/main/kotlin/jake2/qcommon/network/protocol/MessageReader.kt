@@ -2,6 +2,7 @@ package jake2.qcommon.network.protocol
 
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.sizebuf_t
 import jake2.qcommon.network.transport.PacketBytes
 
@@ -47,6 +48,9 @@ class MessageReader(bytes: PacketBytes, offset: Int) : sizebuf_t(bytes.size) {
         requireRemaining(this, length)
         return PacketBytes.copyOfRange(data, readcount, length).also { readcount += length }
     }
+
+    /** Three signed fixed-point coordinates, each stored at one eighth of a world unit. */
+    fun readPosition(): Vector3f = Vector3f(readCoord(), readCoord(), readCoord())
 
     override fun readSignedByte(): Byte {
         requireRemaining(this, 1)

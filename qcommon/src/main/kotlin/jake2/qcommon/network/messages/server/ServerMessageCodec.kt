@@ -1,9 +1,6 @@
 package jake2.qcommon.network.messages.server
 
-import jake2.qcommon.Defines.MAX_CONFIGSTRINGS
-import jake2.qcommon.Defines.MAX_EDICTS
-import jake2.qcommon.Defines.MAX_ITEMS
-import jake2.qcommon.Defines.MAX_MAP_AREAS
+import jake2.qcommon.Defines.*
 import jake2.qcommon.network.protocol.MessageReadException
 import jake2.qcommon.network.protocol.MessageReader
 import jake2.qcommon.network.protocol.MessageRejection
@@ -30,6 +27,15 @@ object ServerMessageCodec {
             }
             is WeaponSoundMessage -> { buffer.writeShort(message.entityIndex); buffer.writeByte(message.flashType.toByte()) }
             is MuzzleFlash2Message -> { buffer.writeShort(message.entityIndex); buffer.writeByte(message.flashType.toByte()) }
+            is SoundMessage -> {
+                buffer.writeByte(message.flags.toByte())
+                buffer.writeByte(message.soundIndex.toByte())
+                message.volumeByte?.let { buffer.writeByte(it.toByte()) }
+                message.attenuationByte?.let { buffer.writeByte(it.toByte()) }
+                message.timeOffsetMillis?.let { buffer.writeByte(it.toByte()) }
+                message.source?.let { buffer.writeShort((it.entityIndex shl 3) or it.channel) }
+                message.origin?.let { buffer.writeCoord(it.x); buffer.writeCoord(it.y); buffer.writeCoord(it.z) }
+            }
             is InventoryMessage -> repeat(MAX_ITEMS) { buffer.writeShort(message[it]) }
             is DownloadMessage.Chunk -> {
                 buffer.writeShort(message.data.size)
@@ -62,6 +68,9 @@ object ServerMessageCodec {
         is ConfigStringMessage -> 4 + message.config.length
         is ServerDataMessage -> 14 + message.gameName.length + message.levelString.length
         is WeaponSoundMessage, is MuzzleFlash2Message -> 4
+        is SoundMessage -> 3 + (if (message.volumeByte != null) 1 else 0) +
+            (if (message.attenuationByte != null) 1 else 0) + (if (message.timeOffsetMillis != null) 1 else 0) +
+            (if (message.source != null) 2 else 0) + (if (message.origin != null) 6 else 0)
         is InventoryMessage -> 1 + 2 * MAX_ITEMS
         is DownloadMessage.Chunk -> 4 + message.data.size
         is DownloadMessage.Failure -> 4
@@ -95,6 +104,7 @@ object ServerMessageCodec {
             )
             ServerMessageType.svc_muzzleflash -> WeaponSoundMessage(readEntityIndex(buffer), buffer.readUnsignedByte())
             ServerMessageType.svc_muzzleflash2 -> MuzzleFlash2Message(readEntityIndex(buffer), buffer.readUnsignedByte())
+            ServerMessageType.svc_sound -> readSound(buffer)
             ServerMessageType.svc_inventory -> InventoryMessage(IntArray(MAX_ITEMS) { buffer.readSignedShort() })
             ServerMessageType.svc_download -> readDownload(buffer)
             ServerMessageType.svc_frame -> readFrameHeader(buffer)
@@ -115,6 +125,23 @@ object ServerMessageCodec {
         if (index >= MAX_EDICTS)
             throw MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "Invalid entity number $index")
         return index
+    }
+
+    private fun readSound(buffer: MessageReader): SoundMessage {
+        val flags = buffer.readUnsignedByte()
+        val soundIndex = buffer.readUnsignedByte()
+        val volume = if (flags and SND_VOLUME != 0) buffer.readUnsignedByte() else null
+        val attenuation = if (flags and SND_ATTENUATION != 0) buffer.readUnsignedByte() else null
+        val offset = if (flags and SND_OFFSET != 0) buffer.readUnsignedByte() else null
+        val source = if (flags and SND_ENT != 0) {
+            val packed = buffer.readUnsignedShort()
+            val entity = packed ushr 3
+            if (entity >= MAX_EDICTS)
+                throw MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "Invalid sound entity number $entity")
+            SoundSource(entity, packed and 7)
+        } else null
+        val origin = if (flags and SND_POS != 0) buffer.readPosition() else null
+        return SoundMessage(soundIndex, volume, attenuation, offset, source, origin, flags and SoundMessage.KNOWN_FLAGS.inv())
     }
 
     private fun readDownload(buffer: MessageReader): DownloadMessage {

@@ -66,7 +66,7 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"server.BeamOffsetTEMessage", new BeamOffsetTEMessage(TE_GRAPPLE_CABLE, 8, new float[3], new float[3], new float[3])});
         testMessages.add(new Object[]{"server.PointDirectionTEMessage", new PointDirectionTEMessage(TE_GUNSHOT, new float[3], new float[]{-0.525731f, 0.000000f, 0.850651f})});
         testMessages.add(new Object[]{"server.TrailTEMessage", new TrailTEMessage(TE_BUBBLETRAIL, new float[3], new float[3])});
-        testMessages.add(new Object[]{"server.SoundMessage", new SoundMessage(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3})});
+        testMessages.add(new Object[]{"server.SoundMessage", SoundMessage.fromGame(SND_VOLUME | SND_ATTENUATION | SND_OFFSET | SND_ENT | SND_POS, 2, 1, 2, 0.2f, 1, new float[]{1, 2, 3})});
         // delta compressed
         testMessages.add(new Object[]{"server.SpawnBaselineMessage.empty", new SpawnBaselineMessage(new entity_state_t(1))});
         entity_state_t entityState = new entity_state_t(1);

@@ -450,11 +450,6 @@ public class GameImportsImpl implements GameImports {
             }
         }
 
-        // Queued messages own their position until the transport serializes them.
-        else {
-            origin = origin.clone();
-        }
-
         // if the sound doesn't attenuate,send it to everyone
         // (global radio chatter, voiceovers, etc)
         if (attenuation == Defines.ATTN_NONE)
@@ -473,7 +468,8 @@ public class GameImportsImpl implements GameImports {
             else
                 multicastType = MulticastTypes.MULTICAST_ALL;
         }
-        multicastMessage(origin, new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin), multicastType);
+        // Queued messages own an immutable position snapshot until the transport serializes them.
+        multicastMessage(origin, SoundMessage.fromGame(flags, soundindex, volume, attenuation, timeofs, sendchan, origin), multicastType);
     }
 
     /*

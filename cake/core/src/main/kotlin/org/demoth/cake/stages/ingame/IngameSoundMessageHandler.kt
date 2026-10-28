@@ -42,7 +42,7 @@ internal class IngameSoundMessageHandler(
                     attenuation = msg.attenuation,
                     origin = origin,
                     entityIndex = msg.entityIndex,
-                    channel = msg.sendchan,
+                    channel = msg.channel,
                     timeOffsetSeconds = msg.timeOffset,
                 )
             )
@@ -248,7 +248,7 @@ internal class IngameSoundMessageHandler(
 
     private fun resolveExplicitSoundOrigin(msg: SoundMessage): Vector3? {
         val rawOrigin = msg.origin ?: return null
-        return Vector3(rawOrigin[0], rawOrigin[1], rawOrigin[2])
+        return Vector3(rawOrigin.x, rawOrigin.y, rawOrigin.z)
     }
 
     /**

@@ -84,27 +84,30 @@ class MessageReencodingTest {
 
     @Test
     fun `sound constructor and parser use the same entity and channel representation`() {
-        for (flags in 0..31) for (index in listOf(0, 3, MAX_EDICTS - 1)) for (channel in 0..7) {
-            val message = SoundMessage(flags, 2, 1f, 2f, 0.2f, (index shl 3) or channel,
+        for (flags in 0..255) for (index in listOf(0, 3, MAX_EDICTS - 1)) for (channel in 0..7) {
+            val message = SoundMessage.fromGame(flags, 2, 1f, 2f, 0.2f, (index shl 3) or channel,
                 floatArrayOf(1f, -2f, 3f))
             val decoded = parse(write(message)) as SoundMessage
             assertEquals(if (flags and SND_ENT != 0) index else 0, decoded.entityIndex)
-            assertEquals(if (flags and SND_ENT != 0) channel else 0, decoded.sendchan)
+            assertEquals(if (flags and SND_ENT != 0) channel else 0, decoded.channel)
+            assertEquals(flags, decoded.flags)
+            assertEquals(message, decoded)
             roundTrip(message)
         }
     }
 
     @Test
-    fun `outbound sound delay retains truncation and edited decoded delays use the same rule`() {
-        val created = SoundMessage(SND_OFFSET, 2, 1f, 1f, 0.251f, 0, null)
+    fun `outbound sound delay retains truncation while decoded milliseconds remain exact`() {
+        val created = SoundMessage.fromGame(SND_OFFSET, 2, 1f, 1f, 0.251f, 0, null)
         val expected = (0.251f * 1000).toInt()
         assertEquals(expected / 1000f, created.timeOffset)
         assertEquals(expected.toByte(), write(created).last())
         val decoded = parse(byteArrayOf(9, SND_OFFSET.toByte(), 2, 251.toByte())) as SoundMessage
         assertEquals(0.251f, decoded.timeOffset)
         assertEquals(251.toByte(), write(decoded).last())
-        decoded.timeOffset = 0.1239f
-        assertEquals(123.toByte(), write(decoded).last())
+        val edited = decoded.copy(timeOffsetMillis = 123)
+        assertEquals(123.toByte(), write(edited).last())
+        assertEquals(251.toByte(), write(decoded).last())
     }
 
     @Test
