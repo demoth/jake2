@@ -1226,7 +1226,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 }
 
                 // if the checksum fails, ignore the rest of the packet
-                if (!msg.valid) {
+                if (!msg.checksumValid) {
                     Com.Printf("Invalid crc\n")
                     return
                 }
@@ -1250,8 +1250,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     processClientMove(cl, msg.newCmd)
                 }
 
-                // copy.
-                cl.lastcmd.set(msg.newCmd)
+                // Retain the immutable command state; game callbacks receive separate mutable copies.
+                msg.newCmd.copyTo(cl.lastcmd)
             } else {
                 Com.Printf("SV_ReadClientMessage: unknown command: " + msg.type + "\n")
                 dropClient(cl)
@@ -1259,6 +1259,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
         }
     }
+
+    private fun processClientMove(cl: ClientNetworkInfo, cmd: UserCommand) = processClientMove(cl, cmd.toEngineCommand())
 
     fun processClientMove(cl: ClientNetworkInfo, cmd: usercmd_t) {
         cl.commandMsec -= cmd.msec.toInt() and 0xFF

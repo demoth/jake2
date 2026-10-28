@@ -5,16 +5,23 @@ import jake2.qcommon.network.protocol.MessageReader
 import jake2.qcommon.network.protocol.MessageRejection
 import jake2.qcommon.sizebuf_t
 
-/** Client wire operations; values have no mutable parsing state. Movement retains its existing CRC/delta codec. */
+/** Client wire operations; movement checksums use an explicit packet sequence rather than message-owned state. */
 object ClientMessageCodec {
     @JvmStatic
     fun write(message: ClientMessage, buffer: sizebuf_t) {
+        require(message !is MoveMessage) { "Movement encoding requires a packet sequence" }
+        write(message, buffer, 0)
+    }
+
+    @JvmStatic
+    fun write(message: ClientMessage, buffer: sizebuf_t, sequence: Int) {
+        if (message is MoveMessage) require(sequence >= 0) { "Movement sequence must be non-negative" }
         buffer.writeByte(message.type.value)
         when (message) {
             is StringCmdMessage -> buffer.writeString(message.command)
             is UserInfoMessage -> buffer.writeString(message.userInfo)
             NoopMessage, EndOfClientPacketMessage -> Unit
-            is MoveMessage -> message.writeMovementProperties(buffer)
+            is MoveMessage -> MovementCodec.writeProperties(message, buffer, sequence)
             else -> error("Unsupported client message ${message.javaClass.name}")
         }
     }
@@ -25,7 +32,7 @@ object ClientMessageCodec {
         is StringCmdMessage -> 2 + message.command.length
         is UserInfoMessage -> 2 + message.userInfo.length
         NoopMessage, EndOfClientPacketMessage -> 1
-        is MoveMessage -> message.movementSize
+        is MoveMessage -> MovementCodec.size(message)
         else -> error("Unsupported client message ${message.javaClass.name}")
     }
 
@@ -44,7 +51,7 @@ object ClientMessageCodec {
             ClientMessageType.CLC_NOP -> NoopMessage
             ClientMessageType.CLC_USERINFO -> UserInfoMessage(buffer.readString())
             ClientMessageType.CLC_STRINGCMD -> StringCmdMessage(buffer.readString())
-            ClientMessageType.CLC_MOVE -> MoveMessage(incomingSequence).apply { parse(buffer) }
+            ClientMessageType.CLC_MOVE -> MovementCodec.read(buffer, incomingSequence)
             null -> throw MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1,
                 "Unknown client opcode $opcode")
         }

@@ -15,6 +15,11 @@ public abstract class ClientMessage implements NetworkMessage {
         ClientMessageCodec.write(this, buffer);
     }
 
+    @Override
+    public final void writeTo(sizebuf_t buffer, int sequence) {
+        ClientMessageCodec.write(this, buffer, sequence);
+    }
+
     /** Size of the message in bytes. */
     public final int getSize() {
         return ClientMessageCodec.size(this);

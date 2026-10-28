@@ -7,6 +7,8 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.*
 import jake2.qcommon.network.messages.client.MoveMessage
+import jake2.qcommon.network.messages.client.UserCommand
+import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.vfs.*
 import org.junit.jupiter.api.*
@@ -15,6 +17,28 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 class HostClientAccountingTest {
+    @Test
+    fun `checksum rejection skips trailing commands and callbacks cannot mutate command snapshots`() {
+        val client = bind(0, first)
+        client.state = ClientStates.CS_SPAWNED
+        client.commandMsec = 1000
+        var calls = 0
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun ClientThink(ent: ServerEntity, cmd: usercmd_t) { calls++; cmd.clear() }
+        }
+        val command = UserCommand(msec = 16, forwardmove = 120)
+        val movement = MoveMessage(-1, UserCommand(), UserCommand(), command)
+        host.handleClientMessages(client, listOf(movement.copy(checksumValid = false), UserInfoMessage("\\name\\must_not_apply")))
+        assertEquals(0, calls)
+        assertEquals("", client.userinfo)
+        assertEquals(ClientStates.CS_SPAWNED, client.state)
+        host.handleClientMessages(client, listOf(movement))
+        assertEquals(1, calls)
+        assertEquals(120, movement.newCmd.forwardmove)
+        assertEquals(120, client.lastcmd.forwardmove.toInt())
+        assertEquals(16, client.lastcmd.msec.toInt() and 255)
+    }
+
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
     private var previousState: ServerStates? = null
@@ -253,7 +277,7 @@ class HostClientAccountingTest {
             override fun G_RunFrame() { frames++ }
             override fun ClientThink(ent: ServerEntity, cmd: usercmd_t) { moves++ }
         }
-        val move = MoveMessage(false, -1, usercmd_t(), usercmd_t(), usercmd_t(), 0).apply { valid = true }
+        val move = MoveMessage.fromInput(false, -1, usercmd_t(), usercmd_t(), usercmd_t())
         cvars.find<Boolean>("paused").forceSet(true) // Direct console request, bypassing menu filtering.
         first.runFrame()
         host.handleClientMessages(client, listOf(move))
@@ -280,7 +304,7 @@ class HostClientAccountingTest {
         client.state = ClientStates.CS_CONNECTED
         host.update(100)
         first.frameNum = 0
-        val move = MoveMessage(false, snapshot, usercmd_t(), usercmd_t(), usercmd_t(), 0)
+        val move = MoveMessage.fromInput(false, snapshot, usercmd_t(), usercmd_t(), usercmd_t())
         host.handleClientMessages(client, listOf(move))
         client.state = ClientStates.CS_SPAWNED
         host.updateClientPings()

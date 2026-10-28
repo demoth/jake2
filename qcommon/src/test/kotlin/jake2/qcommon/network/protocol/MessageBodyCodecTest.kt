@@ -14,22 +14,22 @@ import org.junit.jupiter.params.provider.MethodSource
 
 /** Message decoding deliberately requires no engine, Cvar, or logger initialization. */
 class MessageBodyCodecTest {
-    private fun decode(bytes: ByteArray, client: Boolean = false): MessageDecodeResult<*> {
-        val wire = PacketCodec.encodeSequenced(1, 0, if (client) 7 else null, PacketBytes.copyOf(bytes))
+    private fun decode(bytes: ByteArray, client: Boolean = false, sequence: Int = 1): MessageDecodeResult<*> {
+        val wire = PacketCodec.encodeSequenced(sequence, 0, if (client) 7 else null, PacketBytes.copyOf(bytes))
         val envelope = (PacketCodec.decode(wire, if (client) PacketDirection.FROM_CLIENT else PacketDirection.FROM_SERVER)
             as PacketDecodeResult.Decoded).envelope
-        return if (client) MessageBodyCodec.decodeClient(envelope, 1) else MessageBodyCodec.decodeServer(envelope)
+        return if (client) MessageBodyCodec.decodeClient(envelope, sequence) else MessageBodyCodec.decodeServer(envelope)
     }
 
     @ParameterizedTest(name = "{0} complete fixture and truncated prefixes")
     @MethodSource("jake2.qcommon.network.messages.NetworkMessageSizeTest#createTestData")
-    fun `valid fixtures decode and every incomplete message prefix rejects`(name: String, message: NetworkMessage) {
+    fun `valid fixtures decode and every incomplete message prefix rejects`(name: String, message: NetworkMessage, sequence: Int) {
         val bytes = javaClass.getResourceAsStream("/jake2/qcommon/network/messages/$name.bin")!!.use { it.readBytes() }
         val client = message is ClientMessage
-        assertInstanceOf(MessageDecodeResult.Decoded::class.java, decode(bytes, client), name)
+        assertInstanceOf(MessageDecodeResult.Decoded::class.java, decode(bytes, client, sequence), name)
         assertInstanceOf(MessageDecodeResult.Decoded::class.java, decode(byteArrayOf(), client), "Header-only channel packets remain valid")
         for (length in 1 until bytes.size) {
-            assertInstanceOf(MessageDecodeResult.Rejected::class.java, decode(bytes.copyOf(length), client), "$name prefix $length")
+            assertInstanceOf(MessageDecodeResult.Rejected::class.java, decode(bytes.copyOf(length), client, sequence), "$name prefix $length")
         }
     }
 

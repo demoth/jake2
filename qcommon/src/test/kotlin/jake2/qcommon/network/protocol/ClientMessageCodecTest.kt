@@ -34,22 +34,22 @@ class ClientMessageCodecTest {
     @Test
     fun `movement delegation preserves CRC boundaries after a string and before another message`() {
         val prefix = StringCmdMessage("new")
-        val movement = MoveMessage(false, 7, usercmd_t(), usercmd_t(), usercmd_t(), 73)
+        val movement = MoveMessage.fromInput(false, 7, usercmd_t(), usercmd_t(), usercmd_t())
         val suffix = UserInfoMessage("\\name\\player")
         val values = listOf(prefix, movement, suffix)
         val buffer = sizebuf_t(values.sumOf(ClientMessageCodec::size))
-        values.forEach { ClientMessageCodec.write(it, buffer) }
+        values.forEach { ClientMessageCodec.write(it, buffer, 73) }
         assertEquals(buffer.maxsize, buffer.cursize)
         val decoded = body(buffer.data, 73) as MessageDecodeResult.Decoded
         assertEquals(values, decoded.messages)
-        assertTrue((decoded.messages[1] as MoveMessage).valid)
+        assertTrue((decoded.messages[1] as MoveMessage).checksumValid)
 
         // CRC policy belongs to the controller: a corrupted movement CRC remains structurally decodable.
         val badCRC = buffer.data.clone()
         val checksumOffset = prefix.size + 1
         badCRC[checksumOffset] = (badCRC[checksumOffset].toInt() xor 1).toByte()
         val corrupted = body(badCRC, 73) as MessageDecodeResult.Decoded
-        assertFalse((corrupted.messages[1] as MoveMessage).valid)
+        assertFalse((corrupted.messages[1] as MoveMessage).checksumValid)
         assertEquals(suffix, corrupted.messages.last())
     }
 

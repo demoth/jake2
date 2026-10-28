@@ -135,20 +135,20 @@ class PacketCodecTest {
     fun `legacy body reader retains movement checksum offsets`() {
         val sequence = 17
         val newest = usercmd_t().apply { forwardmove = 120; msec = 16 }
-        val movement = MoveMessage(false, 12, usercmd_t(), usercmd_t(), newest, sequence)
+        val movement = MoveMessage.fromInput(false, 12, usercmd_t(), usercmd_t(), newest)
         val buffer = sizebuf_t(MAX_MSGLEN)
         buffer.writeInt(sequence)
         buffer.writeInt(5)
         buffer.writeShort(42)
-        movement.writeTo(buffer)
+        movement.writeTo(buffer, sequence)
 
         val envelope = decode(buffer.data.copyOf(buffer.cursize), PacketDirection.FROM_CLIENT)
         val packet = NetworkPacket.fromEnvelope(NetworkAddress.Local(UUID.randomUUID(), LocalSide.FIRST), envelope)
         val parsed = assertInstanceOf(MoveMessage::class.java, (packet.parseBodyFromClient(sequence) as MessageDecodeResult.Decoded).messages.single())
-        assertTrue(parsed.valid)
+        assertTrue(parsed.checksumValid)
         assertEquals(12, parsed.lastReceivedFrame)
-        assertEquals(120, parsed.newCmd.forwardmove.toInt())
-        assertEquals(16, parsed.newCmd.msec.toInt())
+        assertEquals(120, parsed.newCmd.forwardmove)
+        assertEquals(16, parsed.newCmd.msec)
     }
 
     private fun connectionless(text: String): ByteArray =

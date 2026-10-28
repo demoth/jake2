@@ -136,36 +136,36 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"client.StringCmdMessage.highbit", new StringCmdMessage("say caf\u00e9\n\u0080\u00fe")});
         // delta compressed
         // empty one
-        testMessages.add(new Object[]{"client.MoveMessage.empty", new MoveMessage(false, 1, new usercmd_t(), new usercmd_t(), new usercmd_t(), 1)});
+        testMessages.add(new Object[]{"client.MoveMessage.empty", MoveMessage.fromInput(false, 1, new usercmd_t(), new usercmd_t(), new usercmd_t())});
         // full blown
         usercmd_t oldestCmd = new usercmd_t((byte) 50, (byte) 5, new short[]{(short) 1, (short) 2, (short) 3}, (short) 10, (short) 20, (short) 30, (byte) 1, (byte) 3);
         usercmd_t oldCmd = new usercmd_t((byte) 100, (byte) 15, new short[]{(short) 4, (short) 5, (short) 6}, (short) 11, (short) 21, (short) 31, (byte) 5, (byte) 7);
         usercmd_t newCmd = new usercmd_t((byte) 150, (byte) 25, new short[]{(short) 8, (short) 9, (short) 0}, (short) 12, (short) 22, (short) 32, (byte) 9, (byte) 0);
-        testMessages.add(new Object[]{"client.MoveMessage.full", new MoveMessage(false, 1, oldestCmd, oldCmd, newCmd, 1)});
-        // invalid one (currentSequence during serialization != currentSequence during deserialization)
-        testMessages.add(new Object[]{"client.MoveMessage.invalid", new MoveMessage(false, INVALID_FRAME_INDEX, oldestCmd, oldCmd, newCmd, 2)});
-        return testMessages.stream().map(values -> Arguments.of(values[0], values[1]));
+        testMessages.add(new Object[]{"client.MoveMessage.full", MoveMessage.fromInput(false, 1, oldestCmd, oldCmd, newCmd)});
+        // Invalid checksum: encode this fixture with sequence 2 and decode it with sequence 1.
+        testMessages.add(new Object[]{"client.MoveMessage.invalid", MoveMessage.fromInput(false, INVALID_FRAME_INDEX, oldestCmd, oldCmd, newCmd), 2});
+        return testMessages.stream().map(values -> Arguments.of(values[0], values[1], values.length > 2 ? values[2] : 1));
     }
 
-    private sizebuf_t writeMessage(NetworkMessage message) {
+    private sizebuf_t writeMessage(NetworkMessage message, int sequence) {
         sizebuf_t buffer = new sizebuf_t();
         byte[] data = new byte[SIZE];
         buffer.init(data, SIZE);
-        message.writeTo(buffer);
+        message.writeTo(buffer, sequence);
         return buffer;
     }
 
     @ParameterizedTest(name = "{index}, {0} {1}")
     @MethodSource("createTestData")
-    public void testMessageSize(String testName, NetworkMessage message) {
-        sizebuf_t buffer = writeMessage(message);
+    public void testMessageSize(String testName, NetworkMessage message, int sequence) {
+        sizebuf_t buffer = writeMessage(message, sequence);
         assertEquals(buffer.cursize, message.getSize(), "Message size != buffer size");
     }
 
     @ParameterizedTest(name = "{index}, {0} {1}")
     @MethodSource("createTestData")
-    public void testBufferFullyRead(String testName, NetworkMessage message) {
-        sizebuf_t buffer = writeMessage(message);
+    public void testBufferFullyRead(String testName, NetworkMessage message, int sequence) {
+        sizebuf_t buffer = writeMessage(message, sequence);
         if (message instanceof ServerMessage)
             ServerMessage.parseFromBuffer(buffer);
         else { //if (message instanceof ClientMessage)
@@ -176,8 +176,8 @@ public class NetworkMessageSizeTest {
 
     @ParameterizedTest(name = "{index}, {0} {1}")
     @MethodSource("createTestData")
-    public void testSerializationDeserializationEquality(String testName, NetworkMessage message) {
-        sizebuf_t buffer = writeMessage(message);
+    public void testSerializationDeserializationEquality(String testName, NetworkMessage message, int sequence) {
+        sizebuf_t buffer = writeMessage(message, sequence);
         final NetworkMessage parsed;
 
         if (message instanceof ServerMessage)
@@ -185,7 +185,15 @@ public class NetworkMessageSizeTest {
         else
             parsed = ClientMessage.parseFromBuffer(buffer, 1);
 
-        if (message instanceof NopMessage) {
+        if (message instanceof MoveMessage) {
+            MoveMessage expected = (MoveMessage) message;
+            MoveMessage actual = (MoveMessage) parsed;
+            // Checksum validity is decode metadata; compare the movement payload separately.
+            assertEquals(expected.getLastReceivedFrame(), actual.getLastReceivedFrame());
+            assertEquals(expected.getOldestCmd(), actual.getOldestCmd());
+            assertEquals(expected.getOldCmd(), actual.getOldCmd());
+            assertEquals(expected.getNewCmd(), actual.getNewCmd());
+        } else if (message instanceof NopMessage) {
             System.err.println("Skipping test for " + message.getClass());
         } else {
             assertEquals(message, parsed, "Message is different after serialization/deserialization");
@@ -193,14 +201,14 @@ public class NetworkMessageSizeTest {
 
         // client move message crc validation
         if (parsed instanceof MoveMessage) {
-            assertEquals((((MoveMessage) parsed).lastReceivedFrame != INVALID_FRAME_INDEX), ((MoveMessage) parsed).valid);
+            assertEquals((((MoveMessage) parsed).getLastReceivedFrame() != INVALID_FRAME_INDEX), ((MoveMessage) parsed).getChecksumValid());
         }
     }
 
     @ParameterizedTest(name = "{index}, {0} {1}")
     @MethodSource("createTestData")
-    public void testQuakeNetworkProtocol34Compatibility(String testName, NetworkMessage message) {
-        sizebuf_t buffer = writeMessage(message);
+    public void testQuakeNetworkProtocol34Compatibility(String testName, NetworkMessage message, int sequence) {
+        sizebuf_t buffer = writeMessage(message, sequence);
         try (InputStream inputStream = getClass().getResourceAsStream(testName + ".bin")) {
             final byte[] quake34data = inputStream.readAllBytes();
             assertEquals(quake34data.length, buffer.cursize, "Message size is different from quake34 protocol");
@@ -218,8 +226,8 @@ public class NetworkMessageSizeTest {
     @Disabled("Utility test used only to regenerate protocol fixture binaries manually.")
     @ParameterizedTest(name = "{index}, {0} {1}")
     @MethodSource("createTestData")
-    public void saveBinaryMessage(String testName, NetworkMessage message) {
-        sizebuf_t buffer = writeMessage(message);
+    public void saveBinaryMessage(String testName, NetworkMessage message, int sequence) {
+        sizebuf_t buffer = writeMessage(message, sequence);
         try (OutputStream out = new FileOutputStream(testName)) {
             out.write(buffer.data, 0, buffer.cursize);
         } catch (IOException e) {

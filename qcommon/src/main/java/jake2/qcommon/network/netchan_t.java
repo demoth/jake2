@@ -109,14 +109,14 @@ public class netchan_t {
         boolean sent = false;
         try {
             if (channel.getCanSendReliable() && !reliablePending.isEmpty()) {
-                PacketBytes reliable = encodeBatch(reliablePending, Defines.MAX_MSGLEN - 16);
+                PacketBytes reliable = encodeBatch(reliablePending, Defines.MAX_MSGLEN - 16, null);
                 if (channel.enqueueReliable(reliable) != ReliableQueueResult.QUEUED) {
                     fatal_error = true;
                     return false;
                 }
                 staged = true;
             }
-            PrepareSendResult result = channel.prepareSend((sequence, capacity) -> encodeBatch(unreliable, capacity));
+            PrepareSendResult result = channel.prepareSend((sequence, capacity) -> encodeBatch(unreliable, capacity, sequence));
             if (result instanceof PrepareSendResult.SequenceExhausted) {
                 fatal_error = true;
                 return false;
@@ -155,11 +155,14 @@ public class netchan_t {
         }
     }
 
-    private static PacketBytes encodeBatch(Collection<NetworkMessage> messages, int capacity) {
+    private static PacketBytes encodeBatch(Collection<NetworkMessage> messages, int capacity, Integer sequence) {
         if (messages == null || messages.isEmpty()) return PacketBytes.copyOf(new byte[0]);
         if (messages.stream().mapToLong(NetworkMessage::getSize).sum() > capacity) return null;
         sizebuf_t buffer = new sizebuf_t(capacity);
-        messages.forEach(message -> message.writeTo(buffer));
+        messages.forEach(message -> {
+            if (sequence == null) message.writeTo(buffer);
+            else message.writeTo(buffer, sequence);
+        });
         return PacketBytes.copyOf(buffer.data, buffer.cursize);
     }
 

@@ -5,12 +5,32 @@ import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.messages.client.StringCmdMessage
+import jake2.qcommon.network.messages.client.MoveMessage
+import jake2.qcommon.network.messages.client.UserCommand
 import jake2.qcommon.network.protocol.*
 import jake2.qcommon.network.transport.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class OwnedChannelTest {
+    @Test
+    fun `the same immutable movement uses each packet's reserved sequence after reliable data`() {
+        Session().use { session ->
+            val movement = MoveMessage(3, UserCommand(), UserCommand(), UserCommand(msec = 16, forwardmove = 120))
+            session.client.reliablePending.add(StringCmdMessage("new"))
+            repeat(2) { index ->
+                assertTrue(session.client.transmit(listOf(movement)))
+                val packet = session.receive(session.serverTransport, PacketDirection.FROM_CLIENT)
+                assertTrue(session.server.accept(packet))
+                assertEquals(index + 1, session.server.incoming_sequence)
+                val body = packet.parseBodyFromClient(session.server.incoming_sequence) as MessageDecodeResult.Decoded
+                val decoded = body.messages.last() as MoveMessage
+                assertTrue(decoded.checksumValid)
+                assertEquals(movement, decoded)
+            }
+        }
+    }
+
     private class Session : AutoCloseable {
         private val link = LoopbackLink()
         val clientTransport = NetworkTransport(link.first, link.second.localAddress)

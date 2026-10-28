@@ -35,8 +35,8 @@ class InputManagerAngleSyncTest {
         assertEquals(10f, input.initialYaw!!, angleEpsilon)
         assertEquals(5f, input.localPitch, angleEpsilon)
         assertEquals(2f, input.initialPitch!!, angleEpsilon)
-        assertEquals(20f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW].toInt())), cmdAngleEpsilon)
-        assertEquals(3f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[PITCH].toInt())), cmdAngleEpsilon)
+        assertEquals(20f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW])), cmdAngleEpsilon)
+        assertEquals(3f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[PITCH])), cmdAngleEpsilon)
     }
 
     @Test
@@ -54,7 +54,7 @@ class InputManagerAngleSyncTest {
 
         assertEquals(65f, input.localYaw, angleEpsilon)
         assertEquals(25f, input.initialYaw!!, angleEpsilon)
-        assertEquals(40f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW].toInt())), cmdAngleEpsilon)
+        assertEquals(40f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW])), cmdAngleEpsilon)
     }
 
     @Test
@@ -68,7 +68,7 @@ class InputManagerAngleSyncTest {
 
         assertEquals(90f, input.localYaw, angleEpsilon)
         assertEquals(30f, input.initialYaw!!, angleEpsilon)
-        assertEquals(60f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW].toInt())), cmdAngleEpsilon)
+        assertEquals(60f, wrapSignedAngle(Math3D.SHORT2ANGLE(msg.newCmd.angles[YAW])), cmdAngleEpsilon)
     }
 
     @Test
@@ -85,9 +85,9 @@ class InputManagerAngleSyncTest {
 
         val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame)
 
-        assertEquals(0, msg.newCmd.forwardmove.toInt())
-        assertEquals(0, msg.newCmd.sidemove.toInt())
-        assertEquals(0, msg.newCmd.upmove.toInt())
+        assertEquals(0, msg.newCmd.forwardmove)
+        assertEquals(0, msg.newCmd.sidemove)
+        assertEquals(0, msg.newCmd.upmove)
     }
 
     private fun frame(
