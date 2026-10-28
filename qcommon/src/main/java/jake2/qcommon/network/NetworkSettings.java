@@ -16,7 +16,6 @@ public final class NetworkSettings {
         cvars.register("port", new CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_SERVER, Defines.CVAR_NOSET, "Server UDP port; 0 lets the OS choose, -1 is the legacy wildcard-bind equivalent");
         cvars.register("ip", CvarTypes.STRING, "localhost", Defines.CVAR_NOSET, "Local bind address; empty or localhost binds all interfaces");
         cvars.register("clientport", new CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_CLIENT, Defines.CVAR_NOSET, "Client UDP port; 0 lets the OS choose, -1 is the legacy wildcard-bind equivalent");
-        cvars.register("thinclient", CvarTypes.BOOLEAN, false, 0, "Do not open a server UDP socket");
     }
 
 }

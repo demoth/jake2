@@ -34,6 +34,7 @@ class TransportServerNetwork(private val transport: NetworkTransport) : ServerNe
     override fun stop() = packets.stop()
     override fun close() = packets.close()
 
+    /** Dedicated tick wait: currently a timed sleep, not socket-readiness waiting. */
     override fun sleep(millis: Int) {
         if (transport.udpEndpoint == null) return
         try {

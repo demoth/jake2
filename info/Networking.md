@@ -1,5 +1,23 @@
 # Quake 2 Networking Communication Protocol
 
+## Transport ownership
+
+Client and server controllers own separate `NetworkTransport` instances. Each role
+configures only its own UDP endpoint; loopback communication needs no socket. A
+client may fall back to an ephemeral UDP port when its configured port is occupied.
+Applications compose these owners explicitly, replacing the former combined global
+socket policy and `NET` facade. The archived client's API/ABI is not maintained;
+the Quake II network wire protocol remains compatible.
+
+Local traffic uses a private `LoopbackLink`. Session stop discards incoming local
+traffic while preserving final messages already queued for the peer. Map changes
+retain reconnect traffic; clearing both local queues belongs at a whole-session
+boundary. Closing an owner closes its resources independently of the peer's.
+
+Packet decoding has explicit, side-effect-free outcomes below the engine adapter.
+Dedicated-server tick waiting currently uses a timed sleep rather than socket
+readiness. Network ownership does not impose a global client/server sleep policy.
+
 ## NetworkPacket
 
 Every frame both client and servers are sending a jake2.qcommon.network.messages.NetworkPacket to each other.
@@ -7,7 +25,8 @@ Each such packet contains a header and several (Client|Server)Messages
 
 ## "Connectionless" (Out of band) packet
 Such packets/messages are sent ad-hoc and don't require a running map instance, therefore could be sent by not connected clients.
-They are sent separately, not as a part of jake2.qcommon.network.messages.NetworkPacket.
+They are separate datagrams rather than messages inside a sequenced game-channel packet.
+`PacketCodec` identifies them by their leading -1 sequence marker; the engine adapter can expose both kinds as `NetworkPacket` values.
 Mostly such packets contain a single string (though there are some cases when 2 strings are sent - `info` & `print`)
 
 see `jake2.qcommon.network.messages.ConnectionlessCommand`

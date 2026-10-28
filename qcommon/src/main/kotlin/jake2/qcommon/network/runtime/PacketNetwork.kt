@@ -37,7 +37,10 @@ class PacketNetwork(
         return netchan_t(transport) { System.nanoTime() / 1_000_000L }
     }
 
-    /** Reuse the binding until explicitly disabled. Only clients fall back to an ephemeral port. */
+    /**
+     * Configure only this owner's UDP endpoint; loopback never needs a socket.
+     * Reuse the binding until explicitly disabled. Only clients fall back to an ephemeral port.
+     */
     fun configure(enabled: Boolean): Boolean {
         check(!closed) { "$label network is closed" }
         if (!enabled) {
@@ -95,6 +98,7 @@ class PacketNetwork(
         return packet
     }
 
+    /** Out-of-band datagram: a -1 sequence marker followed by Latin-1 command/payload bytes. */
     fun sendConnectionless(to: netadr_t, command: ConnectionlessCommand, payload: String) {
         val text = (command.name + payload).toByteArray(Charsets.ISO_8859_1)
         require(text.size <= Defines.MAX_MSGLEN - 4)
@@ -114,6 +118,7 @@ class PacketNetwork(
         }
     }
 
+    /** Shutdown closes this owner's UDP and local endpoints, independently of the peer's resources. */
     override fun close() {
         if (closed) return
         closed = true

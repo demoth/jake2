@@ -30,6 +30,8 @@ What is Cake? Important note about client side code
 ---------------------------------------------------
 
 Jake2 client in its vanilla form is archived in `jake2-legacy` branch and will not be maintained.
+The historical `client/` sources are excluded from the current Gradle build and may reference retired engine APIs.
+Use the `jake2-legacy` branch to build that client; network wire compatibility remains required for the current applications.
 Even though one of the core ideas of this project was to reuse and improve (rather than reimplement from scratch) - 
 the client side code was particularly hard to maintain and develop. 
 Firstly, because it is written on top of the unmaintained and obsolete second LWJGL version,

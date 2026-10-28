@@ -40,6 +40,7 @@ class EmbeddedCakeHost(
     internal fun udpEndpoint(role: Int) =
         if (role == Defines.NS_CLIENT) clientTransport.udpEndpoint else serverTransport.udpEndpoint
 
+    /** Whole-session boundary only: discard both local queues while preserving UDP bindings. */
     private fun clearLocalTraffic() {
         localLink.first.clearIncoming()
         localLink.second.clearIncoming()

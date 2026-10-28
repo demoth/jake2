@@ -80,6 +80,7 @@ class NetworkTransport(
         return count
     }
 
+    /** Discard this owner's incoming local packets without dropping the peer's final messages. */
     fun clearLocalIncoming() = local.clearIncoming()
 
     @Throws(IOException::class)

@@ -9,6 +9,7 @@ import jake2.qcommon.network.protocol.PacketDirection;
 import jake2.qcommon.network.transport.IpAddress;
 import jake2.qcommon.network.transport.NetworkAddress;
 import jake2.qcommon.network.transport.PacketBytes;
+import jake2.qcommon.network.transport.SendResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,18 +27,17 @@ import static jake2.qcommon.Defines.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NetPacketReceiveTest {
+    private OwnedNetworkPair pair;
     @BeforeEach
     void setup() {
-        NET.Config(false);
-        NET.clearLoopbacks();
         Cvar.getInstance().clear();
         Netchan.Netchan_Init();
+        pair = new OwnedNetworkPair();
     }
 
     @AfterEach
     void cleanup() {
-        NET.Config(false);
-        NET.clearLoopbacks();
+        pair.close();
         Cvar.getInstance().clear();
     }
 
@@ -80,29 +80,31 @@ class NetPacketReceiveTest {
         assertTrue(packet.isConnectionless());
         assertEquals("x".repeat(MAX_MSGLEN - 4), packet.connectionlessMessage);
 
-        NET.SendPacket(NS_CLIENT, bytes.length, bytes, new netadr_t());
-        NetworkPacket loopback = NET.receiveLoopbackPacket(NS_SERVER);
+        assertSame(SendResult.Sent.INSTANCE, pair.clientTransport.send(
+                pair.clientTransport.getLocalPeer(), PacketBytes.copyOf(bytes)));
+        NetworkPacket loopback = pair.server.receive();
         assertNotNull(loopback);
         assertEquals(loopback.connectionlessMessage, packet.connectionlessMessage);
     }
 
     @Test
     void truncatedLoopbackHeaderIsDroppedWithoutConsumingFollowingPacket() {
-        NET.SendPacket(NS_CLIENT, 8, sequencedPacket(8, false), new netadr_t());
-        NET.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        assertSame(SendResult.Sent.INSTANCE, pair.clientTransport.send(
+                pair.clientTransport.getLocalPeer(), PacketBytes.copyOf(sequencedPacket(8, false))));
+        pair.client.sendConnectionless(new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
 
-        assertNull(NET.receiveLoopbackPacket(NS_SERVER));
-        NetworkPacket next = NET.receiveLoopbackPacket(NS_SERVER);
+        assertNull(pair.server.receive());
+        NetworkPacket next = pair.server.receive();
         assertNotNull(next);
         assertEquals("getchallenge", next.connectionlessMessage);
     }
 
     @Test
     void serverPrintReplySeparatesCommandFromMultilineParameters() {
-        NET.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.print,
+        pair.server.sendConnectionless(new netadr_t(), ConnectionlessCommand.print,
                 "\nFirst line\nSecond line\n");
 
-        NetworkPacket packet = NET.receiveLoopbackPacket(NS_CLIENT);
+        NetworkPacket packet = pair.client.receive();
         assertNotNull(packet);
         assertEquals("print", packet.connectionlessMessage);
         assertEquals("First line\nSecond line\n", packet.connectionlessParameters);
@@ -117,16 +119,17 @@ class NetPacketReceiveTest {
         return bytes;
     }
 
-    private static NetworkPacket receive(byte[] bytes, boolean fromClient) throws Exception {
-        int role = fromClient ? NS_SERVER : NS_CLIENT;
+    private NetworkPacket receive(byte[] bytes, boolean fromClient) throws Exception {
+        var network = fromClient ? pair.server : pair.client;
+        var transport = fromClient ? pair.serverTransport : pair.clientTransport;
         Cvar.getInstance().find(fromClient ? "port" : "clientport", Integer.class).forceSet(0);
-        assertTrue(fromClient ? NET.configureServer(true) : NET.configureClient(true));
+        assertTrue(network.configure(true));
         try (var sender = DatagramChannel.open()) {
-            var destination = new InetSocketAddress("127.0.0.1", NET.udpEndpoint(role).getLocalAddress().getPort());
+            var destination = new InetSocketAddress("127.0.0.1", transport.getUdpEndpoint().getLocalAddress().getPort());
             assertEquals(bytes.length, sender.send(ByteBuffer.wrap(bytes), destination));
             long deadline = System.nanoTime() + 2_000_000_000L;
             while (System.nanoTime() < deadline) {
-                NetworkPacket packet = NET.receiveNetworkPacket(role);
+                NetworkPacket packet = network.receive();
                 if (packet != null) return packet;
                 LockSupport.parkNanos(1_000_000);
             }
