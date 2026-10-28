@@ -5,7 +5,7 @@ import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.netchan_t
+import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.protocol.*
@@ -32,9 +32,15 @@ class PacketNetwork(
     private val label = if (role == NetworkRole.CLIENT) "Client" else "Server"
     private val direction = if (role == NetworkRole.CLIENT) PacketDirection.FROM_SERVER else PacketDirection.FROM_CLIENT
 
-    fun newChannel(): netchan_t {
+    fun newChannel(): ConnectionChannel {
         check(!closed) { "$label network is closed" }
-        return netchan_t(transport) { System.nanoTime() / 1_000_000L }
+        return ConnectionChannel(
+            if (role == NetworkRole.CLIENT) ChannelRole.CLIENT else ChannelRole.SERVER,
+            transport.localPeer, transport::send,
+            logPackets = { Netchan.showpackets?.typedValue == true },
+            log = { Com.Printf(it) },
+            clockMillis = { System.nanoTime() / 1_000_000L },
+        )
     }
 
     /**

@@ -2,7 +2,7 @@ package org.demoth.cake.network
 
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.netchan_t
+import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
 import org.junit.jupiter.api.Assertions.*
@@ -18,7 +18,7 @@ class ClientHandshakeTest {
             binds += multiplayer
             return bindSucceeds
         }
-        override fun newChannel(): netchan_t = error("Handshake must not create protocol channels")
+        override fun newChannel(): ConnectionChannel = error("Handshake must not create protocol channels")
         override fun poll(budget: Int, consume: (NetworkPacket) -> Unit): Int = error("Caller owns polling")
         override fun sendConnectionless(to: netadr_t, command: ConnectionlessCommand, payload: String) {
             sent += Sent(to.ip.toList(), to.port, command, payload)

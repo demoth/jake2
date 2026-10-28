@@ -111,17 +111,17 @@ public class GameImportsTest {
             Assertions.assertEquals(firstIndex, first.modelindex("models/first.md2"));
             Assertions.assertEquals("models/first.md2", first.configstrings[Defines.CS_MODELS + firstIndex]);
             Assertions.assertEquals("models/second.md2", second.configstrings[Defines.CS_MODELS + secondIndex]);
-            Assertions.assertTrue(firstClient.netchan.reliablePending.isEmpty());
-            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+            Assertions.assertTrue(firstClient.netchan.getQueuedReliable().isEmpty());
+            Assertions.assertTrue(secondClient.netchan.getQueuedReliable().isEmpty());
 
             first.state = ServerStates.SS_GAME;
             int soundIndex = first.soundindex("sound/first.wav");
             // Reusing an index should not publish another resource update.
             Assertions.assertEquals(soundIndex, first.soundindex("sound/first.wav"));
-            Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
+            Assertions.assertEquals(1, firstClient.netchan.getQueuedReliable().size());
             Assertions.assertEquals(new ConfigStringMessage(Defines.CS_SOUNDS + soundIndex, "sound/first.wav"),
-                    firstClient.netchan.reliablePending.iterator().next());
-            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+                    firstClient.netchan.getQueuedReliable().iterator().next());
+            Assertions.assertTrue(secondClient.netchan.getQueuedReliable().isEmpty());
         } finally {
             // These clients exercise message queues without establishing network channels.
             firstClient.state = secondClient.state = ClientStates.CS_FREE;
@@ -261,11 +261,11 @@ public class GameImportsTest {
             first.positioned_sound(explicitOrigin, entity, Defines.CHAN_RELIABLE | Defines.CHAN_VOICE,
                     5, 1, Defines.ATTN_NONE, 0);
             explicitOrigin[0] = 99;
-            Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
-            SoundMessage reliable = (SoundMessage) firstClient.netchan.reliablePending.iterator().next();
+            Assertions.assertEquals(1, firstClient.netchan.getQueuedReliable().size());
+            SoundMessage reliable = (SoundMessage) firstClient.netchan.getQueuedReliable().iterator().next();
             Assertions.assertArrayEquals(new float[]{1, 2, 3}, reliable.getOrigin().toArray());
             Assertions.assertTrue(secondClient.unreliable.isEmpty());
-            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+            Assertions.assertTrue(secondClient.netchan.getQueuedReliable().isEmpty());
         } finally {
             firstClient.state = secondClient.state = ClientStates.CS_FREE;
         }
@@ -278,7 +278,7 @@ public class GameImportsTest {
         client.queuePrint(Defines.PRINT_LOW, "hidden");
         client.queuePrint(Defines.PRINT_HIGH, "visible");
         Assertions.assertEquals(List.of(new PrintMessage(Defines.PRINT_HIGH, "visible")),
-                List.copyOf(client.netchan.reliablePending));
+                List.copyOf(client.netchan.getQueuedReliable()));
         Assertions.assertTrue(client.unreliable.isEmpty());
     }
 
@@ -368,12 +368,12 @@ public class GameImportsTest {
             manager.executeClientCommand(firstClient, "new");
             manager.executeClientCommand(secondClient, "new");
             Assertions.assertEquals("first game",
-                    ((ServerDataMessage) firstClient.netchan.reliablePending.iterator().next()).getLevelString());
+                    ((ServerDataMessage) firstClient.netchan.getQueuedReliable().iterator().next()).getLevelString());
             Assertions.assertEquals("second game",
-                    ((ServerDataMessage) secondClient.netchan.reliablePending.iterator().next()).getLevelString());
-            firstClient.netchan.reliablePending.clear();
+                    ((ServerDataMessage) secondClient.netchan.getQueuedReliable().iterator().next()).getLevelString());
+            firstClient.netchan.clearQueuedReliable();
             manager.executeClientCommand(firstClient, "configstrings " + first.spawncount + " 0");
-            Assertions.assertTrue(firstClient.netchan.reliablePending.contains(
+            Assertions.assertTrue(firstClient.netchan.getQueuedReliable().contains(
                     new ConfigStringMessage(Defines.CS_NAME, "first game")));
         } finally {
             firstClient.state = secondClient.state = ClientStates.CS_FREE;

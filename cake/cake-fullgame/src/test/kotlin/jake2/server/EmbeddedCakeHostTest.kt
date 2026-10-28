@@ -165,10 +165,10 @@ class EmbeddedCakeHostTest {
                 downloadManager = CakeDownloadManager(CakeDownloadCache(cache), cvars),
             )
             assertTrue(downloads.requestMissingResource(path, null, 1))
-            assertEquals(1, client.netchan.reliablePending.size,
+            assertEquals(1, client.netchan.queuedReliable.size,
                 "Missing files must receive a reply instead of leaving the client waiting")
             val buffer = sizebuf_t(64)
-            client.netchan.reliablePending.single().writeTo(buffer)
+            client.netchan.queuedReliable.single().writeTo(buffer)
             val reply = ServerMessage.parseFromBuffer(buffer) as DownloadMessage
             assertTrue(reply is DownloadMessage.Failure)
             assertEquals(CakeDownloadSession.Result.MissingOnServer, downloads.handle(reply))

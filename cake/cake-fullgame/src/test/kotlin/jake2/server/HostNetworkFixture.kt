@@ -14,6 +14,19 @@ internal class HostNetworkFixture : AutoCloseable {
     val server = TransportServerNetwork(serverTransport)
     val client = PacketNetwork(clientTransport, NetworkRole.CLIENT)
 
+    /** Inject a programming failure at send time without corrupting connection address state. */
+    fun failTransmissions(client: ClientNetworkInfo) {
+        val previous = client.netchan
+        client.netchan = jake2.qcommon.network.ConnectionChannel(
+            ChannelRole.SERVER, serverTransport.localPeer,
+            { _, _ -> throw IllegalStateException("injected send failure") },
+            clockMillis = { 0L },
+        ).also { replacement ->
+            replacement.setup(previous.remoteAddress, previous.qport)
+            previous.queuedReliable.forEach(replacement::queueReliable)
+        }
+    }
+
     fun clearLocalTraffic() {
         link.first.clearIncoming()
         link.second.clearIncoming()

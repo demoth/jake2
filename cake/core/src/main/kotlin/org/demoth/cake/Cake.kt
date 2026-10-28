@@ -136,7 +136,7 @@ class Cake(
     private val netchan = network.newChannel()
 
     private val downloads = CakeDownloadSession(sendReliable = { command ->
-        netchan.reliablePending.add(StringCmdMessage(command))
+        netchan.queueReliable(StringCmdMessage(command))
     })
     private val networkDebugSampler = NetworkDebugSampler()
     private var clientCommandExtraMs = 0f
@@ -302,7 +302,7 @@ class Cake(
 
             if (networkState == CONNECTED) { // set on "changing" command
                 Com.Printf("Sending 'new' to server\n")
-                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
+                netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
 
             } else {
                 val target = handshake.lastTarget ?: return@AddCommand
@@ -364,7 +364,7 @@ class Cake(
             }
 
             val to = if (networkState == CONNECTED || networkState == ACTIVE) {
-                netchan.remote_address
+                netchan.remoteAddress
             } else {
                 val rconAddress = Cvar.getInstance().find<String>("rcon_address").typedValue
                 if (rconAddress.isEmpty()) {
@@ -440,7 +440,7 @@ class Cake(
                 Com.Warn("Cannot cmd '${it}', not connected")
             } else {
                 if (it.size > 1)
-                    netchan.reliablePending.add(StringCmdMessage(getArguments(it)))
+                    netchan.queueReliable(StringCmdMessage(getArguments(it)))
                 else
                     Com.Warn("Empty cmd") // todo: warning
             }
@@ -474,7 +474,7 @@ class Cake(
             downloads.precacheCompleted()
 
             // we are ready to start the game!
-            netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
+            netchan.queueReliable(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
         }
 
         // endregion
@@ -532,7 +532,7 @@ class Cake(
 
     private fun transmitAndRecord(unreliable: Collection<NetworkMessage>?) {
         if (netchan.transmit(unreliable)) {
-            networkDebugSampler.recordOutbound(netchan.last_sent_size, Globals.curtime)
+            networkDebugSampler.recordOutbound(netchan.lastSentSize, Globals.curtime)
         }
     }
 
@@ -701,8 +701,8 @@ class Cake(
                 // Cross-reference: old client reads `cls.netchan.incoming_acknowledged/outgoing_sequence`
                 // in `CL_pred.PredictMovement`.
                 game3dScreen?.updatePredictionNetworkState(
-                    netchan.incoming_acknowledged,
-                    netchan.outgoing_sequence,
+                    netchan.incomingAcknowledged,
+                    netchan.outgoingSequence,
                     Globals.curtime
                 )
                 game3dScreen?.render(deltaSeconds)
@@ -735,7 +735,7 @@ class Cake(
 
             if (debugGraphStage.hasEnabledMetrics()) {
                 val profiler = if (glProfilerActive) glProfiler else null
-                val networkSnapshot = networkDebugSampler.snapshot(Globals.curtime, netchan.smoothed_ping_ms)
+                val networkSnapshot = networkDebugSampler.snapshot(Globals.curtime, netchan.smoothedPingMillis)
                 debugGraphStage.collectMetrics(profiler, networkSnapshot)
                 debugGraphStage.act(deltaSeconds)
                 debugGraphStage.draw()
@@ -785,13 +785,13 @@ class Cake(
      */
     private fun sendUpdates() {
         game3dScreen?.pollCinematicSkipCommand(Globals.curtime)?.let { skipCommand ->
-            netchan.reliablePending.add(skipCommand)
+            netchan.queueReliable(skipCommand)
         }
 
         when (networkState) {
             CONNECTING, DISCONNECTED -> return
             CONNECTED -> {
-                if (netchan.reliablePending.isNotEmpty() || Globals.curtime - netchan.last_sent > CONNECTED_KEEPALIVE_TIMEOUT_MS) {
+                if (netchan.hasQueuedReliable || netchan.hasBeenIdleFor(CONNECTED_KEEPALIVE_TIMEOUT_MS.toLong())) {
                     // send pending reliable messages (e.g. "new") immediately
                     transmitAndRecord(null)
                 }
@@ -799,7 +799,7 @@ class Cake(
 
             ACTIVE -> {
                 queueUserInfoUpdateIfNeeded()
-                game3dScreen?.buildMoveMessage(netchan.outgoing_sequence, currentClientCommandMsec())?.let {
+                game3dScreen?.buildMoveMessage(netchan.outgoingSequence, currentClientCommandMsec())?.let {
                     transmitAndRecord(listOf(it))
                 }
             }
@@ -840,7 +840,7 @@ class Cake(
     @Suppress("DEPRECATION")
     private fun queueUserInfoUpdateIfNeeded() {
         if (Globals.userinfo_modified) {
-            netchan.reliablePending.add(UserInfoMessage(Cvar.getInstance().Userinfo()))
+            netchan.queueReliable(UserInfoMessage(Cvar.getInstance().Userinfo()))
             Globals.userinfo_modified = false
         }
     }
@@ -1073,14 +1073,14 @@ class Cake(
             //
             // packet from server
             //
-            if (networkPacket.from.type != netchan.remote_address.type ||
-                !networkPacket.from.compareIp(netchan.remote_address)) {
+            if (networkPacket.from.type != netchan.remoteAddress.type ||
+                !networkPacket.from.compareIp(netchan.remoteAddress)) {
                 Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
                 return@poll
             }
 
             if (netchan.accept(networkPacket)) {
-                networkDebugSampler.recordInbound(netchan.last_received_size, Globals.curtime)
+                networkDebugSampler.recordInbound(netchan.lastReceivedSize, Globals.curtime)
                 when (val body = networkPacket.parseBodyFromServer()) {
                     is MessageDecodeResult.Decoded -> {
                         if (Netchan.printNetwork?.typedValue == true) body.messages.forEach { message ->
@@ -1108,8 +1108,8 @@ class Cake(
         // payload messages. We push those values into prediction first, mirroring old `CL_ReadPackets`
         // + `CL_pred.CheckPredictionError/PredictMovement` data flow.
         game3dScreen?.updatePredictionNetworkState(
-            netchan.incoming_acknowledged,
-            netchan.outgoing_sequence,
+            netchan.incomingAcknowledged,
+            netchan.outgoingSequence,
             Globals.curtime
         )
         messages.forEach { msg ->
@@ -1148,7 +1148,7 @@ class Cake(
                     // new game is starting
                     Cbuf.Execute()
                     resetClientStateForServerData()
-                    netchan.reliablePending.clear()
+                    netchan.clearQueuedReliable()
 
                     menuStages.hideContentPreviews()
                     fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
@@ -1327,8 +1327,8 @@ class Cake(
             ConnectionlessCommand.client_connect -> {
                 if (!handshake.acceptConnection(packet.from)) return
                 networkState = CONNECTED
-                netchan.setup(NS_CLIENT, packet.from, Cvar.getInstance().find<Int>("qport").typedValue)
-                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
+                netchan.setup(packet.from, Cvar.getInstance().find<Int>("qport").typedValue)
+                netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
                 Com.Println("Connected!")
             }
 

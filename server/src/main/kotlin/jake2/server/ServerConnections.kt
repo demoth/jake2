@@ -66,8 +66,8 @@ class ServerConnections(
         val key = PeerKey.of(from)
         for ((index, client) in clients.withIndex()) {
             if (client.state == ClientStates.CS_FREE) continue
-            if (PeerKey.of(client.netchan.remote_address) != key) continue
-            if (client.netchan.qport != qport && client.netchan.remote_address.port != from.port) continue
+            if (PeerKey.of(client.netchan.remoteAddress) != key) continue
+            if (client.netchan.qport != qport && client.netchan.remoteAddress.port != from.port) continue
             if (from.type != NetAddrType.NA_LOOPBACK && nowMillis - client.lastconnect < reconnectDelayMillis)
                 return Admission.TooSoon
             return Admission.Slot(index, reconnect = true)
@@ -82,11 +82,11 @@ class ServerConnections(
         val key = PeerKey.of(packet.from)
         val client = clients.firstOrNull {
             it.state != ClientStates.CS_FREE && it.netchan.qport == packet.qport &&
-                PeerKey.of(it.netchan.remote_address) == key
+                PeerKey.of(it.netchan.remoteAddress) == key
         } ?: return null
         if (!client.netchan.accept(packet)) return null
-        val changed = client.netchan.remote_address.port != packet.from.port
-        if (changed) client.netchan.remote_address.port = packet.from.port
+        val changed = client.netchan.remoteAddress.port != packet.from.port
+        if (changed) client.netchan.updateRemotePort(packet.from.port)
         return Routed(client, changed)
     }
 

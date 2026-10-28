@@ -3,7 +3,7 @@ package jake2.server
 import jake2.qcommon.Defines
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.netchan_t
+import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.protocol.*
 import jake2.qcommon.network.runtime.NetworkTransport
@@ -42,9 +42,9 @@ class ServerConnectionsTest {
     @Test
     fun `reconnect uses actual slot index after a free slot and respects Host time boundary`() {
         NetworkTransport.standalone(LocalSide.SECOND).use { transport ->
-            fun client(state: ClientStates) = ClientNetworkInfo(netchan_t(transport) { 0L }).apply {
+            fun client(state: ClientStates) = ClientNetworkInfo(ConnectionChannel(ChannelRole.SERVER, transport.localPeer, transport::send) { 0L }).apply {
                 this.state = state
-                netchan.setup(Defines.NS_SERVER, address(), 7)
+                netchan.setup(address(), 7)
                 lastconnect = 100
             }
             val free = client(ClientStates.CS_FREE)
@@ -62,7 +62,7 @@ class ServerConnectionsTest {
                 connections.selectSlot(clients, address(2), 7, 600, 500f))
             assertEquals(ServerConnections.Admission.Full,
                 connections.selectSlot(listOf(occupied), address(2), 7, 600, 500f))
-            occupied.netchan.setup(Defines.NS_SERVER, netadr_t(), 7)
+            occupied.netchan.setup(netadr_t(), 7)
             assertEquals(ServerConnections.Admission.Slot(1, true),
                 connections.selectSlot(clients, netadr_t(), 7, 100, 500f))
         }
@@ -78,27 +78,27 @@ class ServerConnectionsTest {
     @Test
     fun `routing rejects wrong peers and stale packets before committing a translated port`() {
         NetworkTransport.standalone(LocalSide.SECOND).use { transport ->
-            val client = ClientNetworkInfo(netchan_t(transport) { 0L }).apply {
+            val client = ClientNetworkInfo(ConnectionChannel(ChannelRole.SERVER, transport.localPeer, transport::send) { 0L }).apply {
                 state = ClientStates.CS_CONNECTED
-                netchan.setup(Defines.NS_SERVER, address(), 7)
+                netchan.setup(address(), 7)
             }
             val connections = ServerConnections()
             val clients = listOf(client)
             assertNull(connections.route(packet(1, 20000, qport = 8), clients))
             assertNull(connections.route(packet(1, 20000, host = 2), clients))
-            assertEquals(10000, client.netchan.remote_address.port)
+            assertEquals(10000, client.netchan.remoteAddress.port)
             assertEquals(ServerConnections.Routed(client, true), connections.route(packet(2, 20000), clients))
-            assertEquals(20000, client.netchan.remote_address.port)
+            assertEquals(20000, client.netchan.remoteAddress.port)
             assertNull(connections.route(packet(1, 30000), clients))
             assertNull(connections.route(packet(2, 30000), clients))
-            assertEquals(20000, client.netchan.remote_address.port)
-            assertEquals(2, client.netchan.incoming_sequence)
+            assertEquals(20000, client.netchan.remoteAddress.port)
+            assertEquals(2, client.netchan.incomingSequence)
             assertEquals(ServerConnections.Routed(client, false), connections.route(packet(3, 20000), clients))
             client.state = ClientStates.CS_ZOMBIE
             assertNotNull(connections.route(packet(4, 20000), clients))
             client.state = ClientStates.CS_FREE
             assertNull(connections.route(packet(5, 40000), clients))
-            assertEquals(20000, client.netchan.remote_address.port)
+            assertEquals(20000, client.netchan.remoteAddress.port)
         }
     }
 }

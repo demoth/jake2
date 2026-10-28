@@ -34,7 +34,7 @@ class ClientNetworkTest {
                         assertEquals("getchallenge\n", received.datagram.payload.toByteArray()
                             .drop(4).toByteArray().toString(Charsets.ISO_8859_1))
                         val channel = client.newChannel()
-                        channel.setup(jake2.qcommon.Defines.NS_CLIENT, netadr_t(), 42)
+                        channel.setup(netadr_t(), 42)
                         assertTrue(channel.transmit(null))
                         assertTrue(link.second.receive() is ReceiveResult.Received)
                     }

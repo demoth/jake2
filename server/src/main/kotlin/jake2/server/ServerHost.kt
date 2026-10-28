@@ -355,7 +355,7 @@ class ServerHost @JvmOverloads constructor(
                 client.gameName = null
                 client.edict = null
                 client.download = null
-                client.netchan.reliablePending.clear()
+                client.netchan.clearQueuedReliable()
                 client.unreliable.clear()
             }
             pendingContinuations.remove(game)
@@ -684,7 +684,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             if (client.state == ClientStates.CS_SPAWNED) client.state = ClientStates.CS_CONNECTED
             client.lastReceivedFrame = -1
             if (client.state == ClientStates.CS_CONNECTED) {
-                client.netchan.reliablePending.add(StuffTextMessage.command("changing"))
+                client.netchan.queueReliable(StuffTextMessage.command("changing"))
             }
         }
 
@@ -705,7 +705,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         for (client in transitionClients) {
             if (client.state == ClientStates.CS_CONNECTED) {
-                client.netchan.reliablePending.add(StuffTextMessage.command("reconnect"))
+                client.netchan.queueReliable(StuffTextMessage.command("reconnect"))
             }
         }
         return gameImports
@@ -1059,7 +1059,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         network.sendConnectionless(adr, ConnectionlessCommand.client_connect, "")
 
-        client.netchan.setup(Defines.NS_SERVER, adr, qport)
+        client.netchan.setup(adr, qport)
 
         client.state = ClientStates.CS_CONNECTED
 
@@ -1127,7 +1127,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     fun dropClient(client: ClientNetworkInfo) {
         if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE) return
         try {
-            client.netchan.reliablePending.add(DisconnectMessage)
+            client.netchan.queueReliable(DisconnectMessage)
             if (client.state == ClientStates.CS_SPAWNED) {
                 games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
             }
@@ -1162,7 +1162,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             val client = routed.client
             if (client.state != ClientStates.CS_ZOMBIE) {
                 client.lastmessage = realtime
-                val body = networkPacket.parseBodyFromClient(client.netchan.incoming_sequence)
+                val body = networkPacket.parseBodyFromClient(client.netchan.incomingSequence)
                 when (body) {
                     is MessageDecodeResult.Rejected -> {
                         Com.Printf("Bad client payload at ${body.offset}: ${body.detail}\n")
@@ -1349,7 +1349,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             client.edict.index - 1
         }
 
-        client.netchan.reliablePending.add(
+        client.netchan.queueReliable(
             ServerDataMessage.forClient(
                 gameImports.spawncount,
                 gameImports.isDemo,
@@ -1369,7 +1369,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             client.lastcmd = usercmd_t()
 
             // begin fetching configstrings
-            client.netchan.reliablePending.add(
+            client.netchan.queueReliable(
                 StuffTextMessage.command(
                     String.format(
                         "cmd %s %d 0",
@@ -1405,12 +1405,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // write a packet full of data
         var currentReliableSize =
-            client.netchan.reliablePending.sumOf { it.size }
+            client.netchan.queuedReliableBytes
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
             if (gameImports.configstrings[start] != null && gameImports.configstrings[start].isNotEmpty()) {
                 val config = ConfigStringMessage(start, gameImports.configstrings[start])
                 currentReliableSize += config.size
-                client.netchan.reliablePending.add(config)
+                client.netchan.queueReliable(config)
             }
             start++
         }
@@ -1421,7 +1421,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         } else {
             String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start)
         }
-        client.netchan.reliablePending.add(StuffTextMessage.command(nextCmd))
+        client.netchan.queueReliable(StuffTextMessage.command(nextCmd))
     }
 
     private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
@@ -1445,13 +1445,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // write a packet full of data
         var currentReliableSize =
-            client.netchan.reliablePending.sumOf { it.size }
+            client.netchan.queuedReliableBytes
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             val base = gameImports.baselines[start]
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 val spawn = SpawnBaselineMessage(base)
                 currentReliableSize += spawn.size
-                client.netchan.reliablePending.add(spawn)
+                client.netchan.queueReliable(spawn)
             }
             start++
         }
@@ -1464,7 +1464,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // continue from where we finished
             String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start)
         }
-        client.netchan.reliablePending.add(StuffTextMessage.command(nextCmd))
+        client.netchan.queueReliable(StuffTextMessage.command(nextCmd))
     }
 
     private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
@@ -1560,7 +1560,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         val data = ByteArray(packet)
         System.arraycopy(client.download, client.downloadcount - packet, data, 0, packet)
-        client.netchan.reliablePending.add(DownloadMessage.chunk(data, percent))
+        client.netchan.queueReliable(DownloadMessage.chunk(data, percent))
 
         if (client.downloadcount == client.downloadsize) {
             client.download = null
@@ -1601,7 +1601,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             // refuse
 
-            client.netchan.reliablePending.add(DownloadMessage.Failure())
+            client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
@@ -1610,7 +1610,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // The client waits for either data or an explicit refusal. Silently
         // returning here leaves precache stuck waiting for a download forever.
         if (client.download == null) {
-            client.netchan.reliablePending.add(DownloadMessage.Failure())
+            client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
@@ -1627,7 +1627,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             // refuse
-            client.netchan.reliablePending.add(DownloadMessage.Failure())
+            client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
@@ -1649,9 +1649,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // if the reliable message overflowed,
             // drop the client
             val pendingReliableSize =
-                c.netchan.reliablePending.sumOf { it.size }
+                c.netchan.queuedReliableBytes
             if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
-                c.netchan.reliablePending.clear()
+                c.netchan.clearQueuedReliable()
                 c.unreliable.clear()
                 broadcastPrint(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName)
                 dropClient(c)
@@ -1667,7 +1667,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 sendClientDatagram(c, game)
             } else {
                 // just update reliable	if needed
-                if (c.netchan.reliablePending.isNotEmpty() || Globals.curtime - c.netchan.last_sent > 1000) c.netchan.transmit(
+                if (c.netchan.hasQueuedReliable || c.netchan.hasBeenIdleFor(1000)) c.netchan.transmit(
                     null
                 )
             }
@@ -1687,7 +1687,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         for (cl in getClientsForInstance(gameName)) {
             if (cl == null || level < cl.messagelevel) continue
             if (cl.state != ClientStates.CS_SPAWNED) continue
-            cl.netchan.reliablePending.add(PrintMessage(level, message.orEmpty()))
+            cl.netchan.queueReliable(PrintMessage(level, message.orEmpty()))
         }
     }
 
@@ -1701,7 +1701,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     fun shouldRateLimit(c: ClientNetworkInfo): Boolean {
         // never drop over the loopback
 
-        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK) return false
+        if (c.netchan.remoteAddress.type == NetAddrType.NA_LOOPBACK) return false
 
         var total = 0
 
@@ -1815,7 +1815,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             Com.Printf(cl.name.padEnd(16))
             val lastMessageAge = realtime - cl.lastmessage
             Com.Printf(lastMessageAge.toString().padStart(7) + " ")
-            Com.Printf(cl.netchan.remote_address.toString().padEnd(22))
+            Com.Printf(cl.netchan.remoteAddress.toString().padEnd(22))
             Com.Printf(cl.netchan.qport.toString().padStart(5))
 
             Com.Printf("\n")

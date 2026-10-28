@@ -54,7 +54,7 @@ class ServerNetworkTest {
                 fun connection(qport: Int) = ClientNetworkInfo(peer.network.newChannel()).apply {
                     state = ClientStates.CS_CONNECTED
                     userinfo = "before"
-                    netchan.setup(Defines.NS_SERVER, netadr_t(), qport)
+                    netchan.setup(netadr_t(), qport)
                 }
                 val bad = connection(7)
                 val healthy = connection(8)
@@ -68,9 +68,9 @@ class ServerNetworkTest {
                 peer.host.readPackets()
                 assertEquals(ClientStates.CS_ZOMBIE, bad.state)
                 assertEquals("before", bad.userinfo)
-                assertTrue(bad.netchan.reliablePending.any { it is DisconnectMessage })
+                assertTrue(bad.netchan.queuedReliable.any { it is DisconnectMessage })
                 assertEquals(ClientStates.CS_CONNECTED, healthy.state)
-                assertTrue(healthy.netchan.reliablePending.isEmpty())
+                assertTrue(healthy.netchan.queuedReliable.isEmpty())
             }
         } finally {
             Cvar.getInstance().clear()

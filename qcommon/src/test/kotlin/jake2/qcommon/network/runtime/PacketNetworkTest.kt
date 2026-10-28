@@ -64,14 +64,14 @@ class PacketNetworkTest {
             PacketNetwork(clientTransport, NetworkRole.CLIENT).use { client ->
                 PacketNetwork(serverTransport, NetworkRole.SERVER).use { server ->
                     val clientChannel = client.newChannel()
-                    clientChannel.setup(Defines.NS_CLIENT, netadr_t(), 1234)
+                    clientChannel.setup(netadr_t(), 1234)
                     assertTrue(clientChannel.transmit(null))
                     val request = server.receive()!!
                     assertEquals(1234, request.qport)
                     assertEquals(10, request.buffer.readcount)
 
                     val serverChannel = server.newChannel()
-                    serverChannel.setup(Defines.NS_SERVER, netadr_t(), 1234)
+                    serverChannel.setup(netadr_t(), 1234)
                     assertTrue(serverChannel.accept(request))
                     assertTrue(serverChannel.transmit(null))
                     val reply = client.receive()!!

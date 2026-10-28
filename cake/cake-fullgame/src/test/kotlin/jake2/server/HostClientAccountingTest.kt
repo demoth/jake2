@@ -88,7 +88,7 @@ class HostClientAccountingTest {
         lastconnect = 100
         rate = 100000
         state = ClientStates.CS_CONNECTED
-        netchan.setup(Defines.NS_SERVER, netadr_t(), index)
+        netchan.setup(netadr_t(), index)
     }
 
     @AfterEach
@@ -190,14 +190,14 @@ class HostClientAccountingTest {
     fun `reliable overflow disconnects only offending connection and peers still receive messages`() {
         val client = bind(0, first)
         val peer = bind(1, first)
-        client.netchan.reliablePending.add(
+        client.netchan.queueReliable(
             jake2.qcommon.network.messages.server.StuffTextMessage.command("x".repeat(Defines.MAX_MSGLEN)))
-        peer.netchan.reliablePending.add(jake2.qcommon.network.messages.server.StuffTextMessage.command("peer"))
-        val previousSequence = peer.netchan.outgoing_sequence
+        peer.netchan.queueReliable(jake2.qcommon.network.messages.server.StuffTextMessage.command("peer"))
+        val previousSequence = peer.netchan.outgoingSequence
         host.sendClientMessages()
         assertEquals(ClientStates.CS_ZOMBIE, client.state)
         assertEquals(ClientStates.CS_CONNECTED, peer.state)
-        assertTrue(peer.netchan.outgoing_sequence > previousSequence)
+        assertTrue(peer.netchan.outgoingSequence > previousSequence)
         assertSame(first, host.games[first.name])
         assertSame(second, host.games[second.name])
     }
@@ -210,13 +210,13 @@ class HostClientAccountingTest {
         client.downloadsize = source.size
         client.downloadcount = source.size - 2048
         host.executeClientCommand(client, "nextdl")
-        val firstChunk = client.netchan.reliablePending.single() as DownloadMessage.Chunk
+        val firstChunk = client.netchan.queuedReliable.single() as DownloadMessage.Chunk
         assertEquals(99, firstChunk.percentage)
         assertEquals(1024, firstChunk.data.size)
         source[source.size - 2048] = 77
         assertEquals(0.toByte(), firstChunk.data.toByteArray()[0])
         host.executeClientCommand(client, "nextdl")
-        val lastChunk = client.netchan.reliablePending.last() as DownloadMessage.Chunk
+        val lastChunk = client.netchan.queuedReliable.last() as DownloadMessage.Chunk
         assertEquals(100, lastChunk.percentage)
         assertEquals(1024, lastChunk.data.size)
         assertNull(client.download)
@@ -315,7 +315,7 @@ class HostClientAccountingTest {
     fun `rate history expires by Host frames and movement budget ignores Game age`() {
         val a = bind(0, first)
         val b = bind(1, second)
-        a.netchan.remote_address.type = NetAddrType.NA_IP
+        a.netchan.setup(netadr_t().apply { type = NetAddrType.NA_IP }, a.netchan.qport)
         a.rate = 1
         a.message_size[1] = 100
         repeat(10) {

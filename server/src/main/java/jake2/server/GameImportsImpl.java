@@ -894,7 +894,7 @@ public class GameImportsImpl implements GameImports {
         for (ClientNetworkInfo client : serverMain.getClients()) {
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
                 continue;
-            client.netchan.reliablePending.add(StuffTextMessage.command(s));
+            client.netchan.queueReliable(StuffTextMessage.command(s));
         }
     }
 
@@ -1320,7 +1320,7 @@ public class GameImportsImpl implements GameImports {
             }
 
             if (reliable) {
-                client.netchan.reliablePending.add(msg);
+                client.netchan.queueReliable(msg);
             } else
                 client.unreliable.add(msg);
         }
@@ -1341,7 +1341,7 @@ public class GameImportsImpl implements GameImports {
         ClientNetworkInfo client = serverMain.getClients().get(index - 1);
 
         if (reliable) {
-            client.netchan.reliablePending.add(msg);
+            client.netchan.queueReliable(msg);
         } else
             client.unreliable.add(msg);
 

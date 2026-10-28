@@ -501,7 +501,7 @@ class HostSessionPreparationTest {
         val mapCommand = jake2.qcommon.exec.Cmd.FindCommand("map")
         val client = host.clients[0]
         client.state = ClientStates.CS_CONNECTED
-        client.netchan.setup(Defines.NS_SERVER, jake2.qcommon.network.netadr_t(), 0)
+        client.netchan.setup(jake2.qcommon.network.netadr_t(), 0)
         network.sendLocal(Defines.NS_CLIENT, 8, ByteArray(8))
         cvars.find<Boolean>("paused").forceSet(true)
         var deferredRan = false
@@ -553,8 +553,8 @@ class HostSessionPreparationTest {
         save(true)
         val client = host.clients[0]
         client.state = ClientStates.CS_CONNECTED
-        client.netchan.remote_address = null // Fault injection at final packet transmission.
-        assertThrows(NullPointerException::class.java) { host.close() }
+        network.failTransmissions(client) // Fault injection at final packet transmission.
+        assertThrows(IllegalStateException::class.java) { host.close() }
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertNull(network.serverTransport.udpEndpoint)

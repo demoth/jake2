@@ -11,7 +11,7 @@ import jake2.qcommon.network.transport.LocalSide
 /** Server transport boundary. A stopped game retires UDP and incoming local traffic, not its peer. */
 interface ServerNetwork : AutoCloseable {
     fun configure(multiplayer: Boolean): Boolean
-    fun newChannel(): netchan_t
+    fun newChannel(): ConnectionChannel
     fun poll(budget: Int = PacketNetwork.DEFAULT_POLL_BUDGET, consume: (NetworkPacket) -> Unit): Int
     fun sendConnectionless(to: netadr_t, command: ConnectionlessCommand, payload: String)
     fun stop()

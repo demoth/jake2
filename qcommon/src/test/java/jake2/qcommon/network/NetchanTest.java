@@ -1,6 +1,8 @@
 package jake2.qcommon.network;
 
 import jake2.qcommon.Globals;
+import jake2.qcommon.network.protocol.ChannelRole;
+import jake2.qcommon.network.transport.SendResult;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.network.messages.client.StringCmdMessage;
 import jake2.qcommon.network.messages.NetworkPacket;
@@ -47,75 +49,78 @@ class NetchanTest {
     @Test
     void outgoingClientPacketUsesItsSetupQport() {
         Netchan.qport.forceSet(77);
-        var channel = new netchan_t(client, () -> Globals.curtime);
-        channel.setup(NS_CLIENT, new netadr_t(), 1234);
+        var channel = new ConnectionChannel(ChannelRole.CLIENT, client.getLocalPeer(), client::send, () -> (long) Globals.curtime);
+        channel.setup(new netadr_t(), 1234);
         assertTrue(channel.transmit(null));
         assertEquals(1234, serverPackets.receive().qport);
     }
 
     @Test
-    void unavailableTransportDoesNotAdvanceOrLoseStagedMessages() {
-        var channel = new netchan_t(client, () -> Globals.curtime);
-        var remote = new netadr_t();
-        remote.type = NetAddrType.NA_IP;
-        remote.port = 27910;
-        channel.setup(NS_CLIENT, remote, 7);
-        channel.reliablePending.add(new StringCmdMessage("new"));
+    void unavailableSenderDoesNotAdvanceOrLoseStagedMessages() {
+        boolean[] available = {false};
+        var channel = new ConnectionChannel(ChannelRole.CLIENT, client.getLocalPeer(),
+                (to, bytes) -> available[0] ? client.send(to, bytes)
+                        : new SendResult.Failed(new java.io.IOException("unavailable")), () -> (long) Globals.curtime);
+        channel.setup(new netadr_t(), 7);
+        channel.queueReliable(new StringCmdMessage("new"));
         Globals.curtime = 100;
         assertFalse(channel.transmit(null));
-        assertEquals(1, channel.outgoing_sequence);
-        assertEquals(1, channel.reliablePending.size());
-        assertEquals(0, channel.last_sent_size);
-        assertEquals(0, channel.last_sent);
-        assertEquals(0, channel.reliable_sent_flag);
+        assertEquals(1, channel.getOutgoingSequence());
+        assertEquals(1, channel.getQueuedReliable().size());
+        assertEquals(0, channel.getLastSentSize());
+        assertEquals(0, channel.getLastSentMillis());
+        assertEquals(0, channel.getReliableSentFlag());
 
-        channel.remote_address = new netadr_t();
+        available[0] = true;
         assertTrue(channel.transmit(null));
-        assertEquals(2, channel.outgoing_sequence);
-        assertTrue(channel.reliablePending.isEmpty());
-        assertEquals(100, channel.last_sent);
+        assertEquals(2, channel.getOutgoingSequence());
+        assertTrue(channel.getQueuedReliable().isEmpty());
+        assertEquals(100, channel.getLastSentMillis());
     }
 
     @Test
     void unexpectedSendFailureReleasesPreparedTransaction() {
-        var channel = new netchan_t(client, () -> Globals.curtime);
-        channel.setup(NS_CLIENT, new netadr_t(), 7);
-        channel.reliablePending.add(new StringCmdMessage("new"));
-        channel.remote_address = null;
-        assertThrows(NullPointerException.class, () -> channel.transmit(null));
-        assertEquals(1, channel.outgoing_sequence);
-        assertEquals(1, channel.reliablePending.size());
-        channel.remote_address = new netadr_t();
+        boolean[] fail = {true};
+        var channel = new ConnectionChannel(ChannelRole.CLIENT, client.getLocalPeer(), (to, bytes) -> {
+            if (fail[0]) throw new IllegalStateException("injected send failure");
+            return client.send(to, bytes);
+        }, () -> (long) Globals.curtime);
+        channel.setup(new netadr_t(), 7);
+        channel.queueReliable(new StringCmdMessage("new"));
+        assertThrows(IllegalStateException.class, () -> channel.transmit(null));
+        assertEquals(1, channel.getOutgoingSequence());
+        assertEquals(1, channel.getQueuedReliable().size());
+        fail[0] = false;
         assertTrue(channel.transmit(null));
     }
 
     @Test
     void recordsSentPacketSizeAfterPacketIsBuilt() {
-        netchan_t netchan = new netchan_t(server, () -> Globals.curtime);
-        netchan.setup(NS_SERVER, new netadr_t(), 0);
+        ConnectionChannel netchan = new ConnectionChannel(ChannelRole.SERVER, server.getLocalPeer(), server::send, () -> (long) Globals.curtime);
+        netchan.setup(new netadr_t(), 0);
 
         Globals.curtime = 100;
         netchan.transmit(null);
 
-        assertTrue(netchan.last_sent_size >= 8, "header-only packet should include sequence and ack");
+        assertTrue(netchan.getLastSentSize() >= 8, "header-only packet should include sequence and ack");
     }
 
     @Test
     void smoothsPingFromAcknowledgedPacketSequence() {
-        netchan_t netchan = new netchan_t(server, () -> Globals.curtime);
-        netchan.setup(NS_SERVER, new netadr_t(), 0);
+        ConnectionChannel netchan = new ConnectionChannel(ChannelRole.SERVER, server.getLocalPeer(), server::send, () -> (long) Globals.curtime);
+        netchan.setup(new netadr_t(), 0);
 
         Globals.curtime = 100;
         netchan.transmit(null); // sequence 1
         Globals.curtime = 160;
         assertTrue(netchan.accept(packet(1, 1)));
-        assertEquals(60, netchan.smoothed_ping_ms);
+        assertEquals(60, netchan.getSmoothedPingMillis());
 
         Globals.curtime = 200;
         netchan.transmit(null); // sequence 2
         Globals.curtime = 300;
         assertTrue(netchan.accept(packet(2, 2)));
-        assertEquals(70, netchan.smoothed_ping_ms);
+        assertEquals(70, netchan.getSmoothedPingMillis());
     }
 
     private NetworkPacket packet(int sequence, int sequenceAck) {
