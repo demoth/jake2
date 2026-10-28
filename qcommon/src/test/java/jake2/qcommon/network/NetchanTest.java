@@ -8,6 +8,10 @@ import jake2.qcommon.network.protocol.PacketCodec;
 import jake2.qcommon.network.protocol.PacketDecodeResult;
 import jake2.qcommon.network.protocol.PacketDirection;
 import jake2.qcommon.network.transport.IpAddress;
+import jake2.qcommon.network.transport.LoopbackLink;
+import jake2.qcommon.network.runtime.NetworkTransport;
+import jake2.qcommon.network.runtime.PacketNetwork;
+import jake2.qcommon.network.runtime.NetworkRole;
 import jake2.qcommon.network.transport.NetworkAddress;
 import jake2.qcommon.network.transport.PacketBytes;
 import jake2.qcommon.sizebuf_t;
@@ -19,35 +23,39 @@ import static jake2.qcommon.Defines.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NetchanTest {
+    private NetworkTransport client;
+    private NetworkTransport server;
+    private PacketNetwork serverPackets;
 
     @BeforeEach
     void setUp() {
-        NET.Config(false);
-        NET.clearLoopbacks();
+        var link = new LoopbackLink();
+        client = new NetworkTransport(link.getFirst(), link.getSecond().getLocalAddress());
+        server = new NetworkTransport(link.getSecond(), link.getFirst().getLocalAddress());
+        serverPackets = new PacketNetwork(server, NetworkRole.SERVER);
         Cvar.getInstance().clear();
         Globals.curtime = 0;
         Netchan.Netchan_Init();
     }
 
     @AfterEach
-    void cleanup() {
-        NET.Config(false);
-        NET.clearLoopbacks();
+    void cleanup() throws Exception {
+        try { client.close(); } finally { server.close(); }
         Cvar.getInstance().clear();
     }
 
     @Test
     void outgoingClientPacketUsesItsSetupQport() {
         Netchan.qport.forceSet(77);
-        var channel = new netchan_t();
+        var channel = new netchan_t(client, () -> Globals.curtime);
         channel.setup(NS_CLIENT, new netadr_t(), 1234);
         assertTrue(channel.transmit(null));
-        assertEquals(1234, NET.receiveLoopbackPacket(NS_SERVER).qport);
+        assertEquals(1234, serverPackets.receive().qport);
     }
 
     @Test
     void unavailableTransportDoesNotAdvanceOrLoseStagedMessages() {
-        var channel = new netchan_t(() -> Globals.curtime);
+        var channel = new netchan_t(client, () -> Globals.curtime);
         var remote = new netadr_t();
         remote.type = NetAddrType.NA_IP;
         remote.port = 27910;
@@ -70,7 +78,7 @@ class NetchanTest {
 
     @Test
     void unexpectedSendFailureReleasesPreparedTransaction() {
-        var channel = new netchan_t();
+        var channel = new netchan_t(client, () -> Globals.curtime);
         channel.setup(NS_CLIENT, new netadr_t(), 7);
         channel.reliablePending.add(new StringCmdMessage("new"));
         channel.remote_address = null;
@@ -83,7 +91,7 @@ class NetchanTest {
 
     @Test
     void recordsSentPacketSizeAfterPacketIsBuilt() {
-        netchan_t netchan = new netchan_t(() -> Globals.curtime);
+        netchan_t netchan = new netchan_t(server, () -> Globals.curtime);
         netchan.setup(NS_SERVER, new netadr_t(), 0);
 
         Globals.curtime = 100;
@@ -94,7 +102,7 @@ class NetchanTest {
 
     @Test
     void smoothsPingFromAcknowledgedPacketSequence() {
-        netchan_t netchan = new netchan_t(() -> Globals.curtime);
+        netchan_t netchan = new netchan_t(server, () -> Globals.curtime);
         netchan.setup(NS_SERVER, new netadr_t(), 0);
 
         Globals.curtime = 100;

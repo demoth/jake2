@@ -28,8 +28,11 @@ import jake2.qcommon.util.Lib;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static jake2.qcommon.network.NET.net_local_adr;
+import java.util.Arrays;
+import jake2.qcommon.network.transport.NetworkAddress;
+import jake2.qcommon.network.transport.IpAddress;
 
+/** Legacy address bridge; transport endpoints themselves use immutable addresses. */
 public class netadr_t {
 
     public NetAddrType type;
@@ -40,11 +43,11 @@ public class netadr_t {
 
     /**
      * @param s String address, like 10.132.12.54:4312
-     * @return null if the string s is not a valid address
+     * @return a fresh address value, or null if the string s is not a valid address
      */
     public static netadr_t fromString(String s, int defaultPort) {
         if (s.equalsIgnoreCase("localhost") || s.equalsIgnoreCase("loopback")) {
-            return net_local_adr;
+            return new netadr_t();
         } else {
             try {
                 netadr_t result = new netadr_t();
@@ -67,30 +70,23 @@ public class netadr_t {
     public netadr_t() {
         this.type = NetAddrType.NA_LOOPBACK;
         this.port = 0; // any
-        try {
-        	// localhost / 127.0.0.1
-            this.ip = InetAddress.getByName(null).getAddress();
-        } catch (UnknownHostException e) {
-        }
+        // localhost / 127.0.0.1
+        this.ip = new byte[] {127, 0, 0, 1};
     }
 
     /**
-     * Seems to return true, if the address is is on 127.0.0.1.
+     * Returns true for in-process loopback addresses. A UDP address on 127.0.0.1 is still remote.
      */
     public boolean IsLocalAddress() {
-        return this.compareIp(net_local_adr);
+        return type == NetAddrType.NA_LOOPBACK;
     }
 
     public boolean compareIp(netadr_t other) {
-        return (this.ip[0] == other.ip[0]
-                && this.ip[1] == other.ip[1]
-                && this.ip[2] == other.ip[2]
-                && this.ip[3] == other.ip[3]
-                && this.port == other.port);
+        return Arrays.equals(ip, other.ip) && port == other.port;
     }
     /**
      * Compares ip address without the port.
-     * Returns true for a LOOPBACK type - assuming that singleplayer client is the first one
+     * Returns true for matching LOOPBACK types; the owned transport enforces local-link identity.
      */
     public boolean CompareBaseAdr(netadr_t other) {
         if (this.type != other.type)
@@ -100,10 +96,7 @@ public class netadr_t {
             return true;
 
         if (this.type == NetAddrType.NA_IP) {
-            return this.ip[0] == other.ip[0]
-                    && this.ip[1] == other.ip[1]
-                    && this.ip[2] == other.ip[2]
-                    && this.ip[3] == other.ip[3];
+            return Arrays.equals(ip, other.ip);
         }
         return false;
     }
@@ -123,13 +116,18 @@ public class netadr_t {
         }
     }
 
+    /** Resolve this legacy destination using the owner's explicit local peer, never a global role. */
+    public NetworkAddress toNetworkAddress(NetworkAddress.Local localPeer) throws UnknownHostException {
+        if (type == NetAddrType.NA_LOOPBACK) return localPeer;
+        if (type != NetAddrType.NA_IP && type != NetAddrType.NA_BROADCAST)
+            throw new IllegalArgumentException("Unsupported address type " + type);
+        return new NetworkAddress.Udp(IpAddress.fromInetAddress(getInetAddress()), port);
+    }
+
     public void set(netadr_t from) {
         type = from.type;
         port = from.port;
-        ip[0] = from.ip[0];
-        ip[1] = from.ip[1];
-        ip[2] = from.ip[2];
-        ip[3] = from.ip[3];
+        ip = from.ip.clone();
     }
 
     public String toString() {

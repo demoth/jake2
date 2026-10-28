@@ -30,8 +30,6 @@ import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.protocol.*;
 import jake2.qcommon.network.transport.PacketBytes;
 import jake2.qcommon.network.transport.SendResult;
-import jake2.qcommon.network.transport.NetworkAddress;
-import jake2.qcommon.network.transport.IpAddress;
 import jake2.qcommon.network.runtime.NetworkTransport;
 import jake2.qcommon.sizebuf_t;
 
@@ -68,22 +66,13 @@ public class netchan_t {
     private final NetworkTransport transport;
     private ReliableChannel channel = new ReliableChannel(ChannelRole.CLIENT, 0);
 
-    /** @deprecated Inject NetworkTransport and a clock instead of using the global transport. */
-    @Deprecated
-    public netchan_t() {
-        this(() -> System.nanoTime() / 1_000_000L);
-    }
-
-    /** @deprecated Inject NetworkTransport alongside the clock. */
-    @Deprecated
-    public netchan_t(LongSupplier clockMillis) {
-        this(null, clockMillis);
-    }
-
-    /** The channel borrows its owner's transport; clearing a connection never closes it. */
+    /**
+     * The channel borrows its owner's transport; clearing a connection never closes it.
+     * Supply both NetworkTransport and a clock explicitly instead of selecting a global transport.
+     */
     public netchan_t(NetworkTransport transport, LongSupplier clockMillis) {
-        this.transport = transport;
-        this.clockMillis = clockMillis;
+        this.transport = java.util.Objects.requireNonNull(transport);
+        this.clockMillis = java.util.Objects.requireNonNull(clockMillis);
     }
 
     public void setup(int sock, netadr_t adr, int qport) {
@@ -159,14 +148,8 @@ public class netchan_t {
     }
 
     private SendResult send(PacketBytes bytes) {
-        if (transport == null) return NET.sendPacket(sock, bytes, remote_address);
-        if (remote_address.type == NetAddrType.NA_LOOPBACK)
-            return transport.send(transport.getLocalPeer(), bytes);
-        if (remote_address.type != NetAddrType.NA_IP && remote_address.type != NetAddrType.NA_BROADCAST)
-            throw new IllegalArgumentException("Unsupported address type " + remote_address.type);
         try {
-            return transport.send(new NetworkAddress.Udp(
-                    IpAddress.fromInetAddress(remote_address.getInetAddress()), remote_address.port), bytes);
+            return transport.send(remote_address.toNetworkAddress(transport.getLocalPeer()), bytes);
         } catch (java.io.IOException error) {
             return new SendResult.Failed(error);
         }

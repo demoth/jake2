@@ -156,7 +156,7 @@ class EmbeddedCakeHostTest {
                 Files.createDirectories(partial.parent)
                 Files.write(partial, byteArrayOf(1, 2, 3))
             }
-            val client = ClientNetworkInfo()
+            val client = ClientNetworkInfo(host.clientNetwork.newChannel())
             val downloads = CakeDownloadSession(
                 sendReliable = { command ->
                     client.gameName = "default"

@@ -27,10 +27,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.network.messages.ConnectionlessCommand;
-import jake2.qcommon.sizebuf_t;
 import jake2.qcommon.sys.Timer;
-import jake2.qcommon.util.Lib;
 
 /**
  * Netchan
@@ -84,7 +81,7 @@ public final class Netchan {
      * 
      * If the base part of the net address matches and the qport matches, then
      * the channel matches even if the IP port differs. The IP port should be
-     * updated to the new value before sending out any replies.
+     * updated after accepting the sequenced packet and before sending out any replies.
      * 
      * 
      * If there is no information that needs to be transfered on a given frame,
@@ -108,7 +105,7 @@ public final class Netchan {
     public static void Netchan_Init() {
 
         Cvar cvars = Cvar.getInstance();
-        NET.registerCvars();
+        NetworkSettings.registerCvars();
         showpackets = cvars.register("showpackets", CvarTypes.BOOLEAN, false, 0, "Log packet sizes, sequences and acknowledgements");
         showdrop = cvars.register("showdrop", CvarTypes.BOOLEAN, false, 0, "Log dropped or out-of-order packets");
         printNetwork = cvars.register("sv_print_network", CvarTypes.BOOLEAN, false, 0, "Log decoded incoming network messages");
@@ -119,21 +116,7 @@ public final class Netchan {
                         "Client connection identifier for NAT port changes; not a UDP socket port");
     }
 
-    /**
-     * Out Of Band
-     */
-    public static void sendConnectionlessPacket(int net_socket, netadr_t adr, ConnectionlessCommand cmd, String payload) {
-        String msg = cmd.name() + payload;
 
-        sizebuf_t packet = new sizebuf_t(Defines.MAX_MSGLEN);
-
-        // write the packet header
-        packet.writeInt(-1); // -1 sequence means connectionless (out of band)
-        packet.writeBytes(Lib.stringToBytes(msg), msg.length());
-
-        // send the datagram
-        NET.SendPacket(net_socket, packet.cursize, packet.data, adr);
-    }
 
 
 }

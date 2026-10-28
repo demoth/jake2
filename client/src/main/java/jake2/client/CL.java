@@ -371,7 +371,7 @@ public final class CL {
             }
             to = netadr_t.fromString(ClientGlobals.rcon_address.string, Defines.PORT_SERVER);
         }
-        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, to, ConnectionlessCommand.rcon, message.toString());
+        NET.sendConnectionlessPacket(Defines.NS_CLIENT, to, ConnectionlessCommand.rcon, message.toString());
     };
 
     private static Command Disconnect_f = (List<String> args) -> Com.Error(Defines.ERR_DROP, "Disconnected from server");
@@ -589,7 +589,7 @@ public final class CL {
         int port = (int) Cvar.getInstance().VariableValue("qport");
         Globals.userinfo_modified = false;
 
-        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.connect,
+        NET.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.connect,
                 " " + Defines.PROTOCOL_VERSION + " " + port + " "
                 + ClientGlobals.cls.challenge + " \"" + Cvar.getInstance().Userinfo() + "\"\n");
     }
@@ -630,7 +630,7 @@ public final class CL {
 
         Com.Printf("Connecting to " + ClientGlobals.cls.servername + "...\n");
 
-        Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n");
+        NET.sendConnectionlessPacket(Defines.NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n");
     }
 
     /**
@@ -758,7 +758,7 @@ public final class CL {
 
             // ping from somewhere
             case ping:
-                Netchan.sendConnectionlessPacket(Defines.NS_CLIENT, packet.from, ConnectionlessCommand.ack, "");
+                NET.sendConnectionlessPacket(Defines.NS_CLIENT, packet.from, ConnectionlessCommand.ack, "");
                 break;
 
             // challenge from the server we are connecting to

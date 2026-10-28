@@ -53,7 +53,7 @@ public class client_static_t {
 
 	int quakePort; // a 16 bit value that allows quake servers
 	// to work around address translating routers
-	public netchan_t netchan = new netchan_t();
+	public netchan_t netchan = jake2.qcommon.network.NET.newChannel(jake2.qcommon.Defines.NS_CLIENT);
 	public int serverProtocol; // in case we are doing some kind of version hack
 
 	public int challenge; // from the server to use for connecting

@@ -31,6 +31,7 @@ public class GameImportsTest {
     @TempDir Path writeRoot;
     private Path previousWriteRoot;
     private ServerHost manager;
+    private final TransportServerNetwork channelNetwork = TransportServerNetwork.standalone();
     private ServerStates previousServerState;
 
     @BeforeEach
@@ -47,7 +48,7 @@ public class GameImportsTest {
 
     @AfterEach
     public void cleanup() {
-        if (manager != null) manager.close();
+        try { if (manager != null) manager.close(); } finally { channelNetwork.close(); }
         Globals.server_state = previousServerState;
         EngineWriteRoot.setRoot(previousWriteRoot);
         Cvar.getInstance().clear();
@@ -221,7 +222,7 @@ public class GameImportsTest {
         entity.setClient(new GamePlayerInfo(0));
         entity.getClient().getPlayerState().pmove.origin[2] = 64 * 8;
         entity.s.modelindex = modelIndex;
-        ClientNetworkInfo client = new ClientNetworkInfo();
+        ClientNetworkInfo client = new ClientNetworkInfo(channelNetwork.newChannel());
         client.gameName = game.name;
         client.edict = entity;
         return client;
@@ -272,7 +273,7 @@ public class GameImportsTest {
 
     @Test
     public void clientPrintQueueRespectsItsMessageLevel() {
-        ClientNetworkInfo client = new ClientNetworkInfo();
+        ClientNetworkInfo client = new ClientNetworkInfo(channelNetwork.newChannel());
         client.messagelevel = Defines.PRINT_HIGH;
         client.queuePrint(Defines.PRINT_LOW, "hidden");
         client.queuePrint(Defines.PRINT_HIGH, "visible");

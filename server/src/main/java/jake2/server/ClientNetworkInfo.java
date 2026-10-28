@@ -38,10 +38,6 @@ import java.util.Collection;
  */
 public class ClientNetworkInfo {
 
-	public ClientNetworkInfo() {
-        this(new netchan_t());
-    }
-
     public ClientNetworkInfo(netchan_t channel) {
         this.netchan = java.util.Objects.requireNonNull(channel);
 		for (int n = 0; n < Defines.UPDATE_BACKUP; n++) {

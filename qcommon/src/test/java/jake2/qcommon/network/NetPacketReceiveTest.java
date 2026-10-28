@@ -89,7 +89,7 @@ class NetPacketReceiveTest {
     @Test
     void truncatedLoopbackHeaderIsDroppedWithoutConsumingFollowingPacket() {
         NET.SendPacket(NS_CLIENT, 8, sequencedPacket(8, false), new netadr_t());
-        Netchan.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        NET.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
 
         assertNull(NET.receiveLoopbackPacket(NS_SERVER));
         NetworkPacket next = NET.receiveLoopbackPacket(NS_SERVER);
@@ -99,7 +99,7 @@ class NetPacketReceiveTest {
 
     @Test
     void serverPrintReplySeparatesCommandFromMultilineParameters() {
-        Netchan.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.print,
+        NET.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.print,
                 "\nFirst line\nSecond line\n");
 
         NetworkPacket packet = NET.receiveLoopbackPacket(NS_CLIENT);

@@ -1,6 +1,8 @@
 package jake2.qcommon
 
-import jake2.qcommon.network.NET
+import jake2.qcommon.network.runtime.*
+import jake2.qcommon.network.transport.LocalSide
+import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.netadr_t
 import org.junit.jupiter.api.Assertions.*
@@ -45,22 +47,23 @@ class OutputFailureTest {
     @ParameterizedTest
     @EnumSource(NetAddrType::class, names = ["NA_IPX", "NA_BROADCAST_IPX"])
     fun `unsupported destination propagates without closing the socket`(type: NetAddrType) {
-        NET.Config(false)
         val cvars = Cvar.getInstance()
         cvars.clear()
         Netchan.Netchan_Init()
         cvars.find("port", Int::class.javaObjectType).forceSet(0)
+        val transport = NetworkTransport.standalone(LocalSide.SECOND)
         try {
-            assertTrue(NET.configureServer(true))
-            val endpoint = NET.udpEndpoint(Defines.NS_SERVER)
-            val failure = assertThrows(IllegalArgumentException::class.java) {
-                NET.SendPacket(Defines.NS_SERVER, 1, byteArrayOf(1), netadr_t().apply { this.type = type })
+            PacketNetwork(transport, NetworkRole.SERVER).use { packets ->
+                assertTrue(packets.configure(true))
+                val endpoint = transport.udpEndpoint!!
+                val failure = assertThrows(IllegalArgumentException::class.java) {
+                    packets.sendConnectionless(netadr_t().apply { this.type = type }, ConnectionlessCommand.print, "\nerror")
+                }
+                assertTrue(failure.message!!.contains(type.name))
+                assertSame(endpoint, transport.udpEndpoint)
+                assertTrue(endpoint.isOpen)
             }
-            assertTrue(failure.message!!.contains(type.name))
-            assertSame(endpoint, NET.udpEndpoint(Defines.NS_SERVER))
-            assertTrue(endpoint.isOpen)
         } finally {
-            NET.configureServer(false)
             cvars.clear()
         }
     }

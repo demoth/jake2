@@ -91,10 +91,10 @@ class NetSocketOwnershipTest {
 
     @Test
     void loopbackWorksWithoutSocketsAndSessionResetDiscardsBothQueues() {
-        Netchan.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        NET.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
         assertNotNull(NET.receiveLoopbackPacket(NS_SERVER));
-        Netchan.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.client_connect, "");
-        Netchan.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        NET.sendConnectionlessPacket(NS_SERVER, new netadr_t(), ConnectionlessCommand.client_connect, "");
+        NET.sendConnectionlessPacket(NS_CLIENT, new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
         NET.clearLoopbacks();
         assertNull(NET.receiveLoopbackPacket(NS_CLIENT));
         assertNull(NET.receiveLoopbackPacket(NS_SERVER));

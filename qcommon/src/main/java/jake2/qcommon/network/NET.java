@@ -23,10 +23,12 @@
 package jake2.qcommon.network;
 
 import jake2.qcommon.Com;
+import jake2.qcommon.network.messages.ConnectionlessCommand;
+import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.util.Lib;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.network.messages.NetworkPacket;
 import jake2.qcommon.network.runtime.NetworkTransport;
 import jake2.qcommon.network.protocol.PacketCodec;
@@ -45,10 +47,7 @@ import static jake2.qcommon.Defines.NS_SERVER;
 @Deprecated
 public final class NET {
 
-    /** Legacy address bridge; transport endpoints themselves use immutable addresses. */
-    public static final netadr_t net_local_adr = new netadr_t();
-
-    // Compatibility composition root until application controllers receive their transports.
+    // Archived-client compatibility owner; active applications supply their own transports.
     private static NetworkTransport[] transports = newTransports();
 
     private static NetworkTransport[] newTransports() {
@@ -57,6 +56,11 @@ public final class NET {
                 new NetworkTransport(link.getFirst(), link.getSecond().getLocalAddress()),
                 new NetworkTransport(link.getSecond(), link.getFirst().getLocalAddress())
         };
+    }
+
+    /** Archived-client compatibility: explicitly borrow the facade's current role transport. */
+    public static netchan_t newChannel(int role) {
+        return new netchan_t(transports[role], () -> System.nanoTime() / 1_000_000L);
     }
 
     public static UdpDatagramEndpoint udpEndpoint(int role) {
@@ -125,17 +129,6 @@ public final class NET {
             Com.Println("NET_SendPacket ERROR: " + error + " to " + to);
             return new SendResult.Failed(error instanceof IOException io ? io : new IOException(error));
         }
-    }
-
-    /**
-     * Declare protected network settings after startup config has supplied early values.
-     */
-    static void registerCvars() {
-        Cvar cvars = Cvar.getInstance();
-        cvars.register("port", new CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_SERVER, Defines.CVAR_NOSET, "Server UDP port; 0 lets the OS choose, -1 is the legacy wildcard-bind equivalent");
-        cvars.register("ip", CvarTypes.STRING, "localhost", Defines.CVAR_NOSET, "Local bind address; empty or localhost binds all interfaces");
-        cvars.register("clientport", new CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_CLIENT, Defines.CVAR_NOSET, "Client UDP port; 0 lets the OS choose, -1 is the legacy wildcard-bind equivalent");
-        cvars.register("thinclient", CvarTypes.BOOLEAN, false, 0, "Do not open a server UDP socket");
     }
 
     /** Legacy combined socket policy. New session owners configure each role explicitly. */
@@ -225,6 +218,22 @@ public final class NET {
             Com.Println("NET bind ERROR: " + error);
             return null;
         }
+    }
+
+    /**
+     * Out Of Band
+     */
+    public static void sendConnectionlessPacket(int net_socket, netadr_t adr, ConnectionlessCommand cmd, String payload) {
+        String msg = cmd.name() + payload;
+
+        sizebuf_t packet = new sizebuf_t(Defines.MAX_MSGLEN);
+
+        // write the packet header
+        packet.writeInt(-1); // -1 sequence means connectionless (out of band)
+        packet.writeBytes(Lib.stringToBytes(msg), msg.length());
+
+        // send the datagram
+        NET.SendPacket(net_socket, packet.cursize, packet.data, adr);
     }
 
     /**

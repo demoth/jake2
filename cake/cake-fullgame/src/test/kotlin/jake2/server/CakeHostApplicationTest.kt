@@ -15,9 +15,8 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.network.Netchan
-import jake2.qcommon.Defines.NS_SERVER
-import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.messages.ConnectionlessCommand
+import jake2.qcommon.network.transport.LoopbackLink
+import jake2.qcommon.network.transport.PacketBytes
 import org.demoth.cake.Cake
 import org.demoth.cake.ui.menu.MenuBackend
 import org.demoth.cake.ui.menu.HostGameFormState
@@ -44,7 +43,12 @@ class CakeHostApplicationTest {
         val previousHome = System.getProperty("user.home")
         System.setProperty("user.home", temp.toString())
         var failure: Throwable? = null
-        val host = EmbeddedCakeHost(temp.resolve(".cake"))
+        val localLink = LoopbackLink()
+        val host = EmbeddedCakeHost(temp.resolve(".cake"), localLink)
+        fun staleLocalReply() {
+            localLink.second.send(localLink.first.localAddress,
+                PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "client_connect".toByteArray()))
+        }
         try {
             CakeStartupBootstrap.ensureInitialized()
             Cvar.getInstance().clear()
@@ -118,7 +122,7 @@ class CakeHostApplicationTest {
                             }
                             3 -> {
                                 // An old local handshake must not attach while targeting a UDP server.
-                                Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
+                                staleLocalReply()
                                 cake!!.render()
                                 assertEquals("CONNECTING", clientState(cake!!))
                                 val current = temp.resolve(".cake/application-test/save/current/game.ssv.json")
@@ -134,7 +138,7 @@ class CakeHostApplicationTest {
                             }
                             4 -> {
                                 // Nor may it resurrect a disconnected client after rejected startup.
-                                Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
+                                staleLocalReply()
                                 cake!!.render()
                                 assertEquals("DISCONNECTED", clientState(cake!!))
                                 Cbuf.AddText("set coop 0; set deathmatch 0; set maxclients 1; map testbox")

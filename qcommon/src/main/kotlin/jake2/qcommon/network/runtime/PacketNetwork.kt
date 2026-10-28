@@ -3,7 +3,6 @@ package jake2.qcommon.network.runtime
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
-import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.netchan_t
@@ -100,8 +99,7 @@ class PacketNetwork(
         val text = (command.name + payload).toByteArray(Charsets.ISO_8859_1)
         require(text.size <= Defines.MAX_MSGLEN - 4)
         val bytes = ByteBuffer.allocate(text.size + 4).order(ByteOrder.LITTLE_ENDIAN).putInt(-1).put(text).array()
-        val destination = if (to.type == NetAddrType.NA_LOOPBACK) transport.localPeer else
-            NetworkAddress.Udp(IpAddress.fromInetAddress(to.inetAddress), to.port)
+        val destination = to.toNetworkAddress(transport.localPeer)
         val result = transport.send(destination, PacketBytes.copyOf(bytes))
         if (result is SendResult.Failed) Com.Println("$label send error: ${result.cause}")
     }
