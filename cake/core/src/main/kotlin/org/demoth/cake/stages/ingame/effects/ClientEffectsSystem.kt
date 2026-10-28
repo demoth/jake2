@@ -10,6 +10,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.M_Flash
+import jake2.qcommon.math.Vector3f
 import jake2.qcommon.network.messages.server.BeamOffsetTEMessage
 import jake2.qcommon.network.messages.server.BeamTEMessage
 import jake2.qcommon.network.messages.server.MuzzleFlash2Message
@@ -125,7 +126,8 @@ class ClientEffectsSystem(
     /**
      * Handles temp-entity messages (`svc_temp_entity`) already decoded into typed message classes.
      *
-     * Unknown styles inside known message types are currently ignored silently by style branch fall-through.
+     * The codec validates subtype/layout combinations. Valid styles without an implemented renderer
+     * are still ignored silently by style branch fall-through.
      */
     fun processTempEntityMessage(msg: TEMessage) {
         when (msg) {
@@ -135,7 +137,6 @@ class ClientEffectsSystem(
             is TrailTEMessage -> handleTrailMessage(msg)
             is SplashTEMessage -> handleSplashMessage(msg)
             is PointTEMessage -> handlePointMessage(msg)
-            else -> Com.Warn("Unhandled temp entity message class: ${msg.javaClass.simpleName}")
         }
     }
 
@@ -269,7 +270,7 @@ class ClientEffectsSystem(
     }
 
     private fun handlePointDirectionMessage(msg: PointDirectionTEMessage) {
-        val position = toVector3(msg.position) ?: return
+        val position = toVector3(msg.position)
         when (msg.style) {
             Defines.TE_BLOOD,
             Defines.TE_MOREBLOOD,
@@ -280,7 +281,7 @@ class ClientEffectsSystem(
                 }
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = when (msg.style) {
                         Defines.TE_MOREBLOOD -> 250
                         Defines.TE_GREENBLOOD -> 30
@@ -299,7 +300,7 @@ class ClientEffectsSystem(
                 }
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = count,
                     paletteBase = paletteBase,
                 )
@@ -318,7 +319,7 @@ class ClientEffectsSystem(
                 }
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = 40,
                     paletteBase = paletteBase,
                 )
@@ -328,7 +329,7 @@ class ClientEffectsSystem(
             Defines.TE_HEATBEAM_SPARKS -> {
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = 50,
                     paletteBase = HEATBEAM_SPARK_PARTICLE_BASE_COLOR,
                 )
@@ -338,7 +339,7 @@ class ClientEffectsSystem(
             Defines.TE_HEATBEAM_STEAM -> {
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = 20,
                     paletteBase = HEATBEAM_STEAM_PARTICLE_BASE_COLOR,
                 )
@@ -348,7 +349,7 @@ class ClientEffectsSystem(
             Defines.TE_ELECTRIC_SPARKS -> {
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = 40,
                     paletteBase = ELECTRIC_SPARK_PARTICLE_BASE_COLOR,
                 )
@@ -358,7 +359,7 @@ class ClientEffectsSystem(
             Defines.TE_SHOTGUN -> {
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = 20,
                     paletteBase = SHOTGUN_PARTICLE_BASE_COLOR,
                 )
@@ -366,19 +367,19 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BLASTER -> {
-                spawnBlasterImpact(position, msg.direction, skinIndex = 0)
+                spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 0)
                 spawnDynamicLight(position, 150f, 1f, 1f, 0f)
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
 
             Defines.TE_BLASTER2 -> {
-                spawnBlasterImpact(position, msg.direction, skinIndex = 1)
+                spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 1)
                 spawnDynamicLight(position, 150f, 0f, 1f, 0f)
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
 
             Defines.TE_FLECHETTE -> {
-                spawnBlasterImpact(position, msg.direction, skinIndex = 2)
+                spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 2)
                 spawnDynamicLight(position, 150f, 0.19f, 0.41f, 0.75f)
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
@@ -386,8 +387,8 @@ class ClientEffectsSystem(
     }
 
     private fun handleTrailMessage(msg: TrailTEMessage) {
-        val start = toVector3(msg.position) ?: return
-        val end = toVector3(msg.destination) ?: return
+        val start = toVector3(msg.position)
+        val end = toVector3(msg.destination)
         when (msg.style) {
             Defines.TE_BUBBLETRAIL -> {
                 emitSegmentTrailParticles(
@@ -415,7 +416,7 @@ class ClientEffectsSystem(
             Defines.TE_BLUEHYPERBLASTER -> {
                 emitPaletteImpactParticles(
                     origin = start,
-                    direction = msg.destination,
+                    direction = msg.destination.toArray(),
                     count = 40,
                     paletteBase = BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR,
                 )
@@ -464,13 +465,13 @@ class ClientEffectsSystem(
     }
 
     private fun handleSplashMessage(msg: SplashTEMessage) {
-        val position = toVector3(msg.position) ?: return
+        val position = toVector3(msg.position)
         when (msg.style) {
             Defines.TE_SPLASH -> {
                 val splashPaletteBase = LEGACY_SPLASH_COLORS.getOrNull(msg.param) ?: LEGACY_SPLASH_DEFAULT_COLOR
                 emitPaletteImpactParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = msg.count.coerceIn(4, 64),
                     paletteBase = splashPaletteBase,
                 )
@@ -482,7 +483,7 @@ class ClientEffectsSystem(
             Defines.TE_LASER_SPARKS -> {
                 emitLegacyPaletteParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = msg.count,
                     paletteIndex = msg.param,
                     gravity = -320f,
@@ -492,7 +493,7 @@ class ClientEffectsSystem(
             Defines.TE_WELDING_SPARKS -> {
                 emitLegacyPaletteParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = msg.count,
                     paletteIndex = msg.param,
                     gravity = -320f,
@@ -510,7 +511,7 @@ class ClientEffectsSystem(
             Defines.TE_TUNNEL_SPARKS -> {
                 emitLegacyPaletteParticles(
                     origin = position,
-                    direction = msg.direction,
+                    direction = msg.direction.toArray(),
                     count = msg.count,
                     paletteIndex = msg.param,
                     gravity = 320f,
@@ -520,7 +521,7 @@ class ClientEffectsSystem(
     }
 
     private fun handlePointMessage(msg: PointTEMessage) {
-        val position = toVector3(msg.position) ?: return
+        val position = toVector3(msg.position)
         when (msg.style) {
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
@@ -648,8 +649,8 @@ class ClientEffectsSystem(
         if (msg.style == Defines.TE_PARASITE_ATTACK || msg.style == Defines.TE_MEDIC_CABLE_ATTACK) {
             spawnSegmentBeam(
                 modelPath = "models/monsters/parasite/segment/tris.md2",
-                start = msg.origin,
-                end = msg.destination,
+                start = msg.origin.toArray(),
+                end = msg.destination.toArray(),
                 offset = null,
                 durationMs = 200,
             )
@@ -660,9 +661,9 @@ class ClientEffectsSystem(
         if (msg.style == Defines.TE_GRAPPLE_CABLE) {
             spawnSegmentBeam(
                 modelPath = "models/ctf/segment/tris.md2",
-                start = msg.origin,
-                end = msg.destination,
-                offset = msg.offset,
+                start = msg.origin.toArray(),
+                end = msg.destination.toArray(),
+                offset = msg.offset.toArray(),
                 durationMs = 200,
             )
         }
@@ -1605,6 +1606,8 @@ class ClientEffectsSystem(
             steps++
         }
     }
+
+    private fun toVector3(value: Vector3f): Vector3 = Vector3(value.x, value.y, value.z)
 
     private fun toVector3(value: FloatArray?): Vector3? {
         if (value == null || value.size < 3) {

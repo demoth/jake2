@@ -154,23 +154,7 @@ public abstract class ServerMessage implements NetworkMessage {
             case svc_packetentities:
                 msg = new PacketEntitiesMessage();
                 break;
-            case svc_temp_entity:
-                int subtype = buffer.readByte();
-                if (PointTEMessage.SUBTYPES.contains(subtype)) {
-                    msg = new PointTEMessage(subtype);
-                } else if (BeamTEMessage.SUBTYPES.contains(subtype)) {
-                    msg = new BeamTEMessage(subtype);
-                } else if (BeamOffsetTEMessage.SUBTYPES.contains(subtype)) {
-                    msg = new BeamOffsetTEMessage(subtype);
-                } else if (PointDirectionTEMessage.SUBTYPES.contains(subtype)) {
-                    msg = new PointDirectionTEMessage(subtype);
-                } else if (TrailTEMessage.SUBTYPES.contains(subtype)) {
-                    msg = new TrailTEMessage(subtype);
-                } else if (SplashTEMessage.SUBTYPES.contains(subtype)) {
-                    msg = new SplashTEMessage(subtype);
-                } else {
-                    throw new MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount - 1, "Unexpected temp entity type:" + subtype);
-                }
+
         }
 
         if (msg != null) {

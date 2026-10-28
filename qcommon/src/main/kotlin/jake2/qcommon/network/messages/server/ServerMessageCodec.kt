@@ -36,6 +36,7 @@ object ServerMessageCodec {
                 message.source?.let { buffer.writeShort((it.entityIndex shl 3) or it.channel) }
                 message.origin?.let { buffer.writeCoord(it.x); buffer.writeCoord(it.y); buffer.writeCoord(it.z) }
             }
+            is TEMessage -> TemporaryEntityCodec.writeProperties(message, buffer)
             is InventoryMessage -> repeat(MAX_ITEMS) { buffer.writeShort(message[it]) }
             is DownloadMessage.Chunk -> {
                 buffer.writeShort(message.data.size)
@@ -75,6 +76,7 @@ object ServerMessageCodec {
         is DownloadMessage.Chunk -> 4 + message.data.size
         is DownloadMessage.Failure -> 4
         is FrameHeaderMessage -> 11 + message.areaBits.size
+        is TEMessage -> TemporaryEntityCodec.size(message)
         DisconnectMessage, ReconnectMessage, NopMessage, EndOfServerPacketMessage -> 1
         is LegacyServerMessage -> message.size
         else -> error("Unsupported server message ${message.javaClass.name}")
@@ -105,6 +107,7 @@ object ServerMessageCodec {
             ServerMessageType.svc_muzzleflash -> WeaponSoundMessage(readEntityIndex(buffer), buffer.readUnsignedByte())
             ServerMessageType.svc_muzzleflash2 -> MuzzleFlash2Message(readEntityIndex(buffer), buffer.readUnsignedByte())
             ServerMessageType.svc_sound -> readSound(buffer)
+            ServerMessageType.svc_temp_entity -> TemporaryEntityCodec.read(buffer)
             ServerMessageType.svc_inventory -> InventoryMessage(IntArray(MAX_ITEMS) { buffer.readSignedShort() })
             ServerMessageType.svc_download -> readDownload(buffer)
             ServerMessageType.svc_frame -> readFrameHeader(buffer)
