@@ -4,21 +4,25 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.player_state_t;
 import jake2.qcommon.sizebuf_t;
 
-public class PlayerInfoMessage extends LegacyServerMessage {
+/** Pre-migration protocol-34 writer/parser retained only as an independent compatibility oracle. */
+public class LegacyPlayerInfoReference implements jake2.qcommon.network.messages.NetworkMessage {
     private player_state_t previousState;
     // determine what needs to be sent
     public int deltaFlags;
     public int statbits;
     public player_state_t currentState;
 
-    public PlayerInfoMessage() {
-        super(ServerMessageType.svc_playerinfo);
-    }
+    public LegacyPlayerInfoReference() {}
 
-    public PlayerInfoMessage(player_state_t previousState, player_state_t currentState) {
+    public LegacyPlayerInfoReference(player_state_t previousState, player_state_t currentState) {
         this();
         this.previousState = previousState;
         this.currentState = currentState;
+    }
+
+    public void writeTo(sizebuf_t buffer) {
+        buffer.writeByte((byte) 17);
+        writeProperties(buffer);
     }
 
     // determine what needs to be sent
@@ -88,7 +92,6 @@ public class PlayerInfoMessage extends LegacyServerMessage {
         }
     }
 
-    @Override
     protected void writeProperties(sizebuf_t buffer) {
         computeDeltaFlags();
         buffer.writeShort(deltaFlags);
@@ -176,7 +179,6 @@ public class PlayerInfoMessage extends LegacyServerMessage {
         }
     }
 
-    @Override
     public void parse(sizebuf_t buffer) {
         this.deltaFlags = buffer.readShort();
         this.currentState = new player_state_t();
@@ -339,7 +341,7 @@ public class PlayerInfoMessage extends LegacyServerMessage {
 
     @Override
     public String toString() {
-        return "PlayerInfoMessage{" +
+        return "LegacyPlayerInfoReference{" +
                 "currentState=" + currentState +
                 '}';
     }
@@ -347,9 +349,9 @@ public class PlayerInfoMessage extends LegacyServerMessage {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof PlayerInfoMessage)) return false;
+        if (!(o instanceof LegacyPlayerInfoReference)) return false;
 
-        PlayerInfoMessage that = (PlayerInfoMessage) o;
+        LegacyPlayerInfoReference that = (LegacyPlayerInfoReference) o;
 
         return currentState != null ? currentState.equals(that.currentState) : that.currentState == null;
     }

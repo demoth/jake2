@@ -6,7 +6,7 @@ import jake2.qcommon.network.protocol.MessageReader
 import jake2.qcommon.network.protocol.MessageRejection
 import jake2.qcommon.sizebuf_t
 
-/** Server wire operations. Mutable array/delta families retain their existing codecs during migration. */
+/** Server wire operations construct and encode immutable message values. */
 object ServerMessageCodec {
     @JvmStatic
     fun write(message: ServerMessage, buffer: sizebuf_t) {
@@ -56,7 +56,7 @@ object ServerMessageCodec {
                 buffer.writeBytes(message.areaBits.toByteArray())
             }
             DisconnectMessage, ReconnectMessage, NopMessage, EndOfServerPacketMessage -> Unit
-            is LegacyServerMessage -> message.writeLegacyProperties(buffer)
+            is PlayerInfoMessage -> PlayerStateCodec.write(message, buffer)
             else -> error("Unsupported server message ${message.javaClass.name}")
         }
     }
@@ -82,7 +82,7 @@ object ServerMessageCodec {
         is PacketEntitiesMessage -> 1 + PacketEntitiesCodec.size(message)
         is SpawnBaselineMessage -> 1 + EntityDeltaCodec.size(message.delta)
         DisconnectMessage, ReconnectMessage, NopMessage, EndOfServerPacketMessage -> 1
-        is LegacyServerMessage -> message.size
+        is PlayerInfoMessage -> 1 + PlayerStateCodec.size(message)
         else -> error("Unsupported server message ${message.javaClass.name}")
     }
 
@@ -95,7 +95,7 @@ object ServerMessageCodec {
         }
         if (buffer.readcount == buffer.cursize) return EndOfServerPacketMessage
         val opcode = buffer.readUnsignedByte()
-        return when (val type = ServerMessageType.fromInt(opcode)) {
+        return when (ServerMessageType.fromInt(opcode)) {
             ServerMessageType.svc_end -> EndOfServerPacketMessage
             ServerMessageType.svc_nop -> null
             ServerMessageType.svc_disconnect -> DisconnectMessage
@@ -125,7 +125,8 @@ object ServerMessageCodec {
             }
             null, ServerMessageType.svc_bad -> throw MessageReadException(MessageRejection.UNKNOWN_OPCODE,
                 buffer.readcount - 1, "Invalid server opcode $opcode")
-            else -> ServerMessage.readLegacyProperties(type, buffer)
+            ServerMessageType.svc_playerinfo -> PlayerStateCodec.read(buffer)
+            else -> throw MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Invalid server opcode $opcode")
         }
     }
 

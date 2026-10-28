@@ -1390,7 +1390,7 @@ public class GameImportsImpl implements GameImports {
         client.surpressCount = 0;
 
         // delta encode the playerstate
-        PlayerInfoMessage playerInfoMsg = new PlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : new player_state_t(), currentFrame.ps);
+        PlayerInfoMessage playerInfoMsg = PlayerInfoMessage.fromGame(lastReceivedFrame != null ? lastReceivedFrame.ps : new player_state_t(), currentFrame.ps);
         result.add(playerInfoMsg);
 
         // delta encode the entities

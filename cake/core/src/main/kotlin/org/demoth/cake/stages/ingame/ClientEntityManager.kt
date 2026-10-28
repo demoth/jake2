@@ -746,56 +746,10 @@ class ClientEntityManager : Disposable {
             currentPlayerState.set(deltaFrame.playerstate)
         }
 
-        //
-        // parse the pmove_state_t
-        //
-        if ((msg.deltaFlags and Defines.PS_M_TYPE) != 0)
-            currentPlayerState.pmove.pm_type = msg.currentState.pmove.pm_type;
+        msg.applyTo(currentPlayerState)
 
 //        if (ClientGlobals.cl.attractloop)
-//            state.pmove.pm_type = Defines.PM_FREEZE; // demo playback
-
-        if ((msg.deltaFlags and Defines.PS_M_ORIGIN) != 0)
-            currentPlayerState.pmove.origin = msg.currentState.pmove.origin;
-        if ((msg.deltaFlags and Defines.PS_M_VELOCITY) != 0)
-            currentPlayerState.pmove.velocity = msg.currentState.pmove.velocity;
-        if ((msg.deltaFlags and Defines.PS_M_TIME) != 0)
-            currentPlayerState.pmove.pm_time = msg.currentState.pmove.pm_time;
-        if ((msg.deltaFlags and Defines.PS_M_FLAGS) != 0)
-            currentPlayerState.pmove.pm_flags = msg.currentState.pmove.pm_flags;
-        if ((msg.deltaFlags and Defines.PS_M_GRAVITY) != 0)
-            currentPlayerState.pmove.gravity = msg.currentState.pmove.gravity;
-        if ((msg.deltaFlags and Defines.PS_M_DELTA_ANGLES) != 0)
-            currentPlayerState.pmove.delta_angles = msg.currentState.pmove.delta_angles;
-        //
-        // parse the rest of the player_state_t
-        //
-        if ((msg.deltaFlags and Defines.PS_VIEWOFFSET) != 0)
-            currentPlayerState.viewoffset = msg.currentState.viewoffset;
-        if ((msg.deltaFlags and Defines.PS_VIEWANGLES) != 0)
-            currentPlayerState.viewangles = msg.currentState.viewangles;
-        if ((msg.deltaFlags and Defines.PS_KICKANGLES) != 0)
-            currentPlayerState.kick_angles = msg.currentState.kick_angles;
-        if ((msg.deltaFlags and Defines.PS_WEAPONINDEX) != 0)
-            currentPlayerState.gunindex = msg.currentState.gunindex;
-        if ((msg.deltaFlags and Defines.PS_WEAPONFRAME) != 0) {
-            currentPlayerState.gunframe = msg.currentState.gunframe;
-            currentPlayerState.gunoffset = msg.currentState.gunoffset;
-            currentPlayerState.gunangles = msg.currentState.gunangles;
-        }
-        if ((msg.deltaFlags and Defines.PS_BLEND) != 0)
-            currentPlayerState.blend = msg.currentState.blend;
-        if ((msg.deltaFlags and Defines.PS_FOV) != 0)
-            currentPlayerState.fov = msg.currentState.fov;
-        if ((msg.deltaFlags and Defines.PS_RDFLAGS) != 0)
-            currentPlayerState.rdflags = msg.currentState.rdflags;
-
-        // copy only changed stats
-        for (i in (0..<Defines.MAX_STATS)) {
-            if ((msg.statbits and (1 shl i)) != 0) {
-                currentPlayerState.stats[i] = msg.currentState.stats[i];
-            }
-        }
+//            currentPlayerState.pmove.pm_type = Defines.PM_FREEZE; // demo playback
     }
 
     override fun dispose() {

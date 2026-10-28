@@ -89,6 +89,56 @@ class ClientEntityManagerFrameSelectionTest {
     }
 
     @Test
+    fun playerDeltasInheritTheAcknowledgedFrameAndResetSelectedFieldsWithoutSharingArrays() {
+        CakeCvars.registerEntities()
+        val manager = ClientEntityManager()
+        val initial = player_state_t().apply {
+            pmove.origin = shortArrayOf(8, 16, 24)
+            viewoffset[2] = 2.25f
+            viewangles[1] = -90f
+            gunindex = 1; gunframe = 3; gunoffset[0] = 1.5f
+            blend[0] = 1f
+            stats[0] = 12; stats[1] = 25; stats[31] = -1
+        }
+        fun receive(frame: Int, base: Int, message: PlayerInfoMessage) {
+            manager.processServerFrameHeader(FrameHeaderMessage(frame, base, 0, 0, byteArrayOf()))
+            manager.processPlayerInfoMessage(roundTrip(message))
+            assertTrue(manager.processPacketEntitiesMessage(PacketEntitiesMessage(emptyList())))
+        }
+        try {
+            receive(1, -1, PlayerInfoMessage.fromGame(player_state_t(), initial))
+            val first = manager.currentFrame.playerstate.getClone()
+            val next = initial.getClone().apply {
+                pmove.origin[0] = 0; viewoffset[2] = 0f
+                stats[0] = 0; stats[31] = 0; blend[0] = 0f
+            }
+            receive(2, 1, PlayerInfoMessage.fromGame(initial, next))
+            val second = manager.currentFrame.playerstate
+            assertArrayEquals(shortArrayOf(0, 16, 24), second.pmove.origin)
+            assertArrayEquals(floatArrayOf(0f, 0f, 0f), second.viewoffset)
+            assertArrayEquals(first.viewangles, second.viewangles)
+            assertArrayEquals(first.gunoffset, second.gunoffset)
+            assertArrayEquals(FloatArray(4), second.blend)
+            assertEquals(listOf(0, 25, 0), listOf(second.stats[0].toInt(), second.stats[1].toInt(), second.stats[31].toInt()))
+            // Frame 3 deltas from acknowledged frame 1, so absent fields recover frame 1's values.
+            receive(3, 1, PlayerInfoMessage(weaponIndex = 2))
+            val third = manager.currentFrame.playerstate
+            assertArrayEquals(first.pmove.origin, third.pmove.origin)
+            assertArrayEquals(first.viewoffset, third.viewoffset)
+            assertArrayEquals(first.stats, third.stats)
+            assertEquals(2, third.gunindex)
+            // Mutating the new engine frame must not alter retained history.
+            third.pmove.origin.fill(99); third.viewoffset.fill(99f); third.stats.fill(99)
+            receive(4, 1, PlayerInfoMessage())
+            assertArrayEquals(first.pmove.origin, manager.currentFrame.playerstate.pmove.origin)
+            assertArrayEquals(first.viewoffset, manager.currentFrame.playerstate.viewoffset)
+            assertArrayEquals(first.stats, manager.currentFrame.playerstate.stats)
+        } finally {
+            manager.dispose()
+        }
+    }
+
+    @Test
     fun shorterAreaBitsClearThePreviousVisibilityTail() {
         CakeCvars.registerEntities()
         val manager = ClientEntityManager()
@@ -130,7 +180,7 @@ class ClientEntityManagerFrameSelectionTest {
         manager.processServerFrameHeader(FrameHeaderMessage(frameNumber, lastFrame, 0, 0, byteArrayOf()))
         manager.processPlayerInfoMessage(
             roundTrip(
-                PlayerInfoMessage(
+                PlayerInfoMessage.fromGame(
                     playerState(previousGunFrame),
                     playerState(currentGunFrame),
                 ),
@@ -147,7 +197,7 @@ class ClientEntityManagerFrameSelectionTest {
     }
 
     // The runtime receives parsed network messages, not freshly constructed DTOs. Round-tripping
-    // here forces PlayerInfoMessage to compute/write its delta flags first so the test exercises
+    // here exercises the immutable player delta codec so the test receives
     // the same decoded shape that processPlayerInfoMessage sees in production.
     private fun roundTrip(message: PlayerInfoMessage): PlayerInfoMessage {
         val buffer = sizebuf_t()

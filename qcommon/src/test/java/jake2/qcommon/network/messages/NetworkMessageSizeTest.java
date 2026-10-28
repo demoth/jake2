@@ -114,7 +114,7 @@ public class NetworkMessageSizeTest {
             currentState.gunoffset = new float[]{6, 4, 2};
             currentState.stats = new short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1};
         }
-        testMessages.add(new Object[]{"server.PlayerInfoMessage", new PlayerInfoMessage(new player_state_t(), currentState)});
+        testMessages.add(new Object[]{"server.PlayerInfoMessage", PlayerInfoMessage.fromGame(new player_state_t(), currentState)});
         java.util.List<EntityUpdate> updates = new java.util.ArrayList<>();
         {
             updates.add(new EntityUpdate.Removal(U_REMOVE, 32));
