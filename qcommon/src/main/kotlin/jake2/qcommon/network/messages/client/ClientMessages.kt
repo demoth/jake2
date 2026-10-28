@@ -1,5 +1,11 @@
 package jake2.qcommon.network.messages.client
 
+data object EndOfClientPacketMessage : ClientMessage(ClientMessageType.CLC_BAD)
+
+data object NoopMessage : ClientMessage(ClientMessageType.CLC_NOP)
+
+data class UserInfoMessage(val userInfo: String) : ClientMessage(ClientMessageType.CLC_USERINFO)
+
 /**
  * Represents a user command sent from client to server, either manual or automatic.
  * Some commands are built-in (the constants below).
