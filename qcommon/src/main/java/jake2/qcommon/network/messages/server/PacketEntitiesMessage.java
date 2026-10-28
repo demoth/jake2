@@ -21,22 +21,15 @@ public class PacketEntitiesMessage extends ServerMessage {
     @Override
     protected void writeProperties(sizebuf_t buffer) {
         for (EntityUpdate u : updates) {
-            // During serialization we don't have a header for entity state changes
+            // Outbound changes calculate their header from baseline/current state.
             if (u.header == null) {
-                // entity is changed
                 DeltaUtils.WriteDeltaEntity(u.oldState, u.newState, buffer, u.force, u.isNewEntity);
+            } else if ((u.header.flags & Defines.U_REMOVE) != 0) {
+                // Entity removal carries only a header (former entity bits).
+                DeltaUtils.writeEntityHeader(u.header.flags, u.header.number, buffer);
             } else {
-                // entity is removed
-                buffer.writeByte((byte) (u.header.flags & 255));
-
-                if ((u.header.flags & 0x0000ff00) != 0)
-                    buffer.writeByte((byte) (u.header.flags >> 8 & 255));
-
-                if ((u.header.flags & Defines.U_NUMBER16) != 0)
-                    buffer.writeShort(u.header.number);
-                else
-                    buffer.writeByte((byte) u.header.number);
-
+                // Received changes already have a wire header; preserve its field presence and values.
+                DeltaUtils.writeEntityDelta(u.header.flags, u.header.number, u.newState, buffer);
             }
         }
         // end of packetentities
@@ -74,20 +67,13 @@ public class PacketEntitiesMessage extends ServerMessage {
 
     private int getUpdateSize(EntityUpdate value) {
         if (value.header == null) {
-            // entity is changed
-            return DeltaUtils.getDeltaSize(value.oldState, value.newState, value.isNewEntity);
+            // Outbound change, including the forced unchanged-header case.
+            return DeltaUtils.getDeltaSize(value.oldState, value.newState, value.force, value.isNewEntity);
+        } else if ((value.header.flags & Defines.U_REMOVE) != 0) {
+            // Entity removal has no payload.
+            return DeltaUtils.getEntityHeaderSize(value.header.flags);
         } else {
-            // entity is removed
-            int result = 1;
-            if ((value.header.flags & 0x0000ff00) != 0)
-                result += 1;
-
-            if ((value.header.flags & Defines.U_NUMBER16) != 0)
-                result += 2;
-            else
-                result += 1;
-
-            return result;
+            return DeltaUtils.getEntityDeltaSize(value.header.flags);
         }
     }
 

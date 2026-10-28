@@ -43,25 +43,12 @@ public class DeltaUtils {
         if (deltaFlags == 0 && !force)
             return; // nothing to send!
 
-        buffer.writeByte((byte) (deltaFlags & 255));
+        writeEntityDelta(deltaFlags, to.index, to, buffer);
+    }
 
-        if ((deltaFlags & 0xff000000) != 0) {
-            buffer.writeByte((byte) (deltaFlags >>> 8 & 255));
-            buffer.writeByte((byte) (deltaFlags >>> 16 & 255));
-            buffer.writeByte((byte) (deltaFlags >>> 24 & 255));
-        } else if ((deltaFlags & 0x00ff0000) != 0) {
-            buffer.writeByte((byte) (deltaFlags >>> 8 & 255));
-            buffer.writeByte((byte) (deltaFlags >>> 16 & 255));
-        } else if ((deltaFlags & 0x0000ff00) != 0) {
-            buffer.writeByte((byte) (deltaFlags >>> 8 & 255));
-        }
-
-        //----------
-
-        if ((deltaFlags & U_NUMBER16) != 0)
-            buffer.writeShort(to.index);
-        else
-            buffer.writeByte((byte) to.index);
+    /** Write fields selected by the wire mask, including explicitly transmitted zero values in received deltas. */
+    public static void writeEntityDelta(int deltaFlags, int number, entity_state_t to, sizebuf_t buffer) {
+        writeEntityHeader(deltaFlags, number, buffer);
 
         if ((deltaFlags & U_MODEL) != 0)
             buffer.writeByte((byte) to.modelindex);
@@ -125,6 +112,24 @@ public class DeltaUtils {
             buffer.writeByte((byte) to.event);
         if ((deltaFlags & U_SOLID) != 0)
             buffer.writeShort(to.solid);
+    }
+
+    /** Emit the flag-extension bytes and entity number exactly as described by the wire flags. */
+    public static void writeEntityHeader(int flags, int number, sizebuf_t buffer) {
+        buffer.writeByte((byte) flags);
+        if ((flags & U_MOREBITS1) != 0) buffer.writeByte((byte) (flags >>> 8));
+        if ((flags & U_MOREBITS2) != 0) buffer.writeByte((byte) (flags >>> 16));
+        if ((flags & U_MOREBITS3) != 0) buffer.writeByte((byte) (flags >>> 24));
+        if ((flags & U_NUMBER16) != 0) buffer.writeShort(number);
+        else buffer.writeByte((byte) number);
+    }
+
+    /** Size of the wire header, including requested extension bytes even if their value is zero. */
+    public static int getEntityHeaderSize(int flags) {
+        return 1 + ((flags & U_MOREBITS1) != 0 ? 1 : 0)
+                + ((flags & U_MOREBITS2) != 0 ? 1 : 0)
+                + ((flags & U_MOREBITS3) != 0 ? 1 : 0)
+                + ((flags & U_NUMBER16) != 0 ? 2 : 1);
     }
 
     private static int getDeltaFlags(entity_state_t from, entity_state_t to, boolean newentity) {
@@ -221,26 +226,19 @@ public class DeltaUtils {
     }
 
     public static int getDeltaSize(entity_state_t from, entity_state_t to, boolean newentity) {
+        return getDeltaSize(from, to, false, newentity);
+    }
+
+    /** Match WriteDeltaEntity's force rule: unchanged forced updates still carry a header. */
+    public static int getDeltaSize(entity_state_t from, entity_state_t to, boolean force, boolean newentity) {
         int flags = getDeltaFlags(from, to, newentity);
-        if (flags == 0)
-            return 0;
+        if (flags == 0 && !force) return 0;
+        return getEntityDeltaSize(flags);
+    }
 
-        int result = 1;
-
-        if ((flags & 0xff000000) != 0) {
-            result += 3;
-        } else if ((flags & 0x00ff0000) != 0) {
-            result += 2;
-        } else if ((flags & 0x0000ff00) != 0) {
-            result += 1;
-        }
-
-        //----------
-
-        if ((flags & U_NUMBER16) != 0)
-            result += 2;
-        else
-            result +=1;
+    /** Size a received delta directly from its field mask rather than recomputing baseline differences. */
+    public static int getEntityDeltaSize(int flags) {
+        int result = getEntityHeaderSize(flags);
 
         if ((flags & U_MODEL) != 0)
             result += 1;

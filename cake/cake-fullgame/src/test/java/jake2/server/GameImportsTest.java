@@ -255,7 +255,8 @@ public class GameImportsTest {
             Assertions.assertArrayEquals(new float[]{42, 0, 0}, ((SoundMessage) sounds.get(1)).origin);
             Assertions.assertEquals(Defines.SND_ENT | Defines.SND_POS | Defines.SND_VOLUME
                     | Defines.SND_ATTENUATION | Defines.SND_OFFSET, earlier.flags);
-            Assertions.assertEquals((entity.index << 3) | Defines.CHAN_WEAPON, earlier.sendchan);
+            Assertions.assertEquals(entity.index, earlier.entityIndex);
+            Assertions.assertEquals(Defines.CHAN_WEAPON, earlier.sendchan);
 
             float[] explicitOrigin = {1, 2, 3};
             first.positioned_sound(explicitOrigin, entity, Defines.CHAN_RELIABLE | Defines.CHAN_VOICE,

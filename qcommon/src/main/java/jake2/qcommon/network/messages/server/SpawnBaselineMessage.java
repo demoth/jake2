@@ -37,7 +37,7 @@ public class SpawnBaselineMessage extends ServerMessage {
 
     @Override
     public int getSize() {
-        return 1 + DeltaUtils.getDeltaSize(base, entityState, true);
+        return 1 + DeltaUtils.getDeltaSize(base, entityState, true, true);
     }
 
     @Override

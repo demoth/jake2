@@ -20,7 +20,7 @@ import java.util.Arrays;
  * An attenuation of 0 will play full volume everywhere in the level.
  * Larger attenuation will drop off.  (max 4 attenuation)
  * <p>
- * Timeofs can range from 0.0 to 0.1 to cause sounds to be started
+ * Timeofs can range from 0.0 to 0.255 to cause sounds to be started
  * later in the frame than they normally would.
  * <p>
  * If origin is null, the origin is determined from the entity origin
@@ -32,7 +32,14 @@ public class SoundMessage extends ServerMessage {
     public int soundIndex;
     public float volume;
     public float attenuation;
-    public float timeOffset;
+    /** Integer wire milliseconds avoid losing a received value when converting through float seconds. */
+    private int timeOffsetMillis;
+
+    public float getTimeOffset() { return timeOffsetMillis / 1000.0f; }
+
+    /** Outbound sounds retain the protocol's existing truncation from seconds to milliseconds. */
+    public void setTimeOffset(float seconds) { timeOffsetMillis = (int) (seconds * 1000); }
+    /** Logical channel (0..7); the wire packs entityIndex in the upper bits. */
     public int sendchan;
     public float[] origin;
 
@@ -48,8 +55,9 @@ public class SoundMessage extends ServerMessage {
         this.soundIndex = soundIndex;
         this.volume = volume;
         this.attenuation = attenuation;
-        this.timeOffset = timeOffset;
-        this.sendchan = sendchan;
+        setTimeOffset(timeOffset);
+        this.entityIndex = (flags & Defines.SND_ENT) != 0 ? sendchan >> 3 : 0;
+        this.sendchan = (flags & Defines.SND_ENT) != 0 ? sendchan & 7 : 0;
         this.origin = origin;
     }
 
@@ -67,10 +75,10 @@ public class SoundMessage extends ServerMessage {
             buffer.writeByte((byte) (attenuation * 64));
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            buffer.writeByte((byte) (timeOffset * 1000));
+            buffer.writeByte((byte) timeOffsetMillis);
 
         if ((flags & Defines.SND_ENT) != 0)
-            buffer.writeShort(sendchan);
+            buffer.writeShort((entityIndex << 3) | (sendchan & 7));
 
         if ((flags & Defines.SND_POS) != 0)
             buffer.writePos(origin);
@@ -93,9 +101,9 @@ public class SoundMessage extends ServerMessage {
             attenuation = Defines.DEFAULT_SOUND_PACKET_ATTENUATION;
 
         if ((flags & Defines.SND_OFFSET) != 0)
-            timeOffset = buffer.readByte() / 1000.0f;
+            timeOffsetMillis = buffer.readByte();
         else
-            timeOffset = 0;
+            timeOffsetMillis = 0;
 
         if ((flags & Defines.SND_ENT) != 0) { // entity relative
             sendchan = buffer.readShort();
@@ -150,7 +158,7 @@ public class SoundMessage extends ServerMessage {
         if (soundIndex != that.soundIndex) return false;
         if (Float.compare(that.volume, volume) != 0) return false;
         if (Float.compare(that.attenuation, attenuation) != 0) return false;
-        if (Float.compare(that.timeOffset, timeOffset) != 0) return false;
+        if (timeOffsetMillis != that.timeOffsetMillis) return false;
         if (sendchan != that.sendchan) return false;
         if (entityIndex != that.entityIndex) return false;
         return Arrays.equals(origin, that.origin);
@@ -162,7 +170,7 @@ public class SoundMessage extends ServerMessage {
         result = 31 * result + soundIndex;
         result = 31 * result + (volume != +0.0f ? Float.floatToIntBits(volume) : 0);
         result = 31 * result + (attenuation != +0.0f ? Float.floatToIntBits(attenuation) : 0);
-        result = 31 * result + (timeOffset != +0.0f ? Float.floatToIntBits(timeOffset) : 0);
+        result = 31 * result + timeOffsetMillis;
         result = 31 * result + sendchan;
         result = 31 * result + Arrays.hashCode(origin);
         result = 31 * result + entityIndex;
@@ -176,7 +184,7 @@ public class SoundMessage extends ServerMessage {
                 ", soundIndex=" + soundIndex +
                 ", volume=" + volume +
                 ", attenuation=" + attenuation +
-                ", timeOffset=" + timeOffset +
+                ", timeOffset=" + getTimeOffset() +
                 ", sendchan=" + sendchan +
                 ", origin=" + Arrays.toString(origin) +
                 ", entityIndex=" + entityIndex +
