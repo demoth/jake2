@@ -145,14 +145,8 @@ public abstract class ServerMessage implements NetworkMessage {
         switch (type) {
             default:
                 throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Invalid server opcode " + type);
-            case svc_inventory:
-                msg = new InventoryMessage();
-                break;
             case svc_sound:
                 msg = new SoundMessage();
-                break;
-            case svc_frame:
-                msg = new FrameHeaderMessage();
                 break;
             case svc_playerinfo:
                 msg = new PlayerInfoMessage();
@@ -162,9 +156,6 @@ public abstract class ServerMessage implements NetworkMessage {
                 break;
             case svc_packetentities:
                 msg = new PacketEntitiesMessage();
-                break;
-            case svc_download:
-                msg = new DownloadMessage();
                 break;
             case svc_temp_entity:
                 int subtype = buffer.readByte();

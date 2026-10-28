@@ -7,6 +7,7 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.*
 import jake2.qcommon.network.messages.client.MoveMessage
+import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.vfs.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -175,6 +176,26 @@ class HostClientAccountingTest {
         assertTrue(peer.netchan.outgoing_sequence > previousSequence)
         assertSame(first, host.games[first.name])
         assertSame(second, host.games[second.name])
+    }
+
+    @Test
+    fun `large downloads keep unsigned progress accurate through their final queued chunks`() {
+        val client = bind(0, first)
+        val source = ByteArray(24 * 1024 * 1024)
+        client.download = source
+        client.downloadsize = source.size
+        client.downloadcount = source.size - 2048
+        host.executeClientCommand(client, "nextdl")
+        val firstChunk = client.netchan.reliablePending.single() as DownloadMessage.Chunk
+        assertEquals(99, firstChunk.percentage)
+        assertEquals(1024, firstChunk.data.size)
+        source[source.size - 2048] = 77
+        assertEquals(0.toByte(), firstChunk.data.toByteArray()[0])
+        host.executeClientCommand(client, "nextdl")
+        val lastChunk = client.netchan.reliablePending.last() as DownloadMessage.Chunk
+        assertEquals(100, lastChunk.percentage)
+        assertEquals(1024, lastChunk.data.size)
+        assertNull(client.download)
     }
 
     @Test

@@ -732,7 +732,7 @@ class ClientEntityManager : Disposable {
         time = time.coerceIn(currentFrame.servertime - 100, currentFrame.servertime)
 
         // read areabits
-        System.arraycopy(msg.areaBits, 0, currentFrame.areabits, 0, msg.areaBits.size);
+        msg.areaBits.copyTo(currentFrame.areabits)
     }
 
     fun processPlayerInfoMessage(msg: PlayerInfoMessage) {

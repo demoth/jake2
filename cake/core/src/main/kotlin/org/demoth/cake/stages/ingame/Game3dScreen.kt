@@ -1141,9 +1141,7 @@ class Game3dScreen(
     }
 
     override fun processInventoryMessage(msg: InventoryMessage) {
-        for (i in 0..<Defines.MAX_ITEMS) {
-            gameConfig.playerConfiguration.inventory[i] = msg.inventory[i]
-        }
+        msg.copyTo(gameConfig.playerConfiguration.inventory)
     }
 
     // endregion

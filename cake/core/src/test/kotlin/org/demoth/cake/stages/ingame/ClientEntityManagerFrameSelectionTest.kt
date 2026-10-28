@@ -7,12 +7,29 @@ import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.player_state_t
 import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.demoth.cake.CakeCvars
 import org.junit.jupiter.api.Test
 
 /** Checks frame selection from parsed messages; registers only entity cvars before consumer construction. */
 class ClientEntityManagerFrameSelectionTest {
+
+    @Test
+    fun shorterAreaBitsClearThePreviousVisibilityTail() {
+        CakeCvars.registerEntities()
+        val manager = ClientEntityManager()
+        try {
+            val size = manager.currentFrame.areabits.size
+            manager.processServerFrameHeader(FrameHeaderMessage(1, -1, 0, size, ByteArray(size) { -1 }))
+            manager.processServerFrameHeader(FrameHeaderMessage(2, -1, 0, 1, byteArrayOf(3)))
+            assertArrayEquals(ByteArray(size).apply { this[0] = 3 }, manager.currentFrame.areabits)
+            manager.processServerFrameHeader(FrameHeaderMessage(3, -1, 0, 0, byteArrayOf()))
+            assertArrayEquals(ByteArray(size), manager.currentFrame.areabits)
+        } finally {
+            manager.dispose()
+        }
+    }
 
     @Test
     fun previousFrameTracksImmediatePriorServerFrameForInterpolation() {

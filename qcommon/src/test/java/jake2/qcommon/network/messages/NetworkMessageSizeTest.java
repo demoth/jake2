@@ -42,8 +42,8 @@ public class NetworkMessageSizeTest {
         testMessages.add(new Object[]{"server.NopMessage", NopMessage.INSTANCE});
         testMessages.add(new Object[]{"server.EndOfServerPacketMessage", EndOfServerPacketMessage.INSTANCE});
         // ordinary messages
-        testMessages.add(new Object[]{"server.DownloadMessage.data", new DownloadMessage(new byte[]{1, 2, 3}, (byte) 50)});
-        testMessages.add(new Object[]{"server.DownloadMessage.empty", new DownloadMessage()});
+        testMessages.add(new Object[]{"server.DownloadMessage.data", DownloadMessage.chunk(new byte[]{1, 2, 3}, 50)});
+        testMessages.add(new Object[]{"server.DownloadMessage.empty", new DownloadMessage.Failure()});
         testMessages.add(new Object[]{"server.DisconnectMessage", DisconnectMessage.INSTANCE});
         testMessages.add(new Object[]{"server.ReconnectMessage", ReconnectMessage.INSTANCE});
         testMessages.add(new Object[]{"server.LayoutMessage", new LayoutMessage("layout")});

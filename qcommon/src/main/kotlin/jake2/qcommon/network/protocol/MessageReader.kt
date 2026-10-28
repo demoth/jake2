@@ -42,6 +42,12 @@ class MessageReader(bytes: PacketBytes, offset: Int) : sizebuf_t(bytes.size) {
     /** Signed wire short, widened once at the boundary to -32768..32767, including negative protocol markers. */
     fun readSignedShort(): Int = readShort().toInt()
 
+    /** Snapshot a bounded payload range before its packet buffer can be reused. */
+    fun readBytes(length: Int): PacketBytes {
+        requireRemaining(this, length)
+        return PacketBytes.copyOfRange(data, readcount, length).also { readcount += length }
+    }
+
     override fun readSignedByte(): Byte {
         requireRemaining(this, 1)
         return super.readSignedByte()

@@ -177,7 +177,7 @@ public class GameImportsTest {
 
         var initial = List.copyOf(first.buildClientFrameMessages(firstClient));
         Assertions.assertEquals(3, initial.size());
-        Assertions.assertEquals(-1, ((FrameHeaderMessage) initial.get(0)).lastFrame);
+        Assertions.assertEquals(-1, ((FrameHeaderMessage) initial.get(0)).getLastFrame());
         EntityUpdate initialUpdate = ((PacketEntitiesMessage) initial.get(2)).updates.get(0);
         Assertions.assertTrue(initialUpdate.force);
         Assertions.assertEquals(11, initialUpdate.newState.modelindex);
@@ -193,8 +193,8 @@ public class GameImportsTest {
             int oldModel = game == first ? 11 : 22;
             var messages = List.copyOf(game.buildClientFrameMessages(client));
             FrameHeaderMessage header = (FrameHeaderMessage) messages.get(0);
-            Assertions.assertEquals(2, header.frameNumber);
-            Assertions.assertEquals(1, header.lastFrame);
+            Assertions.assertEquals(2, header.getFrameNumber());
+            Assertions.assertEquals(1, header.getLastFrame());
             var updates = ((PacketEntitiesMessage) messages.get(2)).updates;
             Assertions.assertEquals(1, updates.size());
             Assertions.assertEquals(oldModel, updates.get(0).oldState.modelindex);
@@ -213,7 +213,7 @@ public class GameImportsTest {
         // An acknowledgement outside the retained frame window falls back to a baseline update.
         second.frameNum += Defines.UPDATE_BACKUP;
         var stale = List.copyOf(second.buildClientFrameMessages(secondClient));
-        Assertions.assertEquals(-1, ((FrameHeaderMessage) stale.get(0)).lastFrame);
+        Assertions.assertEquals(-1, ((FrameHeaderMessage) stale.get(0)).getLastFrame());
         Assertions.assertTrue(((PacketEntitiesMessage) stale.get(2)).updates.get(0).force);
     }
 

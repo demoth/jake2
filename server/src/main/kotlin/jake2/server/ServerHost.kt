@@ -1554,11 +1554,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.downloadcount += packet
         var size = client.downloadsize
         if (size == 0) size = 1
-        val percent = (client.downloadcount * 100 / size).toByte()
+        val percent = (client.downloadcount.toLong() * 100 / size).toInt()
 
         val data = ByteArray(packet)
         System.arraycopy(client.download, client.downloadcount - packet, data, 0, packet)
-        client.netchan.reliablePending.add(DownloadMessage(data, percent))
+        client.netchan.reliablePending.add(DownloadMessage.chunk(data, percent))
 
         if (client.downloadcount == client.downloadsize) {
             client.download = null
@@ -1599,7 +1599,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             // refuse
 
-            client.netchan.reliablePending.add(DownloadMessage())
+            client.netchan.reliablePending.add(DownloadMessage.Failure())
             return
         }
 
@@ -1608,7 +1608,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // The client waits for either data or an explicit refusal. Silently
         // returning here leaves precache stuck waiting for a download forever.
         if (client.download == null) {
-            client.netchan.reliablePending.add(DownloadMessage())
+            client.netchan.reliablePending.add(DownloadMessage.Failure())
             return
         }
 
@@ -1625,7 +1625,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             // refuse
-            client.netchan.reliablePending.add(DownloadMessage())
+            client.netchan.reliablePending.add(DownloadMessage.Failure())
             return
         }
 

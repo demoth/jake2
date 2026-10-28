@@ -79,7 +79,7 @@ class MessageBodyCodecTest {
     fun `known download failure markers and explicit packet endings remain supported`() {
         for (length in listOf(-1, -32640)) {
             val result = decode(byteArrayOf(16, length.toByte(), (length shr 8).toByte(), 0)) as MessageDecodeResult.Decoded
-            assertNull((result.messages.single() as DownloadMessage).data)
+            assertEquals(length, (result.messages.single() as DownloadMessage.Failure).marker)
         }
         for (body in listOf(byteArrayOf(6), byteArrayOf(255.toByte())))
             assertTrue((decode(body) as MessageDecodeResult.Decoded).messages.isEmpty())

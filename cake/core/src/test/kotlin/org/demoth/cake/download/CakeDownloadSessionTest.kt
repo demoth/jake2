@@ -26,17 +26,17 @@ class CakeDownloadSessionTest {
         assertTrue(downloads.requestMissingResource("maps/base1.bsp", null, 42))
         assertEquals(listOf("download maps/base1.bsp"), sent)
         assertEquals(CakeDownloadSession.Result.Continue,
-            downloads.handle(DownloadMessage(byteArrayOf(1, 2), 50)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(1, 2), 50)))
         assertEquals(listOf("download maps/base1.bsp", "nextdl"), sent)
         assertFalse(Files.exists(temp.resolve("baseq2/maps/base1.bsp")))
 
         assertEquals(CakeDownloadSession.Result.RetryPrecache(42),
-            downloads.handle(DownloadMessage(byteArrayOf(3), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(3), 100)))
         assertArrayEquals(byteArrayOf(1, 2, 3), Files.readAllBytes(temp.resolve("baseq2/maps/base1.bsp")))
         assertFalse(Files.exists(temp.resolve("baseq2/maps/base1.tmp")))
         assertEquals(2, sent.size, "Precache is returned to the caller, not sent to the server")
         downloads.precacheCompleted()
-        assertEquals(CakeDownloadSession.Result.Continue, downloads.handle(DownloadMessage(byteArrayOf(4), 100)))
+        assertEquals(CakeDownloadSession.Result.Continue, downloads.handle(DownloadMessage.chunk(byteArrayOf(4), 100)))
         assertArrayEquals(byteArrayOf(1, 2, 3), Files.readAllBytes(temp.resolve("baseq2/maps/base1.bsp")))
     }
 
@@ -50,7 +50,7 @@ class CakeDownloadSessionTest {
         downloads.requestMissingResource("maps/base1.bsp", "rogue", 7)
         assertEquals(listOf("download maps/base1.bsp 3"), sent)
         assertEquals(CakeDownloadSession.Result.RetryPrecache(7),
-            downloads.handle(DownloadMessage(byteArrayOf(4), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(4), 100)))
         assertArrayEquals(byteArrayOf(1, 2, 3, 4), Files.readAllBytes(temp.resolve("rogue/maps/base1.bsp")))
         assertFalse(Files.exists(temp.resolve("baseq2/maps/base1.bsp")))
     }
@@ -64,10 +64,10 @@ class CakeDownloadSessionTest {
         assertEquals(1, sent.size)
 
         assertEquals(CakeDownloadSession.Result.Continue,
-            downloads.handle(DownloadMessage(byteArrayOf(1), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(1), 100)))
         assertEquals(listOf("download maps/base1.bsp", "download sound/world/door.wav"), sent)
         assertEquals(CakeDownloadSession.Result.RetryPrecache(3),
-            downloads.handle(DownloadMessage(byteArrayOf(2), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(2), 100)))
         assertEquals(2, sent.size)
     }
 
@@ -75,19 +75,19 @@ class CakeDownloadSessionTest {
     fun `reset cancels active and queued work but retains partial file for reconnect`() {
         val downloads = session()
         downloads.requestMissingResource("maps/base1.bsp", null, 1)
-        downloads.handle(DownloadMessage(byteArrayOf(1, 2), 50))
+        downloads.handle(DownloadMessage.chunk(byteArrayOf(1, 2), 50))
         downloads.requestMissingResource("sound/world/door.wav", null, 1)
         downloads.reset()
         sent.clear()
 
         assertEquals(CakeDownloadSession.Result.Continue,
-            downloads.handle(DownloadMessage(byteArrayOf(9), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(9), 100)))
         assertTrue(sent.isEmpty())
         assertArrayEquals(byteArrayOf(1, 2), Files.readAllBytes(temp.resolve("baseq2/maps/base1.tmp")))
         downloads.requestMissingResource("maps/base1.bsp", null, 99)
         assertEquals(listOf("download maps/base1.bsp 2"), sent)
         assertEquals(CakeDownloadSession.Result.RetryPrecache(99),
-            downloads.handle(DownloadMessage(byteArrayOf(3), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(3), 100)))
         assertEquals(1, sent.size, "Reset must discard the old queued sound")
     }
 
@@ -96,11 +96,11 @@ class CakeDownloadSessionTest {
         val downloads = session()
         downloads.requestMissingResource("maps/base1.bsp", null, 5)
         downloads.requestMissingResource("sound/world/door.wav", null, 5)
-        assertEquals(CakeDownloadSession.Result.MissingOnServer, downloads.handle(DownloadMessage()))
+        assertEquals(CakeDownloadSession.Result.MissingOnServer, downloads.handle(DownloadMessage.Failure()))
         assertEquals(listOf("download maps/base1.bsp"), sent)
         // Cake responds to failure by disconnecting, which resets this session.
         downloads.reset()
-        assertEquals(CakeDownloadSession.Result.Continue, downloads.handle(DownloadMessage()))
+        assertEquals(CakeDownloadSession.Result.Continue, downloads.handle(DownloadMessage.Failure()))
         assertFalse(Files.exists(temp.resolve("baseq2/maps/base1.bsp")))
     }
 
@@ -114,7 +114,7 @@ class CakeDownloadSessionTest {
         cvars.setResult("allow_download", "0")
         assertFalse(downloads.requestMissingResource("sound/world/door.wav", null, 1))
         assertTrue(sent.isEmpty())
-        assertEquals(CakeDownloadSession.Result.Continue, downloads.handle(DownloadMessage()))
+        assertEquals(CakeDownloadSession.Result.Continue, downloads.handle(DownloadMessage.Failure()))
     }
 
     @Test
@@ -123,6 +123,6 @@ class CakeDownloadSessionTest {
         downloads.requestMissingResource("maps/base1.bsp", null, 10)
         downloads.precacheCompleted()
         assertEquals(CakeDownloadSession.Result.Continue,
-            downloads.handle(DownloadMessage(byteArrayOf(1), 100)))
+            downloads.handle(DownloadMessage.chunk(byteArrayOf(1), 100)))
     }
 }

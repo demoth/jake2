@@ -170,7 +170,7 @@ class EmbeddedCakeHostTest {
             val buffer = sizebuf_t(64)
             client.netchan.reliablePending.single().writeTo(buffer)
             val reply = ServerMessage.parseFromBuffer(buffer) as DownloadMessage
-            assertNull(reply.data)
+            assertTrue(reply is DownloadMessage.Failure)
             assertEquals(CakeDownloadSession.Result.MissingOnServer, downloads.handle(reply))
             assertFalse(Files.exists(cache.resolve("baseq2/$path")))
             if (resume) assertArrayEquals(byteArrayOf(1, 2, 3), Files.readAllBytes(partial))

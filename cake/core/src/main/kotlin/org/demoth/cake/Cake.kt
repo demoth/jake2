@@ -1170,8 +1170,8 @@ class Cake(
                 }
 
                 is DownloadMessage -> {
-                    msg.data?.size?.takeIf { it > 0 }?.let { bytes ->
-                        networkDebugSampler.recordDownload(bytes, Globals.curtime)
+                    if (msg is DownloadMessage.Chunk && msg.data.size > 0) {
+                        networkDebugSampler.recordDownload(msg.data.size, Globals.curtime)
                     }
                     when (val result = downloads.handle(msg)) {
                         CakeDownloadSession.Result.Continue -> Unit
