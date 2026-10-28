@@ -23,6 +23,7 @@ import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import org.demoth.cake.network.ClientNetwork
+import org.demoth.cake.network.ClientHandshake
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -80,7 +81,6 @@ class Cake(
     private val network: ClientNetwork = host.clientNetwork,
 ) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
-        private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
         private const val MAX_CLIENT_COMMAND_CATCHUP_STEPS = 4
         private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
@@ -130,11 +130,8 @@ class Cake(
 
     // Connection and download protocol state.
     private var networkState = DISCONNECTED
-    // Retain the last endpoint for manual reconnect; handshake replies also require CONNECTING.
-    private var connectionTarget: netadr_t? = null
-    private var localConnection = false
-    private var challenge = 0
-    private var reconnectTimeout = 0f // fire first connect attempt immediately
+    private val handshake = ClientHandshake(network, ::connectPayload)
+    private val localConnection get() = handshake.isLocal
     private val netchan = network.newChannel()
 
     private val downloads = CakeDownloadSession(sendReliable = { command ->
@@ -290,6 +287,7 @@ class Cake(
          */
         Cmd.AddCommand("changing", "(internal) Enter map-change transition state") {
             networkState = CONNECTED
+            handshake.pause()
             // todo: indicate somehow about the map changing (loading screen or spinner)
             // SCR.BeginLoadingPlaque();
             Com.Printf("\nChanging map...\n")
@@ -306,7 +304,7 @@ class Cake(
                 netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
 
             } else {
-                val target = connectionTarget ?: return@AddCommand
+                val target = handshake.lastTarget ?: return@AddCommand
                 val local = target.type == NetAddrType.NA_LOOPBACK
                 if (local && host.state != HostState.RUNNING) {
                     Com.Warn("No local server is running.\n")
@@ -496,16 +494,11 @@ class Cake(
     }
 
     private fun beginConnection(target: netadr_t, local: Boolean) {
-        if (!local && !network.configure(true)) {
+        if (!handshake.begin(target, local)) {
             Com.Warn("Could not open the client UDP socket\n")
             return
         }
-        if (local) network.configure(false)
         Com.Printf("Connecting to ${if (local) "local server" else target}...\n")
-        connectionTarget = target
-        localConnection = local
-        challenge = 0
-        reconnectTimeout = 0f
         networkState = CONNECTING
     }
 
@@ -530,9 +523,7 @@ class Cake(
         clearTransitionBackdrop()
         netchan.clear()
         networkState = DISCONNECTED
-        localConnection = false
-        challenge = 0
-        reconnectTimeout = 0f
+        handshake.reset()
         clientCommandExtraMs = 0f
         downloads.reset()
         networkDebugSampler.clear()
@@ -695,7 +686,7 @@ class Cake(
             }
             game3dScreen?.updateLocalInput(deltaSeconds)
             runClientCommandSteps(deltaSeconds)
-            CheckForResend(deltaSeconds)
+            handshake.tick(deltaSeconds)
 
             if (!drawable) return
             if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
@@ -1059,43 +1050,12 @@ class Cake(
         deferredConfigUnloadScreen = null
     }
 
-    /**
-     * CheckForResend
-     *
-     * Resend a connect message if the last one has timed out.
-     */
-    private fun CheckForResend(deltaSeconds: Float) {
-        // resend if we haven't gotten a reply yet
-        if (networkState != CONNECTING)
-            return
-
-        val adr = connectionTarget ?: return
-        if (reconnectTimeout <= 0f) {
-            if (localConnection) {
-                // The server already trusts in-process loopback; use its normal connect path.
-                SendConnectPacket()
-            } else {
-                network.sendConnectionless(adr, ConnectionlessCommand.getchallenge, "\n")
-            }
-            reconnectTimeout = CONNECT_RETRY_TIMEOUT_SECONDS
-        } else {
-            reconnectTimeout -= deltaSeconds
-        }
-    }
-
     // The connect payload already includes current userinfo, so consume the legacy dirty flag.
-    // Keep this suppression until the client/cvar sync replacement noted in Globals exists.
     @Suppress("DEPRECATION")
-    private fun SendConnectPacket() {
-        val adr = connectionTarget ?: return
-
+    private fun connectPayload(challenge: Int): String {
         val port = Cvar.getInstance().find<Int>("qport").typedValue
         Globals.userinfo_modified = false
-
-        network.sendConnectionless(adr,
-            ConnectionlessCommand.connect,
-            " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
-        )
+        return " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
     }
 
     private fun CL_ReadPackets() {
@@ -1153,8 +1113,7 @@ class Cake(
                     Com.Printf("ReconnectMessage: Reconnecting..\n")
                     beginMapTransitionRetainingConfigAssets()
                     networkState = CONNECTING
-                    // CheckForResend() will fire immediately
-                    reconnectTimeout = 0f
+                    handshake.restart()
                 }
 
                 is StuffTextMessage -> {
@@ -1347,18 +1306,13 @@ class Cake(
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
         val c = args.firstOrNull() ?: return
         val cmd = ConnectionlessCommand.fromString(c)
-        if (cmd == ConnectionlessCommand.challenge || cmd == ConnectionlessCommand.client_connect) {
-            val target = connectionTarget ?: return
-            if (networkState != CONNECTING || packet.from.type != target.type || !packet.from.compareIp(target)) return
-        }
-
         when (cmd) {
             ConnectionlessCommand.challenge -> {
-                challenge = args.getOrNull(1)?.toIntOrNull() ?: return
-                SendConnectPacket()
+                handshake.receiveChallenge(packet.from, args.getOrNull(1))
             }
 
             ConnectionlessCommand.client_connect -> {
+                if (!handshake.acceptConnection(packet.from)) return
                 networkState = CONNECTED
                 netchan.setup(NS_CLIENT, packet.from, Cvar.getInstance().find<Int>("qport").typedValue)
                 netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
