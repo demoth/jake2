@@ -33,7 +33,7 @@ class TransitionArchiveTest {
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        host = ServerHost(TransportServerNetwork.standalone())
         Cvar.getInstance().find<Int>("maxclients").forceSet(4)
         host.resetClients()
         first = host.createGameInstance(ChangeMapInfo("testbox", false, false), null)

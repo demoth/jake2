@@ -9,7 +9,6 @@ import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import org.demoth.cake.Cake
 import org.demoth.cake.CakeStartupBootstrap
@@ -37,7 +36,7 @@ object CakeSessionPeer {
             try {
                 host.initialize()
                 check(host.start(HostRequest(profile, "base1", HostMode.DEATHMATCH)) == HostStartResult.Started)
-                Files.writeString(ready, NET.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port.toString())
+                Files.writeString(ready, host.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port.toString())
                 var previous = System.nanoTime()
                 while (System.nanoTime() < deadline) {
                     Thread.sleep(5)

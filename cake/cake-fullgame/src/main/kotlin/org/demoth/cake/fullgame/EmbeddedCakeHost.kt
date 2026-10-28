@@ -11,8 +11,6 @@ import jake2.qcommon.network.transport.LoopbackLink
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.server.TransportServerNetwork
 import org.demoth.cake.network.TransportClientNetwork
-import org.demoth.cake.network.LegacyClientNetwork
-import jake2.qcommon.network.NET
 import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.vfs.VfsConfig
@@ -33,28 +31,18 @@ import java.util.UUID
 /** Application-owned embedded Host; games may stop while commands and profile remain active. */
 class EmbeddedCakeHost(
     private val profilesRoot: Path = Path.of(System.getProperty("user.home"), ".cake"),
-    private val localLink: LoopbackLink? = null,
+    private val localLink: LoopbackLink = LoopbackLink(),
 ) : CakeHost {
-    companion object {
-        @JvmStatic fun owned() = EmbeddedCakeHost(localLink = LoopbackLink())
-    }
-    private val clientTransport = localLink?.let {
-        NetworkTransport(it.first, it.second.localAddress)
-    }
-    private val serverTransport = localLink?.let {
-        NetworkTransport(it.second, it.first.localAddress)
-    }
-    override val clientNetwork = clientTransport?.let { TransportClientNetwork(it) }
-        ?: LegacyClientNetwork
+    private val clientTransport = NetworkTransport(localLink.first, localLink.second.localAddress)
+    private val serverTransport = NetworkTransport(localLink.second, localLink.first.localAddress)
+    override val clientNetwork = TransportClientNetwork(clientTransport)
 
-    internal fun udpEndpoint(role: Int) = if (localLink == null) NET.udpEndpoint(role)
-        else if (role == Defines.NS_CLIENT) clientTransport?.udpEndpoint else serverTransport?.udpEndpoint
+    internal fun udpEndpoint(role: Int) =
+        if (role == Defines.NS_CLIENT) clientTransport.udpEndpoint else serverTransport.udpEndpoint
 
     private fun clearLocalTraffic() {
-        if (localLink == null) NET.clearLoopbacks() else {
-            localLink.first.clearIncoming()
-            localLink.second.clearIncoming()
-        }
+        localLink.first.clearIncoming()
+        localLink.second.clearIncoming()
     }
 
     internal var server: ServerHost? = null
@@ -80,8 +68,7 @@ class EmbeddedCakeHost(
                 else -> this.startupRejection()
             }
         }
-        server = if (serverTransport == null) ServerHost(startupRejection = rejection)
-            else ServerHost(TransportServerNetwork(serverTransport), rejection)
+        server = ServerHost(TransportServerNetwork(serverTransport), rejection)
     }
 
     override fun activateProfile(profile: CakeGameProfile?) {
@@ -215,7 +202,7 @@ class EmbeddedCakeHost(
             manager?.close()
         } finally {
             if (manager != null) clearLocalTraffic()
-            if (localLink != null) clientNetwork.close()
+            try { clientNetwork.close() } finally { localLink.close() }
             previousWriteRoot?.let(EngineWriteRoot::setRoot)
             previousWriteRoot = null
             activeProfile = null

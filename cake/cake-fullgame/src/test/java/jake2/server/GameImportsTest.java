@@ -55,7 +55,7 @@ public class GameImportsTest {
 
     @Test
     public void runEmptyInstance() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl testInstance = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
 
         testInstance.runFrame();
@@ -65,7 +65,7 @@ public class GameImportsTest {
 
     @Test
     public void gamesKeepIndependentMapStateAndFrameCounters() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
 
@@ -91,7 +91,7 @@ public class GameImportsTest {
 
     @Test
     public void resourceUpdatesStayWithTheirGameAndOnlySendAfterLoading() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
@@ -129,7 +129,7 @@ public class GameImportsTest {
 
     @Test
     public void spatialQueriesAndClearingStayWithTheirGame() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         ServerEntity firstEntity = first.gameExports.getEdict(1);
@@ -167,7 +167,7 @@ public class GameImportsTest {
 
     @Test
     public void clientSnapshotsKeepIndependentGameHistory() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         ClientNetworkInfo firstClient = snapshotClient(first, 11);
@@ -229,7 +229,7 @@ public class GameImportsTest {
 
     @Test
     public void queuedSoundsKeepTheirPositionsAndStayWithinTheirGame() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
@@ -283,7 +283,7 @@ public class GameImportsTest {
 
     @Test
     public void levelInitializationTransfersPersistentStateAndKeepsEventsGameLocal() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         GameExportsImpl firstGameplay = (GameExportsImpl) first.gameExports;
         Assertions.assertEquals(ServerStates.SS_GAME, first.state);
@@ -307,7 +307,7 @@ public class GameImportsTest {
 
     @Test
     public void levelInitializationRestoresSavesAndOnlySettlesRevisitedLevels() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl original = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         GameExportsImpl originalGameplay = (GameExportsImpl) original.gameExports;
         originalGameplay.game.serverflags = 9;
@@ -346,7 +346,7 @@ public class GameImportsTest {
 
     @Test
     public void hostProtocolDispatchAndShutdownUseTheirOwnGameRegistry() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().register("gamedir", jake2.qcommon.exec.CvarTypes.STRING, "", 0, "Test mod directory");
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
@@ -380,7 +380,7 @@ public class GameImportsTest {
 
         // A separate idle Host must not inherit or clear the running Host's registry.
         // Global console/cvar/network isolation is outside this ownership test.
-        try (ServerHost other = new ServerHost()) {
+        try (ServerHost other = new ServerHost(TransportServerNetwork.standalone())) {
             Assertions.assertFalse(other.isRunning());
             Assertions.assertEquals(first.name, other.allocateGameName());
         }
@@ -392,7 +392,7 @@ public class GameImportsTest {
 
     @Test
     public void saveCommandResolvesOnlyDefaultGameWithoutReregistration() throws Exception {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
         var saveRegistration = jake2.qcommon.exec.Cmd.FindCommand("save");
@@ -422,7 +422,7 @@ public class GameImportsTest {
     @Test
     public void runGame() {
 
-        final ServerHost sv_main = manager = new ServerHost();
+        final ServerHost sv_main = manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         final GameExports gameExports = game.gameExports;
         GameEntity gunner = null;

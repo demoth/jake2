@@ -6,7 +6,6 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.network.messages.server.ServerMessage
@@ -50,7 +49,6 @@ class EmbeddedCakeHostTest {
     @AfterEach
     fun cleanup() {
         host.dispose()
-        NET.Config(false)
         EngineWriteRoot.setRoot(previousRoot)
         cvars.clear()
     }
@@ -81,7 +79,7 @@ class EmbeddedCakeHostTest {
         assertEquals(HostState.STOPPED, host.state)
         assertEquals(previousRoot, EngineWriteRoot.path())
         assertFalse(Files.exists(temp.resolve("session")))
-        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
+        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { host.udpEndpoint(it) == null })
     }
 
     @Test
@@ -109,7 +107,7 @@ class EmbeddedCakeHostTest {
         assertNull(Cmd.FindCommand("load"))
         assertNull(Cmd.FindCommand("save"))
         assertEquals(previousRoot, EngineWriteRoot.path())
-        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
+        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { host.udpEndpoint(it) == null })
         assertThrows(IllegalStateException::class.java) { host.initialize() }
     }
 
@@ -188,7 +186,7 @@ class EmbeddedCakeHostTest {
         host.update(100)
         assertEquals(HostState.RUNNING, host.state)
         assertEquals(1, host.server!!.games.getValue("default").serverMain.clients.size)
-        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
+        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { host.udpEndpoint(it) == null })
     }
 
     @Test
@@ -237,7 +235,7 @@ class EmbeddedCakeHostTest {
         assertEquals("", cvars.find<String>("gamedir").typedValue)
         assertEquals(temp.resolve("session"), EngineWriteRoot.path())
         assertTrue(Files.exists(temp.resolve("session/save/autosave/game.ssv.json")))
-        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
+        assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { host.udpEndpoint(it) == null })
         val frame = game().level.framenum
         host.update(100)
         assertEquals(frame + 1, game().level.framenum)
@@ -306,14 +304,14 @@ class EmbeddedCakeHostTest {
     fun `multiplayer continues while menus request pause`() {
         for (mode in listOf(HostMode.DEATHMATCH, HostMode.COOP)) {
             assertEquals(HostStartResult.Started, host.start(request(mode)))
-            assertNotNull(NET.udpEndpoint(Defines.NS_SERVER))
+            assertNotNull(host.udpEndpoint(Defines.NS_SERVER))
             val frame = game().level.framenum
             host.setPaused(true)
             host.update(100)
             assertFalse(cvars.find<Boolean>("paused").typedValue)
             assertEquals(frame + 1, game().level.framenum)
             host.stop("next mode")
-            assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
+            assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { host.udpEndpoint(it) == null })
         }
     }
 
@@ -323,12 +321,12 @@ class EmbeddedCakeHostTest {
             cvars.find<Int>("port").forceSet(occupied.localPort)
             assertInstanceOf(HostStartResult.Rejected::class.java, host.start(request(HostMode.COOP)))
             assertEquals(HostState.STOPPED, host.state)
-            assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { NET.udpEndpoint(it) == null })
+            assertTrue(listOf(Defines.NS_CLIENT, Defines.NS_SERVER).all { host.udpEndpoint(it) == null })
             assertNotNull(Cmd.FindCommand("map"))
         }
         assertEquals(HostStartResult.Started, host.start(request(HostMode.COOP)))
-        assertNotNull(NET.udpEndpoint(Defines.NS_SERVER))
-        assertNull(NET.udpEndpoint(Defines.NS_CLIENT))
+        assertNotNull(host.udpEndpoint(Defines.NS_SERVER))
+        assertNull(host.udpEndpoint(Defines.NS_CLIENT))
     }
 
     @Test

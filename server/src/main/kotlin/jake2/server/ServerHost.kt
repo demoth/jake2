@@ -38,7 +38,7 @@ import jake2.server.save.ServerSaveJsonStore
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
 class ServerHost @JvmOverloads constructor(
-    private val network: ServerNetwork = LegacyServerNetwork,
+    private val network: ServerNetwork,
     private val startupRejection: () -> String? = { null },
 ) : AutoCloseable {
     // region Host state and command dispatch

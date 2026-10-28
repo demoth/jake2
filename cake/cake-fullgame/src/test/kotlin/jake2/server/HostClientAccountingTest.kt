@@ -17,6 +17,7 @@ class HostClientAccountingTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
     private var previousState: ServerStates? = null
+    private lateinit var network: HostNetworkFixture
     private lateinit var host: ServerHost
     private lateinit var first: GameImportsImpl
     private lateinit var second: GameImportsImpl
@@ -30,11 +31,11 @@ class HostClientAccountingTest {
         cvars.clear()
         MainCommon.registerCvars(false)
         Netchan.Netchan_Init()
-        drainPackets()
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        network = HostNetworkFixture()
+        host = ServerHost(network.server)
         assertTrue(host.startMap("testbox"))
         host.games.clear()
         cvars.find<Int>("maxclients").forceSet(2)
@@ -69,6 +70,7 @@ class HostClientAccountingTest {
     fun cleanup() {
         host.clients.forEach { it.state = ClientStates.CS_FREE }
         host.close()
+        network.close()
         drainPackets()
         EngineWriteRoot.setRoot(previousRoot)
         Globals.server_state = previousState
@@ -77,7 +79,7 @@ class HostClientAccountingTest {
 
     private fun drainPackets() {
         for (side in listOf(Defines.NS_CLIENT, Defines.NS_SERVER)) {
-            while (NET.receiveLoopbackPacket(side) != null) { }
+            while (network.receiveLocal(side) != null) { }
         }
     }
 
@@ -309,12 +311,12 @@ class HostClientAccountingTest {
             }
             cvars.find<Int>("port").forceSet(0)
             try {
-                assertTrue(NET.configureServer(true))
+                assertTrue(network.server.configure(true))
                 Globals.curtime = 1000
                 host.handleConnectionlessPacket(address, "getchallenge")
                 val issued = reply()
                 val challenge = issued.substringAfterLast(' ')
-                NET.configureServer(false)
+                network.server.configure(false)
                 // No UDP socket while filling synthetic remote addresses: no external packets.
                 Globals.curtime = -1000
                 repeat(Defines.MAX_CHALLENGES - 1) { index ->
@@ -324,21 +326,21 @@ class HostClientAccountingTest {
                     }
                     host.handleConnectionlessPacket(remote, "getchallenge")
                 }
-                assertTrue(NET.configureServer(true))
+                assertTrue(network.server.configure(true))
                 host.handleConnectionlessPacket(address, "getchallenge")
                 assertEquals(issued, reply(), "Repeated requests retain the existing challenge")
-                NET.configureServer(false)
+                network.server.configure(false)
                 host.handleConnectionlessPacket(netadr_t().apply {
                     type = NetAddrType.NA_IP
                     ip = byteArrayOf(198.toByte(), 51, 100, 1)
                 }, "getchallenge")
-                assertTrue(NET.configureServer(true))
+                assertTrue(network.server.configure(true))
                 host.handleConnectionlessPacket(address,
                     "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester")
                 assertTrue(reply().contains("No challenge for address"))
             } finally {
                 Globals.curtime = previousTime
-                NET.configureServer(false)
+                network.server.configure(false)
             }
         }
     }
@@ -350,11 +352,11 @@ class HostClientAccountingTest {
         val loopback = java.net.InetAddress.getByName("127.0.0.1")
         java.net.DatagramSocket(0, loopback).use { receiver ->
             receiver.soTimeout = 2000
-            assertTrue(NET.configureServer(true))
+            assertTrue(network.server.configure(true))
             try {
                 val request = byteArrayOf(-1, -1, -1, -1) + "status".toByteArray()
                 receiver.send(java.net.DatagramPacket(request, request.size, loopback,
-                    NET.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port))
+                    network.serverTransport.udpEndpoint!!.localAddress.port))
                 val response = java.net.DatagramPacket(ByteArray(2048), 2048)
                 // The UDP receive path is nonblocking; allow delivery before pumping it again.
                 val deadline = System.nanoTime() + 2_000_000_000L
@@ -375,7 +377,7 @@ class HostClientAccountingTest {
                 assertEquals(first.mapName, Info.Info_ValueForKey(info, "mapname"))
                 assertFalse(text.contains("another-game-map"))
             } finally {
-                NET.configureServer(false)
+                network.server.configure(false)
             }
         }
     }
@@ -385,7 +387,7 @@ class HostClientAccountingTest {
         // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
         val address = netadr_t().apply { port = 12345 }
         host.handleConnectionlessPacket(address, "getchallenge")
-        val reply = NET.receiveLoopbackPacket(Defines.NS_CLIENT)!!.connectionlessMessage
+        val reply = network.receiveLocal(Defines.NS_CLIENT)!!.connectionlessMessage
         val challenge = reply.trim().substringAfterLast(' ')
         val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
         first.frameNum = 9000

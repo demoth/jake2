@@ -27,7 +27,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            ServerHost server = new ServerHost();
+            ServerHost server = new ServerHost(TransportServerNetwork.standalone());
             var acceleration = cvars.find("sv_airaccelerate", Float.class);
             var deathmatch = cvars.find("deathmatch", Boolean.class);
             acceleration.forceSet(2.5f);
@@ -57,7 +57,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            ServerHost server = new ServerHost();
+            ServerHost server = new ServerHost(TransportServerNetwork.standalone());
             cvars.find("deathmatch", Boolean.class).forceSet(true);
             var acceleration = cvars.find("sv_airaccelerate", Float.class);
             acceleration.forceSet(1f);
@@ -90,7 +90,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            ServerHost server = new ServerHost();
+            ServerHost server = new ServerHost(TransportServerNetwork.standalone());
             ServerSaveJsonStore.forWriteDir(temp.toString()).writeLatchedCvars("current", List.of(
                     new ServerSaveJsonStore.LatchedCvarSnapshot("deathmatch", "1"),
                     new ServerSaveJsonStore.LatchedCvarSnapshot("sv_airaccelerate", "3.5")));
@@ -113,7 +113,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            ServerHost server = new ServerHost();
+            ServerHost server = new ServerHost(TransportServerNetwork.standalone());
             var deathmatch = cvars.find("deathmatch", Boolean.class);
             var acceleration = cvars.find("sv_airaccelerate", Float.class);
             deathmatch.forceSet(true);

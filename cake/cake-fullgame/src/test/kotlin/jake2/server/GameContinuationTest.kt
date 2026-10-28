@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.nio.file.Files
-import jake2.qcommon.network.NET
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
@@ -21,6 +20,7 @@ class GameContinuationTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
     private var previousState: ServerStates? = null
+    private lateinit var network: HostNetworkFixture
     private lateinit var host: ServerHost
 
     @BeforeEach
@@ -34,7 +34,8 @@ class GameContinuationTest {
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        network = HostNetworkFixture()
+        host = ServerHost(network.server)
         Cvar.getInstance().find<Int>("maxclients").forceSet(3)
         host.resetClients()
     }
@@ -43,6 +44,7 @@ class GameContinuationTest {
     fun cleanup() {
         host.clients.forEach { it.state = ClientStates.CS_FREE }
         host.close()
+        network.close()
         Cbuf.ClearDeferred()
         EngineWriteRoot.setRoot(previousRoot)
         Globals.server_state = previousState
@@ -192,8 +194,8 @@ class GameContinuationTest {
         a.netchan.remote_address = null // Fail the first final notification.
         first.gameExports = null // Discarding a Game must not call back into its gameplay.
         Cvar.getInstance().find<Int>("port").forceSet(0)
-        assertTrue(NET.configureServer(true))
-        val socket = NET.udpEndpoint(Defines.NS_SERVER)
+        assertTrue(network.server.configure(true))
+        val socket = network.serverTransport.udpEndpoint
         val peerChannel = b.netchan
 
         host.stopGame(first, "Game failed\n")
@@ -207,7 +209,7 @@ class GameContinuationTest {
             assertTrue(client.unreliable.isEmpty())
         }
         assertSame(second, host.games["other"])
-        assertSame(socket, NET.udpEndpoint(Defines.NS_SERVER))
+        assertSame(socket, network.serverTransport.udpEndpoint)
         assertSame(peerChannel, b.netchan)
         assertEquals(ClientStates.CS_CONNECTED, b.state)
         host.update(100)
@@ -378,7 +380,7 @@ class GameContinuationTest {
         finish(bind(1, second), second)
         Cvar.getInstance().find<Boolean>("paused").forceSet(true)
         Cvar.getInstance().find<Int>("port").forceSet(0)
-        assertTrue(NET.configureServer(true))
+        assertTrue(network.server.configure(true))
         val broken = when (stage) {
             "wipe" -> root.resolve("save/current/game.ssv.json")
             "autosave" -> root.resolve("save/autosave")
@@ -395,7 +397,7 @@ class GameContinuationTest {
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertFalse(host.isPaused)
-        assertNull(NET.udpEndpoint(Defines.NS_SERVER))
+        assertNull(network.serverTransport.udpEndpoint)
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("gamemap"))
         host.update(100)
         assertTrue(host.games.isEmpty(), "Remaining queued continuation must not restart a Game")

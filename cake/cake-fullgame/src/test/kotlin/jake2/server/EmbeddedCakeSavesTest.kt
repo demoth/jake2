@@ -6,7 +6,6 @@ import jake2.qcommon.MainCommon
 import jake2.qcommon.ServerStates
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.server.save.ServerSaveFiles
@@ -43,7 +42,6 @@ class EmbeddedCakeSavesTest {
     @AfterEach
     fun cleanup() {
         host.dispose()
-        NET.Config(false)
         EngineWriteRoot.setRoot(previousRoot)
         cvars.clear()
     }

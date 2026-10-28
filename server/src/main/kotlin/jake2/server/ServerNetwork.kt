@@ -1,12 +1,12 @@
 package jake2.server
 
-import jake2.qcommon.Defines
 import jake2.qcommon.network.*
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.runtime.PacketNetwork
 import jake2.qcommon.network.runtime.NetworkRole
+import jake2.qcommon.network.transport.LocalSide
 
 /** Server transport boundary. A stopped game retires UDP and incoming local traffic, not its peer. */
 interface ServerNetwork : AutoCloseable {
@@ -19,23 +19,12 @@ interface ServerNetwork : AutoCloseable {
     override fun close() = stop()
 }
 
-/** Compatibility composition until application roots supply their own local link. */
-@Deprecated("Compatibility adapter scheduled for removal; inject TransportServerNetwork with an owned NetworkTransport")
-internal object LegacyServerNetwork : ServerNetwork {
-    override fun configure(multiplayer: Boolean) = NET.configureServer(multiplayer)
-    override fun newChannel() = netchan_t()
-    override fun receive() = NET.receiveNetworkPacket(Defines.NS_SERVER)
-    override fun sendConnectionless(to: netadr_t, command: ConnectionlessCommand, payload: String) =
-        Netchan.sendConnectionlessPacket(Defines.NS_SERVER, to, command, payload)
-    override fun stop() {
-        NET.configureServer(false)
-        NET.clearLoopback(Defines.NS_SERVER)
-    }
-    override fun sleep(millis: Int) = NET.Sleep(millis)
-}
-
 /** Owns the supplied transport; connections borrow it through the shared packet adapter. */
 class TransportServerNetwork(private val transport: NetworkTransport) : ServerNetwork {
+    companion object {
+        @JvmStatic fun standalone() = TransportServerNetwork(
+            NetworkTransport.standalone(LocalSide.SECOND))
+    }
     private val packets = PacketNetwork(transport, NetworkRole.SERVER)
     override fun newChannel() = packets.newChannel()
     override fun configure(multiplayer: Boolean) = packets.configure(multiplayer)
