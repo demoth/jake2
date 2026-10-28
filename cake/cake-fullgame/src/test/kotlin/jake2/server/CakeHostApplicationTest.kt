@@ -17,6 +17,7 @@ import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.transport.LoopbackLink
 import jake2.qcommon.network.transport.PacketBytes
+import jake2.qcommon.network.protocol.PacketCodec
 import org.demoth.cake.Cake
 import org.demoth.cake.ui.menu.MenuBackend
 import org.demoth.cake.ui.menu.HostGameFormState
@@ -151,6 +152,20 @@ class CakeHostApplicationTest {
                                 cake!!.keyUp(Input.Keys.GRAVE)
                                 cake!!.render()
                                 assertEquals(frame, gameFrame(host), "The console pauses singleplayer")
+                            }
+                            6 -> {
+                                cake!!.render()
+                                assertTrue(clientState(cake!!) in setOf("CONNECTED", "ACTIVE"))
+                                val malformed = PacketCodec.encodeSequenced(1_000_000, 0, null,
+                                    PacketBytes.copyOf(byteArrayOf(16, -2, -1, 0)))
+                                localLink.second.send(localLink.first.localAddress, malformed)
+                            }
+                            7 -> {
+                                cake!!.render()
+                                assertEquals("DISCONNECTED", clientState(cake!!))
+                                assertEquals(HostState.STOPPED, host.state)
+                                assertSame(initialHost, host.server)
+                                assertNotNull(Cmd.FindCommand("map"), "Malformed server input must leave the application Host usable")
                                 Gdx.app.exit()
                             }
                         }

@@ -29,6 +29,7 @@ public class MuzzleFlash2Message extends ServerMessage {
     @Override
     public void parse(sizebuf_t buffer) {
         this.entityIndex = buffer.readShort();
+        validateEntityIndex(buffer, entityIndex);
         this.flashType = buffer.readByte();
     }
 

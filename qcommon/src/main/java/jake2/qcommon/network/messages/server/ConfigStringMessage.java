@@ -1,6 +1,8 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.network.protocol.MessageReadException;
+import jake2.qcommon.network.protocol.MessageRejection;
 
 import static jake2.qcommon.Defines.*;
 
@@ -27,6 +29,8 @@ public class ConfigStringMessage extends ServerMessage {
     @Override
     public void parse(sizebuf_t buffer) {
         this.index = buffer.readShort();
+        if (index < 0 || index >= MAX_CONFIGSTRINGS)
+            throw new MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "Invalid configstring index " + index);
         this.config = buffer.readString();
     }
 

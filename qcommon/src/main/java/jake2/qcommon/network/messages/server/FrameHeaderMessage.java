@@ -1,6 +1,9 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.network.protocol.MessageReader;
+import jake2.qcommon.network.protocol.MessageReadException;
+import jake2.qcommon.network.protocol.MessageRejection;
 
 import java.util.Arrays;
 
@@ -54,6 +57,9 @@ public class FrameHeaderMessage extends ServerMessage {
         // fixme: do not read otherwise?
         suppressCount = buffer.readByte();
         areaBitsLength = buffer.readByte();
+        if (areaBitsLength < 0 || areaBitsLength > MAX_MAP_AREAS / 8)
+            throw new MessageReadException(MessageRejection.INVALID_LENGTH, buffer.readcount - 1, "Invalid area bits length " + areaBitsLength);
+        MessageReader.requireRemaining(buffer, areaBitsLength);
         areaBits = new byte[MAX_MAP_AREAS / 8];
         buffer.readData(areaBits, areaBitsLength);
     }

@@ -21,7 +21,15 @@ readiness. Network ownership does not impose a global client/server sleep policy
 ## NetworkPacket
 
 Every frame both client and servers are sending a jake2.qcommon.network.messages.NetworkPacket to each other.
-Each such packet contains a header and several (Client|Server)Messages
+Each such packet contains a header and several (Client|Server)Messages.
+
+`MessageBodyCodec` decodes a sequenced payload with bounded reads before controllers
+receive any messages. It returns either the complete collection or a typed rejection,
+so a valid prefix of a structurally malformed packet cannot trigger application commands. Lengths,
+opcodes, directions, and table indices are checked without global teardown from codecs.
+The server drops the offending connection; the client returns to its console on a bad
+server payload. Movement checksum validity keeps its existing `MoveMessage.valid`/controller policy.
+Legacy file/demo readers keep their existing `sizebuf_t` behavior.
 
 ## "Connectionless" (Out of band) packet
 Such packets/messages are sent ad-hoc and don't require a running map instance, therefore could be sent by not connected clients.

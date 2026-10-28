@@ -1,6 +1,8 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.*;
+import jake2.qcommon.network.protocol.MessageReadException;
+import jake2.qcommon.network.protocol.MessageRejection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +52,10 @@ public class PacketEntitiesMessage extends ServerMessage {
                 break;
 
             if (header.number >= Defines.MAX_EDICTS)
-                Com.Error(Defines.ERR_DROP, "CL_ParsePacketEntities: bad number:" + header.number);
+                throw new MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "CL_ParsePacketEntities: bad number:" + header.number);
 
             if (buffer.readcount > buffer.cursize)
-                Com.Error(Defines.ERR_DROP, "CL_ParsePacketEntities: end of message");
+                throw new MessageReadException(MessageRejection.TRUNCATED, buffer.readcount, "CL_ParsePacketEntities: end of message");
 
 
             if ((header.flags & Defines.U_REMOVE) != 0) {

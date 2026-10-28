@@ -33,6 +33,7 @@ public class WeaponSoundMessage extends ServerMessage {
     @Override
     public void parse(sizebuf_t buffer) {
         this.entityIndex = buffer.readShort();
+        validateEntityIndex(buffer, entityIndex);
         this.type = buffer.readByte();
     }
 

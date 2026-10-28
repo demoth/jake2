@@ -144,7 +144,7 @@ class PacketCodecTest {
 
         val envelope = decode(buffer.data.copyOf(buffer.cursize), PacketDirection.FROM_CLIENT)
         val packet = NetworkPacket.fromEnvelope(NetworkAddress.Local(UUID.randomUUID(), LocalSide.FIRST), envelope)
-        val parsed = assertInstanceOf(MoveMessage::class.java, packet.parseBodyFromClient(sequence).single())
+        val parsed = assertInstanceOf(MoveMessage::class.java, (packet.parseBodyFromClient(sequence) as MessageDecodeResult.Decoded).messages.single())
         assertTrue(parsed.valid)
         assertEquals(12, parsed.lastReceivedFrame)
         assertEquals(120, parsed.newCmd.forwardmove.toInt())

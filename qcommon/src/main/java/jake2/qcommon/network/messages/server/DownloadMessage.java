@@ -1,6 +1,7 @@
 package jake2.qcommon.network.messages.server;
 
 import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.network.protocol.MessageReader;
 
 import java.util.Arrays;
 
@@ -40,8 +41,9 @@ public class DownloadMessage extends ServerMessage {
     public void parse(sizebuf_t buffer) {
         int size = buffer.readShort();
         percentage = (byte) buffer.readByte();
-        // fixme: signed or unsigned?
+        // Signed wire length: -1 is failure; retain the legacy -32640 failure marker for compatibility.
         if (size != -1 && size != -32640) {
+            MessageReader.requireRemaining(buffer, size);
             data = new byte[size];
             buffer.readData(data, size);
         }

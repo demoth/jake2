@@ -2,6 +2,9 @@ package jake2.qcommon.network.messages.client;
 
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.network.protocol.MessageReadException;
+import jake2.qcommon.network.protocol.MessageReader;
+import jake2.qcommon.network.protocol.MessageRejection;
 
 public abstract class ClientMessage implements NetworkMessage {
     public final ClientMessageType type;
@@ -18,7 +21,15 @@ public abstract class ClientMessage implements NetworkMessage {
     protected abstract void writeProperties(sizebuf_t buffer);
 
     public static ClientMessage parseFromBuffer(sizebuf_t buffer, int incomingSequence) {
-        ClientMessageType type = ClientMessageType.fromByte((byte) buffer.readByte());
+        if (!(buffer instanceof MessageReader)) {
+            MessageReader reader = MessageReader.fromBuffer(buffer);
+            try { return parseFromBuffer(reader, incomingSequence); } finally { buffer.readcount = reader.readcount; }
+        }
+
+        if (buffer.readcount == buffer.cursize) return new EndOfClientPacketMessage();
+        int opcode = buffer.readByte();
+        ClientMessageType type = ClientMessageType.fromByte((byte) opcode);
+        if (type == null) throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Unknown client opcode " + opcode);
         final ClientMessage msg;
         switch (type) {
             case CLC_BAD:
@@ -38,8 +49,7 @@ public abstract class ClientMessage implements NetworkMessage {
                 msg = new MoveMessage(incomingSequence);
                 break;
             default:
-                // todo: notify somehow in case of unexpected type
-                msg = null;
+                throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Unsupported client opcode " + opcode);
         }
         if (msg != null) {
             msg.parse(buffer);

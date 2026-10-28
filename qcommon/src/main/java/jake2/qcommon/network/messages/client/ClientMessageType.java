@@ -20,6 +20,6 @@ public enum ClientMessageType {
             if (cmd.value == value)
                 return cmd;
         }
-        return CLC_BAD;
+        return null;
     }
 }

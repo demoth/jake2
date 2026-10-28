@@ -24,6 +24,7 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import org.demoth.cake.network.ClientNetwork
 import org.demoth.cake.network.ClientHandshake
+import jake2.qcommon.network.protocol.MessageDecodeResult
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -1080,7 +1081,19 @@ class Cake(
 
             if (netchan.accept(networkPacket)) {
                 networkDebugSampler.recordInbound(netchan.last_received_size, Globals.curtime)
-                parseServerMessage(networkPacket.parseBodyFromServer())
+                when (val body = networkPacket.parseBodyFromServer()) {
+                    is MessageDecodeResult.Decoded -> {
+                        if (Netchan.printNetwork?.typedValue == true) body.messages.forEach { message ->
+                            if (message !is FrameHeaderMessage && message !is PlayerInfoMessage && message !is PacketEntitiesMessage)
+                                Com.Printf("Network: Received server msg: $message\n")
+                        }
+                        parseServerMessage(body.messages)
+                    }
+                    is MessageDecodeResult.Rejected -> {
+                        Com.Warn("Bad server payload at ${body.offset}: ${body.detail}\n")
+                        dropToConsole()
+                    }
+                }
             } //else wasn't accepted for some reason
 
 

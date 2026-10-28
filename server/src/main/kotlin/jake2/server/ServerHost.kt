@@ -24,6 +24,8 @@ package jake2.server
 import jake2.qcommon.*
 import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
+import jake2.qcommon.network.protocol.MessageDecodeResult
+import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
@@ -1161,8 +1163,18 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             if (client.state != ClientStates.CS_ZOMBIE) {
                 client.lastmessage = realtime
                 val body = networkPacket.parseBodyFromClient(client.netchan.incoming_sequence)
-                if (body == null) dropClient(client)
-                else handleClientMessages(client, body)
+                when (body) {
+                    is MessageDecodeResult.Rejected -> {
+                        Com.Printf("Bad client payload at ${body.offset}: ${body.detail}\n")
+                        dropClient(client)
+                    }
+                    is MessageDecodeResult.Decoded -> {
+                        if (Netchan.printNetwork?.typedValue == true) body.messages.forEach { message ->
+                            if (message !is MoveMessage) Com.Printf("Network: Received client msg: $message\n")
+                        }
+                        handleClientMessages(client, body.messages)
+                    }
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 package jake2.qcommon.network.messages.server;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.sizebuf_t;
 
@@ -101,8 +100,7 @@ public class SoundMessage extends ServerMessage {
         if ((flags & Defines.SND_ENT) != 0) { // entity relative
             sendchan = buffer.readShort();
             entityIndex = sendchan >> 3;
-            if (entityIndex > Defines.MAX_EDICTS)
-                Com.Error(Defines.ERR_DROP, "CL_ParseStartSoundPacket: ent = " + entityIndex);
+            validateEntityIndex(buffer, entityIndex);
 
             sendchan &= 7;
         } else {

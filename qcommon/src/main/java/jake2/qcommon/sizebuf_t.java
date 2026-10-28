@@ -33,8 +33,9 @@ import java.util.Objects;
 
 /**
  * sizebuf_t
+ * Network message codecs use the bounded MessageReader subclass; legacy readers keep sentinel outcomes.
  */
-public final class sizebuf_t {
+public class sizebuf_t {
     public boolean allowoverflow = false;
     public boolean overflowed = false;
     public byte[] data = null;

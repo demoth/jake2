@@ -4,6 +4,9 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.entity_state_t;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
+import jake2.qcommon.network.protocol.MessageReadException;
+import jake2.qcommon.network.protocol.MessageReader;
+import jake2.qcommon.network.protocol.MessageRejection;
 
 /**
  * Common parent for all messages sent from server to client.
@@ -41,7 +44,14 @@ public abstract class ServerMessage implements NetworkMessage {
         else
             number = buffer.readByte();
 
+        validateEntityIndex(buffer, number);
         return new DeltaEntityHeader(flags, number);
+    }
+
+    /** Validate indices before a decoded message can address an engine entity table. */
+    protected static void validateEntityIndex(sizebuf_t buffer, int number) {
+        if (number < 0 || number >= Defines.MAX_EDICTS)
+            throw new MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount, "Invalid entity number " + number);
     }
 
     /*
@@ -125,19 +135,28 @@ public abstract class ServerMessage implements NetworkMessage {
     protected abstract void writeProperties(sizebuf_t buffer);
 
     public static ServerMessage parseFromBuffer(sizebuf_t buffer) {
+        if (!(buffer instanceof MessageReader)) {
+            MessageReader reader = MessageReader.fromBuffer(buffer);
+            try { return parseFromBuffer(reader); } finally { buffer.readcount = reader.readcount; }
+        }
 
+
+        if (buffer.readcount == buffer.cursize) return new EndOfServerPacketMessage();
         final int cmd = buffer.readByte();
         if (cmd == -1)
             return new EndOfServerPacketMessage();
         ServerMessageType type = ServerMessageType.fromInt(cmd);
+        if (type == null) throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Unknown server opcode " + cmd);
         final ServerMessage msg;
-        // skip parsing of messages not yet migrated to the ServerMessage class
+        // Explicit end/no-op outcomes are distinct from unsupported wire opcodes.
         switch (type) {
-            case svc_bad:
+            case svc_end:
+                return new EndOfServerPacketMessage();
             case svc_nop:
+                return null;
+            case svc_bad:
             default:
-                msg = null;
-                break;
+                throw new MessageReadException(MessageRejection.UNKNOWN_OPCODE, buffer.readcount - 1, "Invalid server opcode " + cmd);
             case svc_muzzleflash:
                 msg = new WeaponSoundMessage();
                 break;
@@ -204,7 +223,7 @@ public abstract class ServerMessage implements NetworkMessage {
                 } else if (SplashTEMessage.SUBTYPES.contains(subtype)) {
                     msg = new SplashTEMessage(subtype);
                 } else {
-                    throw new IllegalStateException("Unexpected temp entity type:" + subtype);
+                    throw new MessageReadException(MessageRejection.INVALID_VALUE, buffer.readcount - 1, "Unexpected temp entity type:" + subtype);
                 }
         }
 

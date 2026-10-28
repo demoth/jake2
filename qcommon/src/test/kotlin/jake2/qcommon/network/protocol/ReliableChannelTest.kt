@@ -231,7 +231,7 @@ class ReliableChannelTest {
         client.completeSend(packet, true, 10)
         val legacy = NetworkPacket.fromEnvelope(NetworkAddress.Local(UUID.randomUUID(), LocalSide.FIRST),
             envelope(packet, PacketDirection.FROM_CLIENT))
-        assertTrue((legacy.parseBodyFromClient(1).single() as MoveMessage).valid)
+        assertTrue(((legacy.parseBodyFromClient(1) as MessageDecodeResult.Decoded).messages.single() as MoveMessage).valid)
     }
 
     private fun bytes(vararg values: Int) = PacketBytes.copyOf(ByteArray(values.size) { values[it].toByte() })

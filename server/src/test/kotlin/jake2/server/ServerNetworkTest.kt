@@ -6,6 +6,12 @@ import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.transport.*
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.runtime.PacketNetwork
+import jake2.qcommon.network.protocol.PacketCodec
+import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.messages.client.UserInfoMessage
+import jake2.qcommon.network.messages.server.DisconnectMessage
+import jake2.qcommon.Defines
+import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
@@ -35,6 +41,39 @@ class ServerNetworkTest {
         override fun close() {
             host.close()
             client.close()
+        }
+    }
+
+    @Test
+    fun `malformed client body drops only that client without dispatching its valid prefix`() {
+        Cvar.getInstance().clear()
+        MainCommon.registerCvars(false)
+        Netchan.Netchan_Init()
+        try {
+            Peer().use { peer ->
+                fun connection(qport: Int) = ClientNetworkInfo(peer.network.newChannel()).apply {
+                    state = ClientStates.CS_CONNECTED
+                    userinfo = "before"
+                    netchan.setup(Defines.NS_SERVER, netadr_t(), qport)
+                }
+                val bad = connection(7)
+                val healthy = connection(8)
+                peer.host.clients.addAll(listOf(bad, healthy))
+                val payload = sizebuf_t(64).apply {
+                    UserInfoMessage("\\name\\must_not_apply").writeTo(this)
+                    writeByte(99)
+                }
+                val bytes = PacketCodec.encodeSequenced(1, 0, 7, PacketBytes.copyOf(payload.data, payload.cursize))
+                peer.client.send(peer.client.localPeer, bytes)
+                peer.host.readPackets()
+                assertEquals(ClientStates.CS_ZOMBIE, bad.state)
+                assertEquals("before", bad.userinfo)
+                assertTrue(bad.netchan.reliablePending.any { it is DisconnectMessage })
+                assertEquals(ClientStates.CS_CONNECTED, healthy.state)
+                assertTrue(healthy.netchan.reliablePending.isEmpty())
+            }
+        } finally {
+            Cvar.getInstance().clear()
         }
     }
 
