@@ -30,7 +30,8 @@ Server effect messages / entity-event and trail callbacks
 
 WorldPresentationRenderer frame
   -> effectsSystem.update(): simulate particles, advance/expire effect instances
-  -> reset frame lights, collect explosion lights and replicated trails/lights
+  -> collect replicated trails
+  -> reset frame lights, collect explosion and replicated-entity lights
   -> draw world and entities, then translucent world
   -> effectsSystem.renderParticles(): dedicated particle pass
   -> effectsSystem.render(): transient models/sprites/beams through ModelBatch
@@ -39,8 +40,7 @@ WorldPresentationRenderer frame
 
 `ClientTransientEffect.update(nowMs, deltaSeconds)` returns false when an instance
 expires; the system removes and disposes it in that update loop. Update and render
-run on the render thread. `AnimatedModelEffect` and `AnimatedSpriteEffect` provide
-timed animation; `ExplosionAnimation` uses libGDX `Animation` for shared explosion
+run on the render thread. `ExplosionAnimation` uses libGDX `Animation` for shared explosion
 frame, skin, and alpha rules. `ExplosionMd2Effect` and `ExplosionSpriteEffect`
 apply that state to their visuals. Model effects reuse the
 [MD2 pipeline](../../../assets/md2/README.md); sprite effects use `Sp2Renderer`.
@@ -61,8 +61,13 @@ constant-acceleration integration rather than reproducing reference particle mat
 
 The runtime is tested directly with synthetic emissions and clocks, without GL,
 game data or effect assets. libGDX's [3D particle framework](https://libgdx.com/wiki/graphics/3d/3d-particle-effects)
-provides the underlying controller/emitter; the choice of stock particle batches
-is deferred until the world-pass depth, blending and color requirements are checked.
+provides the underlying controller/emitter. The stock `PointSpriteParticleBatch`
+and `BillboardParticleBatch` support configurable depth/blending, but their default
+shader does not implement Cake's gamma correction, circular cutout or size rule.
+Direct replacement would also require splitting the mixed mode/blend channels into
+separate batch inputs. The existing drawing adapter retains these engine-specific
+requirements; simulation, storage and lifetime remain libGDX-owned. GPU resources
+are created on the first particle draw, so dispatch/update/teardown require no GL.
 
 `r_particles` supplies the live emission budget: zero or negative values disable
 emission and drawing, while positive values limit new spawns to the remaining
@@ -174,7 +179,8 @@ expiry, pause, resource limits and cleanup. No installed content or window is ne
 blaster families, including blue-hyperblaster impacts. Spawn positions scatter
 along the supplied normal, while velocities scatter independently; blaster
 variants also carry directed velocity and their own palette ranges. Chainfist
-smoke rises without downward acceleration. The outer controller retains model
+smoke uses particles only and rises without downward acceleration. Welding sparks
+add a short yellow light without a flash model. The outer controller retains model
 flashes and dynamic lights.
 
 Splash, laser, welding and tunnel effects preserve their transmitted counts,
@@ -205,7 +211,8 @@ standard libGDX alpha blending. `TE_EXPLOSION1_BIG`, `TE_EXPLOSION1_NP` and
 chooses a palette color from `0xD0..0xD3`, with diameter 4 and opacity 0.3; its color
 stays stable when presentation time pauses. The screen-owned `BeamRenderer` shares
 cached libGDX cylinder models with RF_BEAM entities, avoiding per-pulse GPU resource
-allocation. Screen teardown clears laser state and disposes the shared renderer.
+allocation. Update expires pulses even when no draw occurs. Screen teardown clears
+laser state and disposes the shared renderer.
 Synthetic tests cover animation, lights, materials, transforms, expiry and ownership
 without game assets or a window.
 
@@ -226,8 +233,64 @@ patterns and procedural geometry remain visual approximations of the reference;
 base-game effects, live play, pause and map/session transitions still need visual
 verification.
 
-Legacy references are `client/CL_fx.ParseMuzzleFlash2`, `CL_fx.LogoutEffect`,
-`CL_tent.ParseTEnt`, and `../yquake2/src/client/cl_effects.c`.
+Source references are `client/CL_fx.ParseMuzzleFlash2`, `CL_fx.LogoutEffect`,
+`CL_tent.ParseTEnt`, Yamagi's `src/client/cl_tempentities.c` / `cl_effects.c` /
+`cl_particles.c`, and Q2PRO's `src/client/tent.c` / `effects.c` in the sibling checkouts.
+The comparison targets the classic effects, rather than Q2PRO's extended protocol.
+For example, Q2PRO also presents `TE_RAILTRAIL2`; Cake follows Yamagi's supported
+set and rejects that type and `TE_FLAME`. Yamagi plays a rocket sound for
+`TE_PLAIN_EXPLOSION`, while Q2PRO leaves it silent; Cake retains Yamagi's sound.
+
+## Protocol-34 Presentation Coverage
+
+All 54 supported types have a presentation path. Names below omit `TE_`; wire IDs
+are included to make the boundary explicit. Optional missing assets, disabled
+particles/lights and exhausted budgets can still suppress their respective output.
+
+| Types (wire IDs) | Presentation owner and components |
+| --- | --- |
+| GUNSHOT (0), SHOTGUN (4), BULLET_SPARKS (14) | `ImpactEffects` particles; controller smoke/flash; probabilistic ricochet for gunshot/bullet sparks |
+| BLOOD (1), GREENBLOOD (26), MOREBLOOD (42) | `ImpactEffects` blood palettes and counts |
+| BLASTER (2), BLASTER2 (30), FLECHETTE (55) | `ImpactEffects` directed particles and sound; controller model/skin and animated light |
+| RAILTRAIL (3) | Controller helix/core particles and rail sound |
+| EXPLOSION1 (5), EXPLOSION2 (6), ROCKET_EXPLOSION (7), GRENADE_EXPLOSION (8), ROCKET_EXPLOSION_WATER (17), GRENADE_EXPLOSION_WATER (18), PLASMA_EXPLOSION (28) | `PointParticles` cloud; controller animated model/light and dry/water sound |
+| SPARKS (9) | `ImpactEffects` spark particles |
+| SPLASH (10) | `ImpactEffects` transmitted count/palette and spark-splash sound |
+| BUBBLETRAIL (11) | Controller rising bubble trail |
+| SCREEN_SPARKS (12), SHIELD_SPARKS (13), ELECTRIC_SPARKS (46) | `ImpactEffects` palette particles and impact sound |
+| LASER_SPARKS (15), TUNNEL_SPARKS (29) | `ImpactEffects` transmitted count/color, falling/rising particles |
+| PARASITE_ATTACK (16), MEDIC_CABLE_ATTACK (19), GRAPPLE_CABLE (24) | `BeamEffects` refreshed cable state and pooled segment models |
+| BFG_EXPLOSION (20) | Controller animated sprite and green light |
+| BFG_BIGEXPLOSION (21) | Controller green particle cloud |
+| BOSSTPORT (22) | `PointParticles` teleport column; controller unattenuated teleport sound |
+| BFG_LASER (23) | `LaserEffects` independent pulses; shared `BeamRenderer` geometry |
+| WELDING_SPARKS (25) | `ImpactEffects` particles; controller light-only flash |
+| BLUEHYPERBLASTER (27) | `ImpactEffects` directed particles; second position field is interpreted as a direction |
+| LIGHTNING (33) | `BeamEffects` source/destination-keyed segments and entity-associated Tesla sound |
+| DEBUGTRAIL (34) | Controller stationary diagnostic particles |
+| PLAIN_EXPLOSION (35), EXPLOSION1_BIG (53), EXPLOSION1_NP (54) | Controller model/light and sound, without explosion particles |
+| FLASHLIGHT (36), FORCEWALL (37), BUBBLETRAIL2 (41) | `ExpansionEffects` keyed light, falling wall particles, or rising bubbles plus impact sound |
+| HEATBEAM (38), MONSTER_HEATBEAM (39) | `HeatbeamEffects` refreshed attached/world beams; `HeatbeamParticles` rings/shell |
+| STEAM (40), HEATBEAM_SPARKS (43), HEATBEAM_STEAM (44) | `SteamEffects` instant/sustained bursts; controller sound for heatbeam impacts |
+| CHAINFIST_SMOKE (45) | `ImpactEffects` rising smoke particles |
+| TRACKER_EXPLOSION (47) | `PointParticles` black cloud; controller negative light and disruption sound |
+| TELEPORT_EFFECT (48), DBALL_GOAL (49), WIDOWSPLASH (52) | Controller teleport burst or outward widow shell particles |
+| WIDOWBEAMOUT (50), NUKEBLAST (51) | `ShellEffects` bounded, timed expanding particle pulses |
+
+`TempEntityPresentationTest` exercises every type through the real dispatcher with
+synthetic messages and no optional assets. It checks visible-effect state, paused
+updates, expiry without drawing, and a fresh session after teardown. Family tests
+cover the detailed particle/beam geometry, timing, sounds, budgets and material
+requests; `TemporaryEntityCodecTest` independently checks wire layouts and bounded
+rejections. These tests do not validate GPU output or audible playback.
+
+User-run visual checks still needed after the final changes:
+
+- Base-game gunshot/shotgun/blaster/rail impacts, dry/water explosions and BFG effects.
+- Expansion beams, welding and chainfist smoke in live play; the three Rogue demos
+  were already reported playable and visually good before the final audit fixes.
+- Pause/resume during sustained effects, followed by a map change and disconnect/
+  reconnect, checking for frozen leftovers, missing assets or duplicated effects.
 
 ## Assets and Lifetime
 
@@ -236,9 +299,10 @@ listed MD2 models, SP2 sprites, and sounds that configstrings may not supply.
 Files absent from raw resolver lookup are skipped; catalog lookups return null for
 unloaded assets. Present files still pass through the normal loaders.
 
-The catalog records paths visited during precache, reuses already loaded assets,
-and unloads its tracked paths during disposal. This tracking is separate from
-configuration asset ownership.
+The catalog acquires one AssetManager reference per present asset, including
+already loaded assets, and releases that reference during disposal. Repeated
+precache/dispose calls do not acquire/release twice. This keeps config assets and
+overlapping screens independent during map transitions.
 
 `ClientEffectsSystem.dispose()` disposes remaining transient instances, particle
 meshes/shaders, its sprite renderer, and the asset catalog. Shared model/sprite
