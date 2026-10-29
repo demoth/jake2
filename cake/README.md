@@ -173,8 +173,8 @@ models, and sounds, then open the client console:
 EOF and playback errors return to the console. Starting another demo replaces the
 current session. The camera follows the recorded player; movement and mouse look
 do not control playback. Opening the console leaves playback running.
-Some expansion temporary effects, including heatbeam and steam, are decoded but
-not yet rendered.
+Some expansion temporary effects, including heatbeam geometry, are decoded but
+not yet rendered. Steam and heatbeam impact particles are supported.
 
 Protocol-26 demos shipped with older Quake II releases, extended/rerelease
 protocols, and cinematic recordings are unsupported. For a compatible test file,

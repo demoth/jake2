@@ -31,7 +31,7 @@ class EffectParticleSystem(
     assetManager: AssetManager,
     private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) : Disposable {
-    private val runtime = GdxParticleRuntime(RenderTuningCvars::particleBudget)
+    internal val runtime = GdxParticleRuntime(RenderTuningCvars::particleBudget)
     private val renderer = ParticleRenderer(assetManager)
     private val tempDirection = Vector3()
     private val tempVelocity = Vector3()

@@ -83,6 +83,9 @@ class ClientEffectsSystem(
             null
         }
     }
+    private val steamEffects = SteamEffects(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = STEAM_PARTICLE_FALLBACK)
+    })
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -143,12 +146,12 @@ class ClientEffectsSystem(
             is TrailTEMessage -> handleTrailMessage(msg)
             is SplashTEMessage -> handleSplashMessage(msg)
             is PointTEMessage -> handlePointMessage(msg)
+            is SteamTEMessage -> steamEffects.process(msg, currentTimeMsProvider())
             // These expansion layouts are decoded completely to preserve message boundaries.
             // Their presentation still needs dedicated effect implementations.
             is LightningTEMessage,
             is FlashlightTEMessage,
             is ForceWallTEMessage,
-            is SteamTEMessage,
             is WidowBeamOutTEMessage -> Unit
         }
     }
@@ -189,6 +192,7 @@ class ClientEffectsSystem(
     fun update(deltaSeconds: Float, _serverFrame: Int) {
         val now = currentTimeMsProvider()
         particleSystem.update(now)
+        steamEffects.update(now)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
             val effect = iterator.next()
@@ -230,6 +234,7 @@ class ClientEffectsSystem(
     fun debugActiveEffectCount(): Int = activeEffects.size
 
     override fun dispose() {
+        steamEffects.clear()
         activeEffects.forEach { it.dispose() }
         activeEffects.clear()
         particleSystem.dispose()
@@ -284,6 +289,10 @@ class ClientEffectsSystem(
 
     private fun handlePointDirectionMessage(msg: PointDirectionTEMessage) {
         val position = toVector3(msg.position)
+        if (steamEffects.processImpact(msg, currentTimeMsProvider())) {
+            playEffectSound("sound/weapons/lashit.wav", position)
+            return
+        }
         when (msg.style) {
             Defines.TE_BLOOD,
             Defines.TE_MOREBLOOD,
@@ -335,26 +344,6 @@ class ClientEffectsSystem(
                     direction = msg.direction.toArray(),
                     count = 40,
                     paletteBase = paletteBase,
-                )
-                playEffectSound("sound/weapons/lashit.wav", position)
-            }
-
-            Defines.TE_HEATBEAM_SPARKS -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 50,
-                    paletteBase = HEATBEAM_SPARK_PARTICLE_BASE_COLOR,
-                )
-                playEffectSound("sound/weapons/lashit.wav", position)
-            }
-
-            Defines.TE_HEATBEAM_STEAM -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 20,
-                    paletteBase = HEATBEAM_STEAM_PARTICLE_BASE_COLOR,
                 )
                 playEffectSound("sound/weapons/lashit.wav", position)
             }
@@ -1688,8 +1677,7 @@ private const val SPARK_PARTICLE_BASE_COLOR = 0xE0
 private const val SCREEN_SPARK_PARTICLE_BASE_COLOR = 0xD0
 private const val SHIELD_SPARK_PARTICLE_BASE_COLOR = 0xB0
 private const val SHOTGUN_PARTICLE_BASE_COLOR = 0x00
-private const val HEATBEAM_SPARK_PARTICLE_BASE_COLOR = 0x08
-private const val HEATBEAM_STEAM_PARTICLE_BASE_COLOR = 0xE0
+private val STEAM_PARTICLE_FALLBACK = Color(.75f, .75f, .75f, 1f)
 private const val ELECTRIC_SPARK_PARTICLE_BASE_COLOR = 0x75
 private const val CHAINFIST_SMOKE_PARTICLE_BASE_COLOR = 0x00
 private const val EXPLOSION_PARTICLE_BASE_COLOR = 0xE0

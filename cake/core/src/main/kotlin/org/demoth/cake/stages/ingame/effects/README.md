@@ -79,6 +79,22 @@ intensity/overbright multipliers. Shader sources are
 `assets/shaders/particle_point.vert/.frag` and `particle_billboard.vert/.frag`,
 loaded through `AssetManager` and the [shared resolver](../../../assets/README.md).
 
+## Steam and Sustained Emission
+
+`SteamEffects` uses the shared libGDX particle runtime for instantaneous steam and
+repeated steam bursts. Messages supply particle count, normal, palette range and
+magnitude. Magnitude controls forward speed, lateral spread and spawn jitter;
+particles fade over short lifetimes with a gentle downward acceleration.
+Heatbeam impact sparks and steam use this same recipe and retain their impact sound.
+
+Each screen owns at most 32 steam sustains. Reusing an identifier replaces its
+parameters and refreshes its duration. `SustainScheduler` emits immediately on the
+next effects update, then on a 100 ms cadence until expiry. A stalled frame emits
+at most one burst per active sustain, skipping missed bursts. Repeated updates at
+a paused presentation time do not emit again. Nonpositive durations cancel an
+identifier. Clearing sustains stops future emission; existing particles finish
+fading, or are disposed with the screen's particle runtime during teardown.
+
 ## Visual Behaviour and Current Limits
 
 Particle families select colours from `q2palette.bin`. Useful compatibility anchors:
