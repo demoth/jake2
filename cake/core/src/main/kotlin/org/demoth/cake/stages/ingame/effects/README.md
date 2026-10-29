@@ -64,7 +64,7 @@ is deferred until the world-pass depth, blending and color requirements are chec
 
 `r_particles` supplies the live emission budget: zero or negative values disable
 emission and drawing, while positive values limit new spawns to the remaining
-budget. Overflow emits are dropped; there is no hard upper clamp. Lowering the
+validated budget up to `MAX_PARTICLES`. Overflow emits are dropped. Lowering the
 budget does not immediately remove existing particles; they continue to age out.
 
 `ParticleRenderer` uploads dynamic mesh data rather than creating a `ModelInstance`
@@ -143,6 +143,29 @@ a paused presentation time do not emit again. Nonpositive durations cancel an
 identifier. Clearing sustains stops future emission; existing particles finish
 fading, or are disposed with the screen's particle runtime during teardown.
 
+## Other Expansion Effects
+
+`ExpansionEffects` routes flashlight messages to entity-keyed white dynamic lights
+with a 100 ms lifetime. Repeated messages update the same light through
+`DynamicLightSystem`, including its normal high-FPS visibility extension. Force
+walls emit falling palette-colored particles along their segment; bubble trail 2
+emits a denser rising trail with the impact sound at its start. Segment sampling
+has a work cap and all particles obey the shared budget.
+
+`ShellEffects` uses `SustainScheduler` and the libGDX particle runtime for expanding
+widow beam-out and nuke shells. Widow shells expand toward a 45-unit radius over
+2.1 seconds and refresh by wire identifier. Nuke shells expand toward 200 units
+over one second; their messages have no identifier, so independent explosions
+receive local IDs outside the wire's signed-short range. The two kinds share a
+32-sustain capacity. Particle pulses run at 50 ms intervals, last 75 ms and use
+family-specific palettes, with counts tuned for the existing particle budget.
+Paused clocks do not emit again, stalls skip missed pulses, and clearing sustain
+state stops future emission while existing particles finish fading.
+
+Tests use synthetic messages, clocks and palette values with the real light and
+particle runtimes to exercise refresh, motion, sound requests, coexistence,
+expiry, pause, resource limits and cleanup. No installed content or window is needed.
+
 ## Visual Behaviour and Current Limits
 
 Particle families select colours from `q2palette.bin`. Useful compatibility anchors:
@@ -155,10 +178,10 @@ Particle families select colours from `q2palette.bin`. Useful compatibility anch
 Fallback colours keep effects visible when palette data is unavailable.
 `TE_BFG_EXPLOSION` uses the translucent `sprites/s_bfg2.sp2` explosion path;
 `TE_BFG_LASER` remains a procedural `LineBeamEffect` approximation. Parasite/medic
-and grapple beams use pooled segment models rebuilt from persistent beam state. Visual parity varies by effect
-family; unsupported styles inside recognised TE message classes can fall through
-silently. The decoded expansion message classes with no presentation implementation
-are currently ignored explicitly.
+and grapple beams use pooled segment models rebuilt from persistent beam state. Visual fidelity varies by effect
+family. Decoded message families dispatch to their presentation handlers; some
+existing effects still approximate the reference particle patterns or omit components
+which are covered by the remaining fidelity work.
 
 Legacy references are `client/CL_fx.ParseMuzzleFlash2`, `CL_fx.LogoutEffect`,
 `CL_tent.ParseTEnt`, and `../yquake2/src/client/cl_effects.c`.

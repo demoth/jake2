@@ -103,6 +103,9 @@ class ClientEffectsSystem(
         paletteColor = { index -> resolvePaletteColor(index, fallback = STEAM_PARTICLE_FALLBACK) },
         lights = dynamicLightSystem,
         playBubbleSound = { position -> playEffectSound("sound/weapons/lashit.wav", toVector3(position)) })
+    private val shellEffects = ShellEffects(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = EXPLOSION_PARTICLE_FALLBACK)
+    })
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -152,8 +155,8 @@ class ClientEffectsSystem(
     /**
      * Handles temp-entity messages (`svc_temp_entity`) already decoded into typed message classes.
      *
-     * The codec validates subtype/layout combinations. Valid styles without an implemented renderer
-     * are still ignored silently by style branch fall-through.
+     * The codec validates subtype/layout combinations. Family controllers provide models, particles,
+     * lights and sounds through the screen-owned presentation runtimes.
      */
     fun processTempEntityMessage(msg: TEMessage) {
         when (msg) {
@@ -169,7 +172,7 @@ class ClientEffectsSystem(
             is SteamTEMessage -> steamEffects.process(msg, currentTimeMsProvider())
             // Flashlight and force-wall messages feed the shared light and particle runtimes.
             is FlashlightTEMessage, is ForceWallTEMessage -> expansionEffects.process(msg, currentTimeMsProvider())
-            is WidowBeamOutTEMessage -> Unit
+            is WidowBeamOutTEMessage -> shellEffects.process(msg, currentTimeMsProvider())
         }
     }
 
@@ -210,6 +213,7 @@ class ClientEffectsSystem(
         val now = currentTimeMsProvider()
         particleSystem.update(now)
         steamEffects.update(now)
+        shellEffects.update(now)
         beamModels.beginFrame()
         val camera = cameraProvider()
         val localPlayer = localPlayerEntityIndexProvider()
@@ -254,9 +258,10 @@ class ClientEffectsSystem(
 
     fun debugParticleRenderStats(): ParticleRenderer.Stats = particleSystem.lastRenderStats()
 
-    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + heatbeamEffects.activeCount + steamEffects.activeSustainCount
+    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + heatbeamEffects.activeCount + steamEffects.activeSustainCount + shellEffects.activeSustainCount
 
     override fun dispose() {
+        shellEffects.clear()
         heatbeamEffects.clear()
         beamEffects.clear()
         beamModels.dispose()
@@ -550,6 +555,7 @@ class ClientEffectsSystem(
     }
 
     private fun handlePointMessage(msg: PointTEMessage) {
+        if (shellEffects.process(msg, currentTimeMsProvider())) return
         val position = toVector3(msg.position)
         when (msg.style) {
             Defines.TE_EXPLOSION2,
