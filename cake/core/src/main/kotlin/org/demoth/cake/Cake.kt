@@ -19,6 +19,7 @@ import jake2.qcommon.network.demo.DemoReader
 import org.demoth.cake.demo.DemoPlayback
 import org.demoth.cake.demo.DemoRecording
 import org.demoth.cake.demo.DemoFiles
+import org.demoth.cake.demo.DemoMetadata
 import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.protocol.PacketEnvelope
 import org.demoth.cake.demo.demoLogicalPath
@@ -251,7 +252,9 @@ class Cake(
             readSavePreview = { profileId, slot ->
                 if (activeGameProfile?.id == profileId) host.readSavePreview(slot) else null
             },
-            activeProfileId = { activeGameProfile?.id })
+            activeProfileId = { activeGameProfile?.id },
+            listContentEntries = { demoFiles.entries(fileResolver.listContentEntries(), fileResolver.caseSensitive) },
+            readDemoMetadata = { entry -> DemoMetadata.read(demoFiles.open(entry)) })
         rebuildContentStyledMenuStages(initialStyle)
         // todo: gather all early logging (which is generated before the console is created)
         // and put into the console when it's ready

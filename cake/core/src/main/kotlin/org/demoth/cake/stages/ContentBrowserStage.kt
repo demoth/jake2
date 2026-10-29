@@ -9,6 +9,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.vfs.VfsEntry
+import org.demoth.cake.demo.DemoMetadata
 import org.demoth.cake.ui.ContentBrowser
 import org.demoth.cake.ui.ContentBrowserStyles
 import org.demoth.cake.ui.GameUiStyle
@@ -25,11 +26,13 @@ class ContentBrowserStage(
     private val thumbnails: ImageThumbnails,
     previewAssets: AssetManager,
     loadSound: (VfsEntry) -> Sound,
+    private val readDemoMetadata: (VfsEntry) -> DemoMetadata? = { null },
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenMainMenu) {
     private val styles = ContentBrowserStyles.fromMenu(style.menuWidgets)
     private val media = ContentPreview(styles, thumbnails, previewAssets, loadSound)
     private val title = Label("Content browser", styles.label)
     private val content = Container<Actor>().fill()
+    private val demoDescriptions = mutableMapOf<VfsEntry, String>()
 
     init {
         addActor(Table().apply {
@@ -51,7 +54,22 @@ class ContentBrowserStage(
             Label(message ?: "No content found in this profile.", styles.label)
         } else {
             ContentBrowser(entries, profileName, styles, previewSelection = media::open, loadThumbnail = thumbnails::load,
-                clearThumbnails = thumbnails::clear, onSelect = media::select, showSource = true)
+                clearThumbnails = thumbnails::clear, onSelect = media::select, showSource = true,
+                selectionDetails = ::describeDemo, selectionDetailLines = 2)
+        }
+    }
+
+    private fun describeDemo(entry: VfsEntry): String? {
+        if (!entry.normalizedPath.endsWith(".dm2", ignoreCase = true)) return null
+        return demoDescriptions.getOrPut(entry) {
+            try {
+                val info = readDemoMetadata(entry)
+                if (info == null) "Demo metadata unavailable." else
+                    "Demo: protocol ${info.protocol} | Game: ${info.gameDirectory}\nLevel: ${info.levelName}" +
+                        (info.mapPath?.let { " | Map: $it" } ?: "")
+            } catch (error: Exception) {
+                "Could not read demo: ${error.message}"
+            }
         }
     }
 
@@ -75,6 +93,7 @@ class ContentBrowserStage(
         content.actor = null
         media.clear()
         media.contentPaths = emptyList()
+        demoDescriptions.clear()
         thumbnails.clear()
     }
 

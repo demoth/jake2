@@ -6,6 +6,8 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.vfs.VfsEntry
+import org.demoth.cake.demo.DemoMetadata
 import ktx.assets.TextAssetLoader
 import org.demoth.cake.assets.*
 import org.demoth.cake.assets.bsp.BspLoader
@@ -28,6 +30,8 @@ class MenuStages(
     private val fileResolver: CakeFileResolver,
     private val showHosting: Boolean,
     private val readSavePreview: (String, String) -> ByteArray? = { _, _ -> null },
+    private val listContentEntries: () -> List<VfsEntry> = fileResolver::listContentEntries,
+    private val readDemoMetadata: (VfsEntry) -> DemoMetadata? = { null },
     private val activeProfileId: () -> String?,
 ) : Disposable {
     private val stages = linkedMapOf<MenuScreen, BackNavigableMenuStage>()
@@ -62,11 +66,11 @@ class MenuStages(
                 MenuScreen.OPTIONS_SECTION -> OptionsSectionStage(viewport, menuEventBus, style)
                 MenuScreen.CONTENT_BROWSER -> ContentBrowserStage(viewport, menuEventBus, style,
                     ImageThumbnails(assetManager, FileHandleResolver(fileResolver::resolveContent)),
-                    createPreviewAssets()) { entry ->
+                    createPreviewAssets(), loadSound = { entry ->
                     val file = requireNotNull(fileResolver.resolveContent(entry.normalizedPath)) { "Missing profile sound" }
                     // Preview sounds are owned separately from the shared asset manager.
                     ConvertingSoundLoader(fileResolver).loadSync(assetManager, entry.normalizedPath, file, null)
-                }
+                }, readDemoMetadata = readDemoMetadata)
             }
         }
         if (activeScreen == MenuScreen.CONTENT_BROWSER) refreshContentBrowser()
@@ -119,7 +123,7 @@ class MenuStages(
             return
         }
         try {
-            contentBrowserStage.show(fileResolver.listContentEntries(), profileId)
+            contentBrowserStage.show(listContentEntries(), profileId)
         } catch (error: Exception) {
             Com.Warn("Could not list profile content: ${error.message}")
             contentBrowserStage.show(emptyList(), profileId, "Could not list profile content.")

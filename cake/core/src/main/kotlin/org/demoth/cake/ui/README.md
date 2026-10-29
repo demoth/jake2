@@ -43,6 +43,7 @@ artwork and atlas lines; tree slots match the 8-unit game theme.
 | Component | Responsibility |
 |---|---|
 | `ContentBrowserStage` / `ContentBrowser` | Client layout; shared VFS browsing and back navigation. Hosts supply the root action. |
+| `DemoFiles` / `DemoMetadata` | Merge profile recordings with installed demo entries and read bounded startup metadata on selection, without extracting packages or loading game assets. |
 | `ContentBrowserStyles` | Resolved menu styles; standalone Skin adapter preserves viewer sizing. |
 | `FileResourcePreview` / `CinematicPreview` | Shared read-only text and CIN widgets; owns the palette reference, cinematic texture/pixmap and audio device. Closing detaches the widget and releases resources. |
 | `ImageThumbnails` | Progressive visible PCX/WAL/TGA and first-frame CIN loading; owns folder-scoped textures, released on folder change, exit, or profile change. |

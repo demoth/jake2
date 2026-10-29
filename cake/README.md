@@ -189,6 +189,12 @@ do not control playback. Opening the console leaves playback running.
 Base-game and expansion temporary effects use Cake's rendering pipeline;
 visual fidelity varies by effect family.
 
+The content browser includes installed demos and profile-local recordings. Selecting
+a `.dm2` file shows its protocol, game directory, level and available map path,
+alongside file size and source. Local recordings take precedence over installed
+demos with the same path. Playback still starts through `demomap`; browser Open
+and return navigation are the next integration slice.
+
 Protocol-26 recordings use their shorter frame header; missing suppression counts
 are treated as zero. Missing MD2/SP2 config models in protocol-26 demos are warned
 about and skipped, since early demos may reference models absent from later game
