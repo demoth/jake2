@@ -174,7 +174,7 @@ the displayed frame. Map transitions remain in the same recording. An I/O failur
 stops recording and reports an error while gameplay continues. A recording stopped
 before its first full snapshot has no playable frames.
 
-Both launchers play classic protocol-32 and protocol-34 client recordings (`.dm2`)
+Both launchers play classic protocol-26, protocol-32 and protocol-34 client recordings (`.dm2`)
 without running a game server. Select a profile containing the recording's maps,
 models, and sounds, then open the client console:
 
@@ -189,8 +189,9 @@ do not control playback. Opening the console leaves playback running.
 Base-game and expansion temporary effects use Cake's rendering pipeline;
 visual fidelity varies by effect family.
 
-Protocol-26 demos shipped with older Quake II releases, extended/rerelease
-protocols, and cinematic recordings are unsupported. For a compatible test file,
+Protocol-26 recordings use their shorter frame header; missing suppression counts
+are treated as zero. Extended/rerelease protocols and cinematic recordings remain
+unsupported. For a protocol-34 interoperability test file,
 record a session in Yamagi using `record example`, then `stop`, and copy its
 `demos/example.dm2` into the selected profile's game-data directory.
 

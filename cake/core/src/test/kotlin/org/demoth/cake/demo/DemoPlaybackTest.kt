@@ -84,6 +84,36 @@ class DemoPlaybackTest {
         }
     }
 
+    @Test fun `protocol 26 frames omit suppression while playback preserves delta timing and map version changes`() {
+        fun oldFrame(number: Int, last: Int): ByteArray {
+            // svc_frame: two ints followed directly by areaBits; no suppressCount in protocol 26.
+            val bytes = byteArrayOf(20) + int(number) + int(last) + byteArrayOf(1, 3,
+                17, 0, 0, 0, 0, 0, 0, 18, 0, 0)
+            return int(bytes.size) + bytes
+        }
+        playback(bootstrap(26) + oldFrame(100, -1) + oldFrame(101, 100) +
+            bootstrap(32) + frame(5) + bootstrap(26) + oldFrame(1, 0) + int(-1)).use { demo ->
+            val messages = mutableListOf<ServerMessage>()
+            val dispatch: (List<ServerMessage>) -> Boolean = { messages += it; true }
+            assertTrue(demo.update(0f, dispatch))
+            assertEquals(9900, demo.presentationTimeMillis)
+            repeat(3) { assertTrue(demo.update(0f, dispatch)) }
+            assertEquals(1, messages.filterIsInstance<FrameHeaderMessage>().size)
+            assertTrue(demo.update(.1f, dispatch))
+            assertTrue(demo.update(.1f, dispatch))
+            assertTrue(demo.update(.1f, dispatch))
+            assertFalse(demo.update(.1f, dispatch))
+            assertEquals(listOf(26, 32, 26), messages.filterIsInstance<ServerDataMessage>().map { it.protocol })
+            val frames = messages.filterIsInstance<FrameHeaderMessage>()
+            assertEquals(listOf(100, 101, 5, 1), frames.map { it.frameNumber })
+            assertEquals(listOf(-1, 100, -1, 0), frames.map { it.lastFrame })
+            for (frame in frames.filter { it.frameNumber != 5 }) {
+                assertEquals(0, frame.suppressCount)
+                assertArrayEquals(byteArrayOf(3), frame.areaBits.toByteArray())
+            }
+        }
+    }
+
     @Test fun `map changes can switch between supported classic demo versions`() {
         playback(bootstrap(32) + frame(1000) + bootstrap(34) + frame(5) + int(-1)).use { demo ->
             val protocols = mutableListOf<Int>()
@@ -102,7 +132,7 @@ class DemoPlaybackTest {
     }
 
     @Test fun `unsupported protocol and malformed body dispatch no prefix`() {
-        for (bytes in listOf(bootstrap(26), bootstrap(33), bootstrap(35),
+        for (bytes in listOf(bootstrap(25), bootstrap(33), bootstrap(35),
             record(ServerDataMessage(34, 1, true, "baseq2", 0, "test")) + int(2) + byteArrayOf(6, 7))) {
             playback(bytes).use { demo ->
                 assertThrows(IOException::class.java) { demo.update(0f) { true } }

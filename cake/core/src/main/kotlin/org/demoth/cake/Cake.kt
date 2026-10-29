@@ -336,7 +336,7 @@ class Cake(
             if (demoRecording == null) Com.Printf("Not recording a demo\n") else stopRecording()
         }
 
-        Cmd.AddCommand("demomap", "Play a protocol-32/34 demo: demomap <name or demos/path.dm2>") { args ->
+        Cmd.AddCommand("demomap", "Play a protocol-26/32/34 demo: demomap <name or demos/path.dm2>") { args ->
             if (args.size != 2) {
                 Com.Printf("usage: demomap <name or demos/path.dm2>\n")
             } else {

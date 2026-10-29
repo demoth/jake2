@@ -2,12 +2,12 @@ package org.demoth.cake.demo
 
 import jake2.qcommon.Defines
 import jake2.qcommon.network.demo.DemoReader
+import jake2.qcommon.network.demo.DemoMessageDecoder
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.ServerDataMessage
 import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.network.messages.server.PlayerInfoMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
-import jake2.qcommon.network.protocol.MessageBodyCodec
 import jake2.qcommon.network.protocol.MessageDecodeResult
 import java.io.Closeable
 import java.io.IOException
@@ -17,6 +17,7 @@ class DemoPlayback(private val reader: DemoReader) : Closeable {
     private data class Pending(val messages: List<ServerMessage>?, val due: Double, val frameTime: Int?)
     private var pending: Pending? = null
     private var closed = false
+    private val decoder = DemoMessageDecoder()
     private var serverDataSeen = false
     private var originFrame: Int? = null
     private var previousFrame: Int? = null
@@ -68,15 +69,12 @@ class DemoPlayback(private val reader: DemoReader) : Closeable {
             return Pending(null, lastDue + .1, null)
         }
         val body = (record as DemoReader.Record.Body).bytes
-        val messages = when (val result = MessageBodyCodec.decodeServerBody(body)) {
+        val messages = when (val result = decoder.decode(body)) {
             is MessageDecodeResult.Decoded -> result.messages
             is MessageDecodeResult.Rejected -> throw IOException("Invalid demo message at byte ${reader.offset - body.size + result.offset}: ${result.detail}")
         }
         if (messages.any { it is ServerDataMessage }) {
             for (data in messages.filterIsInstance<ServerDataMessage>()) {
-                // Classic protocol 32 uses the same frame/body layouts as 34, including suppressCount.
-                if (data.protocol != 32 && data.protocol != Defines.PROTOCOL_VERSION)
-                    throw IOException("Unsupported demo protocol ${data.protocol}; expected 32 or ${Defines.PROTOCOL_VERSION}")
                 if (data.playerNumber == -1) throw IOException("Cinematic demos are not supported")
                 if (data.playerNumber !in 0 until Defines.MAX_CLIENTS) throw IOException("Invalid demo player slot ${data.playerNumber}")
             }
