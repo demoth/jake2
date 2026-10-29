@@ -161,7 +161,7 @@ Deathmatch does not create autosaves. Coop save/load remains console-only.
 
 ## Demo recording and playback
 
-Both `cake-client` and `cake-fullgame` can record the connected client's view:
+Both `cake-client` and `cake-fullgame` can record the connected client's view using protocol 34:
 
 - `record example` — start recording an active live game, remote or locally hosted.
 - `stop` — finish and close the recording. Disconnect/shutdown also finishes it.
@@ -174,7 +174,7 @@ the displayed frame. Map transitions remain in the same recording. An I/O failur
 stops recording and reports an error while gameplay continues. A recording stopped
 before its first full snapshot has no playable frames.
 
-Both launchers play protocol-34 client recordings (`.dm2`)
+Both launchers play classic protocol-32 and protocol-34 client recordings (`.dm2`)
 without running a game server. Select a profile containing the recording's maps,
 models, and sounds, then open the client console:
 

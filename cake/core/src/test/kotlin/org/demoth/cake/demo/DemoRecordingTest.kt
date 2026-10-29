@@ -64,7 +64,9 @@ class DemoRecordingTest {
     }
 
     @Test fun `bootstrap rejects unsupported startup and oversized messages before writing output`() {
-        assertThrows(IllegalArgumentException::class.java) { DemoBootstrap(server().copy(protocol = 26), emptyList(), emptyList()) }
+        for (protocol in listOf(26, 32)) {
+            assertThrows(IllegalArgumentException::class.java) { DemoBootstrap(server().copy(protocol = protocol), emptyList(), emptyList()) }
+        }
         assertThrows(IllegalArgumentException::class.java) { DemoBootstrap(server().copy(playerNumber = -1), emptyList(), emptyList()) }
         assertThrows(IllegalArgumentException::class.java) {
             DemoBootstrap(server(), listOf(ConfigStringMessage(0, "x".repeat(Defines.MAX_MSGLEN))), emptyList())

@@ -6,7 +6,7 @@ import java.io.Closeable
 import java.io.IOException
 import java.io.InputStream
 
-/** Owns a protocol-34 .dm2 stream: little-endian lengths followed by server message bodies. */
+/** Owns a classic .dm2 stream: little-endian lengths followed by server message bodies. */
 class DemoReader(private val input: InputStream) : Closeable {
     sealed interface Record {
         data class Body(val bytes: PacketBytes) : Record

@@ -74,8 +74,9 @@ class DemoPlayback(private val reader: DemoReader) : Closeable {
         }
         if (messages.any { it is ServerDataMessage }) {
             for (data in messages.filterIsInstance<ServerDataMessage>()) {
-                if (data.protocol != Defines.PROTOCOL_VERSION)
-                    throw IOException("Unsupported demo protocol ${data.protocol}; expected ${Defines.PROTOCOL_VERSION}")
+                // Classic protocol 32 uses the same frame/body layouts as 34, including suppressCount.
+                if (data.protocol != 32 && data.protocol != Defines.PROTOCOL_VERSION)
+                    throw IOException("Unsupported demo protocol ${data.protocol}; expected 32 or ${Defines.PROTOCOL_VERSION}")
                 if (data.playerNumber == -1) throw IOException("Cinematic demos are not supported")
                 if (data.playerNumber !in 0 until Defines.MAX_CLIENTS) throw IOException("Invalid demo player slot ${data.playerNumber}")
             }

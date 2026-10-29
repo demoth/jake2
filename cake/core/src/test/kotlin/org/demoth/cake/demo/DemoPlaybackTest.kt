@@ -49,8 +49,61 @@ class DemoPlaybackTest {
         }
     }
 
+    @Test fun `independent protocol 32 startup and frame layouts retain suppression visibility and timing`() {
+        // Hand-authored classic layouts from Yamagi CL_ParseServerData/CL_ParseFrame and
+        // Q2PRO CL_ParseFrame: only protocol 26 omits suppressCount; 32 follows the 34 layout.
+        val startup = byteArrayOf(12) + int(32) + int(1) + byteArrayOf(1) +
+            "xatrix\u0000".toByteArray(Charsets.ISO_8859_1) + byteArrayOf(0, 0) +
+            "legacy32\u0000".toByteArray(Charsets.ISO_8859_1)
+        fun snapshot(number: Int, last: Int): ByteArray = byteArrayOf(20) + int(number) + int(last) +
+            byteArrayOf(7, 1, 3, // suppressCount, areaBits length, areaBits
+                17, 0, 0, 0, 0, 0, 0, // playerinfo: no changed fields or stats
+                18, 0, 0) // packetentities terminator
+        fun framed(bytes: ByteArray) = int(bytes.size) + bytes
+        // Version and first snapshot intentionally share a record.
+        playback(framed(startup + snapshot(100, -1)) + framed(snapshot(101, 100)) + int(-1)).use { demo ->
+            val messages = mutableListOf<ServerMessage>()
+            val dispatch: (List<ServerMessage>) -> Boolean = { messages += it; true }
+            assertTrue(demo.update(0f, dispatch))
+            val data = messages.filterIsInstance<ServerDataMessage>().single()
+            assertEquals(32, data.protocol)
+            assertEquals("xatrix", data.gameName)
+            assertEquals("legacy32", data.levelString)
+            assertEquals(9900, demo.presentationTimeMillis)
+            repeat(3) { assertTrue(demo.update(0f, dispatch)) }
+            assertEquals(1, messages.filterIsInstance<FrameHeaderMessage>().size)
+            assertTrue(demo.update(.1f, dispatch))
+            val frames = messages.filterIsInstance<FrameHeaderMessage>()
+            assertEquals(listOf(100, 101), frames.map { it.frameNumber })
+            assertEquals(listOf(-1, 100), frames.map { it.lastFrame })
+            frames.forEach {
+                assertEquals(7, it.suppressCount)
+                assertArrayEquals(byteArrayOf(3), it.areaBits.toByteArray())
+            }
+            assertFalse(demo.update(.1f, dispatch))
+        }
+    }
+
+    @Test fun `map changes can switch between supported classic demo versions`() {
+        playback(bootstrap(32) + frame(1000) + bootstrap(34) + frame(5) + int(-1)).use { demo ->
+            val protocols = mutableListOf<Int>()
+            val frames = mutableListOf<Int>()
+            val dispatch: (List<ServerMessage>) -> Boolean = { messages ->
+                protocols += messages.filterIsInstance<ServerDataMessage>().map { it.protocol }
+                frames += messages.filterIsInstance<FrameHeaderMessage>().map { it.frameNumber }
+                true
+            }
+            assertTrue(demo.update(0f, dispatch))
+            assertTrue(demo.update(.1f, dispatch))
+            assertFalse(demo.update(.1f, dispatch))
+            assertEquals(listOf(32, 34), protocols)
+            assertEquals(listOf(1000, 5), frames)
+        }
+    }
+
     @Test fun `unsupported protocol and malformed body dispatch no prefix`() {
-        for (bytes in listOf(bootstrap(26), record(ServerDataMessage(34, 1, true, "baseq2", 0, "test")) + int(2) + byteArrayOf(6, 7))) {
+        for (bytes in listOf(bootstrap(26), bootstrap(33), bootstrap(35),
+            record(ServerDataMessage(34, 1, true, "baseq2", 0, "test")) + int(2) + byteArrayOf(6, 7))) {
             playback(bytes).use { demo ->
                 assertThrows(IOException::class.java) { demo.update(0f) { true } }
             }
