@@ -44,7 +44,7 @@ import kotlin.math.tan
  */
 class ParticleRenderer(
     private val assetManager: AssetManager,
-) : Disposable {
+) : Disposable, ParticleSink {
     data class Stats(
         val submittedParticles: Int = 0,
         val drawCalls: Int = 0,
@@ -120,7 +120,7 @@ class ParticleRenderer(
      *
      * No draw calls happen here; GPU upload/draw is deferred to [flush].
      */
-    fun submit(
+    override fun submit(
         mode: ParticleRenderMode,
         blend: ParticleBlendMode,
         x: Float,

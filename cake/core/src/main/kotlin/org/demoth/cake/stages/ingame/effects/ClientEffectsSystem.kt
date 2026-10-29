@@ -188,7 +188,7 @@ class ClientEffectsSystem(
     @Suppress("UNUSED_PARAMETER")
     fun update(deltaSeconds: Float, _serverFrame: Int) {
         val now = currentTimeMsProvider()
-        particleSystem.update(deltaSeconds, now)
+        particleSystem.update(now)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
             val effect = iterator.next()

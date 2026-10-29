@@ -45,9 +45,22 @@ explosion frame, skin, and alpha rules. Model effects reuse the
 
 ## Particle Simulation and Rendering
 
-`EffectParticleSystem` stores particle positions, velocities, colour, size, alpha
-ramps, and lifetimes in parallel arrays. Updates integrate velocity/gravity and
-remove expired particles by swapping in the last live entry.
+`EffectParticleSystem` routes burst and explicit particle emission through
+`GdxParticleRuntime`. A libGDX `ParticleController` and `RegularEmitter` own particle
+channels, lifetime progression and removal. Cake supplies a small influencer for
+message-specific velocity, three-axis acceleration and alpha endpoints, while
+`ParticleRenderer` consumes the resulting channels in the existing world draw pass.
+
+The presentation clock drives controller updates, including demo pause. Existing
+particles advance to an emission's timestamp before new particles are added, so
+short pulses survive their first frame. Emission copies supplied vectors and colors;
+callers can reuse scratch values. Motion uses physical acceleration and stable
+constant-acceleration integration rather than reproducing reference particle math.
+
+The runtime is tested directly with synthetic emissions and clocks, without GL,
+game data or effect assets. libGDX's [3D particle framework](https://libgdx.com/wiki/graphics/3d/3d-particle-effects)
+provides the underlying controller/emitter; the choice of stock particle batches
+is deferred until the world-pass depth, blending and color requirements are checked.
 
 `r_particles` supplies the live emission budget: zero or negative values disable
 emission and drawing, while positive values limit new spawns to the remaining
@@ -80,7 +93,8 @@ Fallback colours keep effects visible when palette data is unavailable.
 `TE_BFG_LASER` remains a procedural `LineBeamEffect` approximation. Parasite/medic
 and grapple beams use repeated segment models. Visual parity varies by effect
 family; unsupported styles inside recognised TE message classes can fall through
-silently, while unhandled message classes produce a warning.
+silently. The decoded expansion message classes with no presentation implementation
+are currently ignored explicitly.
 
 Legacy references are `client/CL_fx.ParseMuzzleFlash2`, `CL_fx.LogoutEffect`,
 `CL_tent.ParseTEnt`, and `../yquake2/src/client/cl_effects.c`.

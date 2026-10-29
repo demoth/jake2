@@ -14,9 +14,9 @@ import kotlin.math.min
  * Lightweight world-space particle simulation/runtime used by temp effects.
  *
  * Decision summary:
- * - This system owns simulation only; it no longer renders through `ModelBatch`.
+ * - This facade maps effect emissions to a libGDX particle controller, independently of `ModelBatch`.
  * - Rendering is delegated to [ParticleRenderer] in a dedicated pass to keep draw calls bounded.
- * - Data is stored in SoA arrays for low allocation pressure and stable update cost.
+ * - libGDX particle channels own storage and keep emission free of per-particle object allocations.
  *
  * Practical goals:
  * - preserve legacy effect readability and per-effect color correctness,
@@ -24,33 +24,27 @@ import kotlin.math.min
  * - favor visual parity and performance over temporary intermediate fixes.
  *
  * Notes:
- * - removal uses unordered swap-with-last semantics in [removeAt], so particle iteration order is not stable.
+ * - libGDX removes particles by swapping channel entries, so particle iteration order is not stable.
  * - live particles are capped by the validated `r_particles` budget; overflow spawns are dropped.
  */
 class EffectParticleSystem(
     assetManager: AssetManager,
     private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) : Disposable {
-    private var activeCount = 0
-    private var capacity = INITIAL_CAPACITY
-    private var posX = FloatArray(capacity)
-    private var posY = FloatArray(capacity)
-    private var posZ = FloatArray(capacity)
-    private var velX = FloatArray(capacity)
-    private var velY = FloatArray(capacity)
-    private var velZ = FloatArray(capacity)
-    private var spawnTimeMs = IntArray(capacity)
-    private var lifetimeMs = IntArray(capacity)
-    private var startAlpha = FloatArray(capacity)
-    private var endAlpha = FloatArray(capacity)
-    private var size = FloatArray(capacity)
-    private var gravity = FloatArray(capacity)
-    private var colorR = FloatArray(capacity)
-    private var colorG = FloatArray(capacity)
-    private var colorB = FloatArray(capacity)
-    private var renderMode = ByteArray(capacity)
-    private var blendMode = ByteArray(capacity)
+    private val runtime = GdxParticleRuntime(RenderTuningCvars::particleBudget)
     private val renderer = ParticleRenderer(assetManager)
+    private val tempDirection = Vector3()
+    private val tempVelocity = Vector3()
+    private val tempAcceleration = Vector3()
+
+    /** Emits explicit world-space state through libGDX's particle lifetime and storage runtime. */
+    fun emit(
+        position: Vector3, velocity: Vector3, acceleration: Vector3, color: Color,
+        size: Float, lifetimeMillis: Int, startAlpha: Float = 1f, endAlpha: Float = 0f,
+        renderMode: ParticleRenderMode = ParticleRenderMode.POINT_SPRITE,
+        blendMode: ParticleBlendMode = ParticleBlendMode.ALPHA,
+    ): Boolean = runtime.emit(position, velocity, acceleration, color, size, lifetimeMillis,
+        currentTimeMsProvider(), startAlpha, endAlpha, renderMode, blendMode)
 
     /**
      * Emits a burst of particles with shared spawn parameters.
@@ -89,71 +83,40 @@ class EffectParticleSystem(
             return
         }
 
-        val remainingBudget = RenderTuningCvars.particleBudget() - activeCount
-        if (remainingBudget <= 0) {
-            return
-        }
-
+        val nowMs = currentTimeMsProvider()
+        runtime.update(nowMs)
+        val remainingBudget = RenderTuningCvars.particleBudget() - runtime.liveCount
+        if (remainingBudget <= 0) return
         val spawnCount = min(requestedCount, remainingBudget)
-        ensureCapacity(activeCount + spawnCount)
-
+        tempAcceleration.set(0f, 0f, gravity)
         repeat(spawnCount) {
-            val particleIndex = activeCount++
             val directionVector = randomDirection(direction, spread)
             val speed = randomFloat(speedMin, speedMax)
-            val lifeMs = randomInt(lifetimeMinMs, lifetimeMaxMs)
-
-            posX[particleIndex] = origin.x
-            posY[particleIndex] = origin.y
-            posZ[particleIndex] = origin.z
-            velX[particleIndex] = directionVector.x * speed
-            velY[particleIndex] = directionVector.y * speed
-            velZ[particleIndex] = directionVector.z * speed
-            spawnTimeMs[particleIndex] = currentTimeMsProvider()
-            lifetimeMs[particleIndex] = max(1, lifeMs)
-            this.startAlpha[particleIndex] = startAlpha
-            this.endAlpha[particleIndex] = endAlpha
-            size[particleIndex] = randomFloat(sizeMin, sizeMax).coerceAtLeast(0.1f)
-            this.gravity[particleIndex] = gravity
-            colorR[particleIndex] = color.r
-            colorG[particleIndex] = color.g
-            colorB[particleIndex] = color.b
-            this.renderMode[particleIndex] = renderMode.id
-            this.blendMode[particleIndex] = blendMode.id
+            val lifeMs = max(1, randomInt(lifetimeMinMs, lifetimeMaxMs))
+            tempVelocity.set(directionVector).scl(speed)
+            runtime.emit(
+                position = origin, velocity = tempVelocity, acceleration = tempAcceleration, color = color,
+                size = randomFloat(sizeMin, sizeMax).coerceAtLeast(.1f),
+                lifetimeMillis = lifeMs, nowMs = nowMs, startAlpha = startAlpha, endAlpha = endAlpha,
+                mode = renderMode, blend = blendMode,
+            )
         }
     }
 
     /**
      * Advances simulation for all live particles.
      *
-     * Integration model:
-     * - Euler integration with per-particle Z-gravity,
-     * - dead particles are removed in O(1) by swap-with-last compaction.
+     * libGDX handles lifetime and removal; the presentation clock also freezes particle motion when paused.
      */
-    fun update(deltaSeconds: Float, nowMs: Int) {
-        if (activeCount == 0) {
-            return
-        }
-        var index = 0
-        while (index < activeCount) {
-            val elapsedMs = nowMs - spawnTimeMs[index]
-            if (elapsedMs >= lifetimeMs[index]) {
-                removeAt(index)
-                continue
-            }
-            velZ[index] += gravity[index] * deltaSeconds
-            posX[index] += velX[index] * deltaSeconds
-            posY[index] += velY[index] * deltaSeconds
-            posZ[index] += velZ[index] * deltaSeconds
-            index++
-        }
+    fun update(nowMs: Int) {
+        runtime.update(nowMs)
     }
 
     /**
      * Submits all visible particles to the dedicated particle renderer.
      *
      * Rendering policy:
-     * - alpha is evaluated from current normalized lifetime and caller-provided alpha ramp,
+     * - libGDX normalized lifetime drives the caller-provided alpha ramp,
      * - fully transparent particles are skipped,
      * - render/blend mode routing is delegated to [ParticleRenderer].
      */
@@ -161,95 +124,19 @@ class EffectParticleSystem(
         if (!RenderTuningCvars.particlesEnabled()) {
             return
         }
-        if (activeCount == 0) {
-            return
-        }
-        val nowMs = currentTimeMsProvider()
+        if (runtime.liveCount == 0) return
         renderer.begin(camera)
-        var index = 0
-        while (index < activeCount) {
-            val life = ((nowMs - spawnTimeMs[index]).toFloat() / lifetimeMs[index].toFloat()).coerceIn(0f, 1f)
-            val alpha = startAlpha[index] + (endAlpha[index] - startAlpha[index]) * life
-            if (alpha <= 0f) {
-                index++
-                continue
-            }
-            renderer.submit(
-                mode = ParticleRenderMode.fromId(renderMode[index]),
-                blend = ParticleBlendMode.fromId(blendMode[index]),
-                x = posX[index],
-                y = posY[index],
-                z = posZ[index],
-                red = colorR[index],
-                green = colorG[index],
-                blue = colorB[index],
-                alpha = alpha,
-                size = size[index],
-            )
-            index++
-        }
+        runtime.submit(currentTimeMsProvider(), renderer)
         renderer.flush()
     }
 
-    fun liveParticleCount(): Int = activeCount
+    fun liveParticleCount(): Int = runtime.liveCount
 
     fun lastRenderStats(): ParticleRenderer.Stats = renderer.lastStats
 
     override fun dispose() {
-        activeCount = 0
+        runtime.dispose()
         renderer.dispose()
-    }
-
-    private fun ensureCapacity(requiredCapacity: Int) {
-        if (requiredCapacity <= capacity) {
-            return
-        }
-        var newCapacity = capacity
-        while (newCapacity < requiredCapacity) {
-            newCapacity = newCapacity shl 1
-        }
-        posX = posX.copyOf(newCapacity)
-        posY = posY.copyOf(newCapacity)
-        posZ = posZ.copyOf(newCapacity)
-        velX = velX.copyOf(newCapacity)
-        velY = velY.copyOf(newCapacity)
-        velZ = velZ.copyOf(newCapacity)
-        spawnTimeMs = spawnTimeMs.copyOf(newCapacity)
-        lifetimeMs = lifetimeMs.copyOf(newCapacity)
-        startAlpha = startAlpha.copyOf(newCapacity)
-        endAlpha = endAlpha.copyOf(newCapacity)
-        size = size.copyOf(newCapacity)
-        gravity = gravity.copyOf(newCapacity)
-        colorR = colorR.copyOf(newCapacity)
-        colorG = colorG.copyOf(newCapacity)
-        colorB = colorB.copyOf(newCapacity)
-        renderMode = renderMode.copyOf(newCapacity)
-        blendMode = blendMode.copyOf(newCapacity)
-        capacity = newCapacity
-    }
-
-    private fun removeAt(index: Int) {
-        val last = activeCount - 1
-        if (index != last) {
-            posX[index] = posX[last]
-            posY[index] = posY[last]
-            posZ[index] = posZ[last]
-            velX[index] = velX[last]
-            velY[index] = velY[last]
-            velZ[index] = velZ[last]
-            spawnTimeMs[index] = spawnTimeMs[last]
-            lifetimeMs[index] = lifetimeMs[last]
-            startAlpha[index] = startAlpha[last]
-            endAlpha[index] = endAlpha[last]
-            size[index] = size[last]
-            gravity[index] = gravity[last]
-            colorR[index] = colorR[last]
-            colorG[index] = colorG[last]
-            colorB[index] = colorB[last]
-            renderMode[index] = renderMode[last]
-            blendMode[index] = blendMode[last]
-        }
-        activeCount = last
     }
 
     private fun randomDirection(direction: FloatArray?, spread: Float): Vector3 {
@@ -281,10 +168,6 @@ class EffectParticleSystem(
         return min + Globals.rnd.nextInt(max - min + 1)
     }
 
-    companion object {
-        private const val INITIAL_CAPACITY = 1024
-        private val tempDirection = Vector3()
-    }
 }
 
 /**
