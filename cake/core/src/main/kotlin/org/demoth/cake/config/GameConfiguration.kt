@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
+import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.assets.bsp.BspMapAsset
 import org.demoth.cake.assets.MissingResourceException
@@ -238,6 +239,11 @@ class GameConfiguration(
 
     fun getItemName(itemIndex: Int): String? {
         return configStrings.getOrNull(CS_ITEMS + itemIndex)?.value
+    }
+
+    /** Owned protocol values for demo startup; resource handles are excluded. */
+    fun snapshotConfigStrings(): List<ConfigStringMessage> = configStrings.mapIndexedNotNull { index, config ->
+        config?.value?.takeIf { it.isNotEmpty() }?.let { ConfigStringMessage(index, it) }
     }
 
     fun getConfigValue(configIndex: Int): String? {

@@ -108,7 +108,7 @@ class InputManager(
     }
 
     // called at fixed client command cadence
-    fun buildMoveMessage(outgoingSequence: Int, currentFrame: ClientFrame, commandMsec: Int): MoveMessage {
+    fun buildMoveMessage(outgoingSequence: Int, currentFrame: ClientFrame, commandMsec: Int, requestFullSnapshot: Boolean = false): MoveMessage {
         val nowNanos = nowNanosProvider()
 
         // assemble the inputs and commands, then transmit them
@@ -157,7 +157,7 @@ class InputManager(
 
         // deliver the message
         return MoveMessage.fromInput(
-            !currentFrame.valid,
+            requestFullSnapshot || !currentFrame.valid,
             currentFrame.serverframe,
             oldestCmd,
             oldCmd,

@@ -38,6 +38,20 @@ class InputManagerDeltaCompressionTest {
     }
 
     @Test
+    fun recordingCanRequestFullSnapshotWithoutInvalidatingPresentationOrDiscardingInput() {
+        val input = InputManager(nowNanosProvider = { 1_000_000L })
+        val current = frame(serverframe = 77, valid = true)
+        input.updateLocalInput(0f, current)
+        val full = roundTrip(input.buildMoveMessage(5, current, 16, requestFullSnapshot = true), 5)
+        assertTrue(full.lastReceivedFrame <= 0)
+        assertTrue(current.valid)
+        assertEquals(77, current.serverframe)
+        assertEquals(16, full.newCmd.msec)
+        val delta = roundTrip(input.buildMoveMessage(6, current, 16), 6)
+        assertEquals(77, delta.lastReceivedFrame)
+    }
+
+    @Test
     fun invalidCurrentFrameRequestsFullFrameResync() {
         val input = InputManager(nowNanosProvider = { 1_000_000L })
         val msg = input.gatherInput(

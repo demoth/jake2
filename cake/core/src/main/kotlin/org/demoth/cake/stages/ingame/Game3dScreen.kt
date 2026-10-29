@@ -1,5 +1,7 @@
 package org.demoth.cake.stages.ingame
 
+import org.demoth.cake.demo.DemoBootstrap
+
 import org.demoth.cake.assets.bsp.BspEntityLightSampler
 import org.demoth.cake.assets.bsp.BspInlineSurfaceMaterialController
 import org.demoth.cake.assets.bsp.BspInlineTextureAnimationController
@@ -852,8 +854,8 @@ class Game3dScreen(
         inputManager.updateLocalInput(deltaTime, entityManager.currentFrame)
     }
 
-    fun buildMoveMessage(outgoingSequence: Int, commandMsec: Int): MoveMessage {
-        return inputManager.buildMoveMessage(outgoingSequence, entityManager.currentFrame, commandMsec)
+    fun buildMoveMessage(outgoingSequence: Int, commandMsec: Int, requestFullSnapshot: Boolean = false): MoveMessage {
+        return inputManager.buildMoveMessage(outgoingSequence, entityManager.currentFrame, commandMsec, requestFullSnapshot)
     }
 
     @Deprecated("Use updateLocalInput + buildMoveMessage")
@@ -1043,10 +1045,19 @@ class Game3dScreen(
 
     // region SERVER MESSAGE PARSING
 
+    private var recordingServerData: ServerDataMessage? = null
+
+    /** Snapshot current startup data when the recorder receives its first full frame. */
+    fun demoBootstrap(): DemoBootstrap = DemoBootstrap(
+        checkNotNull(recordingServerData) { "No server data available for recording" },
+        gameConfig.snapshotConfigStrings(), entityManager.snapshotBaselines(),
+    )
+
     /**
      * CL_ParseServerData
      */
     override fun processServerDataMessage(msg: ServerDataMessage) {
+        recordingServerData = msg
         levelString = msg.levelString
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber
