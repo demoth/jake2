@@ -28,24 +28,39 @@
 
 ## NetworkPacket
 
-`NetworkPacket` adapts a received packet for the engine. Outgoing packets are built as bytes; 
-sending depends on connection state, rate limiting, and keepalive timing, rather than occurring on every frame on both sides.
-Sequenced packets contain a header and zero or more `ClientMessage` or `ServerMessage` values. 
-Connectionless packets contain text instead.
+`NetworkPacket` adapts a received datagram for the engine. `PacketCodec` identifies
+two packet types, represented by `PacketEnvelope.Sequenced` and
+`PacketEnvelope.Connectionless`.
 
-`MessageBodyCodec` validates the whole payload before dispatch, returning all messages or a typed rejection. 
-Malformed payloads cause the server to drop the sending client, or the receiving client to return to its console. 
-A failed movement checksum makes the server ignore the rest of the packet. 
-File/demo readers retain their existing sizebuf_t behavior.
+### Sequenced packets
 
-## "Connectionless" (Out of band) packet
-Such packets/messages are sent ad-hoc and don't require a running map instance, therefore could be sent by not connected clients.
-They are separate datagrams rather than messages inside a sequenced game-channel packet.
-`PacketCodec` identifies them by their leading -1 sequence marker; the engine adapter can expose both kinds as `NetworkPacket` values.
-The payload is text. For server `info` and `print` replies, a newline separates the
-command line from the remaining reply text; these are not two separately encoded strings.
+These carry communication over an established game connection:
 
-see `jake2.qcommon.network.messages.ConnectionlessCommand`
+- **Header:** sequence and acknowledgement fields, plus a qport on client-to-server packets.
+- **Body:** zero or more typed `ClientMessage` or `ServerMessage` values, such as movement, player state, or entity updates.
+- **Handling:** peer routing and `ReliableChannel` acceptance, followed by message-body decoding and dispatch.
+
+`MessageBodyCodec` validates the whole body before dispatch, returning all messages
+or a typed rejection. Malformed bodies cause the server to drop the sending client,
+or the receiving client to return to its console. A failed movement checksum makes
+the server ignore the rest of the packet. File/demo readers retain their existing
+`sizebuf_t` behavior.
+
+### Connectionless (out-of-band) packets
+
+These are independent datagrams that can be sent by connected or unconnected peers,
+without requiring a running map:
+
+- **Marker:** a leading sequence value of -1 identifies a connectionless packet.
+- **Payload:** text commands and replies, such as `getchallenge`, `connect`, `ping`, and `print`, described by `ConnectionlessCommand`.
+- **Handling:** connectionless command or handshake handlers, bypassing `ReliableChannel` and `MessageBodyCodec`. Handshake retries are managed by `ClientHandshake`.
+
+For server `info` and `print` replies, a newline separates the command line from the
+remaining reply text; these are not two separately encoded strings.
+
+Outgoing packets are built as bytes. Sending depends on connection state, rate
+limiting, and keepalive or handshake timing, rather than occurring on every frame
+on both sides.
 
 ## Reliability
 Remote communication uses UDP; in-process communication uses `LoopbackLink`.
