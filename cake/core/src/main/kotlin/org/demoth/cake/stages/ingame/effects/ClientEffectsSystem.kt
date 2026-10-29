@@ -72,6 +72,7 @@ class ClientEffectsSystem(
     private val cameraProvider: () -> Camera,
     private val dynamicLightSystem: DynamicLightSystem? = null,
     private val currentTimeMsProvider: () -> Int = { Globals.curtime },
+    private val localPlayerEntityIndexProvider: () -> Int? = { null },
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
@@ -85,6 +86,13 @@ class ClientEffectsSystem(
     }
     private val steamEffects = SteamEffects(particleSystem.runtime, paletteColor = { index ->
         resolvePaletteColor(index, fallback = STEAM_PARTICLE_FALLBACK)
+    })
+    private val beamModels = BeamModelRenderer { path -> assetCatalog.getModel(path)?.model }
+    private val beamEffects = BeamEffects(playSound = { request ->
+        assetCatalog.getSound(request.path)?.let { sound ->
+            audioSystem.play(SoundPlaybackRequest(sound = sound, entityIndex = request.entityIndex,
+                channel = request.channel, attenuation = Defines.ATTN_NORM.toFloat()))
+        }
     })
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
@@ -140,8 +148,8 @@ class ClientEffectsSystem(
      */
     fun processTempEntityMessage(msg: TEMessage) {
         when (msg) {
-            is BeamOffsetTEMessage -> handleBeamOffsetMessage(msg)
-            is BeamTEMessage -> handleBeamMessage(msg)
+            is BeamOffsetTEMessage, is BeamTEMessage, is LightningTEMessage ->
+                beamEffects.process(msg, currentTimeMsProvider())
             is PointDirectionTEMessage -> handlePointDirectionMessage(msg)
             is TrailTEMessage -> handleTrailMessage(msg)
             is SplashTEMessage -> handleSplashMessage(msg)
@@ -149,7 +157,6 @@ class ClientEffectsSystem(
             is SteamTEMessage -> steamEffects.process(msg, currentTimeMsProvider())
             // These expansion layouts are decoded completely to preserve message boundaries.
             // Their presentation still needs dedicated effect implementations.
-            is LightningTEMessage,
             is FlashlightTEMessage,
             is ForceWallTEMessage,
             is WidowBeamOutTEMessage -> Unit
@@ -193,6 +200,8 @@ class ClientEffectsSystem(
         val now = currentTimeMsProvider()
         particleSystem.update(now)
         steamEffects.update(now)
+        beamModels.beginFrame()
+        beamEffects.submit(now, localPlayerEntityIndexProvider(), cameraProvider().position, beamModels)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
             val effect = iterator.next()
@@ -211,6 +220,7 @@ class ClientEffectsSystem(
      *   use [renderParticles] for the dedicated particle renderer path.
      */
     fun render(modelBatch: ModelBatch) {
+        beamModels.render(modelBatch)
         activeEffects.forEach { effect ->
             effect.render(modelBatch)
         }
@@ -231,9 +241,11 @@ class ClientEffectsSystem(
 
     fun debugParticleRenderStats(): ParticleRenderer.Stats = particleSystem.lastRenderStats()
 
-    fun debugActiveEffectCount(): Int = activeEffects.size
+    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + steamEffects.activeSustainCount
 
     override fun dispose() {
+        beamEffects.clear()
+        beamModels.dispose()
         steamEffects.clear()
         activeEffects.forEach { it.dispose() }
         activeEffects.clear()
@@ -647,30 +659,6 @@ class ClientEffectsSystem(
         }
     }
 
-    private fun handleBeamMessage(msg: BeamTEMessage) {
-        if (msg.style == Defines.TE_PARASITE_ATTACK || msg.style == Defines.TE_MEDIC_CABLE_ATTACK) {
-            spawnSegmentBeam(
-                modelPath = "models/monsters/parasite/segment/tris.md2",
-                start = msg.origin.toArray(),
-                end = msg.destination.toArray(),
-                offset = null,
-                durationMs = 200,
-            )
-        }
-    }
-
-    private fun handleBeamOffsetMessage(msg: BeamOffsetTEMessage) {
-        if (msg.style == Defines.TE_GRAPPLE_CABLE) {
-            spawnSegmentBeam(
-                modelPath = "models/ctf/segment/tris.md2",
-                start = msg.origin.toArray(),
-                end = msg.destination.toArray(),
-                offset = msg.offset.toArray(),
-                durationMs = 200,
-            )
-        }
-    }
-
     private fun computeMuzzleOrigin(entityIndex: Int, flashType: Int): Vector3? {
         val origin = entityManager.getEntityOrigin(entityIndex) ?: return null
         val angles = entityManager.getEntityAngles(entityIndex) ?: return null
@@ -806,45 +794,6 @@ class ClientEffectsSystem(
             position = Vector3(position),
             startsTranslucent = startsTranslucent,
         )
-    }
-
-    private fun spawnSegmentBeam(
-        modelPath: String,
-        start: FloatArray?,
-        end: FloatArray?,
-        offset: FloatArray?,
-        durationMs: Int,
-    ) {
-        val startVector = toVector3(start) ?: return
-        val endVector = toVector3(end) ?: return
-        val offsetVector = toVector3(offset) ?: Vector3.Zero
-
-        val beamStart = Vector3(startVector).add(offsetVector)
-        val beamDirection = Vector3(endVector).sub(beamStart)
-        val beamLength = beamDirection.len()
-        if (beamLength <= 0.001f) {
-            return
-        }
-
-        beamDirection.scl(1f / beamLength)
-        val (pitch, yaw) = computeDirectionAngles(beamDirection) ?: return
-
-        val segmentStep = 30f
-        var travelled = 0f
-        while (travelled <= beamLength) {
-            val segmentPosition = Vector3(beamStart).mulAdd(beamDirection, travelled)
-            spawnAnimatedModelEffect(
-                modelPath = modelPath,
-                position = segmentPosition,
-                firstFrame = 0,
-                frameCount = 1,
-                frameDurationMs = durationMs,
-                pitchDeg = pitch,
-                yawDeg = yaw,
-                rollDeg = Globals.rnd.nextInt(360).toFloat(),
-            )
-            travelled += segmentStep
-        }
     }
 
     private fun spawnAnimatedModelEffect(

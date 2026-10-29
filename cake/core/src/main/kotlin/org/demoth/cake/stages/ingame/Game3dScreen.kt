@@ -117,6 +117,9 @@ class Game3dScreen(
         cameraProvider = { camera },
         dynamicLightSystem = dynamicLightSystem,
         currentTimeMsProvider = { presentationTimeMillis },
+        localPlayerEntityIndexProvider = {
+            gameConfig.playerConfiguration.playerIndex.takeIf { it >= 0 }?.plus(1)
+        },
     )
     private val soundMessageHandler = IngameSoundMessageHandler(
         gameConfig = gameConfig,

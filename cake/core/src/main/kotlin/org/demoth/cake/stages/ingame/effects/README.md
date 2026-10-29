@@ -79,6 +79,31 @@ intensity/overbright multipliers. Shader sources are
 `assets/shaders/particle_point.vert/.frag` and `particle_billboard.vert/.frag`,
 loaded through `AssetManager` and the [shared resolver](../../../assets/README.md).
 
+## Persistent Beams and Lightning
+
+`BeamEffects` owns cable/grapple and lightning state for the screen. Cable messages
+refresh by source entity, so parasite/medic/grapple updates replace their previous
+beam. Lightning identifies a source/destination pair, allowing multiple targets
+from the same source. Each message refreshes a 200 ms lifetime; expired slots are
+reclaimed before admitting new beams. State is bounded to 32 beams and geometry to
+128 model segments per beam.
+
+After the player view is updated, beam geometry is rebuilt from current camera
+state. Beams originating from the viewed player follow that camera, with the view
+height adjustment and transmitted grapple offset. Other origins retain the recorded
+world position. This works for live and recorded views without waiting for another
+beam message. Lightning uses its dedicated full-bright model and handles short bolts
+from the target end to avoid extending through the Tesla mine. Its roll advances
+with presentation time and freezes when that clock pauses.
+
+`BeamModelRenderer` reuses libGDX `ModelInstance` pools and submits them through the
+existing `ModelBatch` pass. It owns no model assets; model loading/unloading remains
+with the effect asset catalog. Missing optional expansion models are skipped. Tesla
+sound requests use the source entity and weapon channel, resolved through the shared
+audio system. Screen teardown clears beam state and instance pools before unloading
+catalog assets. Resource-free tests cover state, geometry, sound requests, pooled
+instance transforms/reuse and borrowed model ownership using empty libGDX models.
+
 ## Steam and Sustained Emission
 
 `SteamEffects` uses the shared libGDX particle runtime for instantaneous steam and
@@ -107,7 +132,7 @@ Particle families select colours from `q2palette.bin`. Useful compatibility anch
 Fallback colours keep effects visible when palette data is unavailable.
 `TE_BFG_EXPLOSION` uses the translucent `sprites/s_bfg2.sp2` explosion path;
 `TE_BFG_LASER` remains a procedural `LineBeamEffect` approximation. Parasite/medic
-and grapple beams use repeated segment models. Visual parity varies by effect
+and grapple beams use pooled segment models rebuilt from persistent beam state. Visual parity varies by effect
 family; unsupported styles inside recognised TE message classes can fall through
 silently. The decoded expansion message classes with no presentation implementation
 are currently ignored explicitly.
