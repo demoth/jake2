@@ -30,6 +30,7 @@ import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.SoundPlaybackRequest
 import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.assets.Sp2Renderer
+import org.demoth.cake.assets.BeamRenderer
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
 import org.demoth.cake.stages.ingame.DynamicLightSystem
@@ -112,6 +113,7 @@ class ClientEffectsSystem(
     private val impactEffects = ImpactEffects(particleSystem.runtime,
         paletteColor = { index -> resolvePaletteColor(index, fallback = IMPACT_PARTICLE_COLOR_FALLBACK) },
         playSound = { request -> playEffectSound(request.path, toVector3(request.origin), attenuation = request.attenuation) })
+    private val laserEffects = LaserEffects()
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -241,6 +243,13 @@ class ClientEffectsSystem(
         activeEffects.forEach { it.collectDynamicLights(lights) }
     }
 
+    /** Submits temporary lasers through the screen-owned RF_BEAM renderer. */
+    fun renderLasers(modelBatch: ModelBatch, beamRenderer: BeamRenderer) {
+        laserEffects.submit(currentTimeMsProvider()) { beam ->
+            beamRenderer.render(modelBatch, beam.origin, beam.destination, beam.paletteIndex, beam.diameter, beam.alpha)
+        }
+    }
+
     /**
      * Renders model/sprite transient effects via `ModelBatch`.
      *
@@ -270,9 +279,10 @@ class ClientEffectsSystem(
 
     fun debugParticleRenderStats(): ParticleRenderer.Stats = particleSystem.lastRenderStats()
 
-    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + heatbeamEffects.activeCount + steamEffects.activeSustainCount + shellEffects.activeSustainCount
+    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + heatbeamEffects.activeCount + steamEffects.activeSustainCount + shellEffects.activeSustainCount + laserEffects.activeCount
 
     override fun dispose() {
+        laserEffects.clear()
         shellEffects.clear()
         heatbeamEffects.clear()
         beamEffects.clear()
@@ -354,7 +364,7 @@ class ClientEffectsSystem(
 
     private fun handleTrailMessage(msg: TrailTEMessage) {
         val now = currentTimeMsProvider()
-        if (expansionEffects.process(msg, now) || impactEffects.process(msg, now)) return
+        if (laserEffects.process(msg, now) || expansionEffects.process(msg, now) || impactEffects.process(msg, now)) return
         val start = toVector3(msg.position)
         val end = toVector3(msg.destination)
         when (msg.style) {
@@ -407,18 +417,6 @@ class ClientEffectsSystem(
             Defines.TE_RAILTRAIL -> {
                 emitRailTrailParticles(start, end)
                 playEffectSound("sound/weapons/railgf1a.wav", end)
-            }
-
-            Defines.TE_BFG_LASER -> {
-                activeEffects += LineBeamEffect(
-                    start = start,
-                    end = end,
-                    color = Color(0.2f, 1f, 0.25f, 1f),
-                    spawnTimeMs = currentTimeMsProvider(),
-                    durationMs = 110,
-                    radius = 0.8f,
-                    alpha = 0.35f,
-                )
             }
         }
     }

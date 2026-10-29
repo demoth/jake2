@@ -30,17 +30,19 @@ Server effect messages / entity-event and trail callbacks
 
 WorldPresentationRenderer frame
   -> effectsSystem.update(): simulate particles, advance/expire effect instances
-  -> collect replicated trails and lights
+  -> reset frame lights, collect explosion lights and replicated trails/lights
   -> draw world and entities, then translucent world
   -> effectsSystem.renderParticles(): dedicated particle pass
   -> effectsSystem.render(): transient models/sprites/beams through ModelBatch
+  -> effectsSystem.renderLasers(): palette lasers through the shared BeamRenderer
 ```
 
 `ClientTransientEffect.update(nowMs, deltaSeconds)` returns false when an instance
 expires; the system removes and disposes it in that update loop. Update and render
 run on the render thread. `AnimatedModelEffect` and `AnimatedSpriteEffect` provide
-timed animation; `ExplosionMd2Effect` and `ExplosionSpriteEffect` apply legacy
-explosion frame, skin, and alpha rules. Model effects reuse the
+timed animation; `ExplosionAnimation` uses libGDX `Animation` for shared explosion
+frame, skin, and alpha rules. `ExplosionMd2Effect` and `ExplosionSpriteEffect`
+apply that state to their visuals. Model effects reuse the
 [MD2 pipeline](../../../assets/md2/README.md); sprite effects use `Sp2Renderer`.
 
 ## Particle Simulation and Rendering
@@ -189,6 +191,24 @@ cloud, teleport bursts and outward widow splash. Ordinary bubbles rise at a
 steady velocity, and diagnostic trails remain stationary. These are Cake
 approximations, rather than pixel-perfect replicas of reference emission.
 
+## Explosions and Palette Lasers
+
+`ExplosionEffect` owns animation state and contributes a frame light whose radius
+follows the animation alpha. Lights are collected after the frame-light reset;
+expiry removes both the visual and its light. Missing optional visual assets still
+retain the animated light. MD2 explosions select frame pairs, skins and translucency
+from the shared state; sprite explosions select its current frame. Materials use
+standard libGDX alpha blending. `TE_EXPLOSION1_BIG`, `TE_EXPLOSION1_NP` and
+`TE_PLAIN_EXPLOSION` do not emit explosion particles.
+
+`LaserEffects` keeps up to 64 independent BFG laser pulses for 100 ms. Each pulse
+chooses a palette color from `0xD0..0xD3`, with diameter 4 and opacity 0.3; its color
+stays stable when presentation time pauses. The screen-owned `BeamRenderer` shares
+cached libGDX cylinder models with RF_BEAM entities, avoiding per-pulse GPU resource
+allocation. Screen teardown clears laser state and disposes the shared renderer.
+Synthetic tests cover animation, lights, materials, transforms, expiry and ownership
+without game assets or a window.
+
 ## Visual Behaviour and Current Limits
 
 Particle families select colours from `q2palette.bin`. Useful compatibility anchors:
@@ -200,11 +220,11 @@ Particle families select colours from `q2palette.bin`. Useful compatibility anch
 
 Fallback colours keep effects visible when palette data is unavailable.
 `TE_BFG_EXPLOSION` uses the translucent `sprites/s_bfg2.sp2` explosion path;
-`TE_BFG_LASER` remains a procedural `LineBeamEffect` approximation. Parasite/medic
-and grapple beams use pooled segment models rebuilt from persistent beam state. Visual fidelity varies by effect
-family. Decoded message families dispatch to their presentation handlers; some
-existing effects still approximate the reference particle patterns or omit components
-which are covered by the remaining fidelity work.
+`TE_BFG_LASER` uses the shared palette-beam renderer. Parasite/medic and grapple
+beams use pooled segment models rebuilt from persistent beam state. Particle
+patterns and procedural geometry remain visual approximations of the reference;
+base-game effects, live play, pause and map/session transitions still need visual
+verification.
 
 Legacy references are `client/CL_fx.ParseMuzzleFlash2`, `CL_fx.LogoutEffect`,
 `CL_tent.ParseTEnt`, and `../yquake2/src/client/cl_effects.c`.

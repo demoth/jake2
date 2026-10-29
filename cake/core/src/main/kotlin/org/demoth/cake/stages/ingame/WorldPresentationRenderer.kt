@@ -227,6 +227,7 @@ internal class WorldPresentationRenderer {
         context.modelBatch.begin(context.camera)
         try {
             context.effectsSystem.render(context.modelBatch)
+            context.effectsSystem.renderLasers(context.modelBatch, context.beamRenderer)
         } finally {
             context.modelBatch.end()
         }
