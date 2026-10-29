@@ -1,6 +1,10 @@
 package org.demoth.cake.demo
 
 import jake2.qcommon.vfs.DefaultWritableFileSystem
+import jake2.qcommon.vfs.VfsEntry
+import jake2.qcommon.vfs.VfsLayer
+import jake2.qcommon.vfs.VfsSource
+import jake2.qcommon.vfs.VfsSourceType
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -49,5 +53,27 @@ class DemoFilesTest {
             assertThrows(IOException::class.java) { files.open(path) }
         }
         assertEquals(0L, Files.list(root).use { it.count() })
+    }
+
+    @Test fun `browser snapshots overlay installed demos refresh recordings and open the exact selected source`() {
+        var profile = "first"
+        val files = DemoFiles({ DefaultWritableFileSystem(root.resolve(profile)) }, { ByteArrayInputStream(byteArrayOf(7)) })
+        val installed = VfsEntry("demos/take.dm2", "demos/take.dm2", VfsLayer.BASE_PACK, 0,
+            VfsSource(VfsSourceType.PACKAGE_ENTRY, root.resolve("pak0.pak"), "demos/take.dm2", "pak", true, false), 12, 0)
+        assertEquals(listOf(installed), files.entries(listOf(installed)))
+        files.create("Take").stream.use { it.write(8) }
+        files.create("series/new").stream.use { it.write(9) }
+        val entries = files.entries(listOf(installed))
+        assertEquals(listOf("demos/series/new.dm2", "demos/take.dm2"), entries.map { it.normalizedPath })
+        val selected = entries.last()
+        assertEquals(VfsLayer.PROFILE_LOOSE, selected.layer)
+        assertEquals("demos/Take.dm2", selected.displayPath)
+        assertEquals(1L, selected.size)
+        files.open(selected).use { assertEquals(8, it.read()) }
+        files.open(installed).use { assertEquals(7, it.read()) }
+        assertEquals(3, files.entries(listOf(installed), caseSensitive = true).size)
+        profile = "second"
+        assertEquals(listOf(installed), files.entries(listOf(installed)))
+        assertThrows(IOException::class.java) { files.open(selected) }
     }
 }
