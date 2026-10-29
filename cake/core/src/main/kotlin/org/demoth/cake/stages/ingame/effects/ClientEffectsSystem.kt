@@ -106,6 +106,9 @@ class ClientEffectsSystem(
     private val shellEffects = ShellEffects(particleSystem.runtime, paletteColor = { index ->
         resolvePaletteColor(index, fallback = EXPLOSION_PARTICLE_FALLBACK)
     })
+    private val pointParticles = PointParticles(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = IMPACT_PARTICLE_COLOR_FALLBACK)
+    })
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -555,7 +558,9 @@ class ClientEffectsSystem(
     }
 
     private fun handlePointMessage(msg: PointTEMessage) {
-        if (shellEffects.process(msg, currentTimeMsProvider())) return
+        val now = currentTimeMsProvider()
+        if (shellEffects.process(msg, now)) return
+        pointParticles.process(msg, now)
         val position = toVector3(msg.position)
         when (msg.style) {
             Defines.TE_EXPLOSION2,
