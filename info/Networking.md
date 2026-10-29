@@ -22,50 +22,61 @@
 ## Transport ownership
 
 - Client and server each own a separate transport.
-- Each transport manages its own UDP socket and one endpoint of the local link.
+- Each transport manages an optional UDP socket (optional, for multiplayer) and one endpoint of the local link (singleplayer and local hosting).
 - Stopping or closing one side preserves messages already queued for the other side.
 - Map changes preserve reconnect traffic; clearing both local queues requires an explicit session-level decision.
 
 ## NetworkPacket
 
-Every frame both client and servers are sending a jake2.qcommon.network.messages.NetworkPacket to each other.
-Each such packet contains a header and several (Client|Server)Messages.
+`NetworkPacket` adapts a received packet for the engine. Outgoing packets are built as bytes; 
+sending depends on connection state, rate limiting, and keepalive timing, rather than occurring on every frame on both sides.
+Sequenced packets contain a header and zero or more `ClientMessage` or `ServerMessage` values. 
+Connectionless packets contain text instead.
 
-`MessageBodyCodec` decodes a sequenced payload with bounded reads before controllers
-receive any messages. It returns either the complete collection or a typed rejection,
-so a valid prefix of a structurally malformed packet cannot trigger application commands. Lengths,
-opcodes, directions, and table indices are checked without global teardown from codecs.
-The server drops the offending connection; the client returns to its console on a bad
-server payload. Movement checksum validity keeps its existing `MoveMessage.valid`/controller policy.
-Legacy file/demo readers keep their existing `sizebuf_t` behavior.
+`MessageBodyCodec` validates the whole payload before dispatch, returning all messages or a typed rejection. 
+Malformed payloads cause the server to drop the sending client, or the receiving client to return to its console. 
+A failed movement checksum makes the server ignore the rest of the packet. 
+File/demo readers retain their existing sizebuf_t behavior.
 
 ## "Connectionless" (Out of band) packet
 Such packets/messages are sent ad-hoc and don't require a running map instance, therefore could be sent by not connected clients.
 They are separate datagrams rather than messages inside a sequenced game-channel packet.
 `PacketCodec` identifies them by their leading -1 sequence marker; the engine adapter can expose both kinds as `NetworkPacket` values.
-Mostly such packets contain a single string (though there are some cases when 2 strings are sent - `info` & `print`)
+The payload is text. For server `info` and `print` replies, a newline separates the
+command line from the remaining reply text; these are not two separately encoded strings.
 
 see `jake2.qcommon.network.messages.ConnectionlessCommand`
 
 ## Reliability
-Since quake2 utilizes only UDP protocol, reliability should be handled by the quake2 engine itself.
-Each frame server tries to send a reliable message first, then if there is room append an unreliable buffer and send.
+Remote communication uses UDP; in-process communication uses `LoopbackLink`.
+Both use the Quake II packet protocol and its reliability machinery.
+When reliable data is ready to send or retransmit, it goes first, followed by the
+unreliable batch if there is room. A packet can also contain only its header.
 
-The implementation is `jake2.qcommon.network.netchan_t.transmit`. Sequence and
-acknowledgement fields track reliable delivery; a dropped reliable payload is
-resent, and unreliable data is included only when the packet has room.
+The entry point is `ConnectionChannel.transmit`; protocol state is managed by
+`ReliableChannel`. Sequence and acknowledgement fields track reliable delivery;
+a dropped reliable payload is resent when acknowledgement state indicates a retry is needed.
 
 ## Delta compression
 
 The bulk of the network traffic between server & client constitute entity updates and move messages.
-In order to minimize the amount of information sent over the network quake2 protocol uses delta compression - an attempt to send only the difference from the previously sent command. 
+To reduce traffic, the Quake II protocol uses delta compression: sending selected fields relative to a reference state, rather than always sending the complete state.
 The following messages use delta compression:
 
  1. `PlayerInfoMessage` (from server)
  2. `PacketEntitiesMessage` (from server)
  3. `MoveMessage` (from client)
 
-The approach is the same for all of them - first identify what fields have changed (`deltaFlags`, like a bitmask), then sent only those fields.
+The reference depends on the message:
+
+- Player state uses a client-acknowledged frame when available, otherwise a zero state.
+- Entity updates use the acknowledged frame for existing entities and baselines for newly visible entities.
+- Movement sends three commands as a delta chain: the oldest against a zero command, then each later command against the preceding one.
+
+Field masks identify what is transmitted. Some fields are sent even when unchanged;
+for example, movement commands always include their duration and light level.
+Player-state updates send the weapon index only when it differs from the reference state,
+including changes to zero.
 
 ## Server Messages
 see package `jake2.qcommon.network.messages.server`
@@ -86,13 +97,15 @@ sequenceDiagram
     participant server
 
     Note over client: User types connect hostname
-    client->>server: getchallenge
-    server->>client: challenge
+    opt Remote UDP connection
+        client->>server: getchallenge [connectionless]
+        server->>client: challenge [connectionless]
+    end
     client->>server: connect [connectionless]
     Note over server: client.state = connected
     server->>client: client_connect [connectionless]
-    client->>server: StringCmdMessage new
     Note over client: state = connected
+    client->>server: StringCmdMessage new
     server->>client: ServerDataMessage
 
     loop until all config strings are transmitted
@@ -107,15 +120,19 @@ sequenceDiagram
         server->>client: SpawnBaselineMessage
     end
     Note over client: precache resources
-    loop until everything is downloaded
-        client->>server: StringCmdMessage download
-        server->>client: DownloadMessage
+    loop for each missing file
+        client->>server: StringCmdMessage download path [offset]
+        server->>client: DownloadMessage first chunk
+        loop remaining chunks of this file
+            client->>server: StringCmdMessage nextdl
+            server->>client: DownloadMessage next chunk
+        end
     end
 
     client->>server: StringCmdMessage begin
     Note over server: client.state = spawned
 
-    loop Every frame
+    loop During gameplay, when updates are sent
         server->>client: FrameHeaderMessage
         server->>client: PlayerInfoMessage
         server->>client: PacketEntitiesMessage
