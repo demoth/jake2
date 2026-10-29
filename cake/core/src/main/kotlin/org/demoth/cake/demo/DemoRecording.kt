@@ -5,6 +5,7 @@ import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.protocol.MessageBodyCodec
 import jake2.qcommon.network.protocol.MessageDecodeResult
+import jake2.qcommon.network.protocol.PacketEnvelope
 import jake2.qcommon.network.transport.PacketBytes
 import java.io.Closeable
 import java.io.IOException
@@ -21,6 +22,13 @@ class DemoRecording(private val writer: DemoWriter, private val bootstrap: () ->
 
     /** The command sender must request a full snapshot without invalidating the displayed frame. */
     val needsFullSnapshot: Boolean get() = !closed && waiting
+
+    /** Live server packets retain their exact body; channel headers are never part of .dm2 records. */
+    fun capture(packet: PacketEnvelope.Sequenced, snapshotAccepted: Boolean) {
+        require(packet.qport == null) { "Recording expects a server packet" }
+        capture(PacketBytes.copyOfRange(packet.bytes.toByteArray(), packet.headerSize,
+            packet.bytes.size - packet.headerSize), snapshotAccepted)
+    }
 
     /**
      * Called after the client processes an accepted packet. [snapshotAccepted] must indicate whether
@@ -51,7 +59,7 @@ class DemoRecording(private val writer: DemoWriter, private val bootstrap: () ->
                     return
                 }
                 // A live-valid delta may still depend on a frame received before recording began.
-                if (frame != null && frame.lastFrame > 0 &&
+                if (frame.lastFrame > 0 &&
                     recordedFrames[frame.lastFrame and (recordedFrames.size - 1)] != frame.lastFrame) {
                     waitForFullSnapshot()
                     return

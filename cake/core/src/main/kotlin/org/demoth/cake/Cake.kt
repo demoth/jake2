@@ -17,6 +17,10 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport
 import java.io.IOException
 import jake2.qcommon.network.demo.DemoReader
 import org.demoth.cake.demo.DemoPlayback
+import org.demoth.cake.demo.DemoRecording
+import org.demoth.cake.demo.DemoFiles
+import jake2.qcommon.network.demo.DemoWriter
+import jake2.qcommon.network.protocol.PacketEnvelope
 import org.demoth.cake.demo.demoLogicalPath
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
@@ -133,6 +137,8 @@ class Cake(
     private var awaitingNewGame = false
 
     // Connection and download protocol state.
+    private var demoRecording: DemoRecording? = null
+    private val demoFiles = DemoFiles(profilePersistence::writable, fileResolver::openContent)
     private var demoPlayback: DemoPlayback? = null
     private var demoPaused = false
     private var networkState = DISCONNECTED
@@ -321,6 +327,13 @@ class Cake(
                 beginConnection(target, local)
             }
 
+        }
+
+        Cmd.AddCommand("record", "Record a protocol-34 client demo: record <name>") { args ->
+            if (args.size != 2) Com.Printf("usage: record <name>\n") else startRecording(args[1])
+        }
+        Cmd.AddCommand("stop", "Finish the current client demo recording") {
+            if (demoRecording == null) Com.Printf("Not recording a demo\n") else stopRecording()
         }
 
         Cmd.AddCommand("demomap", "Play a protocol-34 demo: demomap <name or demos/path.dm2>") { args ->
@@ -516,6 +529,51 @@ class Cake(
         return result
     }
 
+    private fun startRecording(name: String) {
+        if (demoRecording != null) {
+            Com.Warn("Already recording a demo\n")
+            return
+        }
+        if (demoPlayback != null || networkState != ACTIVE || game3dScreen == null) {
+            Com.Warn("Recording requires an active live game\n")
+            return
+        }
+        try {
+            val output = demoFiles.create(name)
+            demoRecording = DemoRecording(DemoWriter(output.stream)) {
+                checkNotNull(game3dScreen) { "No active game for recording startup" }.demoBootstrap()
+            }
+            Com.Printf("Recording to ${output.path}; waiting for a full snapshot\n")
+        } catch (error: Exception) {
+            Com.Warn("Could not start recording: ${error.message}\n")
+        }
+    }
+
+    private fun stopRecording() {
+        val recording = demoRecording ?: return
+        demoRecording = null
+        try {
+            recording.close()
+            Com.Printf("Stopped demo recording\n")
+        } catch (error: Exception) {
+            Com.Warn("Could not finish recording: ${error.message}\n")
+        }
+    }
+
+    private fun captureDemoBody(recording: DemoRecording, packet: PacketEnvelope.Sequenced, snapshotAccepted: Boolean) {
+        if (demoRecording !== recording) return
+        try {
+            recording.capture(packet, snapshotAccepted)
+        } catch (error: Exception) {
+            // Recording failures retire the file owner, while the live game keeps running.
+            demoRecording = null
+            try { recording.close() } catch (closing: Exception) {
+                if (closing !== error) error.addSuppressed(closing)
+            }
+            Com.Warn("Demo recording failed: ${error.message}\n")
+        }
+    }
+
     private fun startDemo(name: String) {
         val path = demoLogicalPath(name)
         if (path == null) {
@@ -523,8 +581,8 @@ class Cake(
             return
         }
         val input = try {
-            fileResolver.openContent(path) ?: throw IOException("Demo not found in active profile: $path")
-        } catch (error: IOException) {
+            demoFiles.open(name)
+        } catch (error: Exception) {
             Com.Warn("${error.message}\n")
             return
         }
@@ -587,6 +645,7 @@ class Cake(
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
     private fun resetClientConnection() {
+        stopRecording()
         val playback = demoPlayback
         val wasDemo = playback != null
         demoPlayback = null
@@ -884,7 +943,8 @@ class Cake(
 
             ACTIVE -> {
                 queueUserInfoUpdateIfNeeded()
-                game3dScreen?.buildMoveMessage(netchan.outgoingSequence, currentClientCommandMsec())?.let {
+                game3dScreen?.buildMoveMessage(netchan.outgoingSequence, currentClientCommandMsec(),
+                    requestFullSnapshot = demoRecording?.needsFullSnapshot == true)?.let {
                     transmitAndRecord(listOf(it))
                 }
             }
@@ -1171,7 +1231,11 @@ class Cake(
                             if (message !is FrameHeaderMessage && message !is PlayerInfoMessage && message !is PacketEntitiesMessage)
                                 Com.Printf("Network: Received server msg: $message\n")
                         }
-                        parseServerMessage(body.messages)
+                        val recording = demoRecording
+                        val envelope = networkPacket.sequencedEnvelope()
+                        parseServerMessage(body.messages) { snapshotAccepted ->
+                            if (recording != null) captureDemoBody(recording, envelope, snapshotAccepted)
+                        }
                     }
                     is MessageDecodeResult.Rejected -> {
                         Com.Warn("Bad server payload at ${body.offset}: ${body.detail}\n")
@@ -1187,7 +1251,8 @@ class Cake(
     /**
      * CL_ParseServerMessage
      */
-    private fun parseServerMessage(messages: Collection<ServerMessage>) {
+    private fun parseServerMessage(messages: Collection<ServerMessage>, onParsed: (Boolean) -> Unit = {}) {
+        var snapshotAccepted = false
         // Important ordering quirk: accept() updates netchan ack from packet header before parsing
         // payload messages. We push those values into prediction first, mirroring old `CL_ReadPackets`
         // + `CL_pred.CheckPredictionError/PredictMovement` data flow.
@@ -1200,6 +1265,7 @@ class Cake(
             when (msg) {
                 is DisconnectMessage -> {
                     Com.Printf("Server disconnected\n")
+                    onParsed(snapshotAccepted)
                     dropToConsole()
                     return
                 }
@@ -1292,6 +1358,7 @@ class Cake(
 
                 is PacketEntitiesMessage -> {
                     val valid = game3dScreen?.processPacketEntitiesMessage(msg) == true
+                    snapshotAccepted = valid
                     if (demoPlayback != null && !valid) throw IOException("Demo snapshot depends on an unavailable frame")
                     if (valid) {
                         if (networkState != ACTIVE) {
@@ -1325,6 +1392,7 @@ class Cake(
 
             }
         }
+        onParsed(snapshotAccepted)
     }
 
     /**

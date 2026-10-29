@@ -159,13 +159,26 @@ the singleplayer respawn action opens Load Game automatically.
 remain visible in the menu so an invalid save or failed restore can be retried.
 Deathmatch does not create autosaves. Coop save/load remains console-only.
 
-## Demo playback
+## Demo recording and playback
 
-Both `cake-client` and `cake-fullgame` play protocol-34 client recordings (`.dm2`)
+Both `cake-client` and `cake-fullgame` can record the connected client's view:
+
+- `record example` — start recording an active live game, remote or locally hosted.
+- `stop` — finish and close the recording. Disconnect/shutdown also finishes it.
+- `demomap example` — replay the saved recording.
+
+Recordings are saved under `~/.cake/<profile-id>/demos/`; nested names are supported.
+Existing recordings are not overwritten: choose a new name for another take.
+Recording waits for an accepted full snapshot, requesting one without invalidating
+the displayed frame. Map transitions remain in the same recording. An I/O failure
+stops recording and reports an error while gameplay continues. A recording stopped
+before its first full snapshot has no playable frames.
+
+Both launchers play protocol-34 client recordings (`.dm2`)
 without running a game server. Select a profile containing the recording's maps,
 models, and sounds, then open the client console:
 
-- `demomap example` — play `demos/example.dm2` from the active profile's game data.
+- `demomap example` — play the active profile's saved `demos/example.dm2`, falling back to game data.
 - `demomap demos/folder/example.dm2` — play a nested demo, including archive entries.
 - `demopause` — toggle pause; opening the menu or suspending the application also pauses playback.
 - `demostop` or `disconnect` — stop and return to the console.
