@@ -11,6 +11,11 @@ import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.M_Flash
 import jake2.qcommon.math.Vector3f
+import jake2.qcommon.network.messages.server.LightningTEMessage
+import jake2.qcommon.network.messages.server.FlashlightTEMessage
+import jake2.qcommon.network.messages.server.ForceWallTEMessage
+import jake2.qcommon.network.messages.server.SteamTEMessage
+import jake2.qcommon.network.messages.server.WidowBeamOutTEMessage
 import jake2.qcommon.network.messages.server.BeamOffsetTEMessage
 import jake2.qcommon.network.messages.server.BeamTEMessage
 import jake2.qcommon.network.messages.server.MuzzleFlash2Message
@@ -138,6 +143,13 @@ class ClientEffectsSystem(
             is TrailTEMessage -> handleTrailMessage(msg)
             is SplashTEMessage -> handleSplashMessage(msg)
             is PointTEMessage -> handlePointMessage(msg)
+            // These expansion layouts are decoded completely to preserve message boundaries.
+            // Their presentation still needs dedicated effect implementations.
+            is LightningTEMessage,
+            is FlashlightTEMessage,
+            is ForceWallTEMessage,
+            is SteamTEMessage,
+            is WidowBeamOutTEMessage -> Unit
         }
     }
 
