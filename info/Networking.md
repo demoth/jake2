@@ -1,22 +1,30 @@
 # Quake 2 Networking Communication Protocol
 
+## Glossary
+
+- **Owner** — The client or server responsible for creating and closing its network resources.
+- **Transport** (`NetworkTransport`) — Sends and receives datagrams through the owner's local and UDP endpoints.
+- **Endpoint** (`DatagramEndpoint`) — One place where datagrams are sent and received: a UDP socket or a local queue.
+- **Local link** (`LoopbackLink`) — A private pair of endpoints connecting a client and server inside one process.
+- **Network** (`ClientNetwork` / `ServerNetwork`) — The application's interface for configuring network I/O, polling packets, and creating connections.
+- **Packet network** (`PacketNetwork`) — Shared client/server implementation of binding, polling, and packet-envelope decoding.
+- **Connection** (`ConnectionChannel`) — Communication with one peer, including its address and queued outgoing messages.
+- **Reliable channel** (`ReliableChannel`) — Tracks packet sequences, acknowledgements, and reliable retransmissions for one connection.
+- **Address** (`NetworkAddress`) — Identifies a UDP IP/port or an endpoint on a specific local link.
+- **Datagram** — One independently delivered unit of bytes, together with its source address when received.
+- **Packet** — A Quake II protocol unit carried by a datagram; either connectionless or sequenced.
+- **Envelope** (`PacketEnvelope`) — The decoded outer packet structure, identifying its kind and header fields.
+- **Message** (`ClientMessage` / `ServerMessage`) — One command or update inside a sequenced packet, such as movement or entity state.
+- **Codec** — Converts protocol values to and from bytes; it does not own sockets or connections.
+- **Handshake** (`ClientHandshake`) — The exchange used to establish a connection, including challenges and retries.
+- **Session** — The lifetime of a connection to a server; it can span multiple map changes.
+
 ## Transport ownership
 
-Client and server controllers own separate `NetworkTransport` instances. Each role
-configures only its own UDP endpoint; loopback communication needs no socket. A
-client may fall back to an ephemeral UDP port when its configured port is occupied.
-Applications compose these owners explicitly, replacing the former combined global
-socket policy and `NET` facade. The archived client's API/ABI is not maintained;
-the Quake II network wire protocol remains compatible.
-
-Local traffic uses a private `LoopbackLink`. Session stop discards incoming local
-traffic while preserving final messages already queued for the peer. Map changes
-retain reconnect traffic; clearing both local queues belongs at a whole-session
-boundary. Closing an owner closes its resources independently of the peer's.
-
-Packet decoding has explicit, side-effect-free outcomes below the engine adapter.
-Dedicated-server tick waiting currently uses a timed sleep rather than socket
-readiness. Network ownership does not impose a global client/server sleep policy.
+- Client and server each own a separate transport.
+- Each transport manages its own UDP socket and one endpoint of the local link.
+- Stopping or closing one side preserves messages already queued for the other side.
+- Map changes preserve reconnect traffic; clearing both local queues requires an explicit session-level decision.
 
 ## NetworkPacket
 
