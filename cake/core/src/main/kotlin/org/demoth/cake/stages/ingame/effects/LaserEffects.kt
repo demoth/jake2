@@ -19,17 +19,17 @@ internal class LaserEffects(private val random: Random = Random.Default, private
 
     fun process(message: TrailTEMessage, nowMs: Int): Boolean {
         if (message.style != Defines.TE_BFG_LASER) return false
-        expire(nowMs)
+        update(nowMs)
         if (entries.size >= capacity || message.position.distance(message.destination) < .001f) return true
         entries += Entry(LaserBeam(message.position, message.destination, 0xD0 + random.nextInt(4)), nowMs.toLong() + 100)
         return true
     }
 
     fun submit(nowMs: Int, draw: (LaserBeam) -> Unit) {
-        expire(nowMs)
+        update(nowMs)
         entries.forEach { draw(it.beam) }
     }
 
     fun clear() = entries.clear()
-    private fun expire(nowMs: Int) = entries.removeAll { nowMs.toLong() >= it.expiresAt }
+    fun update(nowMs: Int) { entries.removeAll { nowMs.toLong() >= it.expiresAt } }
 }

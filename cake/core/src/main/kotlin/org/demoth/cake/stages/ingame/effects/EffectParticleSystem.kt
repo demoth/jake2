@@ -32,7 +32,9 @@ class EffectParticleSystem(
     private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) : Disposable {
     internal val runtime = GdxParticleRuntime(RenderTuningCvars::particleBudget)
-    private val renderer = ParticleRenderer(assetManager)
+    // Simulation and teardown need no GL context until particles are actually drawn.
+    private val rendererDelegate = lazy { ParticleRenderer(assetManager) }
+    private val renderer by rendererDelegate
     private val tempDirection = Vector3()
     private val tempVelocity = Vector3()
     private val tempAcceleration = Vector3()
@@ -132,11 +134,12 @@ class EffectParticleSystem(
 
     fun liveParticleCount(): Int = runtime.liveCount
 
-    fun lastRenderStats(): ParticleRenderer.Stats = renderer.lastStats
+    fun lastRenderStats(): ParticleRenderer.Stats =
+        if (rendererDelegate.isInitialized()) renderer.lastStats else ParticleRenderer.Stats()
 
     override fun dispose() {
         runtime.dispose()
-        renderer.dispose()
+        if (rendererDelegate.isInitialized()) renderer.dispose()
     }
 
     private fun randomDirection(direction: FloatArray?, spread: Float): Vector3 {

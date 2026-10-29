@@ -220,6 +220,7 @@ class ClientEffectsSystem(
     fun update(deltaSeconds: Float, _serverFrame: Int) {
         val now = currentTimeMsProvider()
         particleSystem.update(now)
+        laserEffects.update(now)
         steamEffects.update(now)
         shellEffects.update(now)
         beamModels.beginFrame()
@@ -425,12 +426,10 @@ class ClientEffectsSystem(
         impactEffects.process(msg, currentTimeMsProvider())
         if (msg.style == Defines.TE_WELDING_SPARKS) {
             val position = toVector3(msg.position)
-            spawnLegacyExplosionEffect(
-                type = ExplosionType.FLASH,
-                modelPath = "models/objects/flash/tris.md2",
-                position = position,
-                firstFrame = 0,
-                frameCount = 2,
+            // CL_ParseTEnt uses RF_BEAM as a no-draw flag here: welding adds a light, not a flash model.
+            activeEffects += ExplosionEffect(
+                type = ExplosionType.FLASH, spawnTimeMs = currentTimeMsProvider(), frameDurationMs = 100,
+                firstFrame = 0, frameCount = 2, position = position,
                 light = ExplosionLight((100 + Globals.rnd.nextInt(75)).toFloat(), Vector3f(1f, 1f, .3f)),
             )
         }
@@ -523,16 +522,6 @@ class ClientEffectsSystem(
                     frameCount = 15,
                 )
                 playEffectSound("sound/weapons/rocklx1a.wav", position)
-            }
-
-            Defines.TE_CHAINFIST_SMOKE -> {
-                spawnAnimatedModelEffect(
-                    modelPath = "models/objects/smoke/tris.md2",
-                    position = position,
-                    firstFrame = 0,
-                    frameCount = 4,
-                    frameDurationMs = 100,
-                )
             }
 
             Defines.TE_TRACKER_EXPLOSION -> {
