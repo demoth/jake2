@@ -1,8 +1,7 @@
 package jake2.server
 
 import jake2.qcommon.Defines
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.transport.IpAddress
 import jake2.qcommon.util.Lib
@@ -12,12 +11,19 @@ class ServerConnections(
     private val challengeCapacity: Int = Defines.MAX_CHALLENGES,
     private val nextToken: () -> Int = { Lib.rand().toInt() },
 ) {
-    private data class PeerKey(val type: NetAddrType, val ip: IpAddress?) {
+    private sealed interface PeerKey {
+        data class Remote(val ip: IpAddress) : PeerKey
+        data class Local(val address: NetworkAddress.Local) : PeerKey
         companion object {
-            fun of(address: netadr_t) = PeerKey(address.type,
-                if (address.type == NetAddrType.NA_LOOPBACK) null else IpAddress.fromBytes(address.ip))
+            fun of(address: NetworkAddress): PeerKey = when (address) {
+                is NetworkAddress.Udp -> Remote(address.ip)
+                is NetworkAddress.Local -> Local(address)
+            }
         }
     }
+
+    private fun samePort(a: NetworkAddress, b: NetworkAddress): Boolean =
+        (a as? NetworkAddress.Udp)?.port == (b as? NetworkAddress.Udp)?.port
 
     enum class ChallengeValidation { ACCEPTED, BAD, MISSING }
     sealed interface Admission {
@@ -46,29 +52,29 @@ class ServerConnections(
      * entry. Map insertion order tracks issuance even within one clock tick and across global
      * clock resets/wrap. Session stop calls [reset] to clear the cache; this order is never sent.
      */
-    fun issueChallenge(from: netadr_t): Int {
+    fun issueChallenge(from: NetworkAddress): Int {
         val key = PeerKey.of(from)
         challenges[key]?.let { return it }
         if (challenges.size == challengeCapacity) challenges.remove(challenges.keys.first())
         return (nextToken() and 0x7fff).also { challenges[key] = it }
     }
 
-    fun validateChallenge(from: netadr_t, token: Int): ChallengeValidation {
-        if (from.type == NetAddrType.NA_LOOPBACK) return ChallengeValidation.ACCEPTED
+    fun validateChallenge(from: NetworkAddress, token: Int): ChallengeValidation {
+        if (from is NetworkAddress.Local) return ChallengeValidation.ACCEPTED
         val expected = challenges[PeerKey.of(from)] ?: return ChallengeValidation.MISSING
         return if (expected == token) ChallengeValidation.ACCEPTED else ChallengeValidation.BAD
     }
 
     fun selectSlot(
-        clients: List<ClientNetworkInfo>, from: netadr_t, qport: Int,
+        clients: List<ClientNetworkInfo>, from: NetworkAddress, qport: Int,
         nowMillis: Long, reconnectDelayMillis: Float,
     ): Admission {
         val key = PeerKey.of(from)
         for ((index, client) in clients.withIndex()) {
             if (client.state == ClientStates.CS_FREE) continue
             if (PeerKey.of(client.netchan.remoteAddress) != key) continue
-            if (client.netchan.qport != qport && client.netchan.remoteAddress.port != from.port) continue
-            if (from.type != NetAddrType.NA_LOOPBACK && nowMillis - client.lastconnect < reconnectDelayMillis)
+            if (client.netchan.qport != qport && !samePort(client.netchan.remoteAddress, from)) continue
+            if (from !is NetworkAddress.Local && nowMillis - client.lastconnect < reconnectDelayMillis)
                 return Admission.TooSoon
             return Admission.Slot(index, reconnect = true)
         }
@@ -85,8 +91,8 @@ class ServerConnections(
                 PeerKey.of(it.netchan.remoteAddress) == key
         } ?: return null
         if (!client.netchan.accept(packet)) return null
-        val changed = client.netchan.remoteAddress.port != packet.from.port
-        if (changed) client.netchan.updateRemotePort(packet.from.port)
+        val changed = !samePort(client.netchan.remoteAddress, packet.from)
+        if (changed) client.netchan.updateRemotePort((packet.from as NetworkAddress.Udp).port)
         return Routed(client, changed)
     }
 

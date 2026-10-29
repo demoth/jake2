@@ -3,7 +3,6 @@ package jake2.qcommon.network.runtime
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.Netchan
-import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.transport.*
 import org.junit.jupiter.api.Assertions.*
@@ -64,14 +63,14 @@ class PacketNetworkTest {
             PacketNetwork(clientTransport, NetworkRole.CLIENT).use { client ->
                 PacketNetwork(serverTransport, NetworkRole.SERVER).use { server ->
                     val clientChannel = client.newChannel()
-                    clientChannel.setup(netadr_t(), 1234)
+                    clientChannel.setup(clientChannel.remoteAddress, 1234)
                     assertTrue(clientChannel.transmit(null))
                     val request = server.receive()!!
                     assertEquals(1234, request.qport)
                     assertEquals(10, request.buffer.readcount)
 
                     val serverChannel = server.newChannel()
-                    serverChannel.setup(netadr_t(), 1234)
+                    serverChannel.setup(serverChannel.remoteAddress, 1234)
                     assertTrue(serverChannel.accept(request))
                     assertTrue(serverChannel.transmit(null))
                     val reply = client.receive()!!
@@ -79,13 +78,13 @@ class PacketNetworkTest {
                     assertTrue(clientChannel.accept(reply))
 
                     val body = "é".repeat(Defines.MAX_MSGLEN - 4 - "print\n".length)
-                    server.sendConnectionless(netadr_t(), ConnectionlessCommand.print, "\n$body")
+                    server.sendConnectionless(server.localPeer, ConnectionlessCommand.print, "\n$body")
                     val text = client.receive()!!
                     assertEquals(Defines.MAX_MSGLEN, text.buffer.cursize)
                     assertEquals("print", text.connectionlessMessage)
                     assertEquals(body, text.connectionlessParameters)
                     assertThrows(IllegalArgumentException::class.java) {
-                        server.sendConnectionless(netadr_t(), ConnectionlessCommand.print, "\n${body}é")
+                        server.sendConnectionless(server.localPeer, ConnectionlessCommand.print, "\n${body}é")
                     }
                     assertNull(client.receive())
                 }

@@ -3,12 +3,9 @@ package jake2.qcommon
 import jake2.qcommon.network.runtime.*
 import jake2.qcommon.network.transport.LocalSide
 import jake2.qcommon.network.messages.ConnectionlessCommand
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.Netchan
 
@@ -44,9 +41,8 @@ class OutputFailureTest {
         assertArrayEquals(saved, buffer.data)
     }
 
-    @ParameterizedTest
-    @EnumSource(NetAddrType::class, names = ["NA_IPX", "NA_BROADCAST_IPX"])
-    fun `unsupported destination propagates without closing the socket`(type: NetAddrType) {
+    @Test
+    fun `oversized connectionless output propagates without closing the socket`() {
         val cvars = Cvar.getInstance()
         cvars.clear()
         Netchan.Netchan_Init()
@@ -57,9 +53,8 @@ class OutputFailureTest {
                 assertTrue(packets.configure(true))
                 val endpoint = transport.udpEndpoint!!
                 val failure = assertThrows(IllegalArgumentException::class.java) {
-                    packets.sendConnectionless(netadr_t().apply { this.type = type }, ConnectionlessCommand.print, "\nerror")
+                    packets.sendConnectionless(packets.localPeer, ConnectionlessCommand.print, "x".repeat(Defines.MAX_MSGLEN))
                 }
-                assertTrue(failure.message!!.contains(type.name))
                 assertSame(endpoint, transport.udpEndpoint)
                 assertTrue(endpoint.isOpen)
             }

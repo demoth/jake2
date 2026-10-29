@@ -90,10 +90,10 @@ class NetSocketOwnershipTest {
 
     @Test
     void loopbackWorksWithoutSocketsAndSessionResetDiscardsBothQueues() {
-        pair.client.sendConnectionless(new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        pair.client.sendConnectionless(pair.client.getLocalPeer(), ConnectionlessCommand.getchallenge, "\n");
         assertNotNull(pair.server.receive());
-        pair.server.sendConnectionless(new netadr_t(), ConnectionlessCommand.client_connect, "");
-        pair.client.sendConnectionless(new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        pair.server.sendConnectionless(pair.server.getLocalPeer(), ConnectionlessCommand.client_connect, "");
+        pair.client.sendConnectionless(pair.client.getLocalPeer(), ConnectionlessCommand.getchallenge, "\n");
         pair.clearLocalTraffic();
         assertNull(pair.client.receive());
         assertNull(pair.server.receive());

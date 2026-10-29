@@ -5,7 +5,7 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.Netchan
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.messages.server.StuffTextMessage
 import jake2.qcommon.vfs.*
 import org.junit.jupiter.api.*
@@ -64,7 +64,7 @@ class GameContinuationTest {
         gameName = game.name
         edict = game.gameExports.getEdict(index + 1)
         state = ClientStates.CS_CONNECTED
-        netchan.setup(netadr_t(), index)
+        netchan.setup(netchan.remoteAddress, index)
     }
 
     private fun finish(client: ClientNetworkInfo, game: GameImportsImpl) =

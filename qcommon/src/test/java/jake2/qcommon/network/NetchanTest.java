@@ -50,7 +50,7 @@ class NetchanTest {
     void outgoingClientPacketUsesItsSetupQport() {
         Netchan.qport.forceSet(77);
         var channel = new ConnectionChannel(ChannelRole.CLIENT, client.getLocalPeer(), client::send, () -> (long) Globals.curtime);
-        channel.setup(new netadr_t(), 1234);
+        channel.setup(channel.getRemoteAddress(), 1234);
         assertTrue(channel.transmit(null));
         assertEquals(1234, serverPackets.receive().qport);
     }
@@ -61,7 +61,7 @@ class NetchanTest {
         var channel = new ConnectionChannel(ChannelRole.CLIENT, client.getLocalPeer(),
                 (to, bytes) -> available[0] ? client.send(to, bytes)
                         : new SendResult.Failed(new java.io.IOException("unavailable")), () -> (long) Globals.curtime);
-        channel.setup(new netadr_t(), 7);
+        channel.setup(channel.getRemoteAddress(), 7);
         channel.queueReliable(new StringCmdMessage("new"));
         Globals.curtime = 100;
         assertFalse(channel.transmit(null));
@@ -85,7 +85,7 @@ class NetchanTest {
             if (fail[0]) throw new IllegalStateException("injected send failure");
             return client.send(to, bytes);
         }, () -> (long) Globals.curtime);
-        channel.setup(new netadr_t(), 7);
+        channel.setup(channel.getRemoteAddress(), 7);
         channel.queueReliable(new StringCmdMessage("new"));
         assertThrows(IllegalStateException.class, () -> channel.transmit(null));
         assertEquals(1, channel.getOutgoingSequence());
@@ -97,7 +97,7 @@ class NetchanTest {
     @Test
     void recordsSentPacketSizeAfterPacketIsBuilt() {
         ConnectionChannel netchan = new ConnectionChannel(ChannelRole.SERVER, server.getLocalPeer(), server::send, () -> (long) Globals.curtime);
-        netchan.setup(new netadr_t(), 0);
+        netchan.setup(netchan.getRemoteAddress(), 0);
 
         Globals.curtime = 100;
         netchan.transmit(null);
@@ -108,7 +108,7 @@ class NetchanTest {
     @Test
     void smoothsPingFromAcknowledgedPacketSequence() {
         ConnectionChannel netchan = new ConnectionChannel(ChannelRole.SERVER, server.getLocalPeer(), server::send, () -> (long) Globals.curtime);
-        netchan.setup(new netadr_t(), 0);
+        netchan.setup(netchan.getRemoteAddress(), 0);
 
         Globals.curtime = 100;
         netchan.transmit(null); // sequence 1

@@ -26,12 +26,11 @@ import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
 import jake2.qcommon.network.protocol.MessageDecodeResult
 import jake2.qcommon.network.Netchan
-import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.*
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.util.Lib
 import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
@@ -972,7 +971,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     /** Validate a direct connect request, including its remote-address challenge, before admission. */
-    private fun connectClient(args: List<String>, adr: netadr_t) {
+    private fun connectClient(args: List<String>, adr: NetworkAddress) {
         Com.DPrintf("SVC_DirectConnect ()\n")
 
         val version = if (args.size >= 2) Lib.atoi(args[1]) else 0
@@ -1020,7 +1019,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     /**
      * Initializes player structures after successfull connection.
      */
-    private fun initializeClientConnection(i: Int, challenge: Int, userinfo: String?, adr: netadr_t, qport: Int) {
+    private fun initializeClientConnection(i: Int, challenge: Int, userinfo: String?, adr: NetworkAddress, qport: Int) {
         // build a new connection
         // accept the new client
         // this is the only place a ClientNetworkInfo is ever initialized
@@ -1073,7 +1072,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * it from a game channel. Clients that are in the game can still send
      * connectionless packets. It is used also by rcon commands.
      */
-    fun handleConnectionlessPacket(from: netadr_t, messageLine: String?) {
+    fun handleConnectionlessPacket(from: NetworkAddress, messageLine: String?) {
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
@@ -1701,7 +1700,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     fun shouldRateLimit(c: ClientNetworkInfo): Boolean {
         // never drop over the loopback
 
-        if (c.netchan.remoteAddress.type == NetAddrType.NA_LOOPBACK) return false
+        if (c.netchan.remoteAddress is NetworkAddress.Local) return false
 
         var total = 0
 
@@ -1920,7 +1919,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * A client issued an rcon command. Shift down the remaining args Redirect
      * all printfs from the server to the client.
      */
-    private fun executeRemoteCommand(args: List<String>, from: netadr_t) {
+    private fun executeRemoteCommand(args: List<String>, from: NetworkAddress) {
         val rconIsValid: Boolean = isRconAuthorized(args)
 
         if (rconIsValid) {

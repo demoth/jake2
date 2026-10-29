@@ -2,7 +2,6 @@ package org.demoth.cake.network
 
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.Netchan
-import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.transport.*
@@ -29,12 +28,12 @@ class ClientNetworkTest {
                         assertSame(binding, transport.udpEndpoint)
                         client.stop()
                         assertFalse(binding.isOpen)
-                        client.sendConnectionless(netadr_t(), ConnectionlessCommand.getchallenge, "\n")
+                        client.sendConnectionless(client.localPeer, ConnectionlessCommand.getchallenge, "\n")
                         val received = link.second.receive() as ReceiveResult.Received
                         assertEquals("getchallenge\n", received.datagram.payload.toByteArray()
                             .drop(4).toByteArray().toString(Charsets.ISO_8859_1))
                         val channel = client.newChannel()
-                        channel.setup(netadr_t(), 42)
+                        channel.setup(channel.remoteAddress, 42)
                         assertTrue(channel.transmit(null))
                         assertTrue(link.second.receive() is ReceiveResult.Received)
                     }

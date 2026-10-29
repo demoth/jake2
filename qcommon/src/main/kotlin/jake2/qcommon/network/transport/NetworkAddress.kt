@@ -34,11 +34,18 @@ class IpAddress private constructor(private val bytes: ByteArray, private val sc
     }
 }
 
+/**
+ * Immutable transport address. Only Local represents an in-process connection: a UDP address on
+ * 127.0.0.1 is still remote. Base-address routing ignores UDP ports but compares complete local-link
+ * and endpoint identity; an unrelated local link must never alias this peer.
+ */
 sealed interface NetworkAddress {
     data class Udp(val ip: IpAddress, val port: Int) : NetworkAddress {
         init {
             require(port in 0..65535) { "UDP port out of range: $port" }
         }
+
+        override fun toString(): String = if (':' in ip.toString()) "[$ip]:$port" else "$ip:$port"
 
         fun toSocketAddress(): InetSocketAddress = InetSocketAddress(ip.toInetAddress(), port)
 

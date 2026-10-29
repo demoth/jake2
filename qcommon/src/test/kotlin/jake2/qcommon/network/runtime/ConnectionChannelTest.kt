@@ -2,8 +2,6 @@ package jake2.qcommon.network.runtime
 
 import jake2.qcommon.Defines
 import jake2.qcommon.network.ConnectionChannel
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.protocol.*
@@ -19,7 +17,7 @@ class ConnectionChannelTest {
         var now = Int.MAX_VALUE.toLong() + 100_000
         var result: SendResult = SendResult.Sent
         val channel = ConnectionChannel(ChannelRole.CLIENT, link.second.localAddress, { _, _ -> result }) { now }
-        channel.setup(netadr_t(), 42)
+        channel.setup(channel.remoteAddress, 42)
         assertFalse(channel.hasBeenIdleFor(1000))
         now += 1000
         assertFalse(channel.hasBeenIdleFor(1000))
@@ -48,11 +46,11 @@ class ConnectionChannelTest {
         val channel = ConnectionChannel(ChannelRole.SERVER, link.first.localAddress, { to, _ ->
             destinations += to; SendResult.Sent
         }) { 0L }
-        val address = netadr_t().apply { type = NetAddrType.NA_IP; port = 27910; ip = byteArrayOf(10, 1, 2, 3) }
+        val address = NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(10, 1, 2, 3)), 27910)
         channel.setup(address, 1234)
-        address.ip.fill(99); address.port = 1
+        address.ip.toByteArray().fill(99)
         val view = channel.remoteAddress
-        view.ip.fill(88); view.port = 2; view.type = NetAddrType.NA_LOOPBACK
+        (view as NetworkAddress.Udp).ip.toByteArray().fill(88)
         channel.transmit(null)
         channel.updateRemotePort(27911)
         channel.transmit(null)
@@ -68,7 +66,7 @@ class ConnectionChannelTest {
         val channel = ConnectionChannel(ChannelRole.CLIENT, link.second.localAddress, { _, bytes ->
             wire += bytes; SendResult.Sent
         }) { 0L }
-        channel.setup(netadr_t(), 42)
+        channel.setup(channel.remoteAddress, 42)
         val command = StringCmdMessage("first")
         channel.queueReliable(command)
         val snapshot = channel.queuedReliable
@@ -102,7 +100,7 @@ class ConnectionChannelTest {
                 attempts += bytes
                 if (attempts.size == 1) failure else SendResult.Sent
             }) { 100L }
-            channel.setup(netadr_t(), 42)
+            channel.setup(channel.remoteAddress, 42)
             channel.queueReliable(StringCmdMessage("retry"))
             assertFalse(channel.transmit(null))
             assertEquals(1, channel.outgoingSequence)
@@ -128,7 +126,7 @@ class ConnectionChannelTest {
         channel.clear()
         assertFalse(channel.fatalError)
         assertFalse(channel.hasQueuedReliable)
-        channel.setup(netadr_t(), 42)
+        channel.setup(channel.remoteAddress, 42)
         assertTrue(channel.transmit(null))
         assertEquals(8, wire.single().size, "A server channel retains its header role across clear/setup")
     }

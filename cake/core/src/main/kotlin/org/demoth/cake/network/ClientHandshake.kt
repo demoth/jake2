@@ -1,26 +1,16 @@
 package org.demoth.cake.network
 
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.messages.ConnectionlessCommand
-import jake2.qcommon.network.transport.IpAddress
 
 /** Game-thread handshake controller. Time and current connect payload are supplied by the caller. */
 class ClientHandshake(
     private val network: ClientNetwork,
     private val connectPayload: (challenge: Int) -> String,
 ) {
-    private data class Target(val type: NetAddrType, val ip: IpAddress, val port: Int) {
-        fun toLegacy() = netadr_t().also { it.type = type; it.ip = ip.toByteArray(); it.port = port }
-        fun matches(from: netadr_t) = type == from.type && port == from.port && ip == IpAddress.fromBytes(from.ip)
-        companion object {
-            fun copyOf(address: netadr_t) = Target(address.type, IpAddress.fromBytes(address.ip), address.port)
-        }
-    }
-
-    private var target: Target? = null
-    /** Owned snapshot, retained after reset for the manual reconnect command. */
-    val lastTarget: netadr_t? get() = target?.toLegacy()
+    private var target: NetworkAddress? = null
+    /** Immutable target, retained after reset for the manual reconnect command. */
+    val lastTarget: NetworkAddress? get() = target
     var isLocal = false
         private set
     private var pending = false
@@ -28,9 +18,10 @@ class ClientHandshake(
     private var retryRemainingSeconds = 0f
 
     /** A failed bind leaves the current handshake untouched. */
-    fun begin(address: netadr_t, local: Boolean): Boolean {
+    fun begin(address: NetworkAddress): Boolean {
+        val local = address is NetworkAddress.Local
         if (!network.configure(!local)) return false
-        target = Target.copyOf(address)
+        target = address
         isLocal = local
         challenge = 0
         restart()
@@ -59,14 +50,14 @@ class ClientHandshake(
         val peer = target ?: return
         if (retryRemainingSeconds <= 0f) {
             if (isLocal) sendConnect(peer)
-            else network.sendConnectionless(peer.toLegacy(), ConnectionlessCommand.getchallenge, "\n")
+            else network.sendConnectionless(peer, ConnectionlessCommand.getchallenge, "\n")
             retryRemainingSeconds = 1f
         } else {
             retryRemainingSeconds -= deltaSeconds
         }
     }
 
-    fun receiveChallenge(from: netadr_t, value: String?): Boolean {
+    fun receiveChallenge(from: NetworkAddress, value: String?): Boolean {
         val peer = expected(from) ?: return false
         val parsed = value?.toIntOrNull() ?: return false
         challenge = parsed
@@ -74,15 +65,15 @@ class ClientHandshake(
         return true
     }
 
-    fun acceptConnection(from: netadr_t): Boolean {
+    fun acceptConnection(from: NetworkAddress): Boolean {
         if (expected(from) == null) return false
         pending = false
         return true
     }
 
-    private fun expected(from: netadr_t): Target? = target?.takeIf { pending && it.matches(from) }
+    private fun expected(from: NetworkAddress): NetworkAddress? = target?.takeIf { pending && it == from }
 
-    private fun sendConnect(peer: Target) {
-        network.sendConnectionless(peer.toLegacy(), ConnectionlessCommand.connect, connectPayload(challenge))
+    private fun sendConnect(peer: NetworkAddress) {
+        network.sendConnectionless(peer, ConnectionlessCommand.connect, connectPayload(challenge))
     }
 }

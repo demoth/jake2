@@ -53,7 +53,7 @@ class NetPacketReceiveTest {
         assertEquals(7, packet.sequence);
         assertEquals(3, packet.sequenceAck);
         assertEquals(fromClient ? 42 : 0, packet.qport);
-        assertEquals(NetAddrType.NA_IP, packet.from.type);
+        assertInstanceOf(NetworkAddress.Udp.class, packet.from);
     }
 
     @Test
@@ -91,7 +91,7 @@ class NetPacketReceiveTest {
     void truncatedLoopbackHeaderIsDroppedWithoutConsumingFollowingPacket() {
         assertSame(SendResult.Sent.INSTANCE, pair.clientTransport.send(
                 pair.clientTransport.getLocalPeer(), PacketBytes.copyOf(sequencedPacket(8, false))));
-        pair.client.sendConnectionless(new netadr_t(), ConnectionlessCommand.getchallenge, "\n");
+        pair.client.sendConnectionless(pair.client.getLocalPeer(), ConnectionlessCommand.getchallenge, "\n");
 
         assertNull(pair.server.receive());
         NetworkPacket next = pair.server.receive();
@@ -101,7 +101,7 @@ class NetPacketReceiveTest {
 
     @Test
     void serverPrintReplySeparatesCommandFromMultilineParameters() {
-        pair.server.sendConnectionless(new netadr_t(), ConnectionlessCommand.print,
+        pair.server.sendConnectionless(pair.server.getLocalPeer(), ConnectionlessCommand.print,
                 "\nFirst line\nSecond line\n");
 
         NetworkPacket packet = pair.client.receive();

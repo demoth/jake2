@@ -65,7 +65,7 @@ class PacketCodecTest {
         assertEquals(direction.sequencedHeaderSize, packet.buffer.readcount)
         assertEquals(0x23, packet.buffer.readByte())
         assertEquals(0x45, packet.buffer.readByte())
-        assertEquals(27910, packet.from.port)
+        assertEquals(27910, (packet.from as NetworkAddress.Udp).port)
         packet.buffer.data.fill(0)
         packet.sequence = 0
         assertArrayEquals(wire, envelope.bytes.toByteArray())

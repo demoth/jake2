@@ -7,7 +7,6 @@ import jake2.qcommon.network.transport.*
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.runtime.PacketNetwork
 import jake2.qcommon.network.protocol.PacketCodec
-import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.DisconnectMessage
 import jake2.qcommon.Defines
@@ -54,7 +53,7 @@ class ServerNetworkTest {
                 fun connection(qport: Int) = ClientNetworkInfo(peer.network.newChannel()).apply {
                     state = ClientStates.CS_CONNECTED
                     userinfo = "before"
-                    netchan.setup(netadr_t(), qport)
+                    netchan.setup(netchan.remoteAddress, qport)
                 }
                 val bad = connection(7)
                 val healthy = connection(8)

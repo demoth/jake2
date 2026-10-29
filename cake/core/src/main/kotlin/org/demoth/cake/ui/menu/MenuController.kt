@@ -1,7 +1,7 @@
 package org.demoth.cake.ui.menu
 
 import jake2.qcommon.Defines.PORT_SERVER
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.AddressResolver
 import org.demoth.cake.hosting.*
 
 interface MenuBackend {
@@ -338,9 +338,11 @@ class MenuController(
                 val address = if (parsedPort == null) {
                     normalizedHost
                 } else {
-                    "$normalizedHost:$parsedPort"
+                    val host = if (normalizedHost.count { it == ':' } > 1 && !normalizedHost.startsWith("["))
+                        "[$normalizedHost]" else normalizedHost
+                    "$host:$parsedPort"
                 }
-                if (netadr_t.fromString(address, PORT_SERVER) == null) {
+                if (!AddressResolver.isValid(address, PORT_SERVER)) {
                     refreshState(
                         activeScreen = MenuScreen.JOIN_GAME,
                         formOverride = state.profileEditor.form,

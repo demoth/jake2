@@ -25,7 +25,6 @@ import jake2.qcommon.exec.find
 import org.demoth.cake.network.ClientNetwork
 import org.demoth.cake.network.ClientHandshake
 import jake2.qcommon.network.protocol.MessageDecodeResult
-import jake2.qcommon.network.NetAddrType
 import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
@@ -33,7 +32,7 @@ import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.vfs.VfsDebugCommands
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
@@ -306,7 +305,7 @@ class Cake(
 
             } else {
                 val target = handshake.lastTarget ?: return@AddCommand
-                val local = target.type == NetAddrType.NA_LOOPBACK
+                val local = target is NetworkAddress.Local
                 if (local && host.state != HostState.RUNNING) {
                     Com.Warn("No local server is running.\n")
                     return@AddCommand
@@ -323,12 +322,12 @@ class Cake(
                 Com.Printf("usage: connect <server>\n")
                 return@AddCommand
             }
-            val target = netadr_t.fromString(server, PORT_SERVER)
+            val target = network.resolveAddress(server, PORT_SERVER)
             if (target == null) {
                 Com.Warn("Bad server address\n")
                 return@AddCommand
             }
-            if (target.type == NetAddrType.NA_LOOPBACK) {
+            if (target is NetworkAddress.Local) {
                 if (host.state != HostState.RUNNING) {
                     Com.Warn("No local server is running. Use map to start a local game or connect to a UDP address.\n")
                     return@AddCommand
@@ -371,13 +370,13 @@ class Cake(
                     Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
                     return@AddCommand
                 }
-                netadr_t.fromString(rconAddress, PORT_SERVER) ?: run {
+                network.resolveAddress(rconAddress, PORT_SERVER) ?: run {
                     Com.Warn("Bad rcon_address\n")
                     return@AddCommand
                 }
             }
 
-            if (to.type != NetAddrType.NA_LOOPBACK && !network.configure(true)) {
+            if (to !is NetworkAddress.Local && !network.configure(true)) {
                 Com.Warn("Could not open the client UDP socket\n")
                 return@AddCommand
             }
@@ -494,8 +493,8 @@ class Cake(
         return result
     }
 
-    private fun beginConnection(target: netadr_t, local: Boolean) {
-        if (!handshake.begin(target, local)) {
+    private fun beginConnection(target: NetworkAddress, local: Boolean) {
+        if (!handshake.begin(target)) {
             Com.Warn("Could not open the client UDP socket\n")
             return
         }
@@ -677,7 +676,7 @@ class Cake(
             // Existing local transitions and remote connections retain their handshake paths.
             if (networkState == DISCONNECTED && host.state == HostState.RUNNING) {
                 awaitingNewGame = false
-                beginConnection(netadr_t(), local = true)
+                beginConnection(network.localPeer, local = true)
                 menuVisible = false
                 consoleVisible = false
             }
@@ -1073,8 +1072,7 @@ class Cake(
             //
             // packet from server
             //
-            if (networkPacket.from.type != netchan.remoteAddress.type ||
-                !networkPacket.from.compareIp(netchan.remoteAddress)) {
+            if (networkPacket.from != netchan.remoteAddress) {
                 Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
                 return@poll
             }

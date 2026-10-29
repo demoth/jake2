@@ -4,7 +4,6 @@ import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.Netchan
-import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
@@ -31,6 +30,10 @@ class PacketNetwork(
     private var closed = false
     private val label = if (role == NetworkRole.CLIENT) "Client" else "Server"
     private val direction = if (role == NetworkRole.CLIENT) PacketDirection.FROM_SERVER else PacketDirection.FROM_CLIENT
+
+    val localPeer: NetworkAddress.Local get() = transport.localPeer
+
+    fun resolveAddress(text: String, defaultPort: Int): NetworkAddress? = AddressResolver.resolve(text, defaultPort, localPeer)
 
     fun newChannel(): ConnectionChannel {
         check(!closed) { "$label network is closed" }
@@ -105,12 +108,11 @@ class PacketNetwork(
     }
 
     /** Out-of-band datagram: a -1 sequence marker followed by Latin-1 command/payload bytes. */
-    fun sendConnectionless(to: netadr_t, command: ConnectionlessCommand, payload: String) {
+    fun sendConnectionless(to: NetworkAddress, command: ConnectionlessCommand, payload: String) {
         val text = (command.name + payload).toByteArray(Charsets.ISO_8859_1)
         require(text.size <= Defines.MAX_MSGLEN - 4)
         val bytes = ByteBuffer.allocate(text.size + 4).order(ByteOrder.LITTLE_ENDIAN).putInt(-1).put(text).array()
-        val destination = to.toNetworkAddress(transport.localPeer)
-        val result = transport.send(destination, PacketBytes.copyOf(bytes))
+        val result = transport.send(to, PacketBytes.copyOf(bytes))
         if (result is SendResult.Failed) Com.Println("$label send error: ${result.cause}")
     }
 

@@ -501,7 +501,7 @@ class HostSessionPreparationTest {
         val mapCommand = jake2.qcommon.exec.Cmd.FindCommand("map")
         val client = host.clients[0]
         client.state = ClientStates.CS_CONNECTED
-        client.netchan.setup(jake2.qcommon.network.netadr_t(), 0)
+        client.netchan.setup(client.netchan.remoteAddress, 0)
         network.sendLocal(Defines.NS_CLIENT, 8, ByteArray(8))
         cvars.find<Boolean>("paused").forceSet(true)
         var deferredRan = false

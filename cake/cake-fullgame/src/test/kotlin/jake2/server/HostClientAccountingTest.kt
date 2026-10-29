@@ -1,5 +1,7 @@
 package jake2.server
 
+import jake2.qcommon.network.transport.NetworkAddress
+import jake2.qcommon.network.transport.IpAddress
 import jake2.game.GameEntity
 import jake2.game.GamePlayerInfo
 import jake2.qcommon.*
@@ -88,7 +90,7 @@ class HostClientAccountingTest {
         lastconnect = 100
         rate = 100000
         state = ClientStates.CS_CONNECTED
-        netchan.setup(netadr_t(), index)
+        netchan.setup(netchan.remoteAddress, index)
     }
 
     @AfterEach
@@ -315,7 +317,7 @@ class HostClientAccountingTest {
     fun `rate history expires by Host frames and movement budget ignores Game age`() {
         val a = bind(0, first)
         val b = bind(1, second)
-        a.netchan.setup(netadr_t().apply { type = NetAddrType.NA_IP }, a.netchan.qport)
+        a.netchan.setup(NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(127, 0, 0, 1)), 0), a.netchan.qport)
         a.rate = 1
         a.message_size[1] = 100
         repeat(10) {
@@ -345,11 +347,7 @@ class HostClientAccountingTest {
                 receiver.receive(packet)
                 return String(packet.data, 4, packet.length - 4).trim()
             }
-            val address = netadr_t().apply {
-                type = NetAddrType.NA_IP
-                ip = loopback.address
-                port = receiver.localPort
-            }
+            val address = NetworkAddress.Udp(IpAddress.fromBytes(loopback.address), receiver.localPort)
             cvars.find<Int>("port").forceSet(0)
             try {
                 assertTrue(network.server.configure(true))
@@ -361,20 +359,14 @@ class HostClientAccountingTest {
                 // No UDP socket while filling synthetic remote addresses: no external packets.
                 Globals.curtime = -1000
                 repeat(Defines.MAX_CHALLENGES - 1) { index ->
-                    val remote = netadr_t().apply {
-                        type = NetAddrType.NA_IP
-                        ip = byteArrayOf(192.toByte(), 0, (index / 256).toByte(), (index % 256).toByte())
-                    }
+                    val remote = NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(192.toByte(), 0, (index / 256).toByte(), (index % 256).toByte())), 0)
                     host.handleConnectionlessPacket(remote, "getchallenge")
                 }
                 assertTrue(network.server.configure(true))
                 host.handleConnectionlessPacket(address, "getchallenge")
                 assertEquals(issued, reply(), "Repeated requests retain the existing challenge")
                 network.server.configure(false)
-                host.handleConnectionlessPacket(netadr_t().apply {
-                    type = NetAddrType.NA_IP
-                    ip = byteArrayOf(198.toByte(), 51, 100, 1)
-                }, "getchallenge")
+                host.handleConnectionlessPacket(NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(198.toByte(), 51, 100, 1)), 0), "getchallenge")
                 assertTrue(network.server.configure(true))
                 host.handleConnectionlessPacket(address,
                     "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester")
@@ -430,11 +422,7 @@ class HostClientAccountingTest {
         val loopback = java.net.InetAddress.getByName("127.0.0.1")
         java.net.DatagramSocket(0, loopback).use { receiver ->
             receiver.soTimeout = 2000
-            val address = netadr_t().apply {
-                type = NetAddrType.NA_IP
-                ip = loopback.address
-                port = receiver.localPort
-            }
+            val address = NetworkAddress.Udp(IpAddress.fromBytes(loopback.address), receiver.localPort)
             host.handleConnectionlessPacket(address, "getchallenge")
             val response = java.net.DatagramPacket(ByteArray(2048), 2048)
             receiver.receive(response)

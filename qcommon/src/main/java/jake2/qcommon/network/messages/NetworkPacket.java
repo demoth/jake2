@@ -1,13 +1,11 @@
 package jake2.qcommon.network.messages;
 
-import jake2.qcommon.network.NetAddrType;
 import jake2.qcommon.network.protocol.PacketEnvelope;
 import jake2.qcommon.network.transport.NetworkAddress;
 import jake2.qcommon.network.messages.client.ClientMessage;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.protocol.MessageDecodeResult;
 import jake2.qcommon.network.protocol.MessageBodyCodec;
-import jake2.qcommon.network.netadr_t;
 import jake2.qcommon.sizebuf_t;
 
 
@@ -29,22 +27,17 @@ public class NetworkPacket {
 
     public String connectionlessParameters; // client only
 
-    public netadr_t from = new netadr_t();
+    public final NetworkAddress from;
 
     public sizebuf_t buffer = new sizebuf_t();
 
-    /** Adapt a validated envelope to the mutable legacy channel/message reader. */
+    /** Adapt a validated envelope to the engine channel/message reader while retaining the exact immutable source. */
     public static NetworkPacket fromEnvelope(NetworkAddress source, PacketEnvelope envelope) {
-        NetworkPacket packet = new NetworkPacket();
+        NetworkPacket packet = new NetworkPacket(source);
         packet.envelope = envelope;
         packet.buffer.data = envelope.getBytes().toByteArray();
         packet.buffer.cursize = packet.buffer.data.length;
         packet.buffer.maxsize = packet.buffer.data.length;
-        if (source instanceof NetworkAddress.Udp udp) {
-            packet.from.type = NetAddrType.NA_IP;
-            packet.from.ip = udp.getIp().toByteArray();
-            packet.from.port = udp.getPort();
-        }
         if (envelope instanceof PacketEnvelope.Sequenced sequenced) {
             packet.sequence = sequenced.getSequence();
             packet.sequenceAck = sequenced.getSequenceAck();
@@ -59,7 +52,8 @@ public class NetworkPacket {
         return packet;
     }
 
-    private NetworkPacket() {
+    private NetworkPacket(NetworkAddress source) {
+        this.from = java.util.Objects.requireNonNull(source);
     }
 
     public boolean isConnectionless() {

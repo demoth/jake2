@@ -1,7 +1,7 @@
 package org.demoth.cake.network
 
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.IpAddress
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 class ClientHandshakeTest {
-    private data class Sent(val ip: List<Byte>, val port: Int, val command: ConnectionlessCommand, val payload: String)
+    private data class Sent(val address: NetworkAddress, val command: ConnectionlessCommand, val payload: String)
     private class Network : ClientNetwork {
+        override val localPeer = jake2.qcommon.network.transport.LoopbackLink().second.localAddress
         val sent = mutableListOf<Sent>()
         val binds = mutableListOf<Boolean>()
         var bindSucceeds = true
@@ -20,19 +21,14 @@ class ClientHandshakeTest {
         }
         override fun newChannel(): ConnectionChannel = error("Handshake must not create protocol channels")
         override fun poll(budget: Int, consume: (NetworkPacket) -> Unit): Int = error("Caller owns polling")
-        override fun sendConnectionless(to: netadr_t, command: ConnectionlessCommand, payload: String) {
-            sent += Sent(to.ip.toList(), to.port, command, payload)
-            // Deliberately hostile legacy consumer: it cannot mutate the retained target.
-            to.ip.fill(0)
-            to.port = 0
+        override fun sendConnectionless(to: NetworkAddress, command: ConnectionlessCommand, payload: String) {
+            sent += Sent(to, command, payload)
+            // An exported byte array cannot mutate the immutable target.
+            (to as? NetworkAddress.Udp)?.ip?.toByteArray()?.fill(0)
         }
         override fun stop() = error("Handshake must not stop its owner's transport")
     }
-    private fun remote(port: Int = 27910) = netadr_t().apply {
-        type = NetAddrType.NA_IP
-        ip = byteArrayOf(127, 0, 0, 1)
-        this.port = port
-    }
+    private fun remote(port: Int = 27910) = NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(127, 0, 0, 1)), port)
 
     @Test
     fun `remote retry uses frame timing and fresh connect payload then stops after acceptance`() {
@@ -40,7 +36,7 @@ class ClientHandshakeTest {
         var userinfo = "first"
         val handshake = ClientHandshake(network) { "$it $userinfo" }
         val peer = remote()
-        assertTrue(handshake.begin(peer, false))
+        assertTrue(handshake.begin(peer))
         assertEquals(listOf(true), network.binds)
         handshake.tick(0f)
         assertEquals(ConnectionlessCommand.getchallenge, network.sent.single().command)
@@ -67,8 +63,8 @@ class ClientHandshakeTest {
         val network = Network()
         val handshake = ClientHandshake(network) { it.toString() }
         assertFalse(handshake.acceptConnection(remote()))
-        assertTrue(handshake.begin(remote(), false))
-        val wrongPeers = listOf(remote(27911), remote().apply { ip[3] = 2 }, remote().apply { type = NetAddrType.NA_LOOPBACK })
+        assertTrue(handshake.begin(remote()))
+        val wrongPeers = listOf(remote(27911), NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(127, 0, 0, 2)), 27910), network.localPeer)
         for (peer in wrongPeers) {
             assertFalse(handshake.receiveChallenge(peer, "42"))
             assertFalse(handshake.acceptConnection(peer))
@@ -86,32 +82,42 @@ class ClientHandshakeTest {
     fun `local attachment bypasses challenge and reset retains an isolated target for reconnect`() {
         val network = Network()
         val handshake = ClientHandshake(network) { it.toString() }
-        val address = netadr_t()
-        assertTrue(handshake.begin(address, true))
-        address.ip[0] = 99
-        handshake.lastTarget!!.ip[1] = 99
+        val address = network.localPeer
+        assertTrue(handshake.begin(address))
         assertTrue(handshake.isLocal)
         assertEquals(listOf(false), network.binds)
         handshake.tick(0f)
         assertEquals(ConnectionlessCommand.connect, network.sent.single().command)
         assertEquals("0", network.sent.single().payload)
-        assertEquals(netadr_t().ip.toList(), network.sent.single().ip)
-        assertTrue(handshake.acceptConnection(netadr_t()))
+        assertEquals(address, network.sent.single().address)
+        assertTrue(handshake.acceptConnection(address))
         handshake.reset()
         assertFalse(handshake.isLocal)
         val sent = network.sent.size
         handshake.tick(10f)
         assertEquals(sent, network.sent.size)
-        assertTrue(handshake.begin(handshake.lastTarget!!, true))
+        assertTrue(handshake.begin(handshake.lastTarget!!))
         handshake.tick(0f)
         assertEquals(ConnectionlessCommand.connect, network.sent.last().command)
+    }
+
+    @Test
+    fun `local handshake rejects another link or the opposite endpoint`() {
+        val network = Network()
+        val handshake = ClientHandshake(network) { it.toString() }
+        assertTrue(handshake.begin(network.localPeer))
+        assertFalse(handshake.acceptConnection(jake2.qcommon.network.transport.LoopbackLink().second.localAddress))
+        val wrongEndpoint = network.localPeer.copy(side = jake2.qcommon.network.transport.LocalSide.FIRST)
+        assertFalse(handshake.acceptConnection(wrongEndpoint))
+        assertFalse(handshake.receiveChallenge(wrongEndpoint, "42"))
+        assertTrue(handshake.acceptConnection(network.localPeer))
     }
 
     @Test
     fun `server restart retries immediately and map changing pauses pending replies`() {
         val network = Network()
         val handshake = ClientHandshake(network) { it.toString() }
-        handshake.begin(remote(), false)
+        handshake.begin(remote())
         assertTrue(handshake.acceptConnection(remote()))
         handshake.restart()
         handshake.tick(0f)
@@ -127,12 +133,12 @@ class ClientHandshakeTest {
     fun `failed bind preserves active target and retry state`() {
         val network = Network()
         val handshake = ClientHandshake(network) { it.toString() }
-        handshake.begin(remote(), false)
+        handshake.begin(remote())
         network.bindSucceeds = false
-        assertFalse(handshake.begin(remote(12345), false))
-        assertEquals(27910, handshake.lastTarget!!.port)
+        assertFalse(handshake.begin(remote(12345)))
+        assertEquals(27910, (handshake.lastTarget as NetworkAddress.Udp).port)
         handshake.tick(0f)
-        assertEquals(27910, network.sent.single().port)
+        assertEquals(27910, (network.sent.single().address as NetworkAddress.Udp).port)
         assertTrue(handshake.acceptConnection(remote()))
     }
 }

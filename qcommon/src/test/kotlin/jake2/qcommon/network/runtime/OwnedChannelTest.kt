@@ -1,7 +1,6 @@
 package jake2.qcommon.network.runtime
 
 import jake2.qcommon.Defines
-import jake2.qcommon.network.netadr_t
 import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.messages.client.StringCmdMessage
@@ -39,8 +38,8 @@ class OwnedChannelTest {
         val server = ConnectionChannel(ChannelRole.SERVER, serverTransport.localPeer, serverTransport::send) { 100L }
 
         init {
-            client.setup(netadr_t(), 42)
-            server.setup(netadr_t(), 42)
+            client.setup(client.remoteAddress, 42)
+            server.setup(server.remoteAddress, 42)
         }
 
         fun receive(transport: NetworkTransport, direction: PacketDirection): NetworkPacket {
@@ -83,7 +82,7 @@ class OwnedChannelTest {
     fun `clearing a channel retains its borrowed transport and failed send retains staging`() {
         Session().use { session ->
             session.client.clear()
-            session.client.setup(netadr_t(), 99)
+            session.client.setup(session.client.remoteAddress, 99)
             assertTrue(session.client.transmit(null))
             assertEquals(99, session.receive(session.serverTransport, PacketDirection.FROM_CLIENT).qport)
             session.clientTransport.close()

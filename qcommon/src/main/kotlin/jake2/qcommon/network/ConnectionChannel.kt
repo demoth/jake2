@@ -46,7 +46,7 @@ class ConnectionChannel @JvmOverloads constructor(
     private val clockMillis: LongSupplier,
 ) {
     private var channel = ReliableChannel(role, 0)
-    private var destination = netadr_t()
+    private var destination: NetworkAddress = localPeer
     private val pending = ArrayList<NetworkMessage>()
     private var idleSinceMillis = clockMillis.asLong
 
@@ -68,8 +68,8 @@ class ConnectionChannel @JvmOverloads constructor(
     val canSendReliable: Boolean get() = channel.canSendReliable
     val needsReliable: Boolean get() = channel.needsReliable || (channel.canSendReliable && pending.isNotEmpty())
 
-    /** Detached legacy address view until active address boundaries migrate to immutable values. */
-    val remoteAddress: netadr_t get() = netadr_t().also { it.set(destination) }
+    /** Immutable peer address, including private local-link identity. */
+    val remoteAddress: NetworkAddress get() = destination
 
     /** Engine staging remains here until session controllers own message encoding. No mutable list escapes. */
     fun queueReliable(message: NetworkMessage) { pending.add(message) }
@@ -78,9 +78,9 @@ class ConnectionChannel @JvmOverloads constructor(
     val queuedReliableBytes: Long get() = pending.sumOf { it.size.toLong() }
     val queuedReliable: List<NetworkMessage> get() = Collections.unmodifiableList(ArrayList(pending))
 
-    fun setup(address: netadr_t, qport: Int) {
+    fun setup(address: NetworkAddress, qport: Int) {
         clear()
-        destination.set(address)
+        destination = address
         this.qport = qport
         channel = ReliableChannel(role, qport and 0xffff)
     }
@@ -88,7 +88,8 @@ class ConnectionChannel @JvmOverloads constructor(
     /** Commit NAT source-port changes only after the router accepts the sequenced packet. */
     fun updateRemotePort(port: Int) {
         require(port in 0..65535)
-        destination.port = port
+        val remote = destination as? NetworkAddress.Udp ?: error("Local peers have no UDP port")
+        destination = remote.copy(port = port)
     }
 
     /** Keepalive timing shares the injected monotonic clock with acknowledgements and RTT tracking. */
@@ -153,7 +154,7 @@ class ConnectionChannel @JvmOverloads constructor(
     }
 
     private fun send(bytes: PacketBytes): SendResult = try {
-        sendPacket(destination.toNetworkAddress(localPeer), bytes)
+        sendPacket(destination, bytes)
     } catch (error: IOException) {
         SendResult.Failed(error)
     }
@@ -171,7 +172,7 @@ class ConnectionChannel @JvmOverloads constructor(
     fun clear() {
         fatalError = false
         qport = 0
-        destination = netadr_t()
+        destination = localPeer
         pending.clear()
         channel = ReliableChannel(role, 0)
         idleSinceMillis = clockMillis.asLong
