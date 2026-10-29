@@ -190,7 +190,10 @@ Base-game and expansion temporary effects use Cake's rendering pipeline;
 visual fidelity varies by effect family.
 
 Protocol-26 recordings use their shorter frame header; missing suppression counts
-are treated as zero. Extended/rerelease protocols and cinematic recordings remain
+are treated as zero. Missing MD2/SP2 config models in protocol-26 demos are warned
+about and skipped, since early demos may reference models absent from later game
+data. Maps and present-but-malformed assets still require successful loading.
+Extended/rerelease protocols and cinematic recordings remain
 unsupported. For a protocol-34 interoperability test file,
 record a session in Yamagi using `record example`, then `stop`, and copy its
 `demos/example.dm2` into the selected profile's game-data directory.

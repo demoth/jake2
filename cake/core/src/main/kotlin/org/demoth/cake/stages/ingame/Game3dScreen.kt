@@ -1058,6 +1058,7 @@ class Game3dScreen(
      */
     override fun processServerDataMessage(msg: ServerDataMessage) {
         recordingServerData = msg
+        gameConfig.allowMissingModelConfigs = demoPlayback && msg.protocol == 26
         levelString = msg.levelString
         // player slot used by prediction/entity visibility/HUD highlighting.
         gameConfig.playerConfiguration.playerIndex = msg.playerNumber

@@ -85,6 +85,9 @@ class GameConfiguration(
      */
     var layout: String = ""
 
+    /** Protocol-26 demo playback may reference models absent from later game data (Yamagi R_RegisterModel). */
+    var allowMissingModelConfigs: Boolean = false
+
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
     private val failedAssets: MutableMap<String, String> = mutableMapOf()
@@ -330,7 +333,8 @@ class GameConfiguration(
             val config = configStrings[i] ?: continue
             if (!loadConfigResource(i, config)) {
                 val modelPath = config.value
-                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#")) {
+                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#") &&
+                    modelPath !in failedAssets) {
                     Com.Warn("Failed to load model data for config $modelPath")
                 }
             }
@@ -411,6 +415,17 @@ class GameConfiguration(
     private fun loadModelConfigResource(config: Config): Boolean {
         val modelPath = config.value
         if (modelPath.isBlank() || modelPath.startsWith("*") || modelPath.startsWith("#")) {
+            return false
+        }
+        if (allowMissingModelConfigs &&
+            (modelPath.endsWith(".md2", ignoreCase = true) || modelPath.endsWith(".sp2", ignoreCase = true)) &&
+            !assetExists(modelPath)) {
+            // Yamagi registers these with crash=false. Keep the config/index, but omit absent geometry.
+            config.resource = null
+            if (modelPath !in failedAssets) {
+                failedAssets[modelPath] = "Model absent from game data during old-demo playback"
+                Com.Warn("Skipping missing demo model: $modelPath")
+            }
             return false
         }
         return when {
