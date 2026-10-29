@@ -40,8 +40,8 @@ internal class BeamModelRenderer(private val modelProvider: (String) -> Model?) 
         instance.transform.idt().rotate(Vector3.Z, yaw).rotate(Vector3.Y, pitch).rotate(Vector3.X, -roll)
             .setTranslation(x, y, z)
         (instance.userData as? Md2CustomData)?.let {
-            it.frame1 = 0; it.frame2 = 0; it.interpolation = 0f
-            if (kind == BeamKind.LIGHTNING) {
+            it.frame1 = kind.frame; it.frame2 = kind.frame; it.interpolation = 0f
+            if (kind.fullBright) {
                 it.lightRed = 1f; it.lightGreen = 1f; it.lightBlue = 1f
                 it.shadeVectorX = 0f; it.shadeVectorY = 0f; it.shadeVectorZ = 0f
             }

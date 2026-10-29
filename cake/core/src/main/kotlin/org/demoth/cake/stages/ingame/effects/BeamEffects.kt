@@ -8,10 +8,12 @@ import jake2.qcommon.network.messages.server.*
 import kotlin.math.ceil
 import kotlin.random.Random
 
-internal enum class BeamKind(val modelPath: String, val segmentLength: Float) {
+internal enum class BeamKind(val modelPath: String, val segmentLength: Float, val frame: Int = 0, val fullBright: Boolean = false) {
     CABLE("models/monsters/parasite/segment/tris.md2", 30f),
     GRAPPLE("models/ctf/segment/tris.md2", 30f),
-    LIGHTNING("models/proj/lightning/tris.md2", 35f),
+    LIGHTNING("models/proj/lightning/tris.md2", 35f, fullBright = true),
+    HEATBEAM_PLAYER("models/proj/beam/tris.md2", 32f, frame = 1, fullBright = true),
+    HEATBEAM_MONSTER("models/proj/beam/tris.md2", 32f, frame = 2, fullBright = true),
 }
 
 internal data class BeamSoundRequest(val path: String, val entityIndex: Int, val channel: Int)
