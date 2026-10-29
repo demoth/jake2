@@ -445,7 +445,6 @@ class ClientEffectsSystem(
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
             Defines.TE_GRENADE_EXPLOSION_WATER -> {
-                emitLegacyExplosionPaletteParticles(position, count = 128)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -461,7 +460,6 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLASMA_EXPLOSION -> {
-                emitLegacyExplosionPaletteParticles(position, count = 96)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -477,7 +475,6 @@ class ClientEffectsSystem(
             Defines.TE_ROCKET_EXPLOSION,
             Defines.TE_ROCKET_EXPLOSION_WATER,
             Defines.TE_EXPLOSION1_NP -> {
-                emitLegacyExplosionPaletteParticles(position, count = if (msg.style == Defines.TE_EXPLOSION1_BIG) 196 else 112)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = if (msg.style == Defines.TE_EXPLOSION1_BIG) {
@@ -521,7 +518,6 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLAIN_EXPLOSION -> {
-                emitLegacyExplosionPaletteParticles(position, count = 96)
                 spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
@@ -805,32 +801,6 @@ class ClientEffectsSystem(
             decayPerSecond = decayPerSecond,
             currentTimeMs = currentTimeMsProvider(),
         )
-    }
-
-    private fun emitLegacyExplosionPaletteParticles(
-        origin: Vector3,
-        count: Int,
-    ) {
-        val safeCount = count.coerceIn(1, 512)
-        repeat(safeCount) {
-            val colorIndex = EXPLOSION_PARTICLE_BASE_COLOR + Globals.rnd.nextInt(EXPLOSION_PARTICLE_VARIANTS)
-            particleSystem.emitBurst(
-                origin = origin,
-                direction = floatArrayOf(0f, 0f, 1f),
-                count = 1,
-                color = resolvePaletteColor(colorIndex, fallback = EXPLOSION_PARTICLE_FALLBACK),
-                speedMin = 60f,
-                speedMax = 320f,
-                spread = 1.2f,
-                gravity = -210f,
-                startAlpha = 1f,
-                endAlpha = 0f,
-                sizeMin = 0.6f,
-                sizeMax = 2f,
-                lifetimeMinMs = 240,
-                lifetimeMaxMs = 900,
-            )
-        }
     }
 
     private fun emitBlasterTrail(
@@ -1408,10 +1378,8 @@ private val RAIL_TRAIL_CORE_COLOR_FALLBACK = Color(0.94f, 0.94f, 0.94f, 1f)
 
 private val HEATBEAM_PARTICLE_FALLBACK = Color(1f, .7f, .2f, 1f)
 private val STEAM_PARTICLE_FALLBACK = Color(.75f, .75f, .75f, 1f)
-private const val EXPLOSION_PARTICLE_BASE_COLOR = 0xE0
 
 private val IMPACT_PARTICLE_COLOR_FALLBACK = Color(0.95f, 0.9f, 0.65f, 1f)
-private const val EXPLOSION_PARTICLE_VARIANTS = 8
 private val EXPLOSION_PARTICLE_FALLBACK = Color(1f, 0.52f, 0.22f, 1f)
 
 private data class ParticleTrailSpec(

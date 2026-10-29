@@ -7,7 +7,7 @@ import jake2.qcommon.Defines
 import jake2.qcommon.network.messages.server.PointTEMessage
 import kotlin.random.Random
 
-/** Particle components of CL_BigTeleportParticles and CL_ColorExplosionParticles, backed by libGDX. */
+/** Particle components of CL_BigTeleportParticles, CL_ColorExplosionParticles and CL_ExplosionParticles, backed by libGDX. */
 internal class PointParticles(
     private val particles: GdxParticleRuntime,
     private val paletteColor: (Int) -> Color,
@@ -19,6 +19,24 @@ internal class PointParticles(
     private val teleportPalette = intArrayOf(16, 104, 168, 144)
 
     fun process(message: PointTEMessage, nowMs: Int): Boolean {
+        val explosionCount = when (message.style) {
+            Defines.TE_EXPLOSION1_BIG, Defines.TE_EXPLOSION1_NP, Defines.TE_PLAIN_EXPLOSION -> 0
+            Defines.TE_EXPLOSION2, Defines.TE_GRENADE_EXPLOSION, Defines.TE_GRENADE_EXPLOSION_WATER -> 128
+            Defines.TE_EXPLOSION1, Defines.TE_ROCKET_EXPLOSION, Defines.TE_ROCKET_EXPLOSION_WATER -> 112
+            Defines.TE_PLASMA_EXPLOSION -> 96
+            else -> null
+        }
+        if (explosionCount != null) {
+            repeat(explosionCount) {
+                position.set(message.position.x + signedRandom() * 16f, message.position.y + signedRandom() * 16f,
+                    message.position.z + signedRandom() * 16f)
+                velocity.set(signedRandom() * 192f, signedRandom() * 192f, signedRandom() * 192f)
+                acceleration.set(0f, 0f, -80f)
+                if (!particles.emit(position, velocity, acceleration, paletteColor(0xE0 + random.nextInt(8)),
+                        size = .6f, lifetimeMillis = random.nextInt(500, 801), nowMs = nowMs)) return true
+            }
+            return true
+        }
         val teleport = when (message.style) {
             Defines.TE_BOSSTPORT -> true
             Defines.TE_TRACKER_EXPLOSION -> false

@@ -48,6 +48,21 @@ class PointParticlesTest {
         }
     }
 
+    @Test fun `big no-particle and plain explosions omit particles while other explosions retain them`() {
+        for (style in listOf(Defines.TE_EXPLOSION1_BIG, Defines.TE_EXPLOSION1_NP, Defines.TE_PLAIN_EXPLOSION)) Fixture().use {
+            assertTrue(it.particles.process(PointTEMessage(style, Vector3f.zero), 0))
+            assertEquals(0, it.runtime.liveCount)
+            assertTrue(it.colors.isEmpty())
+        }
+        for (style in listOf(Defines.TE_EXPLOSION1, Defines.TE_EXPLOSION2, Defines.TE_GRENADE_EXPLOSION,
+            Defines.TE_GRENADE_EXPLOSION_WATER, Defines.TE_ROCKET_EXPLOSION, Defines.TE_ROCKET_EXPLOSION_WATER,
+            Defines.TE_PLASMA_EXPLOSION)) Fixture().use {
+            assertTrue(it.particles.process(PointTEMessage(style, Vector3f.zero), 0))
+            assertTrue(it.runtime.liveCount > 0)
+            assertTrue(it.colors.all { color -> color in 0xE0..0xE7 })
+        }
+    }
+
     @Test fun `burst work respects disabled and exhausted particle budgets and ignores unrelated point effects`() {
         for (style in listOf(Defines.TE_BOSSTPORT, Defines.TE_TRACKER_EXPLOSION)) {
             Fixture(3).use { fixture ->
@@ -62,7 +77,7 @@ class PointParticlesTest {
             }
         }
         Fixture().use { fixture ->
-            assertFalse(fixture.particles.process(PointTEMessage(Defines.TE_EXPLOSION1, Vector3f.zero), 0))
+            assertFalse(fixture.particles.process(PointTEMessage(Defines.TE_BFG_EXPLOSION, Vector3f.zero), 0))
             assertEquals(0, fixture.runtime.liveCount)
         }
     }
