@@ -166,6 +166,29 @@ Tests use synthetic messages, clocks and palette values with the real light and
 particle runtimes to exercise refresh, motion, sound requests, coexistence,
 expiry, pause, resource limits and cleanup. No installed content or window is needed.
 
+## Impacts and Point Bursts
+
+`ImpactEffects` supplies particle recipes for blood, gunshot, spark, shotgun and
+blaster families, including blue-hyperblaster impacts. Spawn positions scatter
+along the supplied normal, while velocities scatter independently; blaster
+variants also carry directed velocity and their own palette ranges. Chainfist
+smoke rises without downward acceleration. The outer controller retains model
+flashes and dynamic lights.
+
+Splash, laser, welding and tunnel effects preserve their transmitted counts,
+including zero, subject to the shared particle budget. Laser/welding particles
+vary within their palette range and fall; tunnel particles retain the supplied
+color and accelerate upward. Gunshot/bullet impacts select a ricochet on three
+of sixteen sound rolls; spark splashes weight their three sounds 1:1:2. Sounds
+remain independent of whether the particle budget permits emission.
+
+`PointParticles` adds the boss teleport's tall radial column and tracker
+explosion's black particle cloud, alongside their existing sound/light components.
+Other point/trail families retain dedicated recipes: rail helix/core, green BFG
+cloud, teleport bursts and outward widow splash. Ordinary bubbles rise at a
+steady velocity, and diagnostic trails remain stationary. These are Cake
+approximations, rather than pixel-perfect replicas of reference emission.
+
 ## Visual Behaviour and Current Limits
 
 Particle families select colours from `q2palette.bin`. Useful compatibility anchors:
