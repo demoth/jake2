@@ -90,6 +90,26 @@ class BeamModelRendererTest {
         assertTrue(disposed)
     }
 
+    @Test fun `heatbeam model instances select their player or remote frame and full-bright lighting`() {
+        for ((kind, frame) in listOf(BeamKind.HEATBEAM_PLAYER to 1, BeamKind.HEATBEAM_MONSTER to 2)) {
+            val model = Model()
+            val renderer = BeamModelRenderer { model }
+            try {
+                renderer.submit(kind, 0f, 0f, 0f, 0f, 0f, 0f)
+                val instance = instances(renderer).single()
+                instance.userData = Md2CustomData.empty().apply { lightRed = 0f; frame1 = 99 }
+                renderer.beginFrame()
+                renderer.submit(kind, 0f, 0f, 0f, 0f, 0f, 30f)
+                val data = instance.userData as Md2CustomData
+                assertEquals(frame, data.frame1)
+                assertEquals(frame, data.frame2)
+                assertEquals(0f, data.interpolation)
+                assertEquals(1f, data.lightRed)
+                assertSame(instance, instances(renderer).single())
+            } finally { renderer.dispose(); model.dispose() }
+        }
+    }
+
     companion object {
         @BeforeAll @JvmStatic fun loadMathNatives() { GdxNativesLoader.load() }
     }

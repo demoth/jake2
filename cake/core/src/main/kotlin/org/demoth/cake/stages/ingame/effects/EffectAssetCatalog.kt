@@ -104,6 +104,7 @@ private val EFFECT_MD2_MODELS = listOf(
     "models/objects/r_explode/tris.md2",
     "models/objects/r_explode2/tris.md2",
     "models/proj/lightning/tris.md2",
+    "models/proj/beam/tris.md2",
 )
 
 private val EFFECT_SP2_MODELS = listOf(

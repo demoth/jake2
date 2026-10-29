@@ -99,5 +99,29 @@ class HeatbeamEffectsTest {
         assertTrue(segments(effect, 0).isEmpty())
     }
 
+    @Test fun `the real particle runtime stays bounded during refresh pause and teardown`() {
+        val runtime = GdxParticleRuntime({ 1000 })
+        try {
+            val effect = HeatbeamEffects(HeatbeamParticles(runtime, { com.badlogic.gdx.graphics.Color.WHITE }))
+            effect.process(message(), 0)
+            val view = camera()
+            segments(effect, 0, 1, view)
+            val firstCount = runtime.liveCount
+            assertTrue(firstCount in 1..100)
+            repeat(100) { segments(effect, 0, 1, view) }
+            assertEquals(firstCount, runtime.liveCount)
+            segments(effect, 50, 1, view)
+            assertTrue(runtime.liveCount <= 200)
+            effect.process(message(), 50)
+            repeat(100) { segments(effect, 50, 1, view) }
+            assertTrue(runtime.liveCount <= 200)
+            effect.clear()
+            segments(effect, 150, 1, view)
+            runtime.update(150)
+            assertEquals(0, effect.activeCount)
+            assertEquals(0, runtime.liveCount)
+        } finally { runtime.dispose() }
+    }
+
     companion object { @BeforeAll @JvmStatic fun loadMathNatives() { GdxNativesLoader.load() } }
 }

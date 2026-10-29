@@ -73,6 +73,8 @@ class ClientEffectsSystem(
     private val dynamicLightSystem: DynamicLightSystem? = null,
     private val currentTimeMsProvider: () -> Int = { Globals.curtime },
     private val localPlayerEntityIndexProvider: () -> Int? = { null },
+    private val gunOffsetProvider: () -> Vector3 = { Vector3.Zero },
+    private val handednessProvider: () -> Int = { 0 },
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
@@ -94,6 +96,9 @@ class ClientEffectsSystem(
                 channel = request.channel, attenuation = Defines.ATTN_NORM.toFloat()))
         }
     })
+    private val heatbeamEffects = HeatbeamEffects(HeatbeamParticles(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = HEATBEAM_PARTICLE_FALLBACK)
+    }))
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -148,8 +153,11 @@ class ClientEffectsSystem(
      */
     fun processTempEntityMessage(msg: TEMessage) {
         when (msg) {
-            is BeamOffsetTEMessage, is BeamTEMessage, is LightningTEMessage ->
-                beamEffects.process(msg, currentTimeMsProvider())
+            is BeamTEMessage -> {
+                val now = currentTimeMsProvider()
+                if (!heatbeamEffects.process(msg, now)) beamEffects.process(msg, now)
+            }
+            is BeamOffsetTEMessage, is LightningTEMessage -> beamEffects.process(msg, currentTimeMsProvider())
             is PointDirectionTEMessage -> handlePointDirectionMessage(msg)
             is TrailTEMessage -> handleTrailMessage(msg)
             is SplashTEMessage -> handleSplashMessage(msg)
@@ -201,7 +209,10 @@ class ClientEffectsSystem(
         particleSystem.update(now)
         steamEffects.update(now)
         beamModels.beginFrame()
-        beamEffects.submit(now, localPlayerEntityIndexProvider(), cameraProvider().position, beamModels)
+        val camera = cameraProvider()
+        val localPlayer = localPlayerEntityIndexProvider()
+        beamEffects.submit(now, localPlayer, camera.position, beamModels)
+        heatbeamEffects.submit(now, localPlayer, camera, gunOffsetProvider(), handednessProvider(), beamModels)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
             val effect = iterator.next()
@@ -241,9 +252,10 @@ class ClientEffectsSystem(
 
     fun debugParticleRenderStats(): ParticleRenderer.Stats = particleSystem.lastRenderStats()
 
-    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + steamEffects.activeSustainCount
+    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + heatbeamEffects.activeCount + steamEffects.activeSustainCount
 
     override fun dispose() {
+        heatbeamEffects.clear()
         beamEffects.clear()
         beamModels.dispose()
         steamEffects.clear()
@@ -1626,6 +1638,7 @@ private const val SPARK_PARTICLE_BASE_COLOR = 0xE0
 private const val SCREEN_SPARK_PARTICLE_BASE_COLOR = 0xD0
 private const val SHIELD_SPARK_PARTICLE_BASE_COLOR = 0xB0
 private const val SHOTGUN_PARTICLE_BASE_COLOR = 0x00
+private val HEATBEAM_PARTICLE_FALLBACK = Color(1f, .7f, .2f, 1f)
 private val STEAM_PARTICLE_FALLBACK = Color(.75f, .75f, .75f, 1f)
 private const val ELECTRIC_SPARK_PARTICLE_BASE_COLOR = 0x75
 private const val CHAINFIST_SMOKE_PARTICLE_BASE_COLOR = 0x00

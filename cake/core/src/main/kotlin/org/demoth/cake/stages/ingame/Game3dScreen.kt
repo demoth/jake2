@@ -27,6 +27,8 @@ import jake2.qcommon.CM
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.server.*
@@ -110,6 +112,8 @@ class Game3dScreen(
     private val hudOverlayRenderer by lazy { HudOverlayRenderer(spriteBatch, gameConfig, uiViewport) }
 
     private val entityManager = ClientEntityManager()
+    private val heatbeamGunOffset = Vector3()
+    private val handedness = Cvar.getInstance().find<Int>("hand")
     private val effectsSystem = ClientEffectsSystem(
         assetManager = assetManager,
         entityManager = entityManager,
@@ -120,6 +124,16 @@ class Game3dScreen(
         localPlayerEntityIndexProvider = {
             gameConfig.playerConfiguration.playerIndex.takeIf { it >= 0 }?.plus(1)
         },
+        gunOffsetProvider = {
+            val current = entityManager.currentFrame.playerstate.gunoffset
+            val previous = entityManager.previousFrame?.playerstate?.gunoffset ?: current
+            heatbeamGunOffset.set(
+                previous[0] + (current[0] - previous[0]) * lerpFrac,
+                previous[1] + (current[1] - previous[1]) * lerpFrac,
+                previous[2] + (current[2] - previous[2]) * lerpFrac,
+            )
+        },
+        handednessProvider = { handedness.typedValue },
     )
     private val soundMessageHandler = IngameSoundMessageHandler(
         gameConfig = gameConfig,

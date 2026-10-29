@@ -104,6 +104,29 @@ audio system. Screen teardown clears beam state and instance pools before unload
 catalog assets. Resource-free tests cover state, geometry, sound requests, pooled
 instance transforms/reuse and borrowed model ownership using empty libGDX models.
 
+## Player and Monster Heatbeams
+
+`HeatbeamEffects` owns up to 32 heatbeams, refreshed by source entity with a 200 ms
+lifetime. Local player beams follow the presented camera direction and interpolated
+replicated gun offset. The `hand` setting shifts the muzzle right, left or to the
+center; model/projection mirroring is not used. Remote player and monster beams
+retain their recorded world endpoints. All views, including demos, supply the same
+presentation context.
+
+Heatbeam segments reuse the shared model-instance pools with the optional
+`models/proj/beam/tris.md2` asset. Player and remote beams select frames 1 and 2,
+respectively, use full-bright lighting and roll with presentation time. Segment
+counts are capped at 128 per beam. Models share the world/view-weapon camera
+projection, so they require no separate weapon-FOV correction.
+
+`HeatbeamParticles` emits short pulses through the libGDX particle runtime: up to
+five moving rings near the local muzzle, or a plasma shell around a remote origin.
+Pulses are limited to one per source every 50 ms, live for 75 ms and obey the shared
+particle budget. Refreshing messages or rendering repeatedly at a paused timestamp
+does not add duplicate pulses. Screen teardown clears heatbeam state, model pools
+and the shared particle runtime. Synthetic-camera and particle tests cover these
+paths without game assets or a window.
+
 ## Steam and Sustained Emission
 
 `SteamEffects` uses the shared libGDX particle runtime for instantaneous steam and
