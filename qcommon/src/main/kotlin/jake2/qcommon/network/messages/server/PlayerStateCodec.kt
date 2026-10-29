@@ -19,8 +19,8 @@ internal object PlayerStateCodec {
         viewOffset = if (different(current.viewoffset, previous.viewoffset)) quarterBytes(current.viewoffset) else null,
         viewAngles = if (different(current.viewangles, previous.viewangles)) angleShorts(current.viewangles) else null,
         kickAngles = if (different(current.kick_angles, previous.kick_angles)) quarterBytes(current.kick_angles) else null,
-        // Always sent, even if unchanged.
-        weaponIndex = current.gunindex and 255,
+        // Compare against the acknowledged reference, including resets to zero.
+        weaponIndex = if (current.gunindex != previous.gunindex) current.gunindex and 255 else null,
         // Gun offsets/angles are sent only when gunframe changes, preserving protocol-34 behavior.
         weaponFrame = if (current.gunframe != previous.gunframe) PlayerWeaponFrame(current.gunframe and 255, quarterBytes(current.gunoffset), quarterBytes(current.gunangles)) else null,
         blend = if (different(current.blend, previous.blend, 4)) PlayerBlend((current.blend[0] * 255).toInt() and 255, (current.blend[1] * 255).toInt() and 255, (current.blend[2] * 255).toInt() and 255, (current.blend[3] * 255).toInt() and 255) else null,

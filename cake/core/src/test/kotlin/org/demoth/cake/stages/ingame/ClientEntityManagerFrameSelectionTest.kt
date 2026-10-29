@@ -114,6 +114,7 @@ class ClientEntityManagerFrameSelectionTest {
             }
             receive(2, 1, PlayerInfoMessage.fromGame(initial, next))
             val second = manager.currentFrame.playerstate
+            assertEquals(1, second.gunindex, "An omitted weapon index inherits the acknowledged model")
             assertArrayEquals(shortArrayOf(0, 16, 24), second.pmove.origin)
             assertArrayEquals(floatArrayOf(0f, 0f, 0f), second.viewoffset)
             assertArrayEquals(first.viewangles, second.viewangles)
@@ -133,6 +134,8 @@ class ClientEntityManagerFrameSelectionTest {
             assertArrayEquals(first.pmove.origin, manager.currentFrame.playerstate.pmove.origin)
             assertArrayEquals(first.viewoffset, manager.currentFrame.playerstate.viewoffset)
             assertArrayEquals(first.stats, manager.currentFrame.playerstate.stats)
+            receive(5, 1, PlayerInfoMessage.fromGame(initial, initial.getClone().apply { gunindex = 0 }))
+            assertEquals(0, manager.currentFrame.playerstate.gunindex, "An explicit zero removes the weapon model")
         } finally {
             manager.dispose()
         }

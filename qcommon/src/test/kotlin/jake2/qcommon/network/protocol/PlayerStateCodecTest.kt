@@ -59,7 +59,10 @@ class PlayerStateCodecTest {
             for (change in changes) {
                 val current = player_state_t().also { change(it, value) }
                 val message = PlayerInfoMessage.fromGame(player_state_t(), current)
-                assertArrayEquals(write(LegacyPlayerInfoReference(player_state_t(), current)), write(message))
+                // The original writer always includes gunindex; restore that one field when
+                // comparing all other field selection and quantization against its bytes.
+                val legacyCompatible = if (current.gunindex == 0) message.copy(weaponIndex = 0) else message
+                assertArrayEquals(write(LegacyPlayerInfoReference(player_state_t(), current)), write(legacyCompatible))
                 assertEquals(message, read(write(message)))
             }
         }
@@ -69,7 +72,46 @@ class PlayerStateCodecTest {
         // Weapon offset/angle changes alone never add the weapon-frame group.
         val offsetsOnly = PlayerInfoMessage.fromGame(player_state_t(), player_state_t().apply { gunoffset[0] = 2f; gunangles[0] = 3f })
         assertNull(offsetsOnly.weaponFrame)
-        assertEquals(PS_WEAPONINDEX, offsetsOnly.deltaFlags)
+        assertEquals(0, offsetsOnly.deltaFlags)
+    }
+
+    @Test
+    fun `unchanged weapon models save one byte while animation advances and old readers accept omission`() {
+        for (index in listOf(0, 1, 127, 128, 255)) {
+            val previous = player_state_t().apply { gunindex = index; gunframe = 3 }
+            val current = previous.getClone().apply { gunframe = 4; gunoffset[0] = 1.25f }
+            val message = PlayerInfoMessage.fromGame(previous, current)
+            assertNull(message.weaponIndex)
+            assertEquals(0, message.deltaFlags and PS_WEAPONINDEX)
+            assertEquals(4, message.weaponFrame!!.frame)
+            val bytes = write(message)
+            assertEquals(write(LegacyPlayerInfoReference(previous, current)).size - 1, bytes.size)
+            assertEquals(message, read(bytes))
+            val buffer = sizebuf_t(bytes.size).apply { writeBytes(bytes); readcount = 1 }
+            val legacy = LegacyPlayerInfoReference().apply { parse(buffer) }
+            assertEquals(bytes.size, buffer.readcount)
+            assertEquals(0, legacy.deltaFlags and PS_WEAPONINDEX)
+            assertEquals(current.gunframe, legacy.currentState.gunframe)
+        }
+    }
+
+    @Test
+    fun `weapon changes zero resets and full snapshots retain explicit field presence`() {
+        for (oldIndex in listOf(0, 1, 127, 128, 255)) for (newIndex in listOf(0, 1, 127, 128, 255)) {
+            val previous = player_state_t().apply { gunindex = oldIndex }
+            val current = player_state_t().apply { gunindex = newIndex }
+            val message = PlayerInfoMessage.fromGame(previous, current)
+            assertEquals(oldIndex != newIndex, message.deltaFlags and PS_WEAPONINDEX != 0)
+            assertEquals(if (oldIndex == newIndex) null else newIndex, message.weaponIndex)
+            val decoded = read(write(message))
+            val reconstructed = previous.getClone().also(decoded::applyTo)
+            assertEquals(newIndex, reconstructed.gunindex)
+        }
+        val full = PlayerInfoMessage.fromGame(player_state_t(), player_state_t().apply { gunindex = 7 })
+        assertEquals(7, read(write(full)).weaponIndex)
+        val zero = PlayerInfoMessage.fromGame(player_state_t(), player_state_t())
+        assertNull(read(write(zero)).weaponIndex)
+        assertEquals(0, player_state_t().also(zero::applyTo).gunindex)
     }
 
     @Test

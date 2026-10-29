@@ -216,6 +216,43 @@ public class GameImportsTest {
         Assertions.assertNotEquals(0, ((EntityUpdate.Change) ((PacketEntitiesMessage) stale.get(2)).getUpdates().get(0)).getDelta().getFlags() & Defines.U_OLDORIGIN);
     }
 
+    @Test
+    public void weaponIndexDeltasFollowAcknowledgedFramesAcrossLossAndFullSnapshots() {
+        manager = new ServerHost(TransportServerNetwork.standalone());
+        GameImportsImpl game = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        ClientNetworkInfo client = snapshotClient(game, 1);
+        var state = client.edict.getClient().getPlayerState();
+        state.gunindex = 3;
+        state.gunframe = 1;
+        Assertions.assertEquals(3, playerUpdate(game, client, 1, -1).getWeaponIndex());
+
+        state.gunframe = 2;
+        PlayerInfoMessage animation = playerUpdate(game, client, 2, 1);
+        Assertions.assertNull(animation.getWeaponIndex());
+        Assertions.assertEquals(2, animation.getWeaponFrame().getFrame());
+
+        state.gunindex = 7;
+        Assertions.assertEquals(7, playerUpdate(game, client, 3, 1).getWeaponIndex());
+        // Frame 3 was lost: frame 4 must repeat the switch relative to acknowledged frame 1.
+        Assertions.assertEquals(7, playerUpdate(game, client, 4, 1).getWeaponIndex());
+        Assertions.assertNull(playerUpdate(game, client, 5, 4).getWeaponIndex());
+
+        state.gunindex = 0;
+        Assertions.assertEquals(0, playerUpdate(game, client, 6, 5).getWeaponIndex());
+        Assertions.assertNull(playerUpdate(game, client, 7, 6).getWeaponIndex());
+
+        state.gunindex = 7;
+        Assertions.assertEquals(7, playerUpdate(game, client, 8, 0).getWeaponIndex());
+        // An expired acknowledgement forces a full snapshot even though its old model matched.
+        Assertions.assertEquals(7, playerUpdate(game, client, 8 + Defines.UPDATE_BACKUP, 8).getWeaponIndex());
+    }
+
+    private PlayerInfoMessage playerUpdate(GameImportsImpl game, ClientNetworkInfo client, int frame, int acknowledged) {
+        game.frameNum = frame;
+        client.lastReceivedFrame = acknowledged;
+        return (PlayerInfoMessage) List.copyOf(game.buildClientFrameMessages(client)).get(1);
+    }
+
     private ClientNetworkInfo snapshotClient(GameImportsImpl game, int modelIndex) {
         GameEntity entity = (GameEntity) game.gameExports.getEdict(1);
         entity.setClient(new GamePlayerInfo(0));
