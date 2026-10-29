@@ -99,6 +99,10 @@ class ClientEffectsSystem(
     private val heatbeamEffects = HeatbeamEffects(HeatbeamParticles(particleSystem.runtime, paletteColor = { index ->
         resolvePaletteColor(index, fallback = HEATBEAM_PARTICLE_FALLBACK)
     }))
+    private val expansionEffects = ExpansionEffects(particleSystem.runtime,
+        paletteColor = { index -> resolvePaletteColor(index, fallback = STEAM_PARTICLE_FALLBACK) },
+        lights = dynamicLightSystem,
+        playBubbleSound = { position -> playEffectSound("sound/weapons/lashit.wav", toVector3(position)) })
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -163,10 +167,8 @@ class ClientEffectsSystem(
             is SplashTEMessage -> handleSplashMessage(msg)
             is PointTEMessage -> handlePointMessage(msg)
             is SteamTEMessage -> steamEffects.process(msg, currentTimeMsProvider())
-            // These expansion layouts are decoded completely to preserve message boundaries.
-            // Their presentation still needs dedicated effect implementations.
-            is FlashlightTEMessage,
-            is ForceWallTEMessage,
+            // Flashlight and force-wall messages feed the shared light and particle runtimes.
+            is FlashlightTEMessage, is ForceWallTEMessage -> expansionEffects.process(msg, currentTimeMsProvider())
             is WidowBeamOutTEMessage -> Unit
         }
     }
@@ -413,6 +415,7 @@ class ClientEffectsSystem(
     }
 
     private fun handleTrailMessage(msg: TrailTEMessage) {
+        if (expansionEffects.process(msg, currentTimeMsProvider())) return
         val start = toVector3(msg.position)
         val end = toVector3(msg.destination)
         when (msg.style) {
