@@ -235,6 +235,12 @@ class ClientEffectsSystem(
         }
     }
 
+    /** Adds animation-owned lights after the light system's frame reset. */
+    fun collectDynamicLights() {
+        val lights = dynamicLightSystem ?: return
+        activeEffects.forEach { it.collectDynamicLights(lights) }
+    }
+
     /**
      * Renders model/sprite transient effects via `ModelBatch`.
      *
@@ -336,15 +342,12 @@ class ClientEffectsSystem(
             Defines.TE_GUNSHOT, Defines.TE_BULLET_SPARKS, Defines.TE_SHOTGUN -> spawnSmokeAndFlash(position)
             Defines.TE_BLASTER -> {
                 spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 0)
-                spawnDynamicLight(position, 150f, 1f, 1f, 0f)
             }
             Defines.TE_BLASTER2 -> {
                 spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 1)
-                spawnDynamicLight(position, 150f, 0f, 1f, 0f)
             }
             Defines.TE_FLECHETTE -> {
                 spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 2)
-                spawnDynamicLight(position, 150f, 0.19f, 0.41f, 0.75f)
             }
         }
     }
@@ -430,8 +433,8 @@ class ClientEffectsSystem(
                 position = position,
                 firstFrame = 0,
                 frameCount = 2,
+                light = ExplosionLight((100 + Globals.rnd.nextInt(75)).toFloat(), Vector3f(1f, 1f, .3f)),
             )
-            spawnDynamicLight(position, (100 + Globals.rnd.nextInt(75)).toFloat(), 1f, 1f, 0.3f)
         }
     }
 
@@ -445,7 +448,6 @@ class ClientEffectsSystem(
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
             Defines.TE_GRENADE_EXPLOSION_WATER -> {
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -460,7 +462,6 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLASMA_EXPLOSION -> {
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -475,7 +476,6 @@ class ClientEffectsSystem(
             Defines.TE_ROCKET_EXPLOSION,
             Defines.TE_ROCKET_EXPLOSION_WATER,
             Defines.TE_EXPLOSION1_NP -> {
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = if (msg.style == Defines.TE_EXPLOSION1_BIG) {
                         "models/objects/r_explode2/tris.md2"
@@ -494,14 +494,14 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BFG_EXPLOSION -> {
-                spawnDynamicLight(position, 350f, 0f, 1f, 0f)
                 spawnExplosionSpriteEffect(
                     type = ExplosionType.POLY,
                     spritePath = "sprites/s_bfg2.sp2",
                     position = position,
-                    firstFrame = 1,
+                    firstFrame = 0,
                     frameCount = 4,
                     startsTranslucent = true,
+                    light = ExplosionLight(350f, Vector3f(0f, 1f, 0f)),
                 )
             }
 
@@ -518,7 +518,6 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLAIN_EXPLOSION -> {
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -601,8 +600,13 @@ class ClientEffectsSystem(
             pitchDeg = pitch,
             yawDeg = yaw,
             skinIndex = skinIndex,
-            startsTranslucent = true,
-            fullBright = true,
+            startsTranslucent = skinIndex != 0,
+            fullBright = skinIndex != 0,
+            light = ExplosionLight(150f, when (skinIndex) {
+                0 -> Vector3f(1f, 1f, 0f)
+                1 -> Vector3f(0f, 1f, 0f)
+                else -> Vector3f(.19f, .41f, .75f)
+            }),
         )
     }
 
@@ -620,6 +624,7 @@ class ClientEffectsSystem(
             frameCount = frameCount,
             yawDeg = Globals.rnd.nextInt(360).toFloat(),
             fullBright = true,
+            light = ExplosionLight(350f, Vector3f(1f, .5f, .5f)),
         )
     }
 
@@ -635,8 +640,14 @@ class ClientEffectsSystem(
         skinIndex: Int? = null,
         startsTranslucent: Boolean = false,
         fullBright: Boolean = false,
+        light: ExplosionLight? = null,
     ) {
-        val md2 = assetCatalog.getModel(modelPath) ?: return
+        val md2 = assetCatalog.getModel(modelPath)
+        if (md2 == null) {
+            if (light != null) activeEffects += ExplosionEffect(type, currentTimeMsProvider(), 100, firstFrame,
+                frameCount, position, startsTranslucent, skinIndex, light)
+            return
+        }
         val instance = createModelInstance(md2.model)
         (instance.userData as? Md2CustomData)?.let { userData ->
             if (skinIndex != null) {
@@ -665,6 +676,7 @@ class ClientEffectsSystem(
             baseSkinIndex = skinIndex,
             fullBright = fullBright,
             startsTranslucent = startsTranslucent,
+            light = light,
         )
     }
 
@@ -675,8 +687,14 @@ class ClientEffectsSystem(
         firstFrame: Int,
         frameCount: Int,
         startsTranslucent: Boolean = false,
+        light: ExplosionLight? = null,
     ) {
-        val sprite = assetCatalog.getSprite(spritePath) ?: return
+        val sprite = assetCatalog.getSprite(spritePath)
+        if (sprite == null) {
+            if (light != null) activeEffects += ExplosionEffect(type, currentTimeMsProvider(), 100, firstFrame,
+                frameCount, position, startsTranslucent, light = light)
+            return
+        }
         activeEffects += ExplosionSpriteEffect(
             spriteRenderer = spriteRenderer,
             cameraProvider = cameraProvider,
@@ -688,6 +706,7 @@ class ClientEffectsSystem(
             frameCount = frameCount,
             position = Vector3(position),
             startsTranslucent = startsTranslucent,
+            light = light,
         )
     }
 

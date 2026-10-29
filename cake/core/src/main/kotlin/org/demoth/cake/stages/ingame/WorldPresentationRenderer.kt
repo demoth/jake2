@@ -126,6 +126,7 @@ internal class WorldPresentationRenderer {
         context.effectsSystem.update(context.delta, context.entityManager.currentFrame.serverframe)
         context.replicatedEntityEffectCollector.collectTrails(lerpFrac)
         context.dynamicLightSystem.beginFrame(context.currentTimeMs, context.delta)
+        context.effectsSystem.collectDynamicLights()
         context.replicatedEntityEffectCollector.collectDynamicLights(
             lerpFrac = lerpFrac,
             currentTimeMs = context.currentTimeMs,

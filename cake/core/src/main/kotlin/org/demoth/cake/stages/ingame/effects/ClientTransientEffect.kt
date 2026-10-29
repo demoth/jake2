@@ -2,6 +2,7 @@ package org.demoth.cake.stages.ingame.effects
 
 import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.utils.Disposable
+import org.demoth.cake.stages.ingame.DynamicLightSystem
 
 /**
  * Runtime effect instance owned by [ClientEffectsSystem].
@@ -25,6 +26,9 @@ interface ClientTransientEffect : Disposable {
      * Emits renderables for the current frame.
      */
     fun render(modelBatch: ModelBatch)
+
+    /** Collect frame-local lights after the light system's frame reset and before drawing. */
+    fun collectDynamicLights(lights: DynamicLightSystem) = Unit
 
     override fun dispose() {
         // no-op by default

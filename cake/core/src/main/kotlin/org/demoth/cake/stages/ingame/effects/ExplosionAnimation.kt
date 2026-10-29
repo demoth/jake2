@@ -21,8 +21,9 @@ internal class ExplosionAnimation(
 
     fun sample(nowMs: Int): ExplosionFrame? {
         val age = (nowMs.toLong() - spawnTimeMs).coerceAtLeast(0)
-        val index = animation.getKeyFrameIndex(age.toFloat() / frameDurationMs)
-        if (index >= if (type == ExplosionType.FLASH) 1 else frameCount - 1) return null
+        val elapsedFrames = age.toFloat() / frameDurationMs
+        if (elapsedFrames >= if (type == ExplosionType.FLASH) 1 else frameCount - 1) return null
+        val index = animation.getKeyFrameIndex(elapsedFrames)
         val fraction = (age % frameDurationMs).toFloat() / frameDurationMs
         val alpha = when (type) {
             ExplosionType.MISC -> 1f - (index + fraction) / (frameCount - 1)
