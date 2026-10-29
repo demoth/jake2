@@ -79,7 +79,7 @@ class PacketNetwork @JvmOverloads constructor(
         }
     }
 
-    /** Compatibility nullable view; explicit transport/codec outcomes remain below this adapter. */
+    /** Return a decoded packet, or null when the receive yields no packet, invalid data, or an I/O failure. */
     fun receive(): NetworkPacket? {
         return decode(transport.receive())
     }

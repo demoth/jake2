@@ -36,7 +36,7 @@ object ClientMessageCodec {
         else -> error("Unsupported client message ${message.javaClass.name}")
     }
 
-    /** Construct complete values from bounded reads; preserve cursor updates for direct legacy factory callers. */
+    /** Construct complete values from bounded reads and update the supplied buffer's cursor. */
     @JvmStatic
     fun read(buffer: sizebuf_t, incomingSequence: Int): ClientMessage {
         if (buffer !is MessageReader) {

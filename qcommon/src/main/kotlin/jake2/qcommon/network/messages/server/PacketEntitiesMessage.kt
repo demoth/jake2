@@ -23,7 +23,7 @@ sealed interface EntityUpdate {
         override val number: Int get() = delta.state.index
         init { require(number != 0 && delta.flags and U_REMOVE == 0) }
     }
-    /** Removal carries only the header (former entity bits), even if other field bits are set. */
+    /** Removal carries only the entity header, even if payload field bits are set. */
     data class Removal(val flags: Int, override val number: Int) : EntityUpdate {
         init {
             require(number in 1 until MAX_EDICTS && flags and U_REMOVE != 0)

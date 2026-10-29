@@ -34,7 +34,7 @@ two packet types, represented by `PacketEnvelope.Sequenced` and
 
 ### Sequenced packets
 
-These carry communication over an established game connection:
+These carry communication over an established game connection (during playing the map):
 
 - **Header:** sequence and acknowledgement fields, plus a qport on client-to-server packets.
 - **Body:** zero or more typed `ClientMessage` or `ServerMessage` values, such as movement, player state, or entity updates.
@@ -46,7 +46,7 @@ or the receiving client to return to its console. A failed movement checksum mak
 the server ignore the rest of the packet. File/demo readers retain their existing
 `sizebuf_t` behavior.
 
-### Connectionless (out-of-band) packets
+### Non Sequenced / Connectionless / out-of-band packets
 
 These are independent datagrams that can be sent by connected or unconnected peers,
 without requiring a running map:

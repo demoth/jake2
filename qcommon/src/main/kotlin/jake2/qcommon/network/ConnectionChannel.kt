@@ -55,7 +55,7 @@ class ConnectionChannel @JvmOverloads constructor(
     var qport = 0
         private set
 
-    // Read protocol state directly; these values are never mutable compatibility snapshots.
+    // Read protocol state directly from the owned reliable channel.
     val incomingSequence: Int get() = channel.incomingSequence
     val incomingAcknowledged: Int get() = channel.incomingAcknowledged
     val outgoingSequence: Int get() = channel.outgoingSequence

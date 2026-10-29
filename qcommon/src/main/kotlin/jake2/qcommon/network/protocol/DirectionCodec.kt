@@ -3,7 +3,7 @@ package jake2.qcommon.network.protocol
 import jake2.qcommon.Globals
 import jake2.qcommon.math.Vector3f
 
-/** Immutable snapshot of the protocol's fixed normal table and its legacy nearest-dot-product selection rule. */
+/** Immutable normal table; select the greatest positive dot product, defaulting to index zero. */
 object DirectionCodec {
     private val normals = Globals.bytedirs.map(::Vector3f)
 

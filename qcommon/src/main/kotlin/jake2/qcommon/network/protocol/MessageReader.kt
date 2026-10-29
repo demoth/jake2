@@ -6,7 +6,7 @@ import jake2.qcommon.math.Vector3f
 import jake2.qcommon.sizebuf_t
 import jake2.qcommon.network.transport.PacketBytes
 
-/** Owned packet bytes with bounded reads; legacy file/demo buffer readers retain their sentinel API. */
+/** Owned packet bytes with bounded reads; [sizebuf_t] file/demo readers retain their sentinel API. */
 class MessageReader(bytes: PacketBytes, offset: Int) : sizebuf_t(bytes.size) {
     init {
         require(offset in 0..bytes.size)
@@ -16,13 +16,13 @@ class MessageReader(bytes: PacketBytes, offset: Int) : sizebuf_t(bytes.size) {
     }
 
     companion object {
-        /** Bridge direct legacy factory calls into bounded reads and let the factory copy back its cursor. */
+        /** Adapt a buffer at its current cursor; callers copy the reader cursor back after decoding. */
         @JvmStatic fun fromBuffer(buffer: sizebuf_t): MessageReader {
             requireRemaining(buffer, 0)
             return MessageReader(PacketBytes.copyOf(buffer.data, buffer.cursize), buffer.readcount)
         }
 
-        /** Validate a wire length before allocation or copying, including when a legacy parser is called directly. */
+        /** Validate the byte count and buffer bounds before reading, allocating, or copying. */
         @JvmStatic fun requireRemaining(buffer: sizebuf_t, length: Int) {
             if (length < 0) throw MessageReadException(MessageRejection.INVALID_LENGTH, buffer.readcount, "Negative length $length")
             if (buffer.readcount < 0 || buffer.cursize > (buffer.data?.size ?: 0) || length > buffer.cursize - buffer.readcount)

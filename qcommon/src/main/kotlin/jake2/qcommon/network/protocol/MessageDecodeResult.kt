@@ -8,5 +8,5 @@ sealed interface MessageDecodeResult<out T> {
 
 enum class MessageRejection { TRUNCATED, UNKNOWN_OPCODE, INVALID_LENGTH, INVALID_VALUE, WRONG_DIRECTION, NOT_SEQUENCED }
 
-/** Internal unwinding for legacy message parsers; the body codec converts it into a rejection. */
+/** Abort decoding; [MessageBodyCodec] converts this exception into a typed rejection. */
 class MessageReadException(val reason: MessageRejection, val offset: Int, detail: String) : RuntimeException(detail, null, false, false)

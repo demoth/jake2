@@ -20,6 +20,7 @@ internal object PlayerStateCodec {
         viewAngles = if (different(current.viewangles, previous.viewangles)) angleShorts(current.viewangles) else null,
         kickAngles = if (different(current.kick_angles, previous.kick_angles)) quarterBytes(current.kick_angles) else null,
         // Compare against the acknowledged reference, including resets to zero.
+        // Different from vanilla server encoding behavior, but should be compatible with most clients
         weaponIndex = if (current.gunindex != previous.gunindex) current.gunindex and 255 else null,
         // Gun offsets/angles are sent only when gunframe changes, preserving protocol-34 behavior.
         weaponFrame = if (current.gunframe != previous.gunframe) PlayerWeaponFrame(current.gunframe and 255, quarterBytes(current.gunoffset), quarterBytes(current.gunangles)) else null,
@@ -30,7 +31,7 @@ internal object PlayerStateCodec {
             .associateWith { current.stats[it].toInt() }),
     )
 
-    // Compare before quantization, just as the legacy writer did (including sub-unit changes).
+    // Changes smaller than one wire unit still set the field mask.
     private fun different(a: FloatArray, b: FloatArray, count: Int = 3): Boolean = (0 until count).any { a[it] != b[it] }
     private fun different(a: ShortArray, b: ShortArray): Boolean = (0 until 3).any { a[it] != b[it] }
     private fun shorts(v: ShortArray) = PlayerDeltaVector(v[0].toInt(), v[1].toInt(), v[2].toInt())
