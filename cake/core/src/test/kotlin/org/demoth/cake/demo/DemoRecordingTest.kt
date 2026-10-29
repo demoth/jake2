@@ -7,6 +7,12 @@ import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.network.protocol.MessageBodyCodec
 import jake2.qcommon.network.protocol.MessageDecodeResult
+import jake2.qcommon.network.protocol.ChannelRole
+import jake2.qcommon.network.protocol.ReliableChannel
+import jake2.qcommon.network.protocol.PrepareSendResult
+import jake2.qcommon.network.protocol.PacketCodec
+import jake2.qcommon.network.protocol.PacketDecodeResult
+import jake2.qcommon.network.protocol.PacketDirection
 import jake2.qcommon.network.transport.PacketBytes
 import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.*
@@ -48,7 +54,7 @@ class DemoRecordingTest {
         DemoWriter(output).use(startup::writeTo)
         val bodies = records(output.toByteArray())
         assertTrue(bodies.size > 1)
-        assertTrue(bodies.all { it.size in 1..Defines.MAX_MSGLEN })
+        assertTrue(bodies.all { it.size in 1..(Defines.MAX_MSGLEN - 16) })
         val decoded = bodies.flatMap(::decode)
         assertEquals(server().copy(demo = true), decoded.first())
         assertEquals(81, decoded.filterIsInstance<ConfigStringMessage>().size)
@@ -63,6 +69,30 @@ class DemoRecordingTest {
         assertThrows(IllegalArgumentException::class.java) {
             DemoBootstrap(server(), listOf(ConfigStringMessage(0, "x".repeat(Defines.MAX_MSGLEN))), emptyList())
         }
+    }
+
+    @Test fun `startup records survive forwarding through a classic server channel without dropped payloads`() {
+        // Yamagi SV_SendClientMessages forwards each .dm2 body through Netchan_Transmit as unreliable data.
+        // A record can fit the file format limit yet be dropped when its channel header is added.
+        val startup = DemoBootstrap(server(), listOf(
+            ConfigStringMessage(Defines.CS_STATUSBAR, "x".repeat(Defines.MAX_MSGLEN - 20)),
+        ), listOf(SpawnBaselineMessage(EntityStateSnapshot(index = 1, modelIndex = 3))))
+        val output = ByteArrayOutputStream()
+        DemoWriter(output).use(startup::writeTo)
+        val expected = records(output.toByteArray()).flatMap(::decode)
+        val forwarded = records(output.toByteArray()).flatMap { record ->
+            val channel = ReliableChannel(ChannelRole.SERVER, 0)
+            // Also leave room for a small reliable control payload alongside the server header.
+            channel.enqueueReliable(PacketBytes.copyOf(ByteArray(8) { ServerMessageType.svc_nop.type.toByte() }))
+            val send = channel.prepareSend(record) as PrepareSendResult.Prepared
+            assertFalse(send.unreliableDropped, "Startup record of ${record.size} bytes was dropped")
+            assertTrue(send.bytes.size <= Defines.MAX_MSGLEN)
+            val packet = (PacketCodec.decode(send.bytes, PacketDirection.FROM_SERVER) as PacketDecodeResult.Decoded).envelope
+            (MessageBodyCodec.decodeServer(packet) as MessageDecodeResult.Decoded).messages
+        }
+        assertEquals(expected, forwarded)
+        assertTrue(forwarded.first() is ServerDataMessage)
+        assertEquals(StuffTextMessage("precache\n"), forwarded.last())
     }
 
     @Test fun `recording waits for an accepted complete full snapshot then preserves raw bodies through playback`() {

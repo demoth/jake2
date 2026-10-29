@@ -23,7 +23,9 @@ class DemoBootstrap(
             addAll(baselines.sortedBy { it.entityState.index })
             add(StuffTextMessage("precache\n"))
         }
-        val buffer = sizebuf_t(Defines.MAX_MSGLEN)
+        // Yamagi SV_SendClientMessages forwards demo records through Netchan_Transmit.
+        // Reserve channel header/control space even though .dm2 records contain no channel header.
+        val buffer = sizebuf_t(Defines.MAX_MSGLEN - 16)
         records = buildList {
             for (message in messages) {
                 require(message.size <= buffer.maxsize) { "Demo bootstrap message exceeds record capacity" }
