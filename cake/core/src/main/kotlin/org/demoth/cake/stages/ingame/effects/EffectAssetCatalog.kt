@@ -86,10 +86,10 @@ class EffectAssetCatalog(
         if (assetManager.fileHandleResolver.tryResolveRaw(path) == null) {
             return
         }
-        if (!assetManager.isLoaded(path, type)) {
-            assetManager.load(path, type)
-            assetManager.finishLoadingAsset<T>(path)
-        }
+        // Acquire a reference even when another screen/config already loaded the asset.
+        // finishLoadingAsset returns immediately for cached assets, before processing that acquisition.
+        assetManager.load(path, type)
+        assetManager.finishLoading()
         ownedAssetTypes[path] = type
     }
 }
