@@ -16,6 +16,7 @@ import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.md2.Md2Loader
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.ImageThumbnails
+import org.demoth.cake.ui.ContentBrowserNavigation
 import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuScreen
@@ -35,6 +36,7 @@ class MenuStages(
     private val activeProfileId: () -> String?,
 ) : Disposable {
     private val stages = linkedMapOf<MenuScreen, BackNavigableMenuStage>()
+    private val browserNavigation = ContentBrowserNavigation()
     var activeScreen: MenuScreen = MenuScreen.MAIN
         private set
 
@@ -70,7 +72,7 @@ class MenuStages(
                     val file = requireNotNull(fileResolver.resolveContent(entry.normalizedPath)) { "Missing profile sound" }
                     // Preview sounds are owned separately from the shared asset manager.
                     ConvertingSoundLoader(fileResolver).loadSync(assetManager, entry.normalizedPath, file, null)
-                }, readDemoMetadata = readDemoMetadata)
+                }, readDemoMetadata = readDemoMetadata, navigation = browserNavigation)
             }
         }
         if (activeScreen == MenuScreen.CONTENT_BROWSER) refreshContentBrowser()
@@ -116,14 +118,18 @@ class MenuStages(
         stages.clear()
     }
 
-    private fun refreshContentBrowser() {
+    fun showContentBrowser(message: String? = null) {
+        if (!select(MenuScreen.CONTENT_BROWSER) || message != null) refreshContentBrowser(message)
+    }
+
+    private fun refreshContentBrowser(message: String? = null) {
         val profileId = activeProfileId()
         if (profileId == null) {
             contentBrowserStage.show(emptyList(), "<unset>", "Select a profile to browse its content.")
             return
         }
         try {
-            contentBrowserStage.show(listContentEntries(), profileId)
+            contentBrowserStage.show(listContentEntries(), profileId, message)
         } catch (error: Exception) {
             Com.Warn("Could not list profile content: ${error.message}")
             contentBrowserStage.show(emptyList(), profileId, "Could not list profile content.")

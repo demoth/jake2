@@ -74,6 +74,7 @@ class MenuStagesGlTest {
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
             verifySingleplayerHub(viewport, style)
+            verifyBrowserDemoNavigation(viewport, style)
             menus.rebuild(style)
             val main = menus.inputProcessor
             assertFalse(menus.select(MenuScreen.MAIN))
@@ -149,6 +150,70 @@ class MenuStagesGlTest {
         } finally {
             stage.dispose()
         }
+    }
+
+    private fun verifyBrowserDemoNavigation(viewport: UiViewport, style: GameUiStyle) {
+        val entries = (0..39).map { number ->
+            val path = "demos/nested/clip${number.toString().padStart(2, '0')}.dm2"
+            jake2.qcommon.vfs.VfsEntry(path, path, jake2.qcommon.vfs.VfsLayer.BASE_PACK, 0,
+                jake2.qcommon.vfs.VfsSource(jake2.qcommon.vfs.VfsSourceType.PACKAGE_ENTRY,
+                    java.nio.file.Path.of("fixture.pak"), path, "pak", true, false), 100, 0)
+        }
+        val bus = MenuEventBus()
+        val assets = AssetManager()
+        var profile = "profile"
+        val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false,
+            listContentEntries = { entries },
+            readDemoMetadata = { org.demoth.cake.demo.DemoMetadata(26, "baseq2", "Test", "maps/test.bsp") },
+            activeProfileId = { profile })
+        fun stage() = menus.inputProcessor as Stage
+        fun browser() = descendants(stage().root).filterIsInstance<ContentBrowser>().single()
+        fun clickTile(name: String, count: Int) {
+            val tile = descendants(stage().root).filterIsInstance<Label>().filter { it.text.toString().removeSuffix("/") == name }
+                .firstNotNullOf { label -> generateSequence<Actor>(label) { it.parent }
+                    .filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.Button>().firstOrNull() }
+            tile.listeners.filterIsInstance<ClickListener>().forEach { it.tapCount = count; it.clicked(InputEvent(), 0f, 0f) }
+        }
+        fun settle() { repeat(3) { menus.render(0f) } }
+        try {
+            menus.rebuild(style)
+            menus.select(MenuScreen.CONTENT_BROWSER)
+            settle()
+            clickTile("demos", 2); settle()
+            clickTile("nested", 2); settle()
+            clickTile("clip30.dm2", 1)
+            browser().keyDown(Input.Keys.EQUALS); settle()
+            val gridScroll = descendants(browser()).filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>()
+                .first { it.isScrollingDisabledX }
+            gridScroll.scrollY = 250f
+            gridScroll.updateVisualScroll()
+            val saved = browser().location()
+            assertTrue(saved.scrollY > 0f)
+            bus.drainIntents { }
+            stage().keyDown(Input.Keys.ENTER)
+            val intents = mutableListOf<MenuIntent>()
+            bus.drainIntents { intents += it }
+            assertEquals(listOf(MenuIntent.PlayDemoRequested("profile", entries[30])), intents)
+            menus.hideContentPreviews()
+            menus.rebuild(style)
+            settle()
+            assertEquals(saved, browser().location(), "Playback cleanup and theme rebuild must retain the browser location")
+            menus.showContentBrowser("Demo playback failed: synthetic failure")
+            settle()
+            assertEquals(saved, browser().location())
+            assertTrue(labels(stage().root).contains("Demo playback failed: synthetic failure"))
+            bus.drainIntents { }
+            clickTile("clip30.dm2", 2)
+            stage().keyDown(Input.Keys.ENTER)
+            intents.clear()
+            bus.drainIntents { intents += it }
+            assertEquals(List(2) { MenuIntent.PlayDemoRequested("profile", entries[30]) }, intents)
+            profile = "other"
+            menus.showContentBrowser()
+            settle()
+            assertEquals("", browser().location().directory)
+            assertNull(browser().location().selectedPath)
+        } finally { menus.dispose(); assets.dispose() }
     }
 
     private fun verifySavedGames(viewport: UiViewport, style: GameUiStyle) {

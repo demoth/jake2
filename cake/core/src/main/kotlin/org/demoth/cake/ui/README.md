@@ -57,6 +57,7 @@ artwork and atlas lines; tree slots match the 8-unit game theme.
 - Preview content resolves within the profile; engine palette/shaders remain available.
 - Selection, navigation, profile changes, and failures clear preview resources without unloading shared game textures.
 - Back/Escape restores folder scroll, then ascends folders; only root exits the browser.
+- Demo double-click/Enter requests playback through the menu bus. Value-only, profile-scoped bookmarks retain folder/selection/scroll/thumbnail size across playback cleanup and style rebuilds; returning playback errors appear above the listing.
 
 | Media | Interaction |
 |---|---|

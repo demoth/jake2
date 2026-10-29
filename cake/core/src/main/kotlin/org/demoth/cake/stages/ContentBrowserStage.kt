@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.vfs.VfsEntry
 import org.demoth.cake.demo.DemoMetadata
 import org.demoth.cake.ui.ContentBrowser
+import org.demoth.cake.ui.ContentBrowserNavigation
 import org.demoth.cake.ui.ContentBrowserStyles
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.ContentPreview
@@ -27,12 +28,15 @@ class ContentBrowserStage(
     previewAssets: AssetManager,
     loadSound: (VfsEntry) -> Sound,
     private val readDemoMetadata: (VfsEntry) -> DemoMetadata? = { null },
+    private val navigation: ContentBrowserNavigation = ContentBrowserNavigation(),
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenMainMenu) {
     private val styles = ContentBrowserStyles.fromMenu(style.menuWidgets)
     private val media = ContentPreview(styles, thumbnails, previewAssets, loadSound)
     private val title = Label("Content browser", styles.label)
     private val content = Container<Actor>().fill()
+    private val notice = Container<Actor>().fillX()
     private val demoDescriptions = mutableMapOf<VfsEntry, String>()
+    private var profileName: String? = null
 
     init {
         addActor(Table().apply {
@@ -42,12 +46,16 @@ class ContentBrowserStage(
                 add(title).growX().left()
                 add(createBackButton(style = styles.button)).right()
             }).growX().padBottom(8f).row()
+            add(notice).growX().row()
             add(content).grow()
         })
     }
 
     fun show(entries: List<VfsEntry>, profileName: String, message: String? = null) {
         hide()
+        this.profileName = profileName
+        val location = navigation.forProfile(profileName)
+        notice.actor = message?.let { Label(it, styles.label).apply { setWrap(true) } }
         media.contentPaths = entries.map { it.normalizedPath }
         title.setText("Content: $profileName (${entries.size} files)")
         content.actor = if (entries.isEmpty()) {
@@ -55,7 +63,13 @@ class ContentBrowserStage(
         } else {
             ContentBrowser(entries, profileName, styles, previewSelection = media::open, loadThumbnail = thumbnails::load,
                 clearThumbnails = thumbnails::clear, onSelect = media::select, showSource = true,
-                selectionDetails = ::describeDemo, selectionDetailLines = 2)
+                selectionDetails = ::describeDemo, selectionDetailLines = 2, initialLocation = location,
+                openEntry = { entry ->
+                    if (entry.normalizedPath.endsWith(".dm2", ignoreCase = true)) {
+                        menuEventBus.postIntent(MenuIntent.PlayDemoRequested(profileName, entry))
+                        true
+                    } else false
+                })
         }
     }
 
@@ -89,8 +103,11 @@ class ContentBrowserStage(
 
     /** Detach actors before releasing their borrowed textures; reopening supplies a new snapshot. */
     fun hide() {
+        val browser = content.actor as? ContentBrowser
+        profileName?.let { profile -> browser?.let { navigation.remember(profile, it.location()) } }
         unfocusAll()
         content.actor = null
+        notice.actor = null
         media.clear()
         media.contentPaths = emptyList()
         demoDescriptions.clear()

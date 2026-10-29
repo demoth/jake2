@@ -1,6 +1,7 @@
 package org.demoth.cake.ui.menu
 
 import java.nio.file.Path
+import jake2.qcommon.vfs.VfsEntry
 
 sealed interface MenuIntent {
     data class OpenUiSample(val game: Boolean? = null) : MenuIntent
@@ -29,6 +30,7 @@ sealed interface MenuIntent {
     data object OpenPlayerSetup : MenuIntent
     data object OpenOptions : MenuIntent
     data object OpenContentBrowser : MenuIntent
+    data class PlayDemoRequested(val profileId: String, val entry: VfsEntry) : MenuIntent
     data class OpenOptionsSection(val prefix: String) : MenuIntent
     data object DisconnectRequested : MenuIntent
     data class SelectProfile(val profileId: String) : MenuIntent

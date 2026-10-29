@@ -64,6 +64,8 @@ class ContentBrowser(
     private val showSource: Boolean = false,
     private val selectionDetails: (VfsEntry) -> String? = { null },
     private val selectionDetailLines: Int = 0,
+    private val openEntry: ((VfsEntry) -> Boolean)? = null,
+    initialLocation: ContentBrowserLocation? = null,
 ) : Table() {
     /** Preserve the standalone viewer's native engine styling and callback contract. */
     constructor(
@@ -121,7 +123,8 @@ class ContentBrowser(
     private val gridScroll = scrollPane(grid).apply { setScrollingDisabled(true, false) }
     private val content = Container<Actor>(gridScroll).apply { fill() }
     private val backButton = TextButton("Back to folder", styles.button).apply { isVisible = false }
-    private var thumbnailWidth = 128f
+    private var thumbnailWidth = initialLocation?.thumbnailWidth?.coerceIn(64f, 256f) ?: 128f
+    private var pendingScrollY: Float? = null
     private val smallerButton = TextButton("-", styles.button)
     private val largerButton = TextButton("+", styles.button)
 
@@ -165,7 +168,22 @@ class ContentBrowser(
             override fun changed(event: ChangeEvent, actor: Actor) = resizeThumbnails(32f)
         })
         tree.selection.set(root)
+        initialLocation?.let { location ->
+            var path = location.directory
+            while (path !in nodes && path.isNotEmpty()) path = path.substringBeforeLast('/', "")
+            val node = nodes.getValue(path)
+            node.expandTo()
+            node.isExpanded = true
+            tree.selection.set(node)
+            tiles.firstOrNull { it.entry?.normalizedPath == location.selectedPath }?.let(::selectTile)
+            pendingScrollY = location.scrollY.coerceAtLeast(0f)
+        }
     }
+
+    fun location(): ContentBrowserLocation = ContentBrowserLocation(
+        tree.selectedValue?.path.orEmpty(), tiles.firstOrNull { it.isChecked }?.entry?.normalizedPath,
+        pendingScrollY ?: gridScroll.scrollY, thumbnailWidth,
+    )
 
     private fun resizeThumbnails(delta: Float) {
         thumbnailWidth = (thumbnailWidth + delta).coerceIn(64f, 256f)
@@ -176,6 +194,10 @@ class ContentBrowser(
     /** Hosts forward keys here so shortcuts work even without keyboard focus on a tile. */
     fun keyDown(keycode: Int): Boolean {
         if (content.actor !== gridScroll) return false
+        if (keycode == Input.Keys.ENTER && openEntry != null) {
+            tiles.firstOrNull { it.isChecked }?.let(::activateTile)
+            return true
+        }
         val delta = when (keycode) {
             Input.Keys.MINUS -> -32f
             Input.Keys.EQUALS -> 32f
@@ -216,6 +238,13 @@ class ContentBrowser(
 
     override fun act(delta: Float) {
         super.act(delta)
+        // Scroll bounds are only known after the restored folder has received its first layout.
+        pendingScrollY?.takeIf { gridScroll.width > 0f && gridScroll.height > 0f }?.let {
+            gridScroll.validate()
+            gridScroll.scrollY = it
+            gridScroll.updateVisualScroll()
+            pendingScrollY = null
+        }
         val loader = loadThumbnail ?: return
         if (content.actor !== gridScroll || stage == null) return
         validate()
@@ -246,6 +275,7 @@ class ContentBrowser(
     private fun showDirectory(directory: ContentDirectory) {
         clearAudition()
         previewSelection(null)
+        pendingScrollY = null
         grid.clearChildren()
         tiles.clear()
         clearThumbnails()
@@ -267,12 +297,7 @@ class ContentBrowser(
         grid.addActor(tile)
         tile.addListener(object : ClickListener() {
             override fun clicked(event: InputEvent, x: Float, y: Float) {
-                tiles.forEach { it.isChecked = it === tile }
-                selectionInfo.setText(entry?.let {
-                    val basic = "${it.displayPath}\n${it.size} bytes" + if (showSource)
-                        "\nSource: ${it.layer} / ${it.source.containerPath.fileName}" else ""
-                    selectionDetails(it)?.let { details -> "$basic\n$details" } ?: basic
-                } ?: "${directory!!.path}/")
+                selectTile(tile)
                 if (tapCount == 1) {
                     clearAudition()
                     onSelect(entry)?.let { preview ->
@@ -280,20 +305,35 @@ class ContentBrowser(
                         auditionTile = tile
                     }
                 }
-                if (tapCount != 2) return
-                if (directory != null) {
-                    val node = nodes.getValue(directory.path)
-                    node.expandTo()
-                    node.isExpanded = true
-                    tree.selection.set(node)
-                } else {
-                    val preview = previewSelection(entry) ?: return
-                    content.actor = scrollPane(preview)
-                    backButton.isVisible = true
-                    updateSizeButtons()
-                }
+                if (tapCount == 2) activateTile(tile)
             }
         })
+    }
+
+    private fun selectTile(tile: Tile) {
+        tiles.forEach { it.isChecked = it === tile }
+        selectionInfo.setText(tile.entry?.let {
+            val basic = "${it.displayPath}\n${it.size} bytes" + if (showSource)
+                "\nSource: ${it.layer} / ${it.source.containerPath.fileName}" else ""
+            selectionDetails(it)?.let { details -> "$basic\n$details" } ?: basic
+        } ?: "${tile.directory!!.path}/")
+    }
+
+    private fun activateTile(tile: Tile) {
+        val directory = tile.directory
+        if (directory != null) {
+            val node = nodes.getValue(directory.path)
+            node.expandTo()
+            node.isExpanded = true
+            tree.selection.set(node)
+        } else {
+            val entry = tile.entry ?: return
+            if (openEntry?.invoke(entry) == true) return
+            val preview = previewSelection(entry) ?: return
+            content.actor = scrollPane(preview)
+            backButton.isVisible = true
+            updateSizeButtons()
+        }
     }
 
     private fun clearAudition() {

@@ -15,6 +15,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import java.io.IOException
+import java.io.InputStream
+import jake2.qcommon.vfs.VfsEntry
 import jake2.qcommon.network.demo.DemoReader
 import org.demoth.cake.demo.DemoPlayback
 import org.demoth.cake.demo.DemoRecording
@@ -140,6 +142,8 @@ class Cake(
     // Connection and download protocol state.
     private var demoRecording: DemoRecording? = null
     private val demoFiles = DemoFiles(profilePersistence::writable, fileResolver::openContent)
+    private data class DemoBrowserReturn(val profileId: String, val gameDirectory: String?)
+    private var demoBrowserReturn: DemoBrowserReturn? = null
     private var demoPlayback: DemoPlayback? = null
     private var demoPaused = false
     private var networkState = DISCONNECTED
@@ -349,8 +353,8 @@ class Cake(
         Cmd.AddCommand("demopause", "Pause or resume demo playback") {
             if (demoPlayback != null) demoPaused = !demoPaused
         }
-        Cmd.AddCommand("demostop", "Stop demo playback and return to the console") {
-            if (demoPlayback != null) dropToConsole()
+        Cmd.AddCommand("demostop", "Stop demo playback and return to the browser or console") {
+            if (demoPlayback != null) finishSession()
         }
 
         Cmd.AddCommand("connect", "Connect to a remote server") {
@@ -420,7 +424,9 @@ class Cake(
             network.sendConnectionless(to, ConnectionlessCommand.rcon, message)
         }
 
-        Cmd.AddCommand("disconnect", "Disconnect and stop any local server") { disconnect() }
+        Cmd.AddCommand("disconnect", "Disconnect and stop any local server") {
+            if (demoPlayback != null) finishSession() else disconnect()
+        }
         Cmd.AddCommand("menu_loadgame", "Open the Load Game menu") {
             menuEventBus.postIntent(MenuIntent.OpenLoadGame)
         }
@@ -589,12 +595,32 @@ class Cake(
             Com.Warn("${error.message}\n")
             return
         }
+        beginDemo(input, path)
+    }
+
+    private fun startDemo(profileId: String, entry: VfsEntry) {
+        if (profileId != activeGameProfile?.id) return
+        val origin = DemoBrowserReturn(profileId, fileResolver.gamemod)
+        val input = try {
+            demoFiles.open(entry)
+        } catch (error: Exception) {
+            val message = "Could not open demo: ${error.message}"
+            Com.Warn("$message\n")
+            menuStages.showContentBrowser(message)
+            return
+        }
+        beginDemo(input, entry.displayPath, origin)
+    }
+
+    private fun beginDemo(input: InputStream, path: String, origin: DemoBrowserReturn? = null) {
         try {
             disconnect()
         } catch (error: RuntimeException) {
-            input.close()
+            try { input.close() } catch (closing: Exception) { error.addSuppressed(closing) }
             throw error
         }
+        menuStages.hideContentPreviews()
+        demoBrowserReturn = origin
         demoPlayback = DemoPlayback(DemoReader(input))
         demoPaused = false
         networkState = CONNECTED
@@ -614,17 +640,17 @@ class Cake(
             if (demoPlayback !== playback) return
             if (!running) {
                 Com.Printf("Demo completed\n")
-                dropToConsole()
+                finishSession()
                 return
             }
             game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
         } catch (error: IOException) {
             Com.Warn("Demo playback failed: ${error.message}\n")
-            dropToConsole()
+            finishSession("Demo playback failed: ${error.message}")
         } catch (error: RuntimeException) {
             // Asset loading and applying recorded state can also reject structurally valid bodies.
             Com.Warn("Demo playback failed: ${error.message}\n")
-            dropToConsole()
+            finishSession("Demo playback failed: ${error.message}")
         }
     }
 
@@ -650,6 +676,7 @@ class Cake(
     private fun resetClientConnection() {
         stopRecording()
         val playback = demoPlayback
+        demoBrowserReturn = null
         val wasDemo = playback != null
         demoPlayback = null
         demoPaused = false
@@ -680,7 +707,7 @@ class Cake(
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
         Com.Warn("${error.message}\n")
-        dropToConsole()
+        finishSession()
     }
 
     private fun findMissingResourceFailure(error: Throwable): MissingResourceException? {
@@ -694,11 +721,22 @@ class Cake(
         return null
     }
 
-    private fun dropToConsole() {
+    /** Retire the session and return to its browser origin, or to the console for other sessions. */
+    private fun finishSession(message: String? = null) {
+        val origin = demoBrowserReturn.takeIf { demoPlayback != null }
         disconnect()
-        menuVisible = false
-        consoleVisible = true
-        consoleStage.focus()
+        if (origin != null && origin.profileId == activeGameProfile?.id) {
+            fileResolver.gamemod = origin.gameDirectory
+            refreshContentStyledMenus()
+            menuStages.showContentBrowser(message)
+            menuEventBus.postIntent(MenuIntent.OpenContentBrowser)
+            menuVisible = true
+            consoleVisible = false
+        } else {
+            menuVisible = false
+            consoleVisible = true
+            consoleStage.focus()
+        }
         updateInputHandlers(consoleVisible, menuVisible)
     }
 
@@ -828,7 +866,7 @@ class Cake(
                     consoleVisible = false
                 }
                 if (localConnection && host.state == HostState.STOPPED) {
-                    dropToConsole()
+                    finishSession()
                     return
                 }
                 game3dScreen?.updateLocalInput(deltaSeconds)
@@ -895,7 +933,7 @@ class Cake(
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
                 val startingFromMenu = awaitingNewGame
                 Com.Warn("Local server stopped: ${error.message}\n")
-                dropToConsole()
+                finishSession()
                 if (startingFromMenu) {
                     menuEventBus.postIntent(MenuIntent.HostingFailed(error.message ?: "New Game failed"))
                     menuVisible = true
@@ -1139,6 +1177,7 @@ class Cake(
                     consoleVisible = false
                     updateInputHandlers(consoleVisible, menuVisible)
                 }
+                is MenuSignal.PlayDemo -> startDemo(signal.profileId, signal.entry)
                 is MenuSignal.OpenUiSample -> openUiSample(signal.game)
                 MenuSignal.CloseUiSample -> closeUiSample()
                 is MenuSignal.CaptureUiSample -> {
@@ -1242,7 +1281,7 @@ class Cake(
                     }
                     is MessageDecodeResult.Rejected -> {
                         Com.Warn("Bad server payload at ${body.offset}: ${body.detail}\n")
-                        dropToConsole()
+                        finishSession()
                     }
                 }
             } //else wasn't accepted for some reason
@@ -1269,7 +1308,7 @@ class Cake(
                 is DisconnectMessage -> {
                     Com.Printf("Server disconnected\n")
                     onParsed(snapshotAccepted)
-                    dropToConsole()
+                    finishSession()
                     return
                 }
 
@@ -1335,7 +1374,7 @@ class Cake(
                         CakeDownloadSession.Result.Continue -> Unit
                         is CakeDownloadSession.Result.RetryPrecache ->
                             Cbuf.AddText("${StringCmdMessage.PRECACHE} ${result.spawnCount}\n")
-                        CakeDownloadSession.Result.MissingOnServer -> dropToConsole()
+                        CakeDownloadSession.Result.MissingOnServer -> finishSession()
                     }
                 }
 
@@ -1781,7 +1820,7 @@ class Cake(
         override fun canDisconnect(): Boolean = networkState != DISCONNECTED || host.state != HostState.STOPPED
 
         override fun disconnect() {
-            this@Cake.disconnect()
+            if (demoPlayback != null) finishSession() else this@Cake.disconnect()
         }
 
         override fun listProfileIds(): List<String> = listProfileIdsForMenu()
