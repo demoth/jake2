@@ -14,6 +14,10 @@ import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
+import java.io.IOException
+import jake2.qcommon.network.demo.DemoReader
+import org.demoth.cake.demo.DemoPlayback
+import org.demoth.cake.demo.demoLogicalPath
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
@@ -129,6 +133,8 @@ class Cake(
     private var awaitingNewGame = false
 
     // Connection and download protocol state.
+    private var demoPlayback: DemoPlayback? = null
+    private var demoPaused = false
     private var networkState = DISCONNECTED
     private val handshake = ClientHandshake(network, ::connectPayload)
     private val localConnection get() = handshake.isLocal
@@ -297,6 +303,7 @@ class Cake(
 
         // Important: like a svc_reconnect but more lightweight
         Cmd.AddCommand("reconnect", "Reconnect to the current server") {
+            if (demoPlayback != null) return@AddCommand
             Com.Printf("Reconnecting..\n")
 
             if (networkState == CONNECTED) { // set on "changing" command
@@ -314,6 +321,20 @@ class Cake(
                 beginConnection(target, local)
             }
 
+        }
+
+        Cmd.AddCommand("demomap", "Play a protocol-34 demo: demomap <name or demos/path.dm2>") { args ->
+            if (args.size != 2) {
+                Com.Printf("usage: demomap <name or demos/path.dm2>\n")
+            } else {
+                startDemo(args[1])
+            }
+        }
+        Cmd.AddCommand("demopause", "Pause or resume demo playback") {
+            if (demoPlayback != null) demoPaused = !demoPaused
+        }
+        Cmd.AddCommand("demostop", "Stop demo playback and return to the console") {
+            if (demoPlayback != null) dropToConsole()
         }
 
         Cmd.AddCommand("connect", "Connect to a remote server") {
@@ -435,6 +456,7 @@ class Cake(
          * see jake2.server.ServerHost#SV_ExecuteUserCommand
          */
         Cmd.AddCommand("cmd", "(internal) Forward a command to the connected server") {
+            if (demoPlayback != null) return@AddCommand
             if (networkState != CONNECTED && networkState != ACTIVE) {
                 Com.Warn("Cannot cmd '${it}', not connected")
             } else {
@@ -451,7 +473,7 @@ class Cake(
                 Com.Warn("precache - during the game!\n") // todo: warning
                 return@AddCommand
             }
-            val precache_spawncount = it[1].toInt()
+            val precache_spawncount = it.getOrNull(1)?.toIntOrNull() ?: if (demoPlayback != null) 0 else return@AddCommand
 
             val activeScreen = game3dScreen
             if (activeScreen == null) {
@@ -462,7 +484,7 @@ class Cake(
                 activeScreen.precache()
             } catch (error: RuntimeException) {
                 val missingResource = findMissingResourceFailure(error)
-                if (missingResource != null && downloads.requestMissingResource(
+                if (demoPlayback == null && missingResource != null && downloads.requestMissingResource(
                         missingResource.path, fileResolver.gamemod, precache_spawncount,
                     )) {
                     return@AddCommand
@@ -473,7 +495,8 @@ class Cake(
             downloads.precacheCompleted()
 
             // we are ready to start the game!
-            netchan.queueReliable(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
+            if (demoPlayback == null)
+                netchan.queueReliable(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
         }
 
         // endregion
@@ -491,6 +514,53 @@ class Cake(
             is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
         }
         return result
+    }
+
+    private fun startDemo(name: String) {
+        val path = demoLogicalPath(name)
+        if (path == null) {
+            Com.Warn("Invalid demo path: $name\n")
+            return
+        }
+        val input = try {
+            fileResolver.openContent(path) ?: throw IOException("Demo not found in active profile: $path")
+        } catch (error: IOException) {
+            Com.Warn("${error.message}\n")
+            return
+        }
+        try {
+            disconnect()
+        } catch (error: RuntimeException) {
+            input.close()
+            throw error
+        }
+        demoPlayback = DemoPlayback(DemoReader(input))
+        demoPaused = false
+        networkState = CONNECTED
+        consoleVisible = false
+        menuVisible = false
+        Com.Printf("Playing $path\n")
+    }
+
+    private fun updateDemo(deltaSeconds: Float) {
+        val playback = demoPlayback ?: return
+        try {
+            val running = playback.update(if (demoPaused || menuVisible || applicationPaused) 0f else deltaSeconds) { messages ->
+                parseServerMessage(messages)
+                Cbuf.Execute()
+                demoPlayback === playback
+            }
+            if (demoPlayback !== playback) return
+            if (!running) {
+                Com.Printf("Demo completed\n")
+                dropToConsole()
+                return
+            }
+            game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
+        } catch (error: IOException) {
+            Com.Warn("Demo playback failed: ${error.message}\n")
+            dropToConsole()
+        }
     }
 
     private fun beginConnection(target: NetworkAddress, local: Boolean) {
@@ -513,8 +583,12 @@ class Cake(
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
     private fun resetClientConnection() {
+        val wasDemo = demoPlayback != null
+        demoPlayback?.close()
+        demoPlayback = null
+        demoPaused = false
         Com.Printf("Disconnecting from server...\n")
-        if (networkState == CONNECTED || networkState == ACTIVE) {
+        if (!wasDemo && (networkState == CONNECTED || networkState == ACTIVE)) {
             transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
         }
         game3dScreen?.stopAudio()
@@ -530,7 +604,7 @@ class Cake(
     }
 
     private fun transmitAndRecord(unreliable: Collection<NetworkMessage>?) {
-        if (netchan.transmit(unreliable)) {
+        if (demoPlayback == null && netchan.transmit(unreliable)) {
             networkDebugSampler.recordOutbound(netchan.lastSentSize, Globals.curtime)
         }
     }
@@ -602,6 +676,7 @@ class Cake(
             uiSample.isOpen -> requireNotNull(uiSample.inputProcessor)
             menuVisible -> menuStages.inputProcessor
 
+            demoPlayback != null -> InputAdapter()
             else -> {
                 // delegate to the game screen
                 game3dScreen?.let { screen -> object : InputProcessor by screen {} }
@@ -665,28 +740,32 @@ class Cake(
 
             // Match the legacy client ordering: process incoming packets and any stuffed commands first,
             // then react in the same frame by sending reliable/new packets or a reconnect challenge.
-            CL_ReadPackets()
+            if (demoPlayback == null) CL_ReadPackets()
             Cbuf.Execute()
             // Commands may have started/stopped a map. Tick once on this thread before sending
             // new client input; the next frame reads server replies (no second command pump).
-            host.setPaused(menuVisible || consoleVisible || uiSample.isOpen || applicationPaused)
-            host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
-                Globals.fixedtime.typedValue, Globals.timescale.typedValue))
-            // Console/startup commands can start a Host without going through a menu.
-            // Existing local transitions and remote connections retain their handshake paths.
-            if (networkState == DISCONNECTED && host.state == HostState.RUNNING) {
-                awaitingNewGame = false
-                beginConnection(network.localPeer, local = true)
-                menuVisible = false
-                consoleVisible = false
+            if (demoPlayback != null) {
+                updateDemo(deltaSeconds)
+            } else {
+                host.setPaused(menuVisible || consoleVisible || uiSample.isOpen || applicationPaused)
+                host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
+                    Globals.fixedtime.typedValue, Globals.timescale.typedValue))
+                // Console/startup commands can start a Host without going through a menu.
+                // Existing local transitions and remote connections retain their handshake paths.
+                if (networkState == DISCONNECTED && host.state == HostState.RUNNING) {
+                    awaitingNewGame = false
+                    beginConnection(network.localPeer, local = true)
+                    menuVisible = false
+                    consoleVisible = false
+                }
+                if (localConnection && host.state == HostState.STOPPED) {
+                    dropToConsole()
+                    return
+                }
+                game3dScreen?.updateLocalInput(deltaSeconds)
+                runClientCommandSteps(deltaSeconds)
+                handshake.tick(deltaSeconds)
             }
-            if (localConnection && host.state == HostState.STOPPED) {
-                dropToConsole()
-                return
-            }
-            game3dScreen?.updateLocalInput(deltaSeconds)
-            runClientCommandSteps(deltaSeconds)
-            handshake.tick(deltaSeconds)
 
             if (!drawable) return
             if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
@@ -704,7 +783,7 @@ class Cake(
                     netchan.outgoingSequence,
                     Globals.curtime
                 )
-                game3dScreen?.render(deltaSeconds)
+                game3dScreen?.render(if (demoPlayback != null && (demoPaused || menuVisible || applicationPaused)) 0f else deltaSeconds)
             }
 
             val activeScreen = game3dScreen
@@ -1121,6 +1200,7 @@ class Cake(
                 // NB: it is not sent during map change (instead - StuffTextMessage.command("reconnect"))
                 // sent on server restart
                 is ReconnectMessage -> {
+                    if (demoPlayback != null) return@forEach
                     Com.Printf("ReconnectMessage: Reconnecting..\n")
                     beginMapTransitionRetainingConfigAssets()
                     networkState = CONNECTING
@@ -1131,7 +1211,7 @@ class Cake(
                     if (clDebugStufftext.typedValue) {
                         Com.Printf("svc_stufftext: ${Com.makePrintable(msg.text)}\n")
                     }
-                    val filtered = filterServerStuffText(msg.text)
+                    val filtered = filterServerStuffText(msg.text, demoPlayback = demoPlayback != null)
                     filtered.rejectedCommands.forEach {
                         Com.Warn("Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")
                     }
@@ -1146,6 +1226,8 @@ class Cake(
                     // new game is starting
                     Cbuf.Execute()
                     resetClientStateForServerData()
+                    game3dScreen?.demoPlayback = demoPlayback != null
+                    if (demoPlayback != null) networkState = CONNECTED
                     netchan.clearQueuedReliable()
 
                     menuStages.hideContentPreviews()
@@ -1168,6 +1250,7 @@ class Cake(
                 }
 
                 is DownloadMessage -> {
+                    if (demoPlayback != null) return@forEach
                     if (msg is DownloadMessage.Chunk && msg.data.size > 0) {
                         networkDebugSampler.recordDownload(msg.data.size, Globals.curtime)
                     }

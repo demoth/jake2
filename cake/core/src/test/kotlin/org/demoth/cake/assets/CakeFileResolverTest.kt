@@ -54,6 +54,19 @@ class CakeFileResolverTest {
     }
 
     @Test
+    fun streamsDemoContentFromLooseFilesAndArchives() {
+        val bytes = byteArrayOf(0, 0, 0, 0, -1, -1, -1, -1)
+        createFile("baseq2/demos/loose.dm2", bytes)
+        writePak(temp.resolve("baseq2/pak0.pak"), linkedMapOf("demos/packed.dm2" to bytes))
+        val resolver = CakeFileResolver(temp.toString())
+        for (path in listOf("demos/loose.dm2", "demos/packed.dm2")) {
+            resolver.openContent(path)!!.use { assertTrue(bytes.contentEquals(it.readBytes())) }
+        }
+        assertNull(resolver.openContent("demos/missing.dm2"))
+        assertNull(resolver.openContent("../outside.dm2"))
+    }
+
+    @Test
     fun resolvesExactCaseInGamemod() {
         setFsDebugLoaders("0")
         val basedir = temp.toString()

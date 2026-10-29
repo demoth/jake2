@@ -332,6 +332,13 @@ class Game3dScreen(
         inputManager.resetMouseLookReference()
     }
 
+    var demoPlayback: Boolean = false
+
+    fun setDemoTime(timeMillis: Int, interpolationSeconds: Float) {
+        entityManager.time = timeMillis
+        entityManager.lerpAcc = interpolationSeconds
+    }
+
     override fun render(delta: Float) {
         if (Gdx.graphics.backBufferWidth <= 0 || Gdx.graphics.backBufferHeight <= 0) return
         // A screen can be created after the application's last resize callback.
@@ -377,6 +384,7 @@ class Game3dScreen(
         worldPresentationRenderer.render(
             WorldPresentationRenderer.FrameContext(
                 delta = delta,
+                demoPlayback = demoPlayback,
                 currentTimeMs = Globals.curtime,
                 sceneFrameBuffer = sceneFrameBuffer?.renderTarget,
                 camera = camera,
@@ -886,7 +894,7 @@ class Game3dScreen(
             oldZ = newZ
         }
 
-        val predictionEnabled = (currentState.pmove.pm_flags.toInt() and Defines.PMF_NO_PREDICTION) == 0
+        val predictionEnabled = !demoPlayback && (currentState.pmove.pm_flags.toInt() and Defines.PMF_NO_PREDICTION) == 0
         val interpolatedX: Float
         val interpolatedY: Float
         val interpolatedZ: Float
@@ -1098,7 +1106,7 @@ class Game3dScreen(
             soundMessageHandler.playEntityEventSounds()
             // Cross-reference: old `CL_ents.parsePacketEntities` calls `CL_pred.CheckPredictionError`
             // once a valid frame has been fully reconstructed.
-            prediction.onServerFrameParsed(entityManager.currentFrame)
+            if (!demoPlayback) prediction.onServerFrameParsed(entityManager.currentFrame)
         }
         return validMessage
     }

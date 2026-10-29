@@ -9,7 +9,7 @@ class CakeCommandOrderTest {
 
     @Test
     fun renderExecutesCommandBufferBeforeSendingUpdates() {
-        val source = readCakeSource()
+        val source = readCakeSource().substringAfter("override fun render()")
 
         val readPacketsIdx = source.indexOf("CL_ReadPackets()")
         val executeBufferIdx = source.indexOf("Cbuf.Execute()")

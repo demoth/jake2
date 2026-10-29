@@ -81,6 +81,17 @@ internal class CakeVfsAssetSource {
         return vfs.listEntries()
     }
 
+    /** Open profile content directly, retaining the VFS handle until the caller closes the stream. */
+    @Synchronized
+    fun openContent(path: String): java.io.InputStream? {
+        val result = vfs.openRead(path, jake2.qcommon.vfs.VfsOpenOptions.DEFAULT)
+        if (!result.success) return null
+        val handle = result.value ?: return null
+        return object : java.io.FilterInputStream(handle.inputStream()) {
+            override fun close() = handle.close()
+        }
+    }
+
     @Synchronized
     fun resolve(path: String): FileHandle? {
         val lookup = vfs.resolve(path)

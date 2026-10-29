@@ -10,12 +10,12 @@ internal data class ServerStuffTextFilterResult(
     val rejectedCommands: List<String>,
 )
 
-internal fun filterServerStuffText(text: String): ServerStuffTextFilterResult {
+internal fun filterServerStuffText(text: String, demoPlayback: Boolean = false): ServerStuffTextFilterResult {
     val accepted = mutableListOf<String>()
     val rejected = mutableListOf<String>()
 
     splitStuffTextCommands(text).forEach { command ->
-        if (isExpectedServerStuffTextCommand(command)) {
+        if (isExpectedServerStuffTextCommand(command, demoPlayback)) {
             accepted += command
         } else {
             rejected += command
@@ -28,7 +28,7 @@ internal fun filterServerStuffText(text: String): ServerStuffTextFilterResult {
     )
 }
 
-private fun isExpectedServerStuffTextCommand(command: String): Boolean {
+private fun isExpectedServerStuffTextCommand(command: String, demoPlayback: Boolean): Boolean {
     val args = Cmd.TokenizeString(command, false)
     if (args.isEmpty()) {
         return true
@@ -38,7 +38,7 @@ private fun isExpectedServerStuffTextCommand(command: String): Boolean {
     return when (args[0]) {
         "changing", "reconnect" -> args.size == 1
         "cmd" -> args.size > 1
-        "precache" -> args.size == 2 && args[1].toIntOrNull() != null
+        "precache" -> (demoPlayback && args.size == 1) || (args.size == 2 && args[1].toIntOrNull() != null)
         "spectator" -> args.size == 2 && (args[1] == "0" || args[1] == "1")
         else -> false
     }
