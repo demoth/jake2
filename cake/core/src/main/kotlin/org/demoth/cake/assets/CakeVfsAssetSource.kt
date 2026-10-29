@@ -87,7 +87,11 @@ internal class CakeVfsAssetSource {
         val result = vfs.openRead(path, jake2.qcommon.vfs.VfsOpenOptions.DEFAULT)
         if (!result.success) return null
         val handle = result.value ?: return null
-        return object : java.io.FilterInputStream(handle.inputStream()) {
+        val input = try { handle.inputStream() } catch (error: java.io.IOException) {
+            try { handle.close() } catch (closeError: java.io.IOException) { error.addSuppressed(closeError) }
+            throw error
+        }
+        return object : java.io.FilterInputStream(input) {
             override fun close() = handle.close()
         }
     }

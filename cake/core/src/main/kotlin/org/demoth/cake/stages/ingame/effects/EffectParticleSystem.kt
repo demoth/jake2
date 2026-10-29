@@ -29,6 +29,7 @@ import kotlin.math.min
  */
 class EffectParticleSystem(
     assetManager: AssetManager,
+    private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) : Disposable {
     private var activeCount = 0
     private var capacity = INITIAL_CAPACITY
@@ -108,7 +109,7 @@ class EffectParticleSystem(
             velX[particleIndex] = directionVector.x * speed
             velY[particleIndex] = directionVector.y * speed
             velZ[particleIndex] = directionVector.z * speed
-            spawnTimeMs[particleIndex] = Globals.curtime
+            spawnTimeMs[particleIndex] = currentTimeMsProvider()
             lifetimeMs[particleIndex] = max(1, lifeMs)
             this.startAlpha[particleIndex] = startAlpha
             this.endAlpha[particleIndex] = endAlpha
@@ -163,7 +164,7 @@ class EffectParticleSystem(
         if (activeCount == 0) {
             return
         }
-        val nowMs = Globals.curtime
+        val nowMs = currentTimeMsProvider()
         renderer.begin(camera)
         var index = 0
         while (index < activeCount) {

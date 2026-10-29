@@ -159,6 +159,31 @@ the singleplayer respawn action opens Load Game automatically.
 remain visible in the menu so an invalid save or failed restore can be retried.
 Deathmatch does not create autosaves. Coop save/load remains console-only.
 
+## Demo playback
+
+Both `cake-client` and `cake-fullgame` play protocol-34 client recordings (`.dm2`)
+without running a game server. Select a profile containing the recording's maps,
+models, and sounds, then open the client console:
+
+- `demomap example` — play `demos/example.dm2` from the active profile's game data.
+- `demomap demos/folder/example.dm2` — play a nested demo, including archive entries.
+- `demopause` — toggle pause; opening the menu or suspending the application also pauses playback.
+- `demostop` or `disconnect` — stop and return to the console.
+
+EOF and playback errors return to the console. Starting another demo replaces the
+current session. The camera follows the recorded player; movement and mouse look
+do not control playback. Opening the console leaves playback running.
+
+Protocol-26 demos shipped with older Quake II releases, extended/rerelease
+protocols, and cinematic recordings are unsupported. For a compatible test file,
+record a session in Yamagi using `record example`, then `stop`, and copy its
+`demos/example.dm2` into the selected profile's game-data directory.
+
+The hidden-window playback integration tests accept an external recording through
+`CAKE_TEST_DEMO=/absolute/path/example.dm2`, alongside `CAKE_HOST_GAME_TESTS=1`
+and `CAKE_TEST_BASEDIR`. They run the untouched recording and controlled view
+updates in both host configurations; game content and recordings stay outside git.
+
 ## Subsystem Guides
 
 - [Desktop video configuration](cake-client/README.md)

@@ -18,7 +18,7 @@ class DemoPlaybackTest {
         return int(buffer.cursize) + buffer.data.copyOf(buffer.cursize)
     }
     private fun bootstrap(protocol: Int = 34) = record(ServerDataMessage(protocol, 1, true, "baseq2", 0, "test"), StuffTextMessage("precache\n"))
-    private fun frame(number: Int) = record(FrameHeaderMessage(number, -1, 0, 0, byteArrayOf()))
+    private fun frame(number: Int) = record(FrameHeaderMessage(number, -1, 0, 0, byteArrayOf()), PlayerInfoMessage(fov = 90), PacketEntitiesMessage(emptyList()))
     private fun playback(bytes: ByteArray) = DemoPlayback(DemoReader(ByteArrayInputStream(bytes)))
 
     @Test fun `bootstrap is immediate then frames follow recorded time and last frame remains visible`() {
@@ -67,6 +67,19 @@ class DemoPlaybackTest {
             assertEquals(listOf(1000, 5), frames)
             demo.update(.1f, dispatch)
             assertEquals(listOf(1000, 5, 6), frames)
+        }
+    }
+
+    @Test fun `incomplete snapshots invalid player slots and initial delta frames reject`() {
+        val header = FrameHeaderMessage(10, -1, 0, 0, byteArrayOf())
+        val cases = listOf(
+            bootstrap() + record(header),
+            bootstrap() + record(PlayerInfoMessage(), PacketEntitiesMessage(emptyList())),
+            bootstrap() + record(header.copy(lastFrame = 9), PlayerInfoMessage(), PacketEntitiesMessage(emptyList())),
+            record(ServerDataMessage(34, 1, true, "baseq2", 999, "test")),
+        )
+        for (bytes in cases) playback(bytes + int(-1)).use { demo ->
+            assertThrows(IOException::class.java) { demo.update(0f) { true } }
         }
     }
 

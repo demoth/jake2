@@ -560,6 +560,10 @@ class Cake(
         } catch (error: IOException) {
             Com.Warn("Demo playback failed: ${error.message}\n")
             dropToConsole()
+        } catch (error: RuntimeException) {
+            // Asset loading and applying recorded state can also reject structurally valid bodies.
+            Com.Warn("Demo playback failed: ${error.message}\n")
+            dropToConsole()
         }
     }
 
@@ -583,10 +587,13 @@ class Cake(
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
     private fun resetClientConnection() {
-        val wasDemo = demoPlayback != null
-        demoPlayback?.close()
+        val playback = demoPlayback
+        val wasDemo = playback != null
         demoPlayback = null
         demoPaused = false
+        try { playback?.close() } catch (error: IOException) {
+            Com.Warn("Could not close demo: ${error.message}\n")
+        }
         Com.Printf("Disconnecting from server...\n")
         if (!wasDemo && (networkState == CONNECTED || networkState == ACTIVE)) {
             transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
@@ -1242,6 +1249,7 @@ class Cake(
 
                 // delegate all game-related updates to the game screen
                 is FrameHeaderMessage -> {
+                    if (demoPlayback != null) game3dScreen?.setDemoTime(msg.frameNumber * 100 - 100, 0f)
                     game3dScreen?.processServerFrameHeader(msg)
                 }
 
@@ -1283,7 +1291,9 @@ class Cake(
                 }
 
                 is PacketEntitiesMessage -> {
-                    if (game3dScreen?.processPacketEntitiesMessage(msg) == true) {
+                    val valid = game3dScreen?.processPacketEntitiesMessage(msg) == true
+                    if (demoPlayback != null && !valid) throw IOException("Demo snapshot depends on an unavailable frame")
+                    if (valid) {
                         if (networkState != ACTIVE) {
                             networkState = ACTIVE
                             Com.Printf("Game started!\n")

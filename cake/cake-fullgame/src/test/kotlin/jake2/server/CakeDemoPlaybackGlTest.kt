@@ -5,6 +5,15 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import jake2.qcommon.Defines
+import jake2.qcommon.network.demo.DemoReader
+import jake2.qcommon.network.messages.server.*
+import jake2.qcommon.network.protocol.MessageBodyCodec
+import jake2.qcommon.network.protocol.MessageDecodeResult
+import jake2.qcommon.sizebuf_t
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.ConnectionChannel
 import org.demoth.cake.Cake
@@ -45,6 +54,8 @@ abstract class CakeDemoPlaybackGlTest {
         }
         val bytes = Files.readAllBytes(demo)
         Files.write(content.resolve("demos/check.dm2"), bytes)
+        Files.write(content.resolve("demos/motion.dm2"), motionDemo(bytes))
+        Files.write(content.resolve("demos/missing-assets.dm2"), missingAssetsDemo())
         Files.write(content.resolve("demos/truncated.dm2"), bytes.copyOf(bytes.size - 5))
         val unsupported = bytes.copyOf().apply { this[5] = 26 } // first record begins with svc_serverdata + protocol.
         Files.write(content.resolve("demos/unsupported.dm2"), unsupported)
@@ -69,6 +80,7 @@ abstract class CakeDemoPlaybackGlTest {
                 private var deadline = System.nanoTime() + 30_000_000_000L
                 private var updatesAtOpen = 0
                 private var snapshotAtPause = 0
+                private var timeAtPause = 0
 
                 override fun create() {
                     try {
@@ -108,10 +120,12 @@ abstract class CakeDemoPlaybackGlTest {
                                 assertEquals(frame.playerstate.pmove.origin[1] * .125f + frame.playerstate.viewoffset[1], camera.position.y, .01f)
                                 Cmd.ExecuteString("demopause")
                                 snapshotAtPause = frame.serverframe
+                                timeAtPause = field(screen, "demoTimeMillis") as Int
                                 next()
                             }
                             1 -> {
                                 assertEquals(snapshotAtPause, frame!!.serverframe)
+                                assertEquals(timeAtPause, field(screen, "demoTimeMillis"))
                                 if (ticks > 10) { Cmd.ExecuteString("demopause"); next() }
                             }
                             2 -> {
@@ -122,11 +136,20 @@ abstract class CakeDemoPlaybackGlTest {
                                     assertTrue(frameAdvanced, "Recorded frames must advance")
                                     assertTrue(initialFrame > 0)
                                     assertEquals(true, field(cake, "consoleVisible"))
-                                    Cmd.ExecuteString("demomap check")
+                                    Cmd.ExecuteString("demomap motion")
                                     next()
                                 }
                             }
-                            3 -> if (state() == "ACTIVE") {
+                            3 -> if (state() == "ACTIVE" && ticks > 20) {
+                                val current = frame!!.playerstate
+                                val previous = entities.previousFrame!!.playerstate
+                                val lerp = (entities.lerpAcc * 10).coerceIn(0f, 1f)
+                                val camera = field(screen, "camera") as com.badlogic.gdx.graphics.PerspectiveCamera
+                                val expectedX = (previous.pmove.origin[0] + lerp * (current.pmove.origin[0] - previous.pmove.origin[0])) * .125f
+                                assertEquals(expectedX, camera.position.x, .01f, "Camera must follow recorded movement despite prediction flags allowing local prediction")
+                                val yaw = (previous.viewangles[1] + lerp * (current.viewangles[1] - previous.viewangles[1])) * kotlin.math.PI / 180
+                                assertEquals(kotlin.math.cos(yaw).toFloat(), camera.direction.x, .001f)
+                                assertEquals(kotlin.math.sin(yaw).toFloat(), camera.direction.y, .001f)
                                 Cmd.ExecuteString("demomap check") // replace an active file session.
                                 next()
                             }
@@ -144,6 +167,12 @@ abstract class CakeDemoPlaybackGlTest {
                             }
                             6 -> if (state() == "DISCONNECTED") {
                                 assertNull(field(cake, "demoPlayback"))
+                                assertEquals(true, field(cake, "consoleVisible"))
+                                Cmd.ExecuteString("demomap missing-assets")
+                                next()
+                            }
+                            7 -> if (state() == "DISCONNECTED") {
+                                assertNull(field(cake, "game3dScreen"))
                                 assertEquals(true, field(cake, "consoleVisible"))
                                 Cmd.ExecuteString("demomap missing")
                                 assertEquals("DISCONNECTED", state())
@@ -174,6 +203,43 @@ abstract class CakeDemoPlaybackGlTest {
             System.setProperty("user.home", previousHome)
         }
     }
+
+    /** Controlled view deltas supplement the untouched Yamagi interoperability recording. */
+    private fun motionDemo(bytes: ByteArray): ByteArray {
+        val output = ByteArrayOutputStream()
+        var frame = 0
+        DemoReader(ByteArrayInputStream(bytes)).use { reader ->
+            while (true) {
+                val record = reader.read()
+                if (record == DemoReader.Record.End) break
+                val messages = (MessageBodyCodec.decodeServerBody((record as DemoReader.Record.Body).bytes) as MessageDecodeResult.Decoded).messages
+                val buffer = sizebuf_t(1400)
+                messages.forEach { message ->
+                    val modified = if (message is PlayerInfoMessage) {
+                        frame++
+                        message.copy(origin = PlayerDeltaVector(1000 + frame * 8, 0, 0),
+                            movementFlags = 0, viewOffset = PlayerDeltaVector(0, 0, 0),
+                            viewAngles = PlayerDeltaVector(0, frame * 1000, 0), kickAngles = PlayerDeltaVector(0, 0, 0))
+                    } else message
+                    modified.writeTo(buffer)
+                }
+                output.write(int(buffer.cursize))
+                output.write(buffer.data, 0, buffer.cursize)
+            }
+        }
+        output.write(int(-1))
+        return output.toByteArray()
+    }
+
+    private fun missingAssetsDemo(): ByteArray {
+        val buffer = sizebuf_t(1400)
+        listOf(ServerDataMessage(34, 1, true, "baseq2", 0, "Missing content"),
+            ConfigStringMessage(Defines.CS_MODELS + 1, "maps/cake-nonexistent-demo-map.bsp"),
+            StuffTextMessage("precache\n")).forEach { it.writeTo(buffer) }
+        return int(buffer.cursize) + buffer.data.copyOf(buffer.cursize) + int(-1)
+    }
+
+    private fun int(value: Int) = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(value).array()
 
     private fun field(owner: Any, name: String): Any? = owner.javaClass.getDeclaredField(name).apply {
         isAccessible = true

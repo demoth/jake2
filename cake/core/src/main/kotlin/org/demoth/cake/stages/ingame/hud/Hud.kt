@@ -339,6 +339,7 @@ internal class Hud(
     private val spriteBatch: SpriteBatch,
     private val style: GameUiStyle,
     private val dataProvider: LayoutDataProvider,
+    private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) : Disposable {
     private companion object {
         // Legacy notify defaults from `client/Console` (`NUM_CON_TIMES`, `con_notifytime 3`).
@@ -491,7 +492,7 @@ internal class Hud(
             if (itemIndex != selected) {
                 drawTextIdTech2(textX, textY, line, true, null, screenHeight)
             } else {
-                if (((Globals.curtime / 100) and 1) != 0) {
+                if (((currentTimeMsProvider() / 100) and 1) != 0) {
                     drawTextIdTech2(textX - 8, textY, Char(15).toString(), false, null, screenHeight)
                 }
                 drawTextIdTech2(textX, textY, line, false, null, screenHeight)
@@ -535,7 +536,7 @@ internal class Hud(
      */
     fun showPrintMessage(level: Int, text: String) {
         if (text.isEmpty()) return
-        val expiresAtMs = Globals.curtime + NOTIFY_TIMEOUT_MS
+        val expiresAtMs = currentTimeMsProvider() + NOTIFY_TIMEOUT_MS
         val alt = level == PRINT_CHAT
         for (line in text.replace('\r', '\n').split('\n')) {
             if (line.isEmpty()) continue
@@ -582,7 +583,7 @@ internal class Hud(
     }
 
     private fun drawNotifyMessages(screenHeight: Int) {
-        val now = Globals.curtime
+        val now = currentTimeMsProvider()
         notifyLines.removeIf { it.expiresAtMs <= now }
         val recent = notifyLines.takeLast(NOTIFY_MAX_LINES)
         var y = 0

@@ -92,7 +92,7 @@ class Game3dScreen(
     private val prediction by lazy { ClientPrediction(collisionModel, entityManager, gameConfig) }
     private val dynamicLightSystem = DynamicLightSystem()
     private val audioSystem: CakeAudioSystem = FireAndForgetCakeAudioSystem(
-        currentTimeMsProvider = { Globals.curtime },
+        currentTimeMsProvider = { presentationTimeMillis },
         entityOriginProvider = { entityIndex -> entityManager.getEntityOrigin(entityIndex) },
         localPlayerEntityIndexProvider = {
             val playerIndex = gameConfig.playerConfiguration.playerIndex
@@ -116,6 +116,7 @@ class Game3dScreen(
         audioSystem = audioSystem,
         cameraProvider = { camera },
         dynamicLightSystem = dynamicLightSystem,
+        currentTimeMsProvider = { presentationTimeMillis },
     )
     private val soundMessageHandler = IngameSoundMessageHandler(
         gameConfig = gameConfig,
@@ -123,6 +124,7 @@ class Game3dScreen(
         effectsSystem = effectsSystem,
         audioSystem = audioSystem,
         dynamicLightSystem = dynamicLightSystem,
+        currentTimeMsProvider = { presentationTimeMillis },
     )
     private val replicatedEntityEffectCollector = ReplicatedEntityEffectCollector(
         entityManager = entityManager,
@@ -304,7 +306,7 @@ class Game3dScreen(
             postProcessShader.setUniformf("u_vignetteEnabled", if (RenderTuningCvars.rPostVignette.typedValue) 1f else 0f)
             postProcessShader.setUniformf("u_vignetteStrength", RenderTuningCvars.rPostVignetteStrength.typedValue)
             postProcessShader.setUniformf("u_underwaterEnabled", if (underwaterPostEnabled) 1f else 0f)
-            postProcessShader.setUniformf("u_timeSeconds", Globals.curtime * 0.001f)
+            postProcessShader.setUniformf("u_timeSeconds", presentationTimeMillis * 0.001f)
             it.draw(region, 0f, 0f, width, height)
         }
         postProcessBatch.shader = previousShader
@@ -333,8 +335,12 @@ class Game3dScreen(
     }
 
     var demoPlayback: Boolean = false
+    private var demoTimeMillis = 0
+    private val presentationTimeMillis: Int
+        get() = if (demoPlayback) demoTimeMillis else Globals.curtime
 
     fun setDemoTime(timeMillis: Int, interpolationSeconds: Float) {
+        demoTimeMillis = timeMillis
         entityManager.time = timeMillis
         entityManager.lerpAcc = interpolationSeconds
     }
@@ -385,7 +391,7 @@ class Game3dScreen(
             WorldPresentationRenderer.FrameContext(
                 delta = delta,
                 demoPlayback = demoPlayback,
-                currentTimeMs = Globals.curtime,
+                currentTimeMs = presentationTimeMillis,
                 sceneFrameBuffer = sceneFrameBuffer?.renderTarget,
                 camera = camera,
                 modelBatch = modelBatch,
@@ -438,7 +444,7 @@ class Game3dScreen(
             0f, 0f, Gdx.graphics.width.toFloat(), Gdx.graphics.height.toFloat(),
         )
         cinematicController.render(
-            currentTimeMs = Globals.curtime,
+            currentTimeMs = presentationTimeMillis,
             spriteBatch = spriteBatch,
             screenWidth = Gdx.graphics.width.toFloat(),
             screenHeight = Gdx.graphics.height.toFloat(),
@@ -584,7 +590,7 @@ class Game3dScreen(
             inlineSurfaceMaterialController?.update(
                 modelInstance = entity.modelInstance,
                 inlineModelIndex = inlineModelIndex,
-                currentTimeMs = Globals.curtime,
+                currentTimeMs = presentationTimeMillis,
                 lightStyleResolver = ::lightStyleValue,
             )
         }
@@ -909,7 +915,7 @@ class Game3dScreen(
             interpolatedX = prediction.predictedOrigin[0] + viewOffsetX - backLerp * prediction.predictionError[0]
             interpolatedY = prediction.predictedOrigin[1] + viewOffsetY - backLerp * prediction.predictionError[1]
             interpolatedZ = prediction.predictedOrigin[2] + viewOffsetZ - backLerp * prediction.predictionError[2] -
-                prediction.smoothedStepOffset(Globals.curtime)
+                prediction.smoothedStepOffset(presentationTimeMillis)
         } else {
             interpolatedX = oldX + (newX - oldX) * lerp
             interpolatedY = oldY + (newY - oldY) * lerp
@@ -1032,7 +1038,7 @@ class Game3dScreen(
         if (msg.playerNumber == -1) {
             presentationMode = PresentationMode.CINEMATIC
             presentationRuntime = cinematicPresentationRuntime
-            cinematicController.begin(levelString, Globals.curtime)
+            cinematicController.begin(levelString, presentationTimeMillis)
         } else {
             presentationMode = PresentationMode.WORLD
             presentationRuntime = worldPresentationRuntime
@@ -1042,7 +1048,7 @@ class Game3dScreen(
         // Cake owns the shared HUD style and injects it before serverdata handling.
         val resolvedHudStyle = requireNotNull(hudStyle) { "HUD style must be set before serverdata is processed" }
         hud?.dispose()
-        hud = Hud(spriteBatch, resolvedHudStyle, GameConfigLayoutDataProvider(gameConfig))
+        hud = Hud(spriteBatch, resolvedHudStyle, GameConfigLayoutDataProvider(gameConfig), currentTimeMsProvider = { presentationTimeMillis })
     }
 
     /**

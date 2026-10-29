@@ -5,6 +5,8 @@ import jake2.qcommon.network.demo.DemoReader
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.ServerDataMessage
 import jake2.qcommon.network.messages.server.ServerMessage
+import jake2.qcommon.network.messages.server.PlayerInfoMessage
+import jake2.qcommon.network.messages.server.PacketEntitiesMessage
 import jake2.qcommon.network.protocol.MessageBodyCodec
 import jake2.qcommon.network.protocol.MessageDecodeResult
 import java.io.Closeable
@@ -74,7 +76,8 @@ class DemoPlayback(private val reader: DemoReader) : Closeable {
             for (data in messages.filterIsInstance<ServerDataMessage>()) {
                 if (data.protocol != Defines.PROTOCOL_VERSION)
                     throw IOException("Unsupported demo protocol ${data.protocol}; expected ${Defines.PROTOCOL_VERSION}")
-                if (data.playerNumber < 0) throw IOException("Cinematic demos are not supported")
+                if (data.playerNumber == -1) throw IOException("Cinematic demos are not supported")
+                if (data.playerNumber !in 0 until Defines.MAX_CLIENTS) throw IOException("Invalid demo player slot ${data.playerNumber}")
             }
             serverDataSeen = true
             originFrame = null
@@ -86,7 +89,17 @@ class DemoPlayback(private val reader: DemoReader) : Closeable {
         val frames = messages.filterIsInstance<FrameHeaderMessage>()
         if (frames.size > 1) throw IOException("Multiple snapshots in one demo record")
         val frame = frames.singleOrNull()
+        val playerIndex = messages.indexOfFirst { it is PlayerInfoMessage }
+        val entitiesIndex = messages.indexOfFirst { it is PacketEntitiesMessage }
+        if (frame == null && (playerIndex >= 0 || entitiesIndex >= 0))
+            throw IOException("Demo snapshot data has no frame header")
         if (frame != null) {
+            val headerIndex = messages.indexOf(frame)
+            if (playerIndex <= headerIndex || entitiesIndex <= playerIndex ||
+                messages.count { it is PlayerInfoMessage } != 1 || messages.count { it is PacketEntitiesMessage } != 1)
+                throw IOException("Demo contains an incomplete snapshot")
+            if (previousFrame == null && frame.lastFrame > 0)
+                throw IOException("Demo does not start with a full snapshot")
             if (frame.frameNumber < 0 || frame.frameNumber > Int.MAX_VALUE / 100)
                 throw IOException("Invalid demo frame number ${frame.frameNumber}")
             if (previousFrame != null && frame.frameNumber <= previousFrame!!)

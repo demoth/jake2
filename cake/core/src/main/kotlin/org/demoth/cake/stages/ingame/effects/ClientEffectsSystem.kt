@@ -66,10 +66,11 @@ class ClientEffectsSystem(
     private val audioSystem: CakeAudioSystem,
     private val cameraProvider: () -> Camera,
     private val dynamicLightSystem: DynamicLightSystem? = null,
+    private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
-    private val particleSystem = EffectParticleSystem(assetManager)
+    private val particleSystem = EffectParticleSystem(assetManager, currentTimeMsProvider)
     private val q2Palette: IntArray? by lazy {
         if (assetManager.isLoaded("q2palette.bin", Any::class.java)) {
             assetManager.get("q2palette.bin", Any::class.java) as? IntArray
@@ -174,7 +175,7 @@ class ClientEffectsSystem(
 
     @Suppress("UNUSED_PARAMETER")
     fun update(deltaSeconds: Float, _serverFrame: Int) {
-        val now = Globals.curtime
+        val now = currentTimeMsProvider()
         particleSystem.update(deltaSeconds, now)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
@@ -455,7 +456,7 @@ class ClientEffectsSystem(
                     start = start,
                     end = end,
                     color = Color(0.2f, 1f, 0.25f, 1f),
-                    spawnTimeMs = Globals.curtime,
+                    spawnTimeMs = currentTimeMsProvider(),
                     durationMs = 110,
                     radius = 0.8f,
                     alpha = 0.35f,
@@ -769,7 +770,7 @@ class ClientEffectsSystem(
         activeEffects += ExplosionMd2Effect(
             modelInstance = instance,
             type = type,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = 100,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -797,7 +798,7 @@ class ClientEffectsSystem(
             cameraProvider = cameraProvider,
             sprite = sprite,
             type = type,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = 100,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -869,7 +870,7 @@ class ClientEffectsSystem(
         }
         activeEffects += AnimatedModelEffect(
             modelInstance = instance,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = frameDurationMs,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -897,7 +898,7 @@ class ClientEffectsSystem(
             spriteRenderer = spriteRenderer,
             cameraProvider = cameraProvider,
             sprite = sprite,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = frameDurationMs,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -953,7 +954,7 @@ class ClientEffectsSystem(
             blue = blue,
             lifetimeMs = lifetimeMs,
             decayPerSecond = decayPerSecond,
-            currentTimeMs = Globals.curtime,
+            currentTimeMs = currentTimeMsProvider(),
         )
     }
 
