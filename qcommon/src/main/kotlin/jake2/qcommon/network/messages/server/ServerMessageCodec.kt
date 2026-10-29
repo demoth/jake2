@@ -89,10 +89,15 @@ object ServerMessageCodec {
     /** Construct complete values from bounded reads; no-op and end markers keep their existing outcomes. */
     @JvmStatic
     fun read(buffer: sizebuf_t): ServerMessage? {
-        if (buffer !is MessageReader) {
-            val reader = MessageReader.fromBuffer(buffer)
-            return try { read(reader) } finally { buffer.readcount = reader.readcount }
-        }
+        val reader = if (buffer is MessageReader) buffer else MessageReader.fromBuffer(buffer)
+        return try { readMessage(reader, frameHasSuppressCount = true) } finally { buffer.readcount = reader.readcount }
+    }
+
+    /** Demo-only layout selection; live packet decoding always uses protocol 34. */
+    internal fun readDemoMessage(buffer: MessageReader, protocol: Int): ServerMessage? =
+        readMessage(buffer, frameHasSuppressCount = protocol != 26)
+
+    private fun readMessage(buffer: MessageReader, frameHasSuppressCount: Boolean): ServerMessage? {
         if (buffer.readcount == buffer.cursize) return EndOfServerPacketMessage
         val opcode = buffer.readUnsignedByte()
         return when (ServerMessageType.fromInt(opcode)) {
@@ -116,7 +121,7 @@ object ServerMessageCodec {
             ServerMessageType.svc_spawnbaseline -> SpawnBaselineMessage(EntityDeltaCodec.read(buffer))
             ServerMessageType.svc_inventory -> InventoryMessage(IntArray(MAX_ITEMS) { buffer.readSignedShort() })
             ServerMessageType.svc_download -> readDownload(buffer)
-            ServerMessageType.svc_frame -> readFrameHeader(buffer)
+            ServerMessageType.svc_frame -> readFrameHeader(buffer, frameHasSuppressCount)
             ServerMessageType.svc_configstring -> {
                 val index = buffer.readUnsignedShort()
                 if (index >= MAX_CONFIGSTRINGS)
@@ -164,12 +169,11 @@ object ServerMessageCodec {
         }
     }
 
-    private fun readFrameHeader(buffer: MessageReader): FrameHeaderMessage {
+    private fun readFrameHeader(buffer: MessageReader, hasSuppressCount: Boolean): FrameHeaderMessage {
         val frameNumber = buffer.readInt()
         val lastFrame = buffer.readInt()
-        // The legacy parser mentioned omitting suppressCount for protocol-26 demos.
-        // Keep the existing protocol-34 layout: this byte is always present.
-        val suppressCount = buffer.readUnsignedByte()
+        // CL_ParseFrame (Yamagi/Q2PRO): protocol 26 omits this byte; classic 32/34 include it.
+        val suppressCount = if (hasSuppressCount) buffer.readUnsignedByte() else 0
         val length = buffer.readUnsignedByte()
         if (length > MAX_MAP_AREAS / 8)
             throw MessageReadException(MessageRejection.INVALID_LENGTH, buffer.readcount - 1, "Invalid area bits length $length")

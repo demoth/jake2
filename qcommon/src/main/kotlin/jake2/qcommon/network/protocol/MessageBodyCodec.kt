@@ -15,7 +15,11 @@ object MessageBodyCodec {
 
     /** Decode a complete server body, including demo records which have no channel header. */
     @JvmStatic fun decodeServerBody(bytes: PacketBytes): MessageDecodeResult<ServerMessage> =
-        decodeReader(MessageReader(bytes, 0), ServerMessageCodec::read) { it is EndOfServerPacketMessage }
+        decodeServerBody(bytes, ServerMessageCodec::read)
+
+    /** A stream-owned demo decoder may select its layout between messages within the same record. */
+    internal fun decodeServerBody(bytes: PacketBytes, parse: (MessageReader) -> ServerMessage?): MessageDecodeResult<ServerMessage> =
+        decodeReader(MessageReader(bytes, 0), parse) { it is EndOfServerPacketMessage }
 
     @JvmStatic fun decodeClient(envelope: PacketEnvelope, sequence: Int): MessageDecodeResult<ClientMessage> =
         decode(envelope, PacketDirection.FROM_CLIENT, { ClientMessageCodec.read(it, sequence) }) { it is EndOfClientPacketMessage }
