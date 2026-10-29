@@ -1,6 +1,8 @@
 package jake2.game.components
 
 import jake2.game.adapters.EntThinkAdapter
+import jake2.game.adapters.SuperAdapter
+import jake2.qcommon.math.toVector3f
 import jake2.game.func.MovementState
 import jake2.qcommon.math.Vector3f
 import kotlin.math.sqrt
@@ -33,6 +35,30 @@ data class MoveInfo(
     private var decel_distance: Float = 0f,
     var endfunc: EntThinkAdapter? = null
 ) {
+    /** Capture all movement state, including private acceleration bookkeeping. */
+    fun snapshot() = MoveInfoSnapshot(
+        startOrigin = start_origin.toArray(),
+        startAngles = start_angles.toArray(),
+        endOrigin = end_origin.toArray(),
+        endAngles = end_angles.toArray(),
+        soundStart = sound_start,
+        soundMiddle = sound_middle,
+        soundEnd = sound_end,
+        accel = accel,
+        speed = speed,
+        decel = decel,
+        distance = distance,
+        wait = wait,
+        state = state,
+        dir = dir.toArray(),
+        currentSpeed = current_speed,
+        moveSpeed = move_speed,
+        nextSpeed = next_speed,
+        remainingDistance = remaining_distance,
+        decelDistance = decel_distance,
+        endFuncId = endfunc?.iD
+    )
+
     /**
      * plat_CalcAcceleratedMove
      */
@@ -112,4 +138,50 @@ data class MoveInfo(
         // we are at constant velocity (move_speed)
     }
 
+}
+/** Persisted mover data; callbacks are stored by adapter ID, never as runtime objects. */
+data class MoveInfoSnapshot(
+    val startOrigin: FloatArray,
+    val startAngles: FloatArray,
+    val endOrigin: FloatArray,
+    val endAngles: FloatArray,
+    val soundStart: Int,
+    val soundMiddle: Int,
+    val soundEnd: Int,
+    val accel: Float,
+    val speed: Float,
+    val decel: Float,
+    val distance: Float,
+    val wait: Float,
+    val state: MovementState?,
+    val dir: FloatArray,
+    val currentSpeed: Float,
+    val moveSpeed: Float,
+    val nextSpeed: Float,
+    val remainingDistance: Float,
+    val decelDistance: Float,
+    val endFuncId: String?
+) {
+    fun restore() = MoveInfo(
+        start_origin = startOrigin.toVector3f(),
+        start_angles = startAngles.toVector3f(),
+        end_origin = endOrigin.toVector3f(),
+        end_angles = endAngles.toVector3f(),
+        sound_start = soundStart,
+        sound_middle = soundMiddle,
+        sound_end = soundEnd,
+        accel = accel,
+        speed = speed,
+        decel = decel,
+        distance = distance,
+        wait = wait,
+        state = state,
+        dir = dir.toVector3f(),
+        current_speed = currentSpeed,
+        move_speed = moveSpeed,
+        next_speed = nextSpeed,
+        remaining_distance = remainingDistance,
+        decel_distance = decelDistance,
+        endfunc = endFuncId?.let { requireNotNull(SuperAdapter.think(it)) { "Unknown mover callback: $it" } }
+    )
 }

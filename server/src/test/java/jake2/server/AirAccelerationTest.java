@@ -27,7 +27,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             var acceleration = cvars.find("sv_airaccelerate", Float.class);
             var deathmatch = cvars.find("deathmatch", Boolean.class);
             acceleration.forceSet(2.5f);
@@ -57,7 +57,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             cvars.find("deathmatch", Boolean.class).forceSet(true);
             var acceleration = cvars.find("sv_airaccelerate", Float.class);
             acceleration.forceSet(1f);
@@ -90,7 +90,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             ServerSaveJsonStore.forWriteDir(temp.toString()).writeLatchedCvars("current", List.of(
                     new ServerSaveJsonStore.LatchedCvarSnapshot("deathmatch", "1"),
                     new ServerSaveJsonStore.LatchedCvarSnapshot("sv_airaccelerate", "3.5")));
@@ -113,7 +113,7 @@ class AirAccelerationTest {
         try {
             Globals.server_state = ServerStates.SS_DEAD;
             MainCommon.registerCvars(false);
-            SV_MAIN server = new SV_MAIN();
+            ServerHost server = new ServerHost();
             var deathmatch = cvars.find("deathmatch", Boolean.class);
             var acceleration = cvars.find("sv_airaccelerate", Float.class);
             deathmatch.forceSet(true);
@@ -124,7 +124,8 @@ class AirAccelerationTest {
             var store = ServerSaveJsonStore.forWriteDir(temp.toString());
             first.writeLatchedCvars(store);
             GameImportsImpl loadedFirst = new GameImportsImpl(server, new ChangeMapInfo("first.pcx", false, true));
-            assertEquals(1f, acceleration.getTypedValue());
+            assertEquals(7f, acceleration.getTypedValue());
+            assertEquals(1f, loadedFirst.findCvar("sv_airaccelerate", Float.class).getTypedValue());
             assertMovementSetting(loadedFirst, frozenMovement(), 1f);
             assertMovementSetting(second, frozenMovement(), 7f);
 
@@ -134,7 +135,8 @@ class AirAccelerationTest {
             acceleration.forceSet(9f);
             singlePlayer.writeLatchedCvars(store);
             GameImportsImpl loadedSinglePlayer = new GameImportsImpl(server, new ChangeMapInfo("single.pcx", false, true));
-            assertEquals(5f, acceleration.getTypedValue());
+            assertEquals(9f, acceleration.getTypedValue());
+            assertEquals(5f, loadedSinglePlayer.findCvar("sv_airaccelerate", Float.class).getTypedValue());
             assertMovementSetting(loadedSinglePlayer, frozenMovement(), 0f);
             assertMovementSetting(singlePlayer, frozenMovement(), 0f);
         } finally {
@@ -153,6 +155,6 @@ class AirAccelerationTest {
     private static void assertMovementSetting(GameImportsImpl game, pmove_t movement, float expected) {
         game.Pmove(movement);
         assertEquals(expected, movement.airAccelerate);
-        assertEquals(Float.toString(expected), game.sv.configstrings[CS_AIRACCEL]);
+        assertEquals(Float.toString(expected), game.configstrings[CS_AIRACCEL]);
     }
 }

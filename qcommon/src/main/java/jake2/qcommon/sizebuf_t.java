@@ -51,17 +51,17 @@ public final class sizebuf_t {
     }
 
     /**
-     * Ask for the pointer using sizebuf_t.cursize (RST)
+     * Reserve output space. Impossible writes propagate to the caller without global teardown.
      */
     private int GetSpace(int length) {
         int oldsize;
 
         if (cursize + length > maxsize) {
             if (!allowoverflow)
-                Com.Error(Defines.ERR_FATAL, "SZ_GetSpace: overflow without allowoverflow set");
+                throw new IllegalStateException("SZ_GetSpace: overflow without allowoverflow set");
 
             if (length > maxsize)
-                Com.Error(Defines.ERR_FATAL, "SZ_GetSpace: " + length + " is > full buffer size");
+                throw new IllegalStateException("SZ_GetSpace: " + length + " is > full buffer size");
 
             Com.Printf("SZ_GetSpace: overflow\n");
             clear();

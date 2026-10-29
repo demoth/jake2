@@ -23,7 +23,6 @@ public class GameCvars {
     public final cvar_t<String> password;
     public final cvar_t<String> spectator_password;
     public final cvar_t<Integer> needpass;
-    public final cvar_t<Boolean> filterban;
     public final cvar_t<Boolean> g_select_empty;
     public final cvar_t<Integer> flood_msgs;
     public final cvar_t<Float> flood_persecond;
@@ -60,7 +59,6 @@ public class GameCvars {
         password = gameImports.findCvar("password", String.class);
         spectator_password = gameImports.findCvar("spectator_password", String.class);
         needpass = gameImports.findCvar("needpass", Integer.class);
-        filterban = gameImports.registerCvar("filterban", CvarTypes.BOOLEAN, true, 0, "True blocks listed IP addresses; false allows only listed addresses");
 
         g_select_empty = gameImports.registerCvar("g_select_empty", CvarTypes.BOOLEAN, false, Defines.CVAR_ARCHIVE, "Allow selecting weapons with no ammunition");
 

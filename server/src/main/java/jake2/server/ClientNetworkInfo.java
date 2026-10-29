@@ -26,6 +26,7 @@ import jake2.qcommon.Defines;
 import jake2.qcommon.ServerEntity;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.network.netchan_t;
+import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.usercmd_t;
 
 import java.util.ArrayList;
@@ -84,10 +85,17 @@ public class ClientNetworkInfo {
 	int downloadsize; // total bytes (can't use EOF because of paks)
 	int downloadcount; // bytes sent
 
-	int lastmessage; // sv.framenum when packet was last received
-	int lastconnect;
+	long lastmessage; // Host elapsed milliseconds at last packet or start of zombie grace period
+	long lastconnect; // Host elapsed milliseconds at connection acceptance
 
 	int challenge; // challenge of this user, randomly generated
 
 	netchan_t netchan = new netchan_t();
+
+    /** Queue text only when it meets this connection's requested message level. */
+    void queuePrint(int level, String text) {
+        if (level >= messagelevel) {
+            netchan.reliablePending.add(new PrintMessage(level, text));
+        }
+    }
 }

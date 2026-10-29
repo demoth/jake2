@@ -32,5 +32,5 @@ public class client_frame_t {
 	player_state_t		ps = new player_state_t();
 	int					num_entities;
 	int					first_entity;		// into the circular sv_packet_entities[]
-	int					senttime;			// for ping calculations
+	long				senttime;			// Host elapsed milliseconds at transmission, for ping calculations
 }

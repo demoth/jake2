@@ -30,7 +30,6 @@ import static java.util.Comparator.comparingInt;
 /**
  * Collection of functions provided by the game module.
  * Also serves as the holder of game state from the game side
- * See jake2.server.SV_GAME#SV_InitGameProgs()
  *
  */
 public class GameExportsImpl implements GameExports {
@@ -57,7 +56,6 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.GameChase",
                     "jake2.game.GameCombat",
                     "jake2.game.GameMisc",
-                    "jake2.game.GameSVCmds",
                     "jake2.game.GameSpawn",
                     "jake2.game.GameUtil",
                     "jake2.game.GameWeapon",
@@ -1592,7 +1590,7 @@ public class GameExportsImpl implements GameExports {
                 game.autosaved = false;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to write gameplay save " + filename, e);
         }
     }
 
@@ -1613,7 +1611,7 @@ public class GameExportsImpl implements GameExports {
         }
 
         catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to restore gameplay save " + filename, e);
         }
     }
 
@@ -1635,7 +1633,7 @@ public class GameExportsImpl implements GameExports {
                     entities
             ));
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to write gameplay level to " + filename, e);
         }
     }
 
@@ -1645,6 +1643,14 @@ public class GameExportsImpl implements GameExports {
             LevelSaveJsonStore store = LevelSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             LevelSaveFileSnapshot snapshot = store.read(filename);
 
+            // SpawnEntities ran for precaching. Replace that world, rather than overlaying it:
+            // entities absent from the save must remain unused. Allocate every slot before
+            // resolving saved references, including references to later entity numbers.
+            CreateEdicts(game.maxentities);
+            for (GamePlayerInfo client : game.clients) {
+                if (client.chase_target != null)
+                    client.chase_target = g_edicts[client.chase_target.index];
+            }
             num_edicts = game.maxclients + 1;
 
             LevelSaveSnapshots.apply(level, snapshot.getLevel(), g_edicts);
@@ -1680,19 +1686,13 @@ public class GameExportsImpl implements GameExports {
                     ent.think.nextTime = level.time + ent.delay;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to restore gameplay level " + filename, e);
         }
     }
 
     @Override
     public void SpawnEntities(String mapname, String entities, String spawnpoint) {
         GameSpawn.SpawnEntities(mapname, entities, spawnpoint, this);
-    }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void ServerCommand(List<String> args) {
-        GameSVCmds.ServerCommand(args, this);
     }
 
     @Override

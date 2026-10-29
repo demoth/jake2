@@ -987,13 +987,6 @@ public class PlayerClient {
      */
     @SuppressWarnings("deprecation")
     static boolean ClientConnect(GameEntity ent, String userinfo, GameExportsImpl gameExports) {
-        // check to see if they are on the banned IP list
-        String ip = Info.Info_ValueForKey(userinfo, "ip");
-        if (GameSVCmds.SV_FilterPacket(ip, gameExports.gameCvars.filterban.getTypedValue())) {
-            Info.Info_SetValueForKey(userinfo, "rejmsg", "Banned.");
-            return false;
-        }
-
         // check for a spectator
         String spectator = Info.Info_ValueForKey(userinfo, "spectator");
         if (gameExports.gameCvars.deathmatch.getTypedValue() && spectator.length() != 0 && !"0".equals(spectator)) {

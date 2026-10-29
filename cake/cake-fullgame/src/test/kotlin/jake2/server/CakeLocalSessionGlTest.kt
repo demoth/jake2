@@ -85,12 +85,12 @@ class CakeLocalSessionGlTest {
                         when (step) {
                             0 -> if (state(cake) == "ACTIVE") {
                                 assertTrue(NET.ip_sockets.all { it == null })
-                                origin = playerOrigin()
+                                origin = playerOrigin(host)
                                 next("+forward")
                             }
                             1 -> if (ticks >= 45) {
                                 Cmd.ExecuteString("-forward")
-                                val moved = playerOrigin()
+                                val moved = playerOrigin(host)
                                 assertTrue(kotlin.math.abs(moved[0] - origin[0]) + kotlin.math.abs(moved[1] - origin[1]) > 1f,
                                     "Local movement must reach the server")
                                 next("gamemap base2")
@@ -128,9 +128,9 @@ class CakeLocalSessionGlTest {
                             }
                             9 -> {
                                 assertTrue(clientPeer.isAlive, "Thin-client peer exited; see ${temp.resolve("client.log")}")
-                                if (Files.exists(clientReady) && spawnedClients() == 2) next("gamemap base2")
+                                if (Files.exists(clientReady) && spawnedClients(host) == 2) next("gamemap base2")
                             }
-                            10 -> if (ticks > 2 && state(cake) == "ACTIVE" && mapName() == "base2" && spawnedClients() == 2) {
+                            10 -> if (ticks > 2 && state(cake) == "ACTIVE" && mapName() == "base2" && spawnedClients(host) == 2) {
                                 assertSame(serverSocket, NET.ip_sockets[Defines.NS_SERVER])
                                 clientPeer.destroy()
                                 next("host_start base1 deathmatch")
@@ -144,7 +144,7 @@ class CakeLocalSessionGlTest {
                             }
                             12 -> {
                                 assertTrue(clientPeer.isAlive)
-                                if (Files.exists(clientReady) && spawnedClients() == 2) {
+                                if (Files.exists(clientReady) && spawnedClients(host) == 2) {
                                     clientPeer.destroy()
                                     serverPeer = launchPeer("server", basedir, serverReady)
                                     peers.add(serverPeer)
@@ -205,8 +205,8 @@ class CakeLocalSessionGlTest {
     }.get(cake).toString()
 
     private fun mapName() = Cvar.getInstance().find<String>("mapname").typedValue
-    private fun playerOrigin() = (SV_MAIN.games.getValue("default").gameExports as GameExportsImpl).getEdict(1).s.origin.copyOf()
-    private fun spawnedClients() = SV_MAIN.games.getValue("default").serverMain.clients.count {
+    private fun playerOrigin(host: EmbeddedCakeHost) = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).getEdict(1).s.origin.copyOf()
+    private fun spawnedClients(host: EmbeddedCakeHost) = host.server!!.games.getValue("default").serverMain.clients.count {
         it.state == ClientStates.CS_SPAWNED
     }
 

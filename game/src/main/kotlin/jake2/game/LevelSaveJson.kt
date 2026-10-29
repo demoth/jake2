@@ -11,6 +11,7 @@ import jake2.game.adapters.EntTouchAdapter
 import jake2.game.adapters.EntUseAdapter
 import jake2.game.adapters.SuperAdapter
 import jake2.game.items.GameItem
+import jake2.game.components.*
 import jake2.game.monsters.mframe_t
 import jake2.game.monsters.mmove_t
 import jake2.game.monsters.monsterinfo_t
@@ -221,7 +222,8 @@ data class LevelEntitySnapshot(
     val itemIndex: Int?,
     val monsterInfo: MonsterInfoSnapshot,
     val clientIndex: Int?,
-    val ownerIndex: Int?
+    val ownerIndex: Int?,
+    val components: EntityComponentsSnapshot
 )
 
 data class LevelSaveFileSnapshot(
@@ -399,7 +401,8 @@ object LevelSaveSnapshots {
             itemIndex = entity.item?.index,
             monsterInfo = snapshot(entity.monsterinfo),
             clientIndex = entity.client?.index,
-            ownerIndex = entity.owner?.index
+            ownerIndex = entity.owner?.index,
+            components = EntityComponentsSnapshot.capture(entity)
         )
 
     @JvmStatic
@@ -512,6 +515,7 @@ object LevelSaveSnapshots {
         apply(target.monsterinfo, snapshot.monsterInfo)
         target.client = snapshot.clientIndex?.let { clients.getOrNull(it) }
         target.owner = entityRef(snapshot.ownerIndex, edicts)
+        snapshot.components.restore(target)
     }
 
     @JvmStatic
@@ -696,7 +700,9 @@ object LevelSaveSnapshots {
 
 class LevelSaveJsonStore(private val writable: WritableFileSystem) {
     fun read(logicalPath: String): LevelSaveFileSnapshot {
-        return read(normalizePath(logicalPath), LevelSaveFileSnapshot::class.java)
+        return read(normalizePath(logicalPath), LevelSaveFileSnapshot::class.java).also {
+            require(it.schemaVersion == SCHEMA_VERSION) { "Unsupported gameplay level version: ${it.schemaVersion}" }
+        }
     }
 
     fun write(logicalPath: String, snapshot: LevelSaveFileSnapshot) {
@@ -737,7 +743,7 @@ class LevelSaveJsonStore(private val writable: WritableFileSystem) {
     }
 
     companion object {
-        const val SCHEMA_VERSION: Int = 1
+        const val SCHEMA_VERSION: Int = 2
 
         @JvmStatic
         fun forWriteDir(writeDir: String): LevelSaveJsonStore =

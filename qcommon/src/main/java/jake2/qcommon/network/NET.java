@@ -157,8 +157,7 @@ public final class NET {
             return;
 
         if (to.type != NetAddrType.NA_BROADCAST && to.type != NetAddrType.NA_IP) {
-            Com.Error(Defines.ERR_FATAL, "NET_SendPacket: bad address type");
-            return;
+            throw new IllegalArgumentException("NET_SendPacket: unsupported address type " + to.type);
         }
 
         try {
@@ -228,10 +227,14 @@ public final class NET {
 
     /** Whole-session boundary only: do not discard reconnect traffic during map changes. */
     public static void clearLoopbacks() {
-        for (loopback_t loop : loopbacks) {
-            loop.get = 0;
-            loop.send = 0;
-        }
+        clearLoopback(NS_SERVER);
+        clearLoopback(Defines.NS_CLIENT);
+    }
+
+    /** Discard incoming packets for one role without dropping the other role's final messages. */
+    public static void clearLoopback(int role) {
+        loopbacks[role].get = 0;
+        loopbacks[role].send = 0;
     }
 
     /** Legacy combined policy for callers that own both socket roles. */

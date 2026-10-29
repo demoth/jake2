@@ -11,6 +11,7 @@ import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.vfs.EngineWriteRoot
+import jake2.server.save.ServerSaveFiles
 import org.demoth.cake.download.CakeDownloadCache
 import org.demoth.cake.download.CakeDownloadManager
 import org.demoth.cake.download.CakeDownloadSession
@@ -53,7 +54,18 @@ class EmbeddedCakeHostTest {
         cvars.clear()
     }
 
-    private fun game() = SV_MAIN.games.getValue("default").gameExports as GameExportsImpl
+    @Test
+    fun `pause checks the hosted Game mode rather than startup defaults`() {
+        assertEquals(HostStartResult.Started, host.start(request()))
+        cvars.find<Boolean>("deathmatch").forceSet(true)
+        host.setPaused(true)
+        assertTrue(host.server!!.isPaused)
+        host.server!!.games.getValue("default").findCvar("coop", Boolean::class.java).forceSet(true)
+        host.setPaused(true)
+        assertFalse(host.server!!.isPaused)
+    }
+
+    private fun game() = host.server!!.games.getValue("default").gameExports as GameExportsImpl
 
     @Test
     fun `missing download receives failure for fresh and resumed requests`() {
@@ -69,8 +81,8 @@ class EmbeddedCakeHostTest {
             val client = ClientNetworkInfo()
             val downloads = CakeDownloadSession(
                 sendReliable = { command ->
-                    SV_USER.userCommands.getValue("download").execute(
-                        Cmd.TokenizeString(command, false), SV_MAIN.games.getValue("default"), client)
+                    client.gameName = "default"
+                    host.server!!.executeClientCommand(client, command)
                 },
                 downloadManager = CakeDownloadManager(CakeDownloadCache(cache), cvars),
             )
@@ -95,7 +107,7 @@ class EmbeddedCakeHostTest {
         Cmd.ExecuteString("gamemap *testbox")
         host.update(100)
         assertEquals(HostState.RUNNING, host.state)
-        assertEquals(1, SV_MAIN.games.getValue("default").serverMain.clients.size)
+        assertEquals(1, host.server!!.games.getValue("default").serverMain.clients.size)
         assertTrue(NET.ip_sockets.all { it == null })
     }
 
@@ -114,6 +126,7 @@ class EmbeddedCakeHostTest {
         assertEquals(HostStartResult.Started, host.start(request()))
         val current = temp.resolve("session/save/current/server_mapcmd.ssv.json")
         val snapshot = Files.readString(current)
+        val saveFiles = ServerSaveFiles(temp.resolve("session"))
         val sentinel = temp.resolve("sentinel/server_mapcmd.ssv.json")
         Files.createDirectories(sentinel.parent)
         Files.writeString(sentinel, "outside profile")
@@ -121,13 +134,13 @@ class EmbeddedCakeHostTest {
             // Invalid names must be rejected before the not-yet-spawned player check or any writes.
             Cmd.ExecuteString("save \"$slot\"")
             Cmd.ExecuteString("load \"$slot\"")
-            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_CopySaveGame("current", slot) }
-            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_CopySaveGame(slot, "current") }
-            assertThrows(IllegalArgumentException::class.java) { SV_CCMDS.SV_WipeSavegame(slot) }
+            assertThrows(IllegalArgumentException::class.java) { saveFiles.copy("current", slot) }
+            assertThrows(IllegalArgumentException::class.java) { saveFiles.copy(slot, "current") }
+            assertThrows(IllegalArgumentException::class.java) { saveFiles.wipe(slot) }
             assertEquals(snapshot, Files.readString(current))
             assertEquals("outside profile", Files.readString(sentinel))
         }
-        SV_CCMDS.SV_CopySaveGame("current", "current")
+        saveFiles.copy("current", "current")
         Cmd.ExecuteString("load current")
         Cmd.ExecuteString("save current")
         Cmd.ExecuteString("save before-spawn")
@@ -152,7 +165,7 @@ class EmbeddedCakeHostTest {
         host.stop("done")
         host.stop("again")
         assertEquals(HostState.STOPPED, host.state)
-        assertTrue(SV_MAIN.games.isEmpty())
+        assertNull(host.server)
         assertNull(Cmd.FindCommand("map"))
         assertNull(Cmd.FindCommand("save"))
         assertEquals(previousRoot, EngineWriteRoot.path())

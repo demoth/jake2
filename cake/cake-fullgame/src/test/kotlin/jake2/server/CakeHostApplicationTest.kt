@@ -75,7 +75,7 @@ class CakeHostApplicationTest {
                                 Cbuf.AddText("host_start testbox coop")
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
-                                frame = gameFrame()
+                                frame = gameFrame(host)
                             }
                             1 -> {
                                 val graphics = Gdx.graphics
@@ -84,7 +84,7 @@ class CakeHostApplicationTest {
                                     override fun getBackBufferHeight() = 0
                                 }
                                 try { cake!!.render() } finally { Gdx.graphics = graphics }
-                                assertEquals(frame + 1, gameFrame(), "Menus and an undrawable window must not stop coop")
+                                assertEquals(frame + 1, gameFrame(host), "Menus and an undrawable window must not stop coop")
                             }
                             2 -> {
                                 Cbuf.AddText("connect 127.0.0.1:9")
@@ -108,11 +108,11 @@ class CakeHostApplicationTest {
                                 Cbuf.AddText("host_start testbox")
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
-                                frame = gameFrame()
+                                frame = gameFrame(host)
                             }
                             5 -> {
                                 cake!!.render()
-                                assertEquals(frame, gameFrame(), "The main menu pauses singleplayer")
+                                assertEquals(frame, gameFrame(host), "The main menu pauses singleplayer")
                                 Gdx.app.exit()
                             }
                         }
@@ -142,7 +142,7 @@ class CakeHostApplicationTest {
         }
     }
 
-    private fun gameFrame() = (SV_MAIN.games.getValue("default").gameExports as GameExportsImpl).level.framenum
+    private fun gameFrame(host: EmbeddedCakeHost) = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).level.framenum
     private fun clientState(cake: Cake) = Cake::class.java.getDeclaredField("networkState").apply {
         isAccessible = true
     }.get(cake).toString()

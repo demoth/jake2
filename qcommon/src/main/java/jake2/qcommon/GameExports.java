@@ -52,11 +52,6 @@ public interface GameExports {
     void SpawnEntities(String mapname, String entities, String spawnpoint);
 
     /**
-     * ServerCommand will be called when an "sv" command is issued.
-     */
-    void ServerCommand(List<String> args);
-
-    /**
      * Called when a client has finished connecting, and is ready to be placed
      * into the game. This will happen every level load.
      */
