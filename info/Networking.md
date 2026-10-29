@@ -106,6 +106,9 @@ see jake2.server.ClientStates
 The following diagram illustrates client/server communication when client connects to server.
 Starting from typing connect 'someaddress' and until client becomes connected and receives the updates from the server. 
 
+`[s]` marks a message carried in a sequenced packet; `[c]` marks a connectionless packet.
+Sequence numbers belong to packets, and several `[s]` messages may share one packet.
+
 ```mermaid
 sequenceDiagram
     participant client
@@ -113,44 +116,44 @@ sequenceDiagram
 
     Note over client: User types connect hostname
     opt Remote UDP connection
-        client->>server: getchallenge [connectionless]
-        server->>client: challenge [connectionless]
+        client->>server: [c] getchallenge
+        server->>client: [c] challenge
     end
-    client->>server: connect [connectionless]
+    client->>server: [c] connect
     Note over server: client.state = connected
-    server->>client: client_connect [connectionless]
+    server->>client: [c] client_connect
     Note over client: state = connected
-    client->>server: StringCmdMessage new
-    server->>client: ServerDataMessage
+    client->>server: [s] StringCmdMessage new
+    server->>client: [s] ServerDataMessage
 
     loop until all config strings are transmitted
-        server->>client: StuffTextMessage cmd configstrings
-        client->>server: StringCmdMessage configstrings
-        server->>client: ConfigStringMessage
+        server->>client: [s] StuffTextMessage cmd configstrings
+        client->>server: [s] StringCmdMessage configstrings
+        server->>client: [s] ConfigStringMessage
     end
 
     loop until all baselines are transmitted
-        server->>client: StuffTextMessage cmd baselines
-        client->>server: StringCmdMessage baselines
-        server->>client: SpawnBaselineMessage
+        server->>client: [s] StuffTextMessage cmd baselines
+        client->>server: [s] StringCmdMessage baselines
+        server->>client: [s] SpawnBaselineMessage
     end
     Note over client: precache resources
     loop for each missing file
-        client->>server: StringCmdMessage download path [offset]
-        server->>client: DownloadMessage first chunk
+        client->>server: [s] StringCmdMessage download path [offset]
+        server->>client: [s] DownloadMessage first chunk
         loop remaining chunks of this file
-            client->>server: StringCmdMessage nextdl
-            server->>client: DownloadMessage next chunk
+            client->>server: [s] StringCmdMessage nextdl
+            server->>client: [s] DownloadMessage next chunk
         end
     end
 
-    client->>server: StringCmdMessage begin
+    client->>server: [s] StringCmdMessage begin
     Note over server: client.state = spawned
 
     loop During gameplay, when updates are sent
-        server->>client: FrameHeaderMessage
-        server->>client: PlayerInfoMessage
-        server->>client: PacketEntitiesMessage
-        client->>server: MoveMessage
+        server->>client: [s] FrameHeaderMessage
+        server->>client: [s] PlayerInfoMessage
+        server->>client: [s] PacketEntitiesMessage
+        client->>server: [s] MoveMessage
     end
 ```
