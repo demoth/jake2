@@ -2,6 +2,7 @@ package jake2.server
 
 import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Input
 import com.badlogic.gdx.Graphics
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
@@ -9,13 +10,17 @@ import jake2.game.GameExportsImpl
 import jake2.qcommon.Globals
 import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cbuf
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.Netchan
-import jake2.qcommon.Defines.NS_SERVER
-import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.messages.ConnectionlessCommand
+import jake2.qcommon.vfs.EngineWriteRoot
+import jake2.qcommon.network.NetworkSettings
+import jake2.qcommon.network.transport.LoopbackLink
+import jake2.qcommon.network.transport.PacketBytes
+import jake2.qcommon.network.protocol.PacketCodec
 import org.demoth.cake.Cake
+import org.demoth.cake.ui.menu.MenuBackend
+import org.demoth.cake.ui.menu.HostGameFormState
 import org.demoth.cake.CakeCvars
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.fullgame.EmbeddedCakeHost
@@ -27,6 +32,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import java.nio.file.Files
 
 /** Exercises application lifecycle and handshake boundaries without displaying a window. */
 @EnabledIfEnvironmentVariable(named = "CAKE_HOST_GL_TESTS", matches = "1")
@@ -38,13 +44,18 @@ class CakeHostApplicationTest {
         val previousHome = System.getProperty("user.home")
         System.setProperty("user.home", temp.toString())
         var failure: Throwable? = null
-        val host = EmbeddedCakeHost(temp.resolve(".cake"))
+        val localLink = LoopbackLink()
+        val host = EmbeddedCakeHost(temp.resolve(".cake"), localLink)
+        fun staleLocalReply() {
+            localLink.second.send(localLink.first.localAddress,
+                PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "client_connect".toByteArray()))
+        }
         try {
             CakeStartupBootstrap.ensureInitialized()
             Cvar.getInstance().clear()
             MainCommon.registerCvars(false)
             CakeCvars.registerAll()
-            Netchan.Netchan_Init()
+            NetworkSettings.registerCvars()
             val cvars = Cvar.getInstance()
             cvars.find<Int>("port").forceSet(0)
             cvars.find<Int>("clientport").forceSet(0)
@@ -57,10 +68,23 @@ class CakeHostApplicationTest {
                 private var cake: Cake? = null
                 private var step = 0
                 private var frame = 0
+                private lateinit var initialHost: ServerHost
 
                 override fun create() {
                     try {
                         cake = Cake(startup, host = host).also { it.create() }
+                        initialHost = host.server!!
+                        assertEquals(HostState.STOPPED, host.state)
+                        assertNotNull(Cmd.FindCommand("map"))
+                        // Hosted storage rejection must precede persisted profile selection.
+                        val originalRoot = EngineWriteRoot.path()
+                        Files.writeString(temp.resolve(".cake/blocked"), "not a directory")
+                        val content = Path.of("src/test/resources").toAbsolutePath()
+                        Cvar.getInstance().find<String>("hostname").forceSet("keep on failure")
+                        Cmd.ExecuteString("cake_profile_set blocked \"$content\"")
+                        assertEquals("application-test", CakeGameProfileStore().readSelectedProfileId())
+                        assertEquals(originalRoot, EngineWriteRoot.path())
+                        assertEquals("keep on failure", Cvar.getInstance().find<String>("hostname").typedValue)
                     } catch (error: Throwable) {
                         failure = error
                         Gdx.app.exit()
@@ -72,7 +96,12 @@ class CakeHostApplicationTest {
                     try {
                         when (step++) {
                             0 -> {
-                                Cbuf.AddText("host_start testbox coop")
+                                val backend = Cake::class.java.getDeclaredMethod("createMenuBackend").apply {
+                                    isAccessible = true
+                                }.invoke(cake) as MenuBackend
+                                assertEquals("Starting game...", backend.startHosting(false,
+                                    HostGameFormState(map = "testbox", coop = true, maxClients = "4")))
+                                assertEquals("DISCONNECTED", clientState(cake!!))
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
                                 frame = gameFrame(host)
@@ -90,29 +119,53 @@ class CakeHostApplicationTest {
                                 Cbuf.AddText("connect 127.0.0.1:9")
                                 cake!!.render()
                                 assertEquals(HostState.STOPPED, host.state)
+                                assertSame(initialHost, host.server)
                             }
                             3 -> {
                                 // An old local handshake must not attach while targeting a UDP server.
-                                Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
+                                staleLocalReply()
                                 cake!!.render()
                                 assertEquals("CONNECTING", clientState(cake!!))
-                                Cbuf.AddText("host_start missing")
+                                val current = temp.resolve(".cake/application-test/save/current/game.ssv.json")
+                                val before = Files.readAllBytes(current)
+                                Cbuf.AddText("map testbox2; gamemap *testbox2; load autosave")
+                                cake!!.render()
+                                assertEquals("CONNECTING", clientState(cake!!))
+                                assertEquals(HostState.STOPPED, host.state)
+                                assertArrayEquals(before, Files.readAllBytes(current))
+                                Cbuf.AddText("disconnect; map missing")
                                 cake!!.render()
                                 assertEquals(HostState.STOPPED, host.state)
                             }
                             4 -> {
                                 // Nor may it resurrect a disconnected client after rejected startup.
-                                Netchan.sendConnectionlessPacket(NS_SERVER, netadr_t(), ConnectionlessCommand.client_connect, "")
+                                staleLocalReply()
                                 cake!!.render()
                                 assertEquals("DISCONNECTED", clientState(cake!!))
-                                Cbuf.AddText("host_start testbox")
+                                Cbuf.AddText("set coop 0; set deathmatch 0; set maxclients 1; map testbox")
                                 cake!!.render()
                                 assertEquals(HostState.RUNNING, host.state)
+                                assertSame(initialHost, host.server)
                                 frame = gameFrame(host)
                             }
                             5 -> {
+                                cake!!.keyUp(Input.Keys.GRAVE)
                                 cake!!.render()
-                                assertEquals(frame, gameFrame(host), "The main menu pauses singleplayer")
+                                assertEquals(frame, gameFrame(host), "The console pauses singleplayer")
+                            }
+                            6 -> {
+                                cake!!.render()
+                                assertTrue(clientState(cake!!) in setOf("CONNECTED", "ACTIVE"))
+                                val malformed = PacketCodec.encodeSequenced(1_000_000, 0, null,
+                                    PacketBytes.copyOf(byteArrayOf(16, -2, -1, 0)))
+                                localLink.second.send(localLink.first.localAddress, malformed)
+                            }
+                            7 -> {
+                                cake!!.render()
+                                assertEquals("DISCONNECTED", clientState(cake!!))
+                                assertEquals(HostState.STOPPED, host.state)
+                                assertSame(initialHost, host.server)
+                                assertNotNull(Cmd.FindCommand("map"), "Malformed server input must leave the application Host usable")
                                 Gdx.app.exit()
                             }
                         }
@@ -135,8 +188,10 @@ class CakeHostApplicationTest {
             })
             failure?.let { throw it }
             assertEquals(HostState.STOPPED, host.state, "Application disposal stops the host")
+            assertNull(host.server)
+            assertNull(Cmd.FindCommand("map"))
         } finally {
-            host.stop("test cleanup")
+            host.dispose()
             Globals.fixedtime.forceSet(0)
             System.setProperty("user.home", previousHome)
         }

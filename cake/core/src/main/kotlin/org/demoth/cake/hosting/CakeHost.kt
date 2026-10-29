@@ -1,11 +1,23 @@
 package org.demoth.cake.hosting
 
 import org.demoth.cake.profile.CakeGameProfile
+import org.demoth.cake.network.ClientNetwork
+import org.demoth.cake.network.TransportClientNetwork
+import jake2.qcommon.network.runtime.NetworkTransport
+import jake2.qcommon.network.transport.LocalSide
 
 /** Application-thread boundary between Cake and an optional embedded server. */
 interface CakeHost {
+    val clientNetwork: ClientNetwork
     val availability: HostAvailability
     val state: HostState
+
+    /** Called after engine bootstrap, before application startup commands. */
+    fun initialize(startupRejection: () -> String? = { null })
+    /** Select content and save storage while disconnected and idle. */
+    fun activateProfile(profile: CakeGameProfile?)
+    /** Release the application-owned Host and its command registrations. */
+    fun dispose()
 
     /** Success means the server is ready for local attachment, not that the client has spawned. */
     fun start(request: HostRequest): HostStartResult
@@ -17,6 +29,17 @@ interface CakeHost {
     fun stop(reason: String)
     /** Implementations only pause singleplayer; multiplayer must keep running. */
     fun setPaused(paused: Boolean)
+
+    /** Singleplayer UI policy; operations recheck eligibility before doing any work. */
+    fun saveAccess(): HostSaveAccess
+    fun listSaves(): HostSaveCatalogResult
+    /** Null creates a generated slot; replacing an existing manual slot requires overwrite. */
+    fun saveGame(slot: String? = null, overwrite: Boolean = false, previewPng: ByteArray? = null): HostSaveResult
+    /** Optional encoded image for the selected checkpoint; failure/missing preview returns null. */
+    fun readSavePreview(slot: String): ByteArray?
+    fun loadGame(slot: String): HostSaveResult
+    /** Delete one selected checkpoint after the caller has confirmed the action. */
+    fun deleteSave(slot: String): HostSaveResult
 }
 
 enum class HostAvailability { REMOTE_ONLY, NOT_READY, AVAILABLE }
@@ -43,11 +66,23 @@ class HostFailureException(message: String, cause: Throwable) : RuntimeException
 
 /** Remote-only builds can accept the same application wiring without server side effects. */
 class UnavailableCakeHost : CakeHost {
+    override val clientNetwork = TransportClientNetwork(
+        NetworkTransport.standalone(LocalSide.FIRST))
+    private val saveUnavailable = "Save/load requires Cake fullgame."
     override val availability = HostAvailability.REMOTE_ONLY
     override val state = HostState.STOPPED
+    override fun initialize(startupRejection: () -> String?) = Unit
+    override fun activateProfile(profile: CakeGameProfile?) = Unit
+    override fun dispose() = clientNetwork.close()
     override fun start(request: HostRequest) =
         HostStartResult.Rejected("Hosting requires the Cake fullgame application.")
     override fun update(elapsedMillis: Long) = Unit
     override fun stop(reason: String) = Unit
     override fun setPaused(paused: Boolean) = Unit
+    override fun saveAccess() = HostSaveAccess(saveUnavailable, saveUnavailable)
+    override fun listSaves() = HostSaveCatalogResult.Rejected(saveUnavailable)
+    override fun saveGame(slot: String?, overwrite: Boolean, previewPng: ByteArray?) = HostSaveResult.Rejected(saveUnavailable)
+    override fun readSavePreview(slot: String): ByteArray? = null
+    override fun loadGame(slot: String) = HostSaveResult.Rejected(saveUnavailable)
+    override fun deleteSave(slot: String) = HostSaveResult.Rejected(saveUnavailable)
 }

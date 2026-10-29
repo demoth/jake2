@@ -31,6 +31,7 @@ public class GameImportsTest {
     @TempDir Path writeRoot;
     private Path previousWriteRoot;
     private ServerHost manager;
+    private final TransportServerNetwork channelNetwork = TransportServerNetwork.standalone();
     private ServerStates previousServerState;
 
     @BeforeEach
@@ -47,7 +48,7 @@ public class GameImportsTest {
 
     @AfterEach
     public void cleanup() {
-        if (manager != null) manager.close();
+        try { if (manager != null) manager.close(); } finally { channelNetwork.close(); }
         Globals.server_state = previousServerState;
         EngineWriteRoot.setRoot(previousWriteRoot);
         Cvar.getInstance().clear();
@@ -55,7 +56,7 @@ public class GameImportsTest {
 
     @Test
     public void runEmptyInstance() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl testInstance = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
 
         testInstance.runFrame();
@@ -65,7 +66,7 @@ public class GameImportsTest {
 
     @Test
     public void gamesKeepIndependentMapStateAndFrameCounters() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
 
@@ -91,7 +92,7 @@ public class GameImportsTest {
 
     @Test
     public void resourceUpdatesStayWithTheirGameAndOnlySendAfterLoading() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
@@ -110,17 +111,17 @@ public class GameImportsTest {
             Assertions.assertEquals(firstIndex, first.modelindex("models/first.md2"));
             Assertions.assertEquals("models/first.md2", first.configstrings[Defines.CS_MODELS + firstIndex]);
             Assertions.assertEquals("models/second.md2", second.configstrings[Defines.CS_MODELS + secondIndex]);
-            Assertions.assertTrue(firstClient.netchan.reliablePending.isEmpty());
-            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+            Assertions.assertTrue(firstClient.netchan.getQueuedReliable().isEmpty());
+            Assertions.assertTrue(secondClient.netchan.getQueuedReliable().isEmpty());
 
             first.state = ServerStates.SS_GAME;
             int soundIndex = first.soundindex("sound/first.wav");
             // Reusing an index should not publish another resource update.
             Assertions.assertEquals(soundIndex, first.soundindex("sound/first.wav"));
-            Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
+            Assertions.assertEquals(1, firstClient.netchan.getQueuedReliable().size());
             Assertions.assertEquals(new ConfigStringMessage(Defines.CS_SOUNDS + soundIndex, "sound/first.wav"),
-                    firstClient.netchan.reliablePending.iterator().next());
-            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+                    firstClient.netchan.getQueuedReliable().iterator().next());
+            Assertions.assertTrue(secondClient.netchan.getQueuedReliable().isEmpty());
         } finally {
             // These clients exercise message queues without establishing network channels.
             firstClient.state = secondClient.state = ClientStates.CS_FREE;
@@ -129,7 +130,7 @@ public class GameImportsTest {
 
     @Test
     public void spatialQueriesAndClearingStayWithTheirGame() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         ServerEntity firstEntity = first.gameExports.getEdict(1);
@@ -167,7 +168,7 @@ public class GameImportsTest {
 
     @Test
     public void clientSnapshotsKeepIndependentGameHistory() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
         ClientNetworkInfo firstClient = snapshotClient(first, 11);
@@ -176,10 +177,10 @@ public class GameImportsTest {
 
         var initial = List.copyOf(first.buildClientFrameMessages(firstClient));
         Assertions.assertEquals(3, initial.size());
-        Assertions.assertEquals(-1, ((FrameHeaderMessage) initial.get(0)).lastFrame);
-        EntityUpdate initialUpdate = ((PacketEntitiesMessage) initial.get(2)).updates.get(0);
-        Assertions.assertTrue(initialUpdate.force);
-        Assertions.assertEquals(11, initialUpdate.newState.modelindex);
+        Assertions.assertEquals(-1, ((FrameHeaderMessage) initial.get(0)).getLastFrame());
+        EntityUpdate.Change initialUpdate = (EntityUpdate.Change) ((PacketEntitiesMessage) initial.get(2)).getUpdates().get(0);
+        Assertions.assertNotEquals(0, initialUpdate.getDelta().getFlags() & Defines.U_OLDORIGIN);
+        Assertions.assertEquals(11, initialUpdate.getDelta().getState().getModelIndex());
         second.buildClientFrameMessages(secondClient);
 
         // Each delta must refer to its own saved snapshot, not the live entity or the other Game.
@@ -192,28 +193,64 @@ public class GameImportsTest {
             int oldModel = game == first ? 11 : 22;
             var messages = List.copyOf(game.buildClientFrameMessages(client));
             FrameHeaderMessage header = (FrameHeaderMessage) messages.get(0);
-            Assertions.assertEquals(2, header.frameNumber);
-            Assertions.assertEquals(1, header.lastFrame);
-            var updates = ((PacketEntitiesMessage) messages.get(2)).updates;
+            Assertions.assertEquals(2, header.getFrameNumber());
+            Assertions.assertEquals(1, header.getLastFrame());
+            var updates = ((PacketEntitiesMessage) messages.get(2)).getUpdates();
             Assertions.assertEquals(1, updates.size());
-            Assertions.assertEquals(oldModel, updates.get(0).oldState.modelindex);
-            Assertions.assertEquals(oldModel + 1, updates.get(0).newState.modelindex);
-            Assertions.assertFalse(updates.get(0).force);
+            Assertions.assertNotEquals(0, ((EntityUpdate.Change) updates.get(0)).getDelta().getFlags() & Defines.U_MODEL);
+            Assertions.assertEquals(oldModel + 1, ((EntityUpdate.Change) updates.get(0)).getDelta().getState().getModelIndex());
         }
 
         firstClient.lastReceivedFrame = 2;
         first.frameNum = 3;
         firstClient.edict.s.modelindex = 0;
         var removed = List.copyOf(first.buildClientFrameMessages(firstClient));
-        EntityUpdate removal = ((PacketEntitiesMessage) removed.get(2)).updates.get(0);
-        Assertions.assertEquals(1, removal.header.number);
-        Assertions.assertNotEquals(0, removal.header.flags & Defines.U_REMOVE);
+        EntityUpdate.Removal removal = (EntityUpdate.Removal) ((PacketEntitiesMessage) removed.get(2)).getUpdates().get(0);
+        Assertions.assertEquals(1, removal.getNumber());
+        Assertions.assertNotEquals(0, removal.getFlags() & Defines.U_REMOVE);
 
         // An acknowledgement outside the retained frame window falls back to a baseline update.
         second.frameNum += Defines.UPDATE_BACKUP;
         var stale = List.copyOf(second.buildClientFrameMessages(secondClient));
-        Assertions.assertEquals(-1, ((FrameHeaderMessage) stale.get(0)).lastFrame);
-        Assertions.assertTrue(((PacketEntitiesMessage) stale.get(2)).updates.get(0).force);
+        Assertions.assertEquals(-1, ((FrameHeaderMessage) stale.get(0)).getLastFrame());
+        Assertions.assertNotEquals(0, ((EntityUpdate.Change) ((PacketEntitiesMessage) stale.get(2)).getUpdates().get(0)).getDelta().getFlags() & Defines.U_OLDORIGIN);
+    }
+
+    @Test
+    public void weaponIndexDeltasFollowAcknowledgedFramesAcrossLossAndFullSnapshots() {
+        manager = new ServerHost(TransportServerNetwork.standalone());
+        GameImportsImpl game = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
+        ClientNetworkInfo client = snapshotClient(game, 1);
+        var state = client.edict.getClient().getPlayerState();
+        state.gunindex = 3;
+        state.gunframe = 1;
+        Assertions.assertEquals(3, playerUpdate(game, client, 1, -1).getWeaponIndex());
+
+        state.gunframe = 2;
+        PlayerInfoMessage animation = playerUpdate(game, client, 2, 1);
+        Assertions.assertNull(animation.getWeaponIndex());
+        Assertions.assertEquals(2, animation.getWeaponFrame().getFrame());
+
+        state.gunindex = 7;
+        Assertions.assertEquals(7, playerUpdate(game, client, 3, 1).getWeaponIndex());
+        // Frame 3 was lost: frame 4 must repeat the switch relative to acknowledged frame 1.
+        Assertions.assertEquals(7, playerUpdate(game, client, 4, 1).getWeaponIndex());
+        Assertions.assertNull(playerUpdate(game, client, 5, 4).getWeaponIndex());
+
+        state.gunindex = 0;
+        Assertions.assertEquals(0, playerUpdate(game, client, 6, 5).getWeaponIndex());
+        Assertions.assertNull(playerUpdate(game, client, 7, 6).getWeaponIndex());
+
+        state.gunindex = 7;
+        Assertions.assertEquals(7, playerUpdate(game, client, 8, 0).getWeaponIndex());
+        // An expired acknowledgement forces a full snapshot even though its old model matched.
+        Assertions.assertEquals(7, playerUpdate(game, client, 8 + Defines.UPDATE_BACKUP, 8).getWeaponIndex());
+    }
+
+    private PlayerInfoMessage playerUpdate(GameImportsImpl game, ClientNetworkInfo client, int frame, int acknowledged) {
+        game.frameNum = frame;
+        client.lastReceivedFrame = acknowledged;
+        return (PlayerInfoMessage) List.copyOf(game.buildClientFrameMessages(client)).get(1);
     }
 
     private ClientNetworkInfo snapshotClient(GameImportsImpl game, int modelIndex) {
@@ -221,7 +258,7 @@ public class GameImportsTest {
         entity.setClient(new GamePlayerInfo(0));
         entity.getClient().getPlayerState().pmove.origin[2] = 64 * 8;
         entity.s.modelindex = modelIndex;
-        ClientNetworkInfo client = new ClientNetworkInfo();
+        ClientNetworkInfo client = new ClientNetworkInfo(channelNetwork.newChannel());
         client.gameName = game.name;
         client.edict = entity;
         return client;
@@ -229,7 +266,7 @@ public class GameImportsTest {
 
     @Test
     public void queuedSoundsKeepTheirPositionsAndStayWithinTheirGame() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
         GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
@@ -250,21 +287,22 @@ public class GameImportsTest {
             var sounds = List.copyOf(firstClient.unreliable);
             Assertions.assertEquals(2, sounds.size());
             SoundMessage earlier = (SoundMessage) sounds.get(0);
-            Assertions.assertArrayEquals(new float[]{12, 0, 0}, earlier.origin);
-            Assertions.assertArrayEquals(new float[]{42, 0, 0}, ((SoundMessage) sounds.get(1)).origin);
+            Assertions.assertArrayEquals(new float[]{12, 0, 0}, earlier.getOrigin().toArray());
+            Assertions.assertArrayEquals(new float[]{42, 0, 0}, ((SoundMessage) sounds.get(1)).getOrigin().toArray());
             Assertions.assertEquals(Defines.SND_ENT | Defines.SND_POS | Defines.SND_VOLUME
-                    | Defines.SND_ATTENUATION | Defines.SND_OFFSET, earlier.flags);
-            Assertions.assertEquals((entity.index << 3) | Defines.CHAN_WEAPON, earlier.sendchan);
+                    | Defines.SND_ATTENUATION | Defines.SND_OFFSET, earlier.getFlags());
+            Assertions.assertEquals(entity.index, earlier.getEntityIndex());
+            Assertions.assertEquals(Defines.CHAN_WEAPON, earlier.getChannel());
 
             float[] explicitOrigin = {1, 2, 3};
             first.positioned_sound(explicitOrigin, entity, Defines.CHAN_RELIABLE | Defines.CHAN_VOICE,
                     5, 1, Defines.ATTN_NONE, 0);
             explicitOrigin[0] = 99;
-            Assertions.assertEquals(1, firstClient.netchan.reliablePending.size());
-            SoundMessage reliable = (SoundMessage) firstClient.netchan.reliablePending.iterator().next();
-            Assertions.assertArrayEquals(new float[]{1, 2, 3}, reliable.origin);
+            Assertions.assertEquals(1, firstClient.netchan.getQueuedReliable().size());
+            SoundMessage reliable = (SoundMessage) firstClient.netchan.getQueuedReliable().iterator().next();
+            Assertions.assertArrayEquals(new float[]{1, 2, 3}, reliable.getOrigin().toArray());
             Assertions.assertTrue(secondClient.unreliable.isEmpty());
-            Assertions.assertTrue(secondClient.netchan.reliablePending.isEmpty());
+            Assertions.assertTrue(secondClient.netchan.getQueuedReliable().isEmpty());
         } finally {
             firstClient.state = secondClient.state = ClientStates.CS_FREE;
         }
@@ -272,18 +310,18 @@ public class GameImportsTest {
 
     @Test
     public void clientPrintQueueRespectsItsMessageLevel() {
-        ClientNetworkInfo client = new ClientNetworkInfo();
+        ClientNetworkInfo client = new ClientNetworkInfo(channelNetwork.newChannel());
         client.messagelevel = Defines.PRINT_HIGH;
         client.queuePrint(Defines.PRINT_LOW, "hidden");
         client.queuePrint(Defines.PRINT_HIGH, "visible");
         Assertions.assertEquals(List.of(new PrintMessage(Defines.PRINT_HIGH, "visible")),
-                List.copyOf(client.netchan.reliablePending));
+                List.copyOf(client.netchan.getQueuedReliable()));
         Assertions.assertTrue(client.unreliable.isEmpty());
     }
 
     @Test
     public void levelInitializationTransfersPersistentStateAndKeepsEventsGameLocal() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl first = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         GameExportsImpl firstGameplay = (GameExportsImpl) first.gameExports;
         Assertions.assertEquals(ServerStates.SS_GAME, first.state);
@@ -307,7 +345,7 @@ public class GameImportsTest {
 
     @Test
     public void levelInitializationRestoresSavesAndOnlySettlesRevisitedLevels() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl original = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         GameExportsImpl originalGameplay = (GameExportsImpl) original.gameExports;
         originalGameplay.game.serverflags = 9;
@@ -346,7 +384,7 @@ public class GameImportsTest {
 
     @Test
     public void hostProtocolDispatchAndShutdownUseTheirOwnGameRegistry() {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().register("gamedir", jake2.qcommon.exec.CvarTypes.STRING, "", 0, "Test mod directory");
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
@@ -367,12 +405,12 @@ public class GameImportsTest {
             manager.executeClientCommand(firstClient, "new");
             manager.executeClientCommand(secondClient, "new");
             Assertions.assertEquals("first game",
-                    ((ServerDataMessage) firstClient.netchan.reliablePending.iterator().next()).levelString);
+                    ((ServerDataMessage) firstClient.netchan.getQueuedReliable().iterator().next()).getLevelString());
             Assertions.assertEquals("second game",
-                    ((ServerDataMessage) secondClient.netchan.reliablePending.iterator().next()).levelString);
-            firstClient.netchan.reliablePending.clear();
+                    ((ServerDataMessage) secondClient.netchan.getQueuedReliable().iterator().next()).getLevelString());
+            firstClient.netchan.clearQueuedReliable();
             manager.executeClientCommand(firstClient, "configstrings " + first.spawncount + " 0");
-            Assertions.assertTrue(firstClient.netchan.reliablePending.contains(
+            Assertions.assertTrue(firstClient.netchan.getQueuedReliable().contains(
                     new ConfigStringMessage(Defines.CS_NAME, "first game")));
         } finally {
             firstClient.state = secondClient.state = ClientStates.CS_FREE;
@@ -380,7 +418,7 @@ public class GameImportsTest {
 
         // A separate idle Host must not inherit or clear the running Host's registry.
         // Global console/cvar/network isolation is outside this ownership test.
-        try (ServerHost other = new ServerHost()) {
+        try (ServerHost other = new ServerHost(TransportServerNetwork.standalone())) {
             Assertions.assertFalse(other.isRunning());
             Assertions.assertEquals(first.name, other.allocateGameName());
         }
@@ -392,7 +430,7 @@ public class GameImportsTest {
 
     @Test
     public void saveCommandResolvesOnlyDefaultGameWithoutReregistration() throws Exception {
-        manager = new ServerHost();
+        manager = new ServerHost(TransportServerNetwork.standalone());
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
         var saveRegistration = jake2.qcommon.exec.Cmd.FindCommand("save");
@@ -422,7 +460,7 @@ public class GameImportsTest {
     @Test
     public void runGame() {
 
-        final ServerHost sv_main = manager = new ServerHost();
+        final ServerHost sv_main = manager = new ServerHost(TransportServerNetwork.standalone());
         GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
         final GameExports gameExports = game.gameExports;
         GameEntity gunner = null;

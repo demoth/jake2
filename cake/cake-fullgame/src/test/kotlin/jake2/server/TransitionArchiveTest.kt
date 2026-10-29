@@ -33,7 +33,7 @@ class TransitionArchiveTest {
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        host = ServerHost(TransportServerNetwork.standalone())
         Cvar.getInstance().find<Int>("maxclients").forceSet(4)
         host.resetClients()
         first = host.createGameInstance(ChangeMapInfo("testbox", false, false), null)
@@ -111,7 +111,7 @@ class TransitionArchiveTest {
         assertSame(originalGameplay, first.gameExports)
         assertEquals(ServerStates.SS_GAME, first.state)
         assertEquals("default", host.clients[0].gameName)
-        assertFalse(Files.exists(root.resolve("save/save0")), "Failed archival must not continue to autosave")
+        assertFalse(Files.exists(root.resolve("save/autosave")), "Failed archival must not continue to autosave")
         if (extension == "sv2") {
             assertFalse(Files.exists(root.resolve("save/current/testbox.sav.json")),
                 "Server-state failure must stop before gameplay serialization")

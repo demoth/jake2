@@ -9,8 +9,7 @@ import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import org.demoth.cake.Cake
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.fullgame.EmbeddedCakeHost
@@ -31,12 +30,13 @@ object CakeSessionPeer {
         val deadline = System.nanoTime() + 60_000_000_000L
         if (args[0] == "server") {
             MainCommon.registerCvars(false)
-            Netchan.Netchan_Init()
+            NetworkSettings.registerCvars()
             Cvar.getInstance().find<Int>("port").forceSet(0)
             val host = EmbeddedCakeHost()
             try {
+                host.initialize()
                 check(host.start(HostRequest(profile, "base1", HostMode.DEATHMATCH)) == HostStartResult.Started)
-                Files.writeString(ready, NET.ip_sockets[Defines.NS_SERVER]!!.localPort.toString())
+                Files.writeString(ready, host.udpEndpoint(Defines.NS_SERVER)!!.localAddress.port.toString())
                 var previous = System.nanoTime()
                 while (System.nanoTime() < deadline) {
                     Thread.sleep(5)
@@ -44,7 +44,7 @@ object CakeSessionPeer {
                     host.update((now - previous) / 1_000_000)
                     previous = now
                 }
-            } finally { host.stop("peer exit") }
+            } finally { host.dispose() }
         } else {
             CakeGameProfileStore().upsertProfile(profile)
             val startup = CakeStartupBootstrap.bootstrap()

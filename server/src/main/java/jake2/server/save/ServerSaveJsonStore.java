@@ -50,7 +50,11 @@ public final class ServerSaveJsonStore {
     }
 
     public void writeMapCommand(String slot, String comment, String mapCommand) throws IOException {
-        write(mapCommandPath(slot), new ServerMapCommandSnapshot(SCHEMA_VERSION, comment, mapCommand));
+        writeMapCommand(slot, comment, mapCommand, null);
+    }
+
+    public void writeMapCommand(String slot, String comment, String mapCommand, String mapTitle) throws IOException {
+        write(mapCommandPath(slot), new ServerMapCommandSnapshot(SCHEMA_VERSION, comment, mapCommand, mapTitle));
     }
 
     public ServerLatchedCvarsSnapshot readLatchedCvars(String slot) throws IOException {
@@ -108,7 +112,8 @@ public final class ServerSaveJsonStore {
     public record ServerMapCommandSnapshot(
             int schemaVersion,
             String comment,
-            String mapCommand
+            String mapCommand,
+            String mapTitle
     ) {
     }
 

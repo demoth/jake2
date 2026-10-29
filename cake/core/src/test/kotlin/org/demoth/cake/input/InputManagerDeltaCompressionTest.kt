@@ -3,6 +3,7 @@ package org.demoth.cake.input
 import jake2.qcommon.Defines.PITCH
 import jake2.qcommon.Defines.PM_NORMAL
 import jake2.qcommon.Defines.YAW
+import jake2.qcommon.Defines.CMD_BACKUP
 import jake2.qcommon.network.messages.client.ClientMessage
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.sizebuf_t
@@ -10,11 +11,27 @@ import jake2.qcommon.util.Math3D
 import org.demoth.cake.CakeCvars
 import org.demoth.cake.ClientFrame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 /** Checks move-packet delta compression; input definitions are the only cvar prerequisites. */
 class InputManagerDeltaCompressionTest {
+    @Test
+    fun queuedMovementSurvivesInputHistorySlotReuse() {
+        val input = InputManager(nowNanosProvider = { 1_000_000L })
+        val current = frame(serverframe = 77, valid = true)
+        input.updateLocalInput(0f, current)
+        val queued = input.buildMoveMessage(5, current, 16)
+        val before = sizebuf_t(queued.size).apply { queued.writeTo(this, 5) }.data
+        val hash = queued.hashCode()
+        input.buildMoveMessage(5 + CMD_BACKUP, current, 99)
+        assertEquals(16, queued.newCmd.msec)
+        assertEquals(hash, queued.hashCode())
+        assertArrayEquals(before, sizebuf_t(queued.size).apply { queued.writeTo(this, 5) }.data)
+    }
+
     @BeforeEach
     fun registerInputCvars() {
         CakeCvars.registerInput()
@@ -40,7 +57,7 @@ class InputManagerDeltaCompressionTest {
     private fun roundTrip(message: MoveMessage, incomingSequence: Int): MoveMessage {
         val buffer = sizebuf_t()
         buffer.init(ByteArray(256), 256)
-        message.writeTo(buffer)
+        message.writeTo(buffer, incomingSequence)
         return ClientMessage.parseFromBuffer(buffer, incomingSequence) as MoveMessage
     }
 

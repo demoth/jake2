@@ -28,7 +28,7 @@ class GameModeCvarsTest {
         EngineWriteRoot.setRoot(root)
         cvars.clear()
         MainCommon.registerCvars(false)
-        host = ServerHost()
+        host = ServerHost(TransportServerNetwork.standalone())
     }
 
     @AfterEach

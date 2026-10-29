@@ -33,7 +33,7 @@ class InputManagerBindingsIntegrationTest {
         input.keyDown(Input.Keys.X)
 
         val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame())
-        assertEquals(200, msg.newCmd.forwardmove.toInt())
+        assertEquals(200, msg.newCmd.forwardmove)
     }
 
     @Test
@@ -78,11 +78,11 @@ class InputManagerBindingsIntegrationTest {
         input.keyUp(Input.Keys.Q)
 
         val stillForward = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame)
-        assertEquals(200, stillForward.newCmd.forwardmove.toInt())
+        assertEquals(200, stillForward.newCmd.forwardmove)
 
         input.keyUp(Input.Keys.E)
         val released = input.gatherInput(outgoingSequence = 1, deltaTime = 0f, currentFrame = frame)
-        assertEquals(0, released.newCmd.forwardmove.toInt())
+        assertEquals(0, released.newCmd.forwardmove)
     }
 
     @Test
@@ -95,8 +95,8 @@ class InputManagerBindingsIntegrationTest {
         input.keyDown(Input.Keys.U)
 
         val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame())
-        assertTrue((msg.newCmd.buttons.toInt() and BUTTON_USE) != 0)
-        assertTrue((msg.newCmd.buttons.toInt() and BUTTON_ANY) != 0)
+        assertTrue((msg.newCmd.buttons and BUTTON_USE) != 0)
+        assertTrue((msg.newCmd.buttons and BUTTON_ANY) != 0)
     }
 
     @Test
@@ -109,7 +109,7 @@ class InputManagerBindingsIntegrationTest {
         input.keyDown(Input.Keys.X)
 
         val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame())
-        assertTrue((msg.newCmd.buttons.toInt() and BUTTON_ANY) != 0)
+        assertTrue((msg.newCmd.buttons and BUTTON_ANY) != 0)
     }
 
     @Test
@@ -125,7 +125,7 @@ class InputManagerBindingsIntegrationTest {
         input.clearInputState()
 
         val msg = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame)
-        assertEquals(0, msg.newCmd.forwardmove.toInt())
+        assertEquals(0, msg.newCmd.forwardmove)
     }
 
     private fun frame(): ClientFrame {

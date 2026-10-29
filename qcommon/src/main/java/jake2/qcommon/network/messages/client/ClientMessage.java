@@ -3,6 +3,7 @@ package jake2.qcommon.network.messages.client;
 import jake2.qcommon.network.messages.NetworkMessage;
 import jake2.qcommon.sizebuf_t;
 
+/** Client message identity with wire operations delegated to the separate codec. */
 public abstract class ClientMessage implements NetworkMessage {
     public final ClientMessageType type;
 
@@ -11,40 +12,21 @@ public abstract class ClientMessage implements NetworkMessage {
     }
 
     public final void writeTo(sizebuf_t buffer) {
-        buffer.writeByte(type.value);
-        writeProperties(buffer);
+        ClientMessageCodec.write(this, buffer);
     }
 
-    protected abstract void writeProperties(sizebuf_t buffer);
+    @Override
+    public final void writeTo(sizebuf_t buffer, int sequence) {
+        ClientMessageCodec.write(this, buffer, sequence);
+    }
+
+    /** Size of the message in bytes. */
+    public final int getSize() {
+        return ClientMessageCodec.size(this);
+    }
 
     public static ClientMessage parseFromBuffer(sizebuf_t buffer, int incomingSequence) {
-        ClientMessageType type = ClientMessageType.fromByte((byte) buffer.readByte());
-        final ClientMessage msg;
-        switch (type) {
-            case CLC_BAD:
-                msg = new EndOfClientPacketMessage();
-                break;
-            case CLC_NOP:
-                // fixme: never sent by client directly
-                msg = new NoopMessage();
-                break;
-            case CLC_USERINFO:
-                msg = new UserInfoMessage();
-                break;
-            case CLC_STRINGCMD:
-                msg = new StringCmdMessage();
-                break;
-            case CLC_MOVE:
-                msg = new MoveMessage(incomingSequence);
-                break;
-            default:
-                // todo: notify somehow in case of unexpected type
-                msg = null;
-        }
-        if (msg != null) {
-            msg.parse(buffer);
-        }
-        return msg;
+        return ClientMessageCodec.read(buffer, incomingSequence);
     }
 
 }

@@ -9,6 +9,8 @@ enum class MenuUiSoundEffect {
 }
 
 sealed interface MenuSignal {
+    data object ShowMenu : MenuSignal
+    data object CloseMenu : MenuSignal
     data class OpenUiSample(val game: Boolean? = null) : MenuSignal
     data object CloseUiSample : MenuSignal
     data class CaptureUiSample(val modes: List<Boolean>, val directory: Path) : MenuSignal

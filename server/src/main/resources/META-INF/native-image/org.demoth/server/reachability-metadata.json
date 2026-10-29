@@ -1,0 +1,28 @@
+{
+  "reflection": [
+    {
+      "type": "jake2.server.save.ServerSaveJsonStore$ServerMapCommandSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.server.save.ServerSaveJsonStore$LatchedCvarSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.server.save.ServerSaveJsonStore$ServerLatchedCvarsSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.server.save.ServerLevelStateSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    }
+  ]
+}

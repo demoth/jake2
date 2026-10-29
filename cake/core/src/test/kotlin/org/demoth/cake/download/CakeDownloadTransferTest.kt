@@ -44,7 +44,7 @@ class CakeDownloadTransferTest {
         val request = request("maps/base1.bsp")
         transfer.begin(request)
 
-        val result = transfer.handle(DownloadMessage(byteArrayOf(1, 2), 25))
+        val result = transfer.handle(DownloadMessage.chunk(byteArrayOf(1, 2), 25))
 
         val continued = assertInstanceOf(CakeDownloadTransferResult.Continue::class.java, result)
         assertEquals(25, continued.percent)
@@ -58,9 +58,9 @@ class CakeDownloadTransferTest {
         val transfer = CakeDownloadTransfer()
         val request = request("models/items/armor/tris.md2")
         transfer.begin(request)
-        transfer.handle(DownloadMessage(byteArrayOf(1, 2), 50))
+        transfer.handle(DownloadMessage.chunk(byteArrayOf(1, 2), 50))
 
-        val result = transfer.handle(DownloadMessage(byteArrayOf(3, 4), 100.toByte()))
+        val result = transfer.handle(DownloadMessage.chunk(byteArrayOf(3, 4), 100))
 
         assertInstanceOf(CakeDownloadTransferResult.Completed::class.java, result)
         assertTrue(Files.isRegularFile(request.finalPath))
@@ -75,9 +75,20 @@ class CakeDownloadTransferTest {
         val request = request("sound/world/doors.wav")
         transfer.begin(request)
 
-        val result = transfer.handle(DownloadMessage())
+        val result = transfer.handle(DownloadMessage.Failure())
 
         assertInstanceOf(CakeDownloadTransferResult.MissingOnServer::class.java, result)
+        assertNull(transfer.activeRequest())
+    }
+
+    @Test
+    fun `empty final chunk creates an empty file rather than reporting failure`() {
+        val transfer = CakeDownloadTransfer()
+        val request = request("sound/world/empty.wav")
+        transfer.begin(request)
+        val result = transfer.handle(DownloadMessage.chunk(byteArrayOf(), 100))
+        assertInstanceOf(CakeDownloadTransferResult.Completed::class.java, result)
+        assertEquals(0L, Files.size(request.finalPath))
         assertNull(transfer.activeRequest())
     }
 

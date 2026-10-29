@@ -37,3 +37,8 @@ gitProperties {
   keys = ['git.build.version', 'git.commit.id.abbrev', 'git.dirty']
   failOnNoGitDirectory = false
 }
+
+tasks.withType(Test).configureEach {
+  // Enabling graphics tests must invalidate an earlier run that skipped them.
+  inputs.property('CAKE_VIDEO_GL_TESTS', providers.environmentVariable('CAKE_VIDEO_GL_TESTS').orElse(''))
+}

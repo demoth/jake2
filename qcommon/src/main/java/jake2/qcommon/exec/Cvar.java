@@ -132,6 +132,13 @@ public class Cvar {
         return lookup(name) != null;
     }
 
+    /** Reset selected configuration input, including pending changes or input awaiting its owner. */
+    public void resetInput(String name) {
+        earlyValues.remove(resolveCanonicalName(name));
+        cvar_t<?> var = lookup(name);
+        if (var != null) var.setNative(var.getDefaultValue(), true);
+    }
+
     /** Moves an unregistered input to its owning registry, retaining suggested flags for declaration validation. */
     public void transferEarlyValue(String name, Cvar destination) {
         if (destination == this || destination.isRegistered(name)) return;

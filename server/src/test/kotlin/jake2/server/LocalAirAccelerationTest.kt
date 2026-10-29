@@ -25,7 +25,7 @@ class LocalAirAccelerationTest {
         Globals.server_state = ServerStates.SS_DEAD
         cvars.clear()
         MainCommon.registerCvars(false)
-        host = ServerHost()
+        host = ServerHost(TransportServerNetwork.standalone())
         cvars.find<Boolean>("deathmatch").forceSet(true)
         cvars.find<Float>("sv_airaccelerate").forceSet(2f)
     }

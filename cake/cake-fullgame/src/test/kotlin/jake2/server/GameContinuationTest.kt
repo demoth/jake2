@@ -4,8 +4,8 @@ import jake2.qcommon.*
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.Netchan
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.NetworkSettings
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.messages.server.StuffTextMessage
 import jake2.qcommon.vfs.*
 import org.junit.jupiter.api.*
@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.nio.file.Files
-import jake2.qcommon.network.NET
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
@@ -21,6 +20,7 @@ class GameContinuationTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
     private var previousState: ServerStates? = null
+    private lateinit var network: HostNetworkFixture
     private lateinit var host: ServerHost
 
     @BeforeEach
@@ -30,11 +30,12 @@ class GameContinuationTest {
         Globals.server_state = ServerStates.SS_DEAD
         Cvar.getInstance().clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        network = HostNetworkFixture()
+        host = ServerHost(network.server)
         Cvar.getInstance().find<Int>("maxclients").forceSet(3)
         host.resetClients()
     }
@@ -43,6 +44,7 @@ class GameContinuationTest {
     fun cleanup() {
         host.clients.forEach { it.state = ClientStates.CS_FREE }
         host.close()
+        network.close()
         Cbuf.ClearDeferred()
         EngineWriteRoot.setRoot(previousRoot)
         Globals.server_state = previousState
@@ -62,11 +64,40 @@ class GameContinuationTest {
         gameName = game.name
         edict = game.gameExports.getEdict(index + 1)
         state = ClientStates.CS_CONNECTED
-        netchan.setup(Defines.NS_SERVER, netadr_t(), index)
+        netchan.setup(netchan.remoteAddress, index)
     }
 
     private fun finish(client: ClientNetworkInfo, game: GameImportsImpl) =
         host.executeClientCommand(client, "nextserver ${game.spawncount}")
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `continuation autosave eligibility follows its Game mode`(deathmatch: Boolean) {
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+        val autosave = root.resolve("save/autosave")
+        fun contents() = Files.walk(autosave).use { paths -> paths.filter(Files::isRegularFile).toList()
+            .associate { autosave.relativize(it).toString() to Files.readAllBytes(it).toList() } }
+        val before = contents()
+        assertTrue(before.isNotEmpty())
+        host.stop("cinematic", false)
+        val cvars = Cvar.getInstance()
+        cvars.find<Boolean>("deathmatch").forceSet(deathmatch)
+        cvars.find<Int>("maxclients").forceSet(if (deathmatch) 3 else 1)
+        host.resetClients()
+        val cinematic = game("default", "intro.cin+testbox2")
+        // Changed Host defaults must not decide persistence for an existing Game.
+        cvars.find<Boolean>("deathmatch").forceSet(!deathmatch)
+        finish(bind(0, cinematic), cinematic)
+        host.update(100)
+        val replacement = host.games.getValue("default")
+        assertEquals("testbox2", replacement.mapName)
+        assertEquals(deathmatch, replacement.isDeathmatch)
+        if (deathmatch) assertEquals(before, contents()) else {
+            assertNotEquals(before, contents())
+            assertEquals("testbox2", jake2.server.save.ServerSaveJsonStore.forWriteDir(root.toString())
+                .readMapCommand("autosave").mapCommand())
+        }
+    }
 
     @Test
     fun `live timelimit ends only its owning Game`() {
@@ -106,9 +137,9 @@ class GameContinuationTest {
         assertSame(second, host.games["other"])
         assertEquals("default", a.gameName)
         assertEquals("default", c.gameName)
-        assertTrue(a.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
-        assertTrue(c.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
-        assertFalse(b.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
+        assertTrue(a.netchan.queuedReliable.contains(StuffTextMessage.command("reconnect")))
+        assertTrue(c.netchan.queuedReliable.contains(StuffTextMessage.command("reconnect")))
+        assertFalse(b.netchan.queuedReliable.contains(StuffTextMessage.command("reconnect")))
 
         finish(b, second)
         host.update(100)
@@ -158,13 +189,13 @@ class GameContinuationTest {
         finish(b, second)
         a.state = ClientStates.CS_SPAWNED
         a.download = byteArrayOf(1)
-        a.netchan.reliablePending.add(StuffTextMessage("stale"))
-        a.unreliable.add(StuffTextMessage("stale"))
-        a.netchan.remote_address = null // Fail the first final notification.
+        a.netchan.queueReliable(StuffTextMessage.command("stale"))
+        a.unreliable.add(StuffTextMessage.command("stale"))
+        network.failTransmissions(a) // Fail the first final notification.
         first.gameExports = null // Discarding a Game must not call back into its gameplay.
         Cvar.getInstance().find<Int>("port").forceSet(0)
-        assertTrue(NET.configureServer(true))
-        val socket = NET.ip_sockets[Defines.NS_SERVER]
+        assertTrue(network.server.configure(true))
+        val socket = network.serverTransport.udpEndpoint
         val peerChannel = b.netchan
 
         host.stopGame(first, "Game failed\n")
@@ -174,11 +205,11 @@ class GameContinuationTest {
             assertNull(client.gameName)
             assertNull(client.edict)
             assertNull(client.download)
-            assertTrue(client.netchan.reliablePending.isEmpty())
+            assertTrue(client.netchan.queuedReliable.isEmpty())
             assertTrue(client.unreliable.isEmpty())
         }
         assertSame(second, host.games["other"])
-        assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
+        assertSame(socket, network.serverTransport.udpEndpoint)
         assertSame(peerChannel, b.netchan)
         assertEquals(ClientStates.CS_CONNECTED, b.state)
         host.update(100)
@@ -267,7 +298,7 @@ class GameContinuationTest {
     @Test
     fun `failed cleanup escapes nested Game boundaries with original failure`() {
         val first = game("default", "testbox")
-        bind(0, first).netchan.remote_address = null
+        network.failTransmissions(bind(0, first))
         val failure = GameFailure(first, "failed frame")
         first.gameExports = object : GameExports by first.gameExports {
             override fun G_RunFrame() { throw failure }
@@ -337,7 +368,7 @@ class GameContinuationTest {
         assertEquals("default", client.gameName)
         assertEquals("testbox2", host.games.getValue("other").mapName)
         assertNull(first.takeNextMap(), "Rejected continuation remains consumed")
-        assertFalse(client.netchan.reliablePending.contains(StuffTextMessage("reconnect")))
+        assertFalse(client.netchan.queuedReliable.contains(StuffTextMessage.command("reconnect")))
     }
 
     @ParameterizedTest
@@ -349,15 +380,15 @@ class GameContinuationTest {
         finish(bind(1, second), second)
         Cvar.getInstance().find<Boolean>("paused").forceSet(true)
         Cvar.getInstance().find<Int>("port").forceSet(0)
-        assertTrue(NET.configureServer(true))
+        assertTrue(network.server.configure(true))
         val broken = when (stage) {
             "wipe" -> root.resolve("save/current/game.ssv.json")
-            "autosave" -> root.resolve("save/save0/game.ssv.json")
+            "autosave" -> root.resolve("save/autosave")
             else -> root.resolve("save/current/testbox.sav.json")
         }
-        if (stage == "restore") {
+        if (stage == "restore" || stage == "autosave") {
             Files.createDirectories(broken.parent)
-            Files.writeString(broken, "invalid level")
+            Files.writeString(broken, "invalid level or checkpoint directory")
         } else {
             Files.createDirectories(broken)
             Files.writeString(broken.resolve("blocker"), "prevent replacement")
@@ -366,13 +397,13 @@ class GameContinuationTest {
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertFalse(host.isPaused)
-        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(network.serverTransport.udpEndpoint)
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("gamemap"))
         host.update(100)
         assertTrue(host.games.isEmpty(), "Remaining queued continuation must not restart a Game")
 
         if (stage != "restore") {
-            Files.delete(broken.resolve("blocker"))
+            if (stage != "autosave") Files.delete(broken.resolve("blocker"))
             Files.delete(broken)
         }
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))

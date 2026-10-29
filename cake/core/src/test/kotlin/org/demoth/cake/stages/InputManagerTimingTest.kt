@@ -28,18 +28,18 @@ class InputManagerTimingTest {
         val frame = frame()
 
         val first = input.gatherInput(outgoingSequence = 0, deltaTime = 0f, currentFrame = frame)
-        assertEquals(16, first.newCmd.msec.toInt() and 0xFF)
+        assertEquals(16, first.newCmd.msec)
 
         clock.advanceMs(7)
         val second = input.gatherInput(outgoingSequence = 1, deltaTime = 0f, currentFrame = frame)
-        assertEquals(7, second.newCmd.msec.toInt() and 0xFF)
+        assertEquals(7, second.newCmd.msec)
 
         val third = input.gatherInput(outgoingSequence = 2, deltaTime = 0f, currentFrame = frame)
-        assertEquals(1, third.newCmd.msec.toInt() and 0xFF)
+        assertEquals(1, third.newCmd.msec)
 
         clock.advanceMs(500)
         val fourth = input.gatherInput(outgoingSequence = 3, deltaTime = 0f, currentFrame = frame)
-        assertEquals(100, fourth.newCmd.msec.toInt() and 0xFF)
+        assertEquals(100, fourth.newCmd.msec)
     }
 
     @Test

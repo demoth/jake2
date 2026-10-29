@@ -16,6 +16,8 @@ import org.demoth.cake.Cake
 import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.fullgame.EmbeddedCakeHost
+import org.demoth.cake.hosting.HostSaveCatalogResult
+import org.demoth.cake.hosting.HostSaveResult
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.junit.jupiter.api.Assertions.*
@@ -31,7 +33,7 @@ class CakeProfileSaveGlTest {
     @TempDir lateinit var temp: Path
 
     @Test
-    fun `mod resolution and console saves remain isolated across profile switches`() {
+    fun `mod resolution and console and typed saves remain isolated across profile switches`() {
         val installation = Path.of(requireNotNull(System.getenv("CAKE_TEST_BASEDIR")))
         val content = Files.createDirectories(temp.resolve("content"))
         Files.createSymbolicLink(content.resolve("baseq2"), installation.resolve("baseq2"))
@@ -46,7 +48,12 @@ class CakeProfileSaveGlTest {
             val source = CakeFileResolver(basedir = installation.toString())
             Files.write(mod.resolve("profilemap.bsp"), source.resolve("maps/base1.bsp")!!.readBytes())
             CakeGameProfileStore().upsertProfile(CakeGameProfile("first", content.toString(), "custom"))
-            val startup = CakeStartupBootstrap.bootstrap()
+            Files.createDirectories(temp.resolve(".cake/first"))
+            Files.writeString(temp.resolve(".cake/first/config.cfg"), "set skill 1\n")
+            Files.createDirectories(temp.resolve(".cake/second"))
+            Files.writeString(temp.resolve(".cake/second/config.cfg"), "set skill 2\nset hostname second\n")
+            val startup = CakeStartupBootstrap.bootstrap(arguments = listOf(
+                "+set", "skill", "3", "+set", "flood_msgs", "6", "+map", "profilemap"))
             Lwjgl3Application(object : ApplicationAdapter() {
                 private lateinit var cake: Cake
                 private var step = 0
@@ -60,7 +67,6 @@ class CakeProfileSaveGlTest {
                     try {
                         cake = Cake(startup, host = host)
                         cake.create()
-                        Cbuf.AddText("host_start profilemap")
                     } catch (error: Throwable) { fail(error) }
                 }
 
@@ -71,11 +77,17 @@ class CakeProfileSaveGlTest {
                     stageStart = System.nanoTime()
                     Cbuf.AddText(command)
                 }
+                private fun loadShared() {
+                    next("")
+                    assertEquals(HostSaveResult.Completed("shared"), host.loadGame("shared"))
+                }
+                private fun catalog() = assertInstanceOf(HostSaveCatalogResult.Available::class.java, host.listSaves())
                 private fun active(map: String) = ticks > 2 && state() == "ACTIVE" &&
                     Cvar.getInstance().find<String>("mapname").typedValue == map
                 private fun state() = Cake::class.java.getDeclaredField("networkState").apply {
                     isAccessible = true
                 }.get(cake).toString()
+                private fun settings() = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).gameCvars
                 private fun player() = (host.server!!.games.getValue("default").gameExports as GameExportsImpl).getEdict(1) as GameEntity
 
                 override fun render() {
@@ -87,6 +99,8 @@ class CakeProfileSaveGlTest {
                             "Timed out at step $step, client=${state()}")
                         when (step) {
                             0 -> if (active("profilemap")) {
+                                assertEquals(3, settings().skill.typedValue)
+                                assertEquals(6, settings().flood_msgs.typedValue)
                                 val resolver = Cake::class.java.getDeclaredField("fileResolver").apply {
                                     isAccessible = true
                                 }.get(cake) as CakeFileResolver
@@ -101,37 +115,51 @@ class CakeProfileSaveGlTest {
                                 assertEquals(temp.resolve(".cake/first"), EngineWriteRoot.path())
                                 player().health = 73
                                 Cmd.ExecuteString("save shared")
+                                assertNull(catalog().entries.single { it.slot == "shared" }.loadRejectionReason)
                                 firstSave = Files.readString(firstSlot)
                                 next("gamemap base2")
                             }
-                            1 -> if (active("base2")) next("load shared")
+                            1 -> if (active("base2")) loadShared()
                             2 -> if (active("profilemap")) {
                                 assertEquals(73, player().health)
-                                next("host_stop")
+                                // Stage changes while live; a profile switch must discard these too.
+                                Cmd.ExecuteString("set coop 1")
+                                Cmd.ExecuteString("set flood_msgs 7")
+                                next("disconnect")
                             }
                             3 -> {
                                 assertEquals("DISCONNECTED", state())
                                 Cmd.ExecuteString("cake_profile_set second \"$content\"")
-                                next("host_start base2")
+                                assertEquals("second", catalog().profileId)
+                                assertTrue(catalog().entries.isEmpty())
+                                next("gamemap *base2")
                             }
                             4 -> if (active("base2")) {
+                                assertFalse(settings().coop.typedValue)
+                                assertEquals(2, settings().skill.typedValue)
+                                assertEquals(4, settings().flood_msgs.typedValue)
+                                assertEquals("second", Cvar.getInstance().find<String>("hostname").typedValue)
                                 player().health = 41
-                                Cmd.ExecuteString("save shared")
+                                assertEquals(HostSaveResult.Completed("shared"), host.saveGame("shared"))
                                 assertTrue(Files.exists(secondSlot))
                                 assertEquals(firstSave, Files.readString(firstSlot))
                                 next("gamemap base1")
                             }
-                            5 -> if (active("base1")) next("load shared")
+                            5 -> if (active("base1")) loadShared()
                             6 -> if (active("base2")) {
                                 assertEquals(41, player().health)
-                                next("host_stop")
+                                next("disconnect")
                             }
                             7 -> {
                                 Cmd.ExecuteString("cake_profile_set first \"$content\" custom")
-                                next("host_start base2")
+                                // Idle load must attach directly, without starting a disposable map.
+                                assertEquals("first", catalog().profileId)
+                                loadShared()
                             }
-                            8 -> if (active("base2")) next("load shared")
-                            9 -> if (active("profilemap")) {
+                            8 -> if (active("profilemap")) {
+                                // Saves restore latched settings; non-saved runtime options use defaults.
+                                assertEquals(3, settings().skill.typedValue)
+                                assertEquals(4, settings().flood_msgs.typedValue)
                                 assertEquals(73, player().health)
                                 assertEquals(temp.resolve(".cake/first"), EngineWriteRoot.path())
                                 Gdx.app.exit()
@@ -154,7 +182,7 @@ class CakeProfileSaveGlTest {
             })
             failure?.let { throw it }
         } finally {
-            host.stop("test cleanup")
+            host.dispose()
             System.setProperty("user.home", previousHome)
         }
     }

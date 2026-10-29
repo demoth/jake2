@@ -1,3 +1,7 @@
+1.2.6
+    - reworked networking with owned client/server transports, immutable Kotlin messages and addresses, and injected settings
+    - preserved Quake II protocol 34 compatibility and reduced player updates by omitting unchanged weapon model indices
+
 1.2.2
     - added cake-fullgame desktop distribution with Singleplayer and Host Game menus
     - embedded server and game modules for local singleplayer and multiplayer hosting

@@ -156,13 +156,12 @@ class InputManager(
         val oldestCmd = getHistoricalCommand(outgoingSequence - 2)
 
         // deliver the message
-        return MoveMessage(
+        return MoveMessage.fromInput(
             !currentFrame.valid,
             currentFrame.serverframe,
             oldestCmd,
             oldCmd,
-            userCommands[cmdIndex],
-            outgoingSequence
+            userCommands[cmdIndex]
         )
     }
 

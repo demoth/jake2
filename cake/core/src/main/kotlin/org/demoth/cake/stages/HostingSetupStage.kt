@@ -15,7 +15,7 @@ class HostingSetupStage(
     style: GameUiStyle,
     private val singleplayer: Boolean,
 ) : BackNavigableMenuStage(viewport, menuEventBus,
-    if (singleplayer) MenuIntent.OpenMainMenu else MenuIntent.OpenMultiplayerMenu) {
+    if (singleplayer) MenuIntent.OpenSingleplayerMenu else MenuIntent.OpenMultiplayerMenu) {
     private val initial = (if (singleplayer) menuEventBus.latestState().singleplayer else menuEventBus.latestState().hostGame).form
     private val map = SelectBox<HostMap>(style.menuWidgets.selectBox).apply {
         maxListCount = 12
@@ -40,7 +40,7 @@ class HostingSetupStage(
     init {
         val root = Table().apply {
             defaults().left().pad(8f)
-            add(Label(if (singleplayer) "Singleplayer" else "Host Game", style.menuWidgets.label)).colspan(2).row()
+            add(Label(if (singleplayer) "New Game" else "Host Game", style.menuWidgets.label)).colspan(2).row()
             if (!singleplayer) {
                 add(Label("Map", style.menuWidgets.label)); add(map).width(360f).row()
                 add(Label("Mode", style.menuWidgets.label)); add(mode).growX().row()

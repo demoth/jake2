@@ -96,6 +96,7 @@ experimental native executable:
 ```sh
 ./gradlew -PenableGraalNative=true :cake:cake-client:nativeCompile
 ./gradlew -PenableGraalNative=true :cake:cake-viewer:nativeCompile
+./gradlew -PenableGraalNative=true :cake:cake-fullgame:nativeCompile
 ```
 
 These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
@@ -103,9 +104,13 @@ that installation; Gradle can continue running on the regular project JDK.
 Native resources are detected from the runtime classpath, including repository
 assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
 All three launchers use the shared native configuration and explicit reflection
-metadata for audio and Scene2D skin/pool classes. Native compilation and basic
-startup are verified on Linux ARM64; fullgame hosting and save/load still need
-runtime validation.
+metadata for audio and Scene2D skin/pool classes. The `game` module supplies
+type registrations for its callback preload list; keep these aligned with
+`GameExportsImpl.preloadclasslist`. The `qcommon`, `server`, and `game` modules
+also register their save DTOs for Jackson reflection.
+Native compilation, basic startup, local map transitions, and console save/load
+are verified on Linux ARM64. Multiplayer hosting still needs native runtime
+validation.
 
 ## Playing and hosting
 
@@ -115,14 +120,44 @@ and Host Game menus, using the selected profile's game data and mod.
 Hosting automatically connects the local player. Disconnect before switching
 profiles or starting another session.
 
+Switching profiles resets built-in gameplay startup settings before loading the
+selected profile's config. Video and client preferences are not reset. Initial
+startup preserves command-line overrides; loading a save restores its saved
+latched settings, including difficulty.
+
 Console equivalents:
 
-- `host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]`
-- `host_stop` — disconnect and stop hosting.
-- `map <map>` / `gamemap <map>` — change maps while hosting.
+- `map <map>` / `gamemap <map>` — start a local game or change maps while hosting.
+- `disconnect` — disconnect and stop the local game, retaining the idle Host.
+- `killserver` — stop the hosted game, retaining the idle Host.
 
-Saves are stored in `~/.cake/<profileId>/save/`. Console `save <slot>` and
-`load <slot>` currently require an active game.
+For multiplayer, set `coop`, `deathmatch`, and `maxclients` before starting the
+map, for example `set coop 1; set deathmatch 0; set maxclients 4; map base1`.
+The Host Game menu configures these settings for you.
+
+Saves are stored in `~/.cake/<profileId>/save/`. Console `load <slot>` restores a
+game even while disconnected. `save <slot>` requires an active game.
+
+Fullgame's Singleplayer submenu contains New Game, Load Game and Save Game.
+New Game opens difficulty selection. The submenu stays accessible during play,
+with each action enabled when eligible; Back from these screens returns there.
+Escape goes back through the menus and returns to gameplay from the main menu.
+Saved games refresh automatically whenever Load Game or Save Game is opened.
+Each screen shows a scrolling checkpoint list alongside preview space and save
+details, with actions along the bottom. Manual saves from the menu include a
+thumbnail of the scene without menus (up to 320×240). Missing or unreadable
+thumbnails show a placeholder; image capture/write failures leave the save usable
+and display a warning. Autosaves and console saves do not capture thumbnails.
+Replacing a checkpoint clears its old contents, including any previous thumbnail.
+New Save creates a checkpoint; Save asks before replacing the selected manual save.
+Delete asks before removing the selected checkpoint. Autosave is
+listed for loading and reserved against manual overwrite. Save requires a living,
+spawned local player. Loading is available from startup and during singleplayer;
+the singleplayer respawn action opens Load Game automatically.
+
+`menu_loadgame` and `menu_savegame` open those screens from the console. Errors
+remain visible in the menu so an invalid save or failed restore can be retried.
+Deathmatch does not create autosaves. Coop save/load remains console-only.
 
 ## Subsystem Guides
 

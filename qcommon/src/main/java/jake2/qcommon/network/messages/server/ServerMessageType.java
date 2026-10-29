@@ -54,10 +54,10 @@ public enum ServerMessageType {
 
     public static ServerMessageType fromInt(int type) {
         for (ServerMessageType t: values()) {
-            if (t.type == type)
+            if (t.type == type || (t == svc_end && type == 0xff))
                 return t;
         }
-        return svc_nop;
+        return null;
     }
 
     public final int type;

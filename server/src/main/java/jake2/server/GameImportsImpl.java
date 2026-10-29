@@ -37,7 +37,6 @@ import jake2.qcommon.network.messages.server.FrameHeaderMessage;
 import jake2.qcommon.network.messages.server.PlayerInfoMessage;
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage;
 import jake2.qcommon.network.messages.server.EntityUpdate;
-import jake2.qcommon.network.messages.server.DeltaEntityHeader;
 import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.messages.server.StuffTextMessage;
 import jake2.qcommon.network.messages.server.SoundMessage;
@@ -450,11 +449,6 @@ public class GameImportsImpl implements GameImports {
             }
         }
 
-        // Queued messages own their position until the transport serializes them.
-        else {
-            origin = origin.clone();
-        }
-
         // if the sound doesn't attenuate,send it to everyone
         // (global radio chatter, voiceovers, etc)
         if (attenuation == Defines.ATTN_NONE)
@@ -473,7 +467,8 @@ public class GameImportsImpl implements GameImports {
             else
                 multicastType = MulticastTypes.MULTICAST_ALL;
         }
-        multicastMessage(origin, new SoundMessage(flags, soundindex, volume, attenuation, timeofs, sendchan, origin), multicastType);
+        // Queued messages own an immutable position snapshot until the transport serializes them.
+        multicastMessage(origin, SoundMessage.fromGame(flags, soundindex, volume, attenuation, timeofs, sendchan, origin), multicastType);
     }
 
     /*
@@ -848,7 +843,7 @@ public class GameImportsImpl implements GameImports {
     // currently share EngineWriteRoot/save/current; transitions and unit resets can overwrite
     // another Game's archives. Multi-Game persistence is explicitly deferred; save targets the default Game.
     /** Return a user-facing rejection reason, or null when this Game can be saved. */
-    String saveRejectionReason() {
+    public String saveRejectionReason() {
         if (state != ServerStates.SS_GAME) return "You must be in a game to save.";
         if (isDeathmatch()) return "Can't savegame in a deathmatch";
 
@@ -899,7 +894,7 @@ public class GameImportsImpl implements GameImports {
         for (ClientNetworkInfo client : serverMain.getClients()) {
             if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE)
                 continue;
-            client.netchan.reliablePending.add(new StuffTextMessage(s));
+            client.netchan.queueReliable(StuffTextMessage.command(s));
         }
     }
 
@@ -1220,7 +1215,7 @@ public class GameImportsImpl implements GameImports {
                 comment = new Date() + " " + configstrings[Defines.CS_NAME];
             }
 
-            store.writeMapCommand("current", comment, mapcmd);
+            store.writeMapCommand("current", comment, mapcmd, configstrings[Defines.CS_NAME]);
 
             writeLatchedCvars(store);
         } catch (Exception e) {
@@ -1325,7 +1320,7 @@ public class GameImportsImpl implements GameImports {
             }
 
             if (reliable) {
-                client.netchan.reliablePending.add(msg);
+                client.netchan.queueReliable(msg);
             } else
                 client.unreliable.add(msg);
         }
@@ -1346,7 +1341,7 @@ public class GameImportsImpl implements GameImports {
         ClientNetworkInfo client = serverMain.getClients().get(index - 1);
 
         if (reliable) {
-            client.netchan.reliablePending.add(msg);
+            client.netchan.queueReliable(msg);
         } else
             client.unreliable.add(msg);
 
@@ -1395,7 +1390,7 @@ public class GameImportsImpl implements GameImports {
         client.surpressCount = 0;
 
         // delta encode the playerstate
-        PlayerInfoMessage playerInfoMsg = new PlayerInfoMessage(lastReceivedFrame != null ? lastReceivedFrame.ps : new player_state_t(), currentFrame.ps);
+        PlayerInfoMessage playerInfoMsg = PlayerInfoMessage.fromGame(lastReceivedFrame != null ? lastReceivedFrame.ps : new player_state_t(), currentFrame.ps);
         result.add(playerInfoMsg);
 
         // delta encode the entities
@@ -1415,7 +1410,7 @@ public class GameImportsImpl implements GameImports {
         int maxClients = serverMain.getClients().size();
         assert baselines.length == Defines.MAX_EDICTS;
         int maxEntityStates = clientEntityStates.length;
-        PacketEntitiesMessage result = new PacketEntitiesMessage();
+        List<EntityUpdate> updates = new ArrayList<>();
 
         // Write delta entity
         int from_num_entities;
@@ -1453,12 +1448,13 @@ public class GameImportsImpl implements GameImports {
                 // Note: players are always 'newentities', this updates
                 // their oldorigin always  and prevents warping
                 final boolean isPlayer = newState.index <= maxClients;
-                result.updates.add(new EntityUpdate(oldState, newState, false, isPlayer));
+                EntityUpdate.Change change = EntityUpdate.plan(oldState, newState, false, isPlayer);
+                if (change != null) updates.add(change);
                 oldindex++;
                 newindex++;
             } else if (newnum < oldnum) {
                 // this is a new entity, send it from the baseline
-                result.updates.add(new EntityUpdate(baselines[newnum], newState, true, true));
+                updates.add(EntityUpdate.plan(baselines[newnum], newState, true, true));
                 newindex++;
             } else {
                 // if (newnum > oldnum) {
@@ -1468,11 +1464,11 @@ public class GameImportsImpl implements GameImports {
                 if (oldnum >= 256)
                     flags |= Defines.U_NUMBER16 | Defines.U_MOREBITS1;
 
-                result.updates.add(new EntityUpdate(new DeltaEntityHeader(flags, oldnum)));
+                updates.add(new EntityUpdate.Removal(flags, oldnum));
                 oldindex++;
             }
         }
-        return result;
+        return new PacketEntitiesMessage(updates);
     }
 
     /**

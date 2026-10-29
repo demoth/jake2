@@ -682,12 +682,13 @@ object LevelSaveSnapshots {
     private fun interactAdapter(id: String?): EntInteractAdapter? = resolveAdapter(id)
     private fun aiAdapter(id: String?): AIAdapter? = resolveAdapter(id)
 
-    @Suppress("UNCHECKED_CAST")
-    private fun <T : SuperAdapter> resolveAdapter(id: String?): T? {
+    private inline fun <reified T : SuperAdapter> resolveAdapter(id: String?): T? {
         if (id == null) {
             return null
         }
-        return SuperAdapter.getFromID(id) as? T
+        val adapter = SuperAdapter.getFromID(id)
+        require(adapter is T) { "Unknown or incompatible saved callback: $id (expected ${T::class.java.simpleName})" }
+        return adapter
     }
 
     private fun copy(source: FloatArray?, target: FloatArray, expectedLength: Int) {

@@ -25,7 +25,7 @@ package jake2.server;
 import jake2.qcommon.Defines;
 import jake2.qcommon.ServerEntity;
 import jake2.qcommon.network.messages.NetworkMessage;
-import jake2.qcommon.network.netchan_t;
+import jake2.qcommon.network.ConnectionChannel;
 import jake2.qcommon.network.messages.server.PrintMessage;
 import jake2.qcommon.usercmd_t;
 
@@ -38,7 +38,8 @@ import java.util.Collection;
  */
 public class ClientNetworkInfo {
 
-	public ClientNetworkInfo() {
+    public ClientNetworkInfo(ConnectionChannel channel) {
+        this.netchan = java.util.Objects.requireNonNull(channel);
 		for (int n = 0; n < Defines.UPDATE_BACKUP; n++) {
 			frames[n] = new client_frame_t();
 		}
@@ -90,12 +91,12 @@ public class ClientNetworkInfo {
 
 	int challenge; // challenge of this user, randomly generated
 
-	netchan_t netchan = new netchan_t();
+	ConnectionChannel netchan;
 
     /** Queue text only when it meets this connection's requested message level. */
     void queuePrint(int level, String text) {
         if (level >= messagelevel) {
-            netchan.reliablePending.add(new PrintMessage(level, text));
+            netchan.queueReliable(new PrintMessage(level, text));
         }
     }
 }

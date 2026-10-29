@@ -3,7 +3,6 @@ package jake2.server
 import jake2.qcommon.*
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
 import jake2.qcommon.vfs.*
 import jake2.server.save.ServerSaveFiles
 import org.junit.jupiter.api.*
@@ -18,6 +17,7 @@ class HostSessionPreparationTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
     private var previousState: ServerStates? = null
+    private lateinit var network: HostNetworkFixture
     private lateinit var host: ServerHost
     private val cvars = Cvar.getInstance()
 
@@ -28,18 +28,19 @@ class HostSessionPreparationTest {
         Globals.server_state = ServerStates.SS_DEAD
         cvars.clear()
         MainCommon.registerCvars(false)
-        jake2.qcommon.network.Netchan.Netchan_Init()
+        jake2.qcommon.network.NetworkSettings.registerCvars()
         cvars.find<Int>("port").forceSet(0)
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        network = HostNetworkFixture()
+        host = ServerHost(network.server)
     }
 
     @AfterEach
     fun cleanup() {
         host.close()
-        NET.configureServer(false)
+        network.close()
         cvars.clear()
         EngineWriteRoot.setRoot(previousRoot)
         Globals.server_state = previousState
@@ -56,10 +57,35 @@ class HostSessionPreparationTest {
 
     @ParameterizedTest
     @ValueSource(booleans = [false, true])
+    fun `deathmatch map and gamemap never create or overwrite autosave`(existingSingleplayerSave: Boolean) {
+        if (existingSingleplayerSave) {
+            assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+            host.stop("start deathmatch", false)
+        }
+        val autosave = root.resolve("save/autosave")
+        fun contents(): Map<String, List<Byte>> = if (!Files.exists(autosave)) emptyMap() else
+            Files.walk(autosave).use { paths -> paths.filter(Files::isRegularFile).toList()
+                .associate { autosave.relativize(it).toString() to Files.readAllBytes(it).toList() } }
+        val before = contents()
+        assertEquals(existingSingleplayerSave, before.isNotEmpty())
+        cvars.find<Boolean>("deathmatch").forceSet(true)
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+        assertTrue(host.games.getValue("default").isDeathmatch)
+        assertEquals(before, contents())
+        assertEquals(ServerHost.OperationResult.Completed, host.changeMap("testbox2"))
+        assertEquals("testbox2", host.games.getValue("default").mapName)
+        assertEquals(before, contents())
+        assertEquals(existingSingleplayerSave, Files.exists(autosave))
+        assertInstanceOf(ServerHost.OperationResult.Rejected::class.java, host.saveGame("manual-dm"))
+        assertFalse(Files.exists(root.resolve("save/manual-dm")))
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
     fun `load after stop prepares saved capacity before Game allocation`(coop: Boolean) {
         save(coop)
         host.stop("test", false)
-        NET.configureServer(false)
+        network.server.configure(false)
         cvars.find<Boolean>("coop").forceSet(!coop)
         cvars.find<Int>("maxclients").forceSet(if (coop) 1 else 4)
 
@@ -72,7 +98,7 @@ class HostSessionPreparationTest {
         assertEquals(coop, loaded.isCoop)
         assertEquals(!coop, cvars.find<Boolean>("coop").typedValue, "Loading must preserve Host mode defaults")
         assertTrue(host.clients.all { it.gameName == "default" })
-        assertEquals(coop, NET.ip_sockets[Defines.NS_SERVER] != null)
+        assertEquals(coop, network.serverTransport.udpEndpoint != null)
         // Exercise the snapshot ring allocated from the prepared client capacity.
         host.clients[0].edict = loaded.gameExports.getEdict(1)
         loaded.buildClientFrameMessages(host.clients[0])
@@ -82,7 +108,9 @@ class HostSessionPreparationTest {
     fun `fresh Host loads save and can restart again`() {
         save(false)
         host.close()
-        host = ServerHost()
+        network.close()
+        network = HostNetworkFixture()
+        host = ServerHost(network.server)
         host.loadGame(listOf("load", "slot"))
         assertEquals(1, host.clients.size)
         assertEquals("testbox", host.games.getValue("default").mapName)
@@ -289,7 +317,7 @@ class HostSessionPreparationTest {
     fun `level entry autosave without archives remains loadable`() {
         host.map(listOf("map", "testbox"))
         host.stop("test", false)
-        host.loadGame(listOf("load", "save0"))
+        host.loadGame(listOf("load", "autosave"))
         assertEquals("testbox", host.games.getValue("default").mapName)
     }
 
@@ -319,10 +347,10 @@ class HostSessionPreparationTest {
         host.games[other.name] = other
         host.clients[1].gameName = other.name
         cvars.find<Boolean>("paused").forceSet(true)
-        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(network.serverTransport.udpEndpoint)
         if (stage == "idle") {
             host.stop("test", false)
-            NET.configureServer(false)
+            network.server.configure(false)
         }
         val path = when (stage) {
             "copy" -> root.resolve("save/current/game.ssv.json")
@@ -350,7 +378,7 @@ class HostSessionPreparationTest {
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertFalse(host.isPaused)
-            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+            assertNull(network.serverTransport.udpEndpoint)
             assertEquals(ServerStates.SS_DEAD, Globals.server_state)
             assertEquals("", cvars.find<String>("mapname").typedValue)
             assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("load"))
@@ -375,13 +403,13 @@ class HostSessionPreparationTest {
     fun `load port failure leaves reusable idle Host`() {
         save(true)
         host.stop("test", false)
-        NET.configureServer(false)
+        network.server.configure(false)
         java.net.DatagramSocket(0).use { occupied ->
             cvars.find<Int>("port").forceSet(occupied.localPort)
             assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.loadGame("slot"))
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
-            assertNull(NET.ip_sockets[Defines.NS_SERVER])
+            assertNull(network.serverTransport.udpEndpoint)
         }
         cvars.find<Int>("port").forceSet(0)
         assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
@@ -425,19 +453,17 @@ class HostSessionPreparationTest {
     @ValueSource(booleans = [false, true])
     fun `map autosave failure leaves idle Host and permits restart`(newSession: Boolean) {
         save(false)
-        val blocked = root.resolve("save/save0/game.ssv.json")
-        Files.delete(blocked)
-        Files.createDirectory(blocked)
-        Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        val blocked = root.resolve("save/autosave")
+        jake2.server.save.deleteSaveSlot(root, "autosave")
+        Files.writeString(blocked, "not a checkpoint directory")
         val result = if (newSession) host.map("testbox2") else host.changeMap("testbox2")
         assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
         assertFalse(host.isPaused)
-        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(network.serverTransport.udpEndpoint)
         assertEquals(ServerStates.SS_DEAD, Globals.server_state)
         assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
-        Files.delete(blocked.resolve("blocker"))
         Files.delete(blocked)
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
     }
@@ -467,16 +493,16 @@ class HostSessionPreparationTest {
     @Test
     fun `stop owns cleanup and preserves final packets and client socket`() {
         save(true)
-        NET.clearLoopbacks()
+        network.clearLocalTraffic()
         cvars.find<Int>("clientport").forceSet(0)
-        assertTrue(NET.configureClient(true))
-        val clientSocket = NET.ip_sockets[Defines.NS_CLIENT]
-        val serverSocket = NET.ip_sockets[Defines.NS_SERVER]
+        assertTrue(network.client.configure(true))
+        val clientSocket = network.clientTransport.udpEndpoint!!
+        val serverEndpoint = network.serverTransport.udpEndpoint!!
         val mapCommand = jake2.qcommon.exec.Cmd.FindCommand("map")
         val client = host.clients[0]
         client.state = ClientStates.CS_CONNECTED
-        client.netchan.setup(Defines.NS_SERVER, jake2.qcommon.network.netadr_t(), 0)
-        NET.SendLoopPacket(Defines.NS_CLIENT, 8, ByteArray(8), jake2.qcommon.network.netadr_t())
+        client.netchan.setup(client.netchan.remoteAddress, 0)
+        network.sendLocal(Defines.NS_CLIENT, 8, ByteArray(8))
         cvars.find<Boolean>("paused").forceSet(true)
         var deferredRan = false
         jake2.qcommon.exec.Cmd.AddCommand("test_stopped_deferred") { deferredRan = true }
@@ -484,20 +510,20 @@ class HostSessionPreparationTest {
             jake2.qcommon.exec.Cbuf.AddText("test_stopped_deferred")
             jake2.qcommon.exec.Cbuf.CopyToDefer()
             host.stop("test stop", false)
-            assertTrue(serverSocket.isClosed)
-            assertNull(NET.ip_sockets[Defines.NS_SERVER])
-            assertSame(clientSocket, NET.ip_sockets[Defines.NS_CLIENT])
-            assertFalse(clientSocket.isClosed)
+            assertFalse(serverEndpoint.isOpen)
+            assertNull(network.serverTransport.udpEndpoint)
+            assertSame(clientSocket, network.clientTransport.udpEndpoint)
+            assertTrue(clientSocket.isOpen)
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
             assertFalse(host.isPaused)
             assertEquals("", cvars.find<String>("mapname").typedValue)
             assertSame(mapCommand, jake2.qcommon.exec.Cmd.FindCommand("map"))
-            assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_SERVER], true))
-            assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
-            assertNotNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            assertNull(network.receiveLocal(Defines.NS_SERVER))
+            assertNotNull(network.receiveLocal(Defines.NS_CLIENT))
+            assertNotNull(network.receiveLocal(Defines.NS_CLIENT))
             host.stop("again", false)
-            assertNull(NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false))
+            assertNull(network.receiveLocal(Defines.NS_CLIENT))
             jake2.qcommon.exec.Cbuf.InsertFromDefer()
             jake2.qcommon.exec.Cbuf.Execute()
             assertFalse(deferredRan)
@@ -506,8 +532,8 @@ class HostSessionPreparationTest {
             assertNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
         } finally {
             jake2.qcommon.exec.Cmd.RemoveCommand("test_stopped_deferred")
-            NET.configureClient(false)
-            NET.clearLoopbacks()
+            network.client.configure(false)
+            network.clearLocalTraffic()
         }
     }
 
@@ -519,7 +545,7 @@ class HostSessionPreparationTest {
         jake2.qcommon.exec.Cbuf.Execute()
         assertEquals("testbox2", host.games.getValue("default").mapName)
         assertSame(mapCommand, jake2.qcommon.exec.Cmd.FindCommand("map"))
-        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(network.serverTransport.udpEndpoint)
     }
 
     @Test
@@ -527,14 +553,15 @@ class HostSessionPreparationTest {
         save(true)
         val client = host.clients[0]
         client.state = ClientStates.CS_CONNECTED
-        client.netchan.remote_address = null // Fault injection at final packet transmission.
-        assertThrows(NullPointerException::class.java) { host.close() }
+        network.failTransmissions(client) // Fault injection at final packet transmission.
+        assertThrows(IllegalStateException::class.java) { host.close() }
         assertTrue(host.games.isEmpty())
         assertTrue(host.clients.isEmpty())
-        assertNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNull(network.serverTransport.udpEndpoint)
         assertFalse(host.isPaused)
         assertNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
         host.close()
+        network.close()
     }
 
     @ParameterizedTest
@@ -543,19 +570,24 @@ class HostSessionPreparationTest {
         save(true)
         val game = host.games.getValue("default")
         val client = host.clients[0]
-        val blocked = if (stage == "destination") root.resolve("save/slot/game.ssv.json")
+        val blocked = if (stage == "destination") root.resolve("save/slot")
             else root.resolve("save/current/$stage")
-        Files.delete(blocked)
-        Files.createDirectory(blocked)
-        Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        if (stage == "destination") {
+            jake2.server.save.deleteSaveSlot(root, "slot")
+            Files.writeString(blocked, "not a checkpoint directory")
+        } else {
+            Files.delete(blocked)
+            Files.createDirectory(blocked)
+            Files.writeString(blocked.resolve("blocker"), "prevent replacement")
+        }
         val result = host.saveGame("slot")
         assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
         assertSame(game, host.games["default"])
         assertSame(client, host.clients[0])
         assertTrue(host.isRunning)
-        assertNotNull(NET.ip_sockets[Defines.NS_SERVER])
+        assertNotNull(network.serverTransport.udpEndpoint)
         host.update(100)
-        Files.delete(blocked.resolve("blocker"))
+        if (stage != "destination") Files.delete(blocked.resolve("blocker"))
         Files.delete(blocked)
         assertEquals(ServerHost.OperationResult.Completed, host.saveGame("slot"))
         assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
@@ -615,7 +647,7 @@ class HostSessionPreparationTest {
         assertNull(EngineVfs.loadBytes("maps.lst"), "Fixture must have no optional map list")
         val games = host.games.toMap()
         val clients = host.clients.toList()
-        val socket = NET.ip_sockets[Defines.NS_SERVER]
+        val socket = network.serverTransport.udpEndpoint
         val output = StringBuilder()
         val sink = Com.ConsoleSink { _, message -> output.append(message) }
         var continued = false
@@ -630,7 +662,7 @@ class HostSessionPreparationTest {
             assertEquals(running, host.isRunning)
             assertEquals(games, host.games)
             assertEquals(clients, host.clients.toList())
-            assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
+            assertSame(socket, network.serverTransport.udpEndpoint)
         } finally {
             Com.ClearConsoleSink(sink)
             jake2.qcommon.exec.Cmd.RemoveCommand("test_after_listmaps")

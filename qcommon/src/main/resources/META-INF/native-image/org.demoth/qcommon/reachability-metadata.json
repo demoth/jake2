@@ -1,0 +1,40 @@
+{
+  "reflection": [
+    {
+      "type": "jake2.qcommon.save.ClientPersistentSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.qcommon.save.ClientRespawnSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.qcommon.save.GameLocalsSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.qcommon.save.PlayerStateSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.qcommon.save.PmoveStateSnapshot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "type": "jake2.qcommon.math.Vector3f",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    }
+  ]
+}

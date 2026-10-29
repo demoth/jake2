@@ -22,17 +22,17 @@ import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cmd.getArguments
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.NET
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.Netchan
+import org.demoth.cake.network.ClientNetwork
+import org.demoth.cake.network.ClientHandshake
+import jake2.qcommon.network.protocol.MessageDecodeResult
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.client.UserInfoMessage
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.network.netadr_t
-import jake2.qcommon.network.netchan_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.vfs.VfsDebugCommands
 import ktx.app.KtxApplicationAdapter
 import ktx.app.KtxInputAdapter
@@ -43,6 +43,7 @@ import org.demoth.cake.assets.*
 import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
+import org.demoth.cake.profile.CakeHostStartupSettings
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.profile.CakeProfilePersistence
@@ -55,6 +56,7 @@ import org.demoth.cake.ui.GameUiStyleFactory
 import org.demoth.cake.ui.UiViewport
 import org.demoth.cake.ui.sample.UiSamplePreview
 import org.demoth.cake.ui.writeScreenshot
+import org.demoth.cake.ui.encodeSavePreview
 import org.demoth.cake.ui.menu.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -76,9 +78,9 @@ class Cake(
     startupContext: CakeStartupContext? = null,
     private val videoPlatform: CakeVideoPlatform? = null,
     val host: CakeHost = UnavailableCakeHost(),
+    private val network: ClientNetwork = host.clientNetwork,
 ) : KtxApplicationAdapter, KtxInputAdapter {
     companion object {
-        private const val CONNECT_RETRY_TIMEOUT_SECONDS = 1f
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
         private const val MAX_CLIENT_COMMAND_CATCHUP_STEPS = 4
         private const val PROFILE_BACKGROUND_PATH = "pics/conback.pcx"
@@ -128,15 +130,12 @@ class Cake(
 
     // Connection and download protocol state.
     private var networkState = DISCONNECTED
-    // Retain the last endpoint for manual reconnect; handshake replies also require CONNECTING.
-    private var connectionTarget: netadr_t? = null
-    private var localConnection = false
-    private var challenge = 0
-    private var reconnectTimeout = 0f // fire first connect attempt immediately
-    private val netchan = netchan_t()
+    private val handshake = ClientHandshake(network, ::connectPayload)
+    private val localConnection get() = handshake.isLocal
+    private val netchan = network.newChannel()
 
     private val downloads = CakeDownloadSession(sendReliable = { command ->
-        netchan.reliablePending.add(StringCmdMessage(command))
+        netchan.queueReliable(StringCmdMessage(command))
     })
     private val networkDebugSampler = NetworkDebugSampler()
     private var clientCommandExtraMs = 0f
@@ -201,11 +200,16 @@ class Cake(
     private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
     init {
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
     }
 
     override fun create() {
         initializeShaderCompatibility()
+        host.initialize {
+            if (networkState != DISCONNECTED && !localConnection)
+                "Disconnect from the remote server before starting a local game."
+            else null
+        }
         configureProfileContent(startup.activeProfile)
         reloadProfileBackground()
 
@@ -232,6 +236,9 @@ class Cake(
         val initialStyle = resolveCurrentGameUiStyle()
         menuStages = MenuStages(uiViewport, menuEventBus, assetManager, fileResolver,
             showHosting = host.availability != HostAvailability.REMOTE_ONLY,
+            readSavePreview = { profileId, slot ->
+                if (activeGameProfile?.id == profileId) host.readSavePreview(slot) else null
+            },
             activeProfileId = { activeGameProfile?.id })
         rebuildContentStyledMenuStages(initialStyle)
         // todo: gather all early logging (which is generated before the console is created)
@@ -280,6 +287,7 @@ class Cake(
          */
         Cmd.AddCommand("changing", "(internal) Enter map-change transition state") {
             networkState = CONNECTED
+            handshake.pause()
             // todo: indicate somehow about the map changing (loading screen or spinner)
             // SCR.BeginLoadingPlaque();
             Com.Printf("\nChanging map...\n")
@@ -293,11 +301,11 @@ class Cake(
 
             if (networkState == CONNECTED) { // set on "changing" command
                 Com.Printf("Sending 'new' to server\n")
-                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
+                netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
 
             } else {
-                val target = connectionTarget ?: return@AddCommand
-                val local = target.type == NetAddrType.NA_LOOPBACK
+                val target = handshake.lastTarget ?: return@AddCommand
+                val local = target is NetworkAddress.Local
                 if (local && host.state != HostState.RUNNING) {
                     Com.Warn("No local server is running.\n")
                     return@AddCommand
@@ -314,14 +322,14 @@ class Cake(
                 Com.Printf("usage: connect <server>\n")
                 return@AddCommand
             }
-            val target = netadr_t.fromString(server, PORT_SERVER)
+            val target = network.resolveAddress(server, PORT_SERVER)
             if (target == null) {
                 Com.Warn("Bad server address\n")
                 return@AddCommand
             }
-            if (target.type == NetAddrType.NA_LOOPBACK) {
+            if (target is NetworkAddress.Local) {
                 if (host.state != HostState.RUNNING) {
-                    Com.Warn("No local server is running. Use host_start or connect to a UDP address.\n")
+                    Com.Warn("No local server is running. Use map to start a local game or connect to a UDP address.\n")
                     return@AddCommand
                 }
                 resetClientConnection()
@@ -355,46 +363,34 @@ class Cake(
             }
 
             val to = if (networkState == CONNECTED || networkState == ACTIVE) {
-                netchan.remote_address
+                netchan.remoteAddress
             } else {
                 val rconAddress = Cvar.getInstance().find<String>("rcon_address").typedValue
                 if (rconAddress.isEmpty()) {
                     Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
                     return@AddCommand
                 }
-                netadr_t.fromString(rconAddress, PORT_SERVER) ?: run {
+                network.resolveAddress(rconAddress, PORT_SERVER) ?: run {
                     Com.Warn("Bad rcon_address\n")
                     return@AddCommand
                 }
             }
 
-            if (to.type != NetAddrType.NA_LOOPBACK && !NET.configureClient(true)) {
+            if (to !is NetworkAddress.Local && !network.configure(true)) {
                 Com.Warn("Could not open the client UDP socket\n")
                 return@AddCommand
             }
-            Netchan.sendConnectionlessPacket(NS_CLIENT, to, ConnectionlessCommand.rcon, message)
+            network.sendConnectionless(to, ConnectionlessCommand.rcon, message)
         }
 
         Cmd.AddCommand("disconnect", "Disconnect and stop any local server") { disconnect() }
-
-        Cmd.AddCommand("host_start", "Start a local server: host_start <map> [singleplayer|deathmatch|coop] [skill] [maxclients]") { args ->
-            val profile = activeGameProfile
-            if (profile == null) {
-                Com.Warn("Select a game profile before hosting.\n")
-                return@AddCommand
-            }
-            val request = parseHostRequest(args, profile)
-            if (request == null) {
-                Com.Printf("usage: host_start <map> [singleplayer|deathmatch|coop] [skill 0..3] [maxclients]\n")
-                return@AddCommand
-            }
-            if (host.availability != HostAvailability.AVAILABLE) {
-                Com.Warn("Hosting is unavailable in this application.\n")
-                return@AddCommand
-            }
-            startHostedGame(request)
+        Cmd.AddCommand("menu_loadgame", "Open the Load Game menu") {
+            menuEventBus.postIntent(MenuIntent.OpenLoadGame)
         }
-        Cmd.AddCommand("host_stop", "Stop the local game and disconnect") { disconnect() }
+        Cmd.AddCommand("menu_savegame", "Open the Save Game menu") {
+            menuEventBus.postIntent(MenuIntent.OpenSaveGame)
+        }
+
         Cmd.AddCommand("loading", "(internal) Prepare local map-change presentation") {
             if (host.state != HostState.STOPPED && game3dScreen != null) {
                 beginMapTransitionRetainingConfigAssets()
@@ -443,7 +439,7 @@ class Cake(
                 Com.Warn("Cannot cmd '${it}', not connected")
             } else {
                 if (it.size > 1)
-                    netchan.reliablePending.add(StringCmdMessage(getArguments(it)))
+                    netchan.queueReliable(StringCmdMessage(getArguments(it)))
                 else
                     Com.Warn("Empty cmd") // todo: warning
             }
@@ -477,38 +473,32 @@ class Cake(
             downloads.precacheCompleted()
 
             // we are ready to start the game!
-            netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
+            netchan.queueReliable(StringCmdMessage(StringCmdMessage.BEGIN + " " + precache_spawncount + "\n"))
         }
 
         // endregion
         Cbuf.AddLateCommands(startup.startupCommands)
     }
 
-    /** Shared entrypoint for the console and Host Game menu. */
+    /** Menu startup uses the same automatic local attachment as console commands. */
     private fun startHostedGame(request: HostRequest): HostStartResult {
         disconnect()
         val result = host.start(request)
         when (result) {
             HostStartResult.Started -> {
                 Com.Printf("Local server started: ${request.map}\n")
-                beginConnection(netadr_t(), local = true)
             }
             is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
         }
         return result
     }
 
-    private fun beginConnection(target: netadr_t, local: Boolean) {
-        if (!local && !NET.configureClient(true)) {
+    private fun beginConnection(target: NetworkAddress, local: Boolean) {
+        if (!handshake.begin(target)) {
             Com.Warn("Could not open the client UDP socket\n")
             return
         }
-        if (local) NET.configureClient(false)
         Com.Printf("Connecting to ${if (local) "local server" else target}...\n")
-        connectionTarget = target
-        localConnection = local
-        challenge = 0
-        reconnectTimeout = 0f
         networkState = CONNECTING
     }
 
@@ -518,8 +508,7 @@ class Cake(
         resetClientConnection()
         host.stop("Disconnected")
         hostClock.reset()
-        NET.configureClient(false)
-        NET.clearLoopbacks()
+        network.stop()
     }
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
@@ -534,17 +523,16 @@ class Cake(
         clearTransitionBackdrop()
         netchan.clear()
         networkState = DISCONNECTED
-        localConnection = false
-        challenge = 0
-        reconnectTimeout = 0f
+        handshake.reset()
         clientCommandExtraMs = 0f
         downloads.reset()
         networkDebugSampler.clear()
     }
 
     private fun transmitAndRecord(unreliable: Collection<NetworkMessage>?) {
-        netchan.transmit(unreliable)
-        networkDebugSampler.recordOutbound(netchan.last_sent_size, Globals.curtime)
+        if (netchan.transmit(unreliable)) {
+            networkDebugSampler.recordOutbound(netchan.lastSentSize, Globals.curtime)
+        }
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
@@ -684,9 +672,11 @@ class Cake(
             host.setPaused(menuVisible || consoleVisible || uiSample.isOpen || applicationPaused)
             host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
                 Globals.fixedtime.typedValue, Globals.timescale.typedValue))
-            if (awaitingNewGame && host.state == HostState.RUNNING) {
+            // Console/startup commands can start a Host without going through a menu.
+            // Existing local transitions and remote connections retain their handshake paths.
+            if (networkState == DISCONNECTED && host.state == HostState.RUNNING) {
                 awaitingNewGame = false
-                beginConnection(netadr_t(), local = true)
+                beginConnection(network.localPeer, local = true)
                 menuVisible = false
                 consoleVisible = false
             }
@@ -696,7 +686,7 @@ class Cake(
             }
             game3dScreen?.updateLocalInput(deltaSeconds)
             runClientCommandSteps(deltaSeconds)
-            CheckForResend(deltaSeconds)
+            handshake.tick(deltaSeconds)
 
             if (!drawable) return
             if (uiViewport.setReferenceHeight(uiSize.typedValue)) {
@@ -710,8 +700,8 @@ class Cake(
                 // Cross-reference: old client reads `cls.netchan.incoming_acknowledged/outgoing_sequence`
                 // in `CL_pred.PredictMovement`.
                 game3dScreen?.updatePredictionNetworkState(
-                    netchan.incoming_acknowledged,
-                    netchan.outgoing_sequence,
+                    netchan.incomingAcknowledged,
+                    netchan.outgoingSequence,
                     Globals.curtime
                 )
                 game3dScreen?.render(deltaSeconds)
@@ -727,9 +717,12 @@ class Cake(
             }
 
             if (uiSample.isOpen) {
+                menuStages.hideSavedGamePreviews()
                 uiSample.render(deltaSeconds)
             } else if (menuVisible) {
                 menuStages.render(deltaSeconds)
+            } else {
+                menuStages.hideSavedGamePreviews()
             }
 
             // Engine console and diagnostics stay in unscaled window coordinates.
@@ -741,7 +734,7 @@ class Cake(
 
             if (debugGraphStage.hasEnabledMetrics()) {
                 val profiler = if (glProfilerActive) glProfiler else null
-                val networkSnapshot = networkDebugSampler.snapshot(Globals.curtime, netchan.smoothed_ping_ms)
+                val networkSnapshot = networkDebugSampler.snapshot(Globals.curtime, netchan.smoothedPingMillis)
                 debugGraphStage.collectMetrics(profiler, networkSnapshot)
                 debugGraphStage.act(deltaSeconds)
                 debugGraphStage.draw()
@@ -791,13 +784,13 @@ class Cake(
      */
     private fun sendUpdates() {
         game3dScreen?.pollCinematicSkipCommand(Globals.curtime)?.let { skipCommand ->
-            netchan.reliablePending.add(skipCommand)
+            netchan.queueReliable(skipCommand)
         }
 
         when (networkState) {
             CONNECTING, DISCONNECTED -> return
             CONNECTED -> {
-                if (netchan.reliablePending.isNotEmpty() || Globals.curtime - netchan.last_sent > CONNECTED_KEEPALIVE_TIMEOUT_MS) {
+                if (netchan.hasQueuedReliable || netchan.hasBeenIdleFor(CONNECTED_KEEPALIVE_TIMEOUT_MS.toLong())) {
                     // send pending reliable messages (e.g. "new") immediately
                     transmitAndRecord(null)
                 }
@@ -805,7 +798,7 @@ class Cake(
 
             ACTIVE -> {
                 queueUserInfoUpdateIfNeeded()
-                game3dScreen?.buildMoveMessage(netchan.outgoing_sequence, currentClientCommandMsec())?.let {
+                game3dScreen?.buildMoveMessage(netchan.outgoingSequence, currentClientCommandMsec())?.let {
                     transmitAndRecord(listOf(it))
                 }
             }
@@ -846,7 +839,7 @@ class Cake(
     @Suppress("DEPRECATION")
     private fun queueUserInfoUpdateIfNeeded() {
         if (Globals.userinfo_modified) {
-            netchan.reliablePending.add(UserInfoMessage(Cvar.getInstance().Userinfo()))
+            netchan.queueReliable(UserInfoMessage(Cvar.getInstance().Userinfo()))
             Globals.userinfo_modified = false
         }
     }
@@ -939,7 +932,11 @@ class Cake(
     override fun dispose() {
         closeUiSample()
         uiSample.dispose()
-        disconnect()
+        try {
+            disconnect()
+        } finally {
+            try { host.dispose() } finally { network.close() }
+        }
         profilePersistence.saveConfig()
         menuStages.dispose()
         consoleStage.dispose()
@@ -983,6 +980,16 @@ class Cake(
     private fun drainMenuSignals(maxItems: Int = MenuEventBus.DEFAULT_DRAIN_LIMIT) {
         menuEventBus.drainSignals(maxItems) { signal ->
             when (signal) {
+                MenuSignal.ShowMenu -> {
+                    menuVisible = true
+                    consoleVisible = false
+                    updateInputHandlers(consoleVisible, menuVisible)
+                }
+                MenuSignal.CloseMenu -> {
+                    menuVisible = false
+                    consoleVisible = false
+                    updateInputHandlers(consoleVisible, menuVisible)
+                }
                 is MenuSignal.OpenUiSample -> openUiSample(signal.game)
                 MenuSignal.CloseUiSample -> closeUiSample()
                 is MenuSignal.CaptureUiSample -> {
@@ -1043,79 +1050,48 @@ class Cake(
         deferredConfigUnloadScreen = null
     }
 
-    /**
-     * CheckForResend
-     *
-     * Resend a connect message if the last one has timed out.
-     */
-    private fun CheckForResend(deltaSeconds: Float) {
-        // resend if we haven't gotten a reply yet
-        if (networkState != CONNECTING)
-            return
-
-        val adr = connectionTarget ?: return
-        if (reconnectTimeout <= 0f) {
-            if (localConnection) {
-                // The server already trusts in-process loopback; use its normal connect path.
-                SendConnectPacket()
-            } else {
-                Netchan.sendConnectionlessPacket(NS_CLIENT, adr, ConnectionlessCommand.getchallenge, "\n")
-            }
-            reconnectTimeout = CONNECT_RETRY_TIMEOUT_SECONDS
-        } else {
-            reconnectTimeout -= deltaSeconds
-        }
-    }
-
     // The connect payload already includes current userinfo, so consume the legacy dirty flag.
-    // Keep this suppression until the client/cvar sync replacement noted in Globals exists.
     @Suppress("DEPRECATION")
-    private fun SendConnectPacket() {
-        val adr = connectionTarget ?: return
-
-        val port = Cvar.getInstance().find<Int>("qport").typedValue
+    private fun connectPayload(challenge: Int): String {
+        val port = network.qport
         Globals.userinfo_modified = false
-
-        Netchan.sendConnectionlessPacket(
-            NS_CLIENT,
-            adr,
-            ConnectionlessCommand.connect,
-            " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
-        )
+        return " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
     }
 
     private fun CL_ReadPackets() {
-        while (true) {
-            val networkPacket = NET.receiveNetworkPacket(
-                NET.ip_sockets[NS_CLIENT],
-                NET.ip_channels[NS_CLIENT],
-                NET.loopbacks[NS_CLIENT],
-                false
-            )
-
-            if (networkPacket == null) break
-
+        network.poll { networkPacket ->
             if (networkPacket.isConnectionless) {
                 CL_ConnectionlessPacket(networkPacket)
-                continue
+                return@poll
             }
 
             if (networkState == CONNECTING || networkState == DISCONNECTED) {
                 // dump it if not connected
-                continue
+                return@poll
             }
             //
             // packet from server
             //
-            if (networkPacket.from.type != netchan.remote_address.type ||
-                !networkPacket.from.compareIp(netchan.remote_address)) {
+            if (networkPacket.from != netchan.remoteAddress) {
                 Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
-                continue
+                return@poll
             }
 
             if (netchan.accept(networkPacket)) {
-                networkDebugSampler.recordInbound(netchan.last_received_size, Globals.curtime)
-                parseServerMessage(networkPacket.parseBodyFromServer())
+                networkDebugSampler.recordInbound(netchan.lastReceivedSize, Globals.curtime)
+                when (val body = networkPacket.parseBodyFromServer()) {
+                    is MessageDecodeResult.Decoded -> {
+                        if (network.logMessages) body.messages.forEach { message ->
+                            if (message !is FrameHeaderMessage && message !is PlayerInfoMessage && message !is PacketEntitiesMessage)
+                                Com.Printf("Network: Received server msg: $message\n")
+                        }
+                        parseServerMessage(body.messages)
+                    }
+                    is MessageDecodeResult.Rejected -> {
+                        Com.Warn("Bad server payload at ${body.offset}: ${body.detail}\n")
+                        dropToConsole()
+                    }
+                }
             } //else wasn't accepted for some reason
 
 
@@ -1130,8 +1106,8 @@ class Cake(
         // payload messages. We push those values into prediction first, mirroring old `CL_ReadPackets`
         // + `CL_pred.CheckPredictionError/PredictMovement` data flow.
         game3dScreen?.updatePredictionNetworkState(
-            netchan.incoming_acknowledged,
-            netchan.outgoing_sequence,
+            netchan.incomingAcknowledged,
+            netchan.outgoingSequence,
             Globals.curtime
         )
         messages.forEach { msg ->
@@ -1142,14 +1118,13 @@ class Cake(
                     return
                 }
 
-                // NB: it is not sent during map change (instead - StuffTextMessage("reconnect"))
+                // NB: it is not sent during map change (instead - StuffTextMessage.command("reconnect"))
                 // sent on server restart
                 is ReconnectMessage -> {
                     Com.Printf("ReconnectMessage: Reconnecting..\n")
                     beginMapTransitionRetainingConfigAssets()
                     networkState = CONNECTING
-                    // CheckForResend() will fire immediately
-                    reconnectTimeout = 0f
+                    handshake.restart()
                 }
 
                 is StuffTextMessage -> {
@@ -1171,7 +1146,7 @@ class Cake(
                     // new game is starting
                     Cbuf.Execute()
                     resetClientStateForServerData()
-                    netchan.reliablePending.clear()
+                    netchan.clearQueuedReliable()
 
                     menuStages.hideContentPreviews()
                     fileResolver.gamemod = msg.gameName.takeIf { !it.isNullOrBlank() }
@@ -1193,8 +1168,8 @@ class Cake(
                 }
 
                 is DownloadMessage -> {
-                    msg.data?.size?.takeIf { it > 0 }?.let { bytes ->
-                        networkDebugSampler.recordDownload(bytes, Globals.curtime)
+                    if (msg is DownloadMessage.Chunk && msg.data.size > 0) {
+                        networkDebugSampler.recordDownload(msg.data.size, Globals.curtime)
                     }
                     when (val result = downloads.handle(msg)) {
                         CakeDownloadSession.Result.Continue -> Unit
@@ -1297,7 +1272,7 @@ class Cake(
      * This is used as a light-weight visual bridge during level transitions.
      */
     private fun captureTransitionBackdropFromActiveScreen() {
-        val scenePixmap = game3dScreen?.captureScenePixmapForTransition() ?: return
+        val scenePixmap = game3dScreen?.captureScenePixmap() ?: return
         transitionBackdropTexture?.dispose()
         val snapshotTexture = Texture(scenePixmap)
         scenePixmap.dispose()
@@ -1342,21 +1317,16 @@ class Cake(
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
         val c = args.firstOrNull() ?: return
         val cmd = ConnectionlessCommand.fromString(c)
-        if (cmd == ConnectionlessCommand.challenge || cmd == ConnectionlessCommand.client_connect) {
-            val target = connectionTarget ?: return
-            if (networkState != CONNECTING || packet.from.type != target.type || !packet.from.compareIp(target)) return
-        }
-
         when (cmd) {
             ConnectionlessCommand.challenge -> {
-                challenge = args.getOrNull(1)?.toIntOrNull() ?: return
-                SendConnectPacket()
+                handshake.receiveChallenge(packet.from, args.getOrNull(1))
             }
 
             ConnectionlessCommand.client_connect -> {
+                if (!handshake.acceptConnection(packet.from)) return
                 networkState = CONNECTED
-                netchan.setup(NS_CLIENT, packet.from, Cvar.getInstance().find<Int>("qport").typedValue)
-                netchan.reliablePending.add(StringCmdMessage(StringCmdMessage.NEW))
+                netchan.setup(packet.from, network.qport)
+                netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
                 Com.Println("Connected!")
             }
 
@@ -1483,12 +1453,23 @@ class Cake(
 
     private fun autodetectSteamBasedir(): String? = CakeStartupBootstrap.autodetectSteamBasedir()
 
-    /** Switching is permitted only while disconnected with the local host stopped.
-     * Persist selection before changing runtime content so rejected saves leave it untouched.
-     */
+    /** Validate hosted storage before persisting selection; roll back the Host if persistence fails. */
     private fun activateGameProfile(profile: CakeGameProfile, persistSelection: () -> String): String {
         profilePersistence.saveConfig()
-        val path = persistSelection()
+        val previousProfile = activeGameProfile
+        host.activateProfile(profile)
+        val path = try {
+            persistSelection()
+        } catch (failure: Exception) {
+            try {
+                host.activateProfile(previousProfile)
+            } catch (rollbackFailure: Exception) {
+                failure.addSuppressed(rollbackFailure)
+            }
+            throw failure
+        }
+        // Selection and hosted storage are committed before discarding outgoing gameplay inputs.
+        CakeHostStartupSettings.reset()
         applyGameProfile(profile)
         profilePersistence.loadConfig()
         return path
@@ -1506,6 +1487,7 @@ class Cake(
 
     private fun configureProfileContent(profile: CakeGameProfile?) {
         val normalized = profile?.normalized()
+        host.activateProfile(normalized)
         activeGameProfile = normalized
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
@@ -1567,6 +1549,32 @@ class Cake(
     }
 
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
+        override fun saveAccess(): HostSaveAccess = host.saveAccess()
+        override fun listSaves(): HostSaveCatalogResult = host.listSaves()
+        override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {
+            val preview = try {
+                val image = if (localConnection && networkState == ACTIVE && !transitionBackdropActive &&
+                    game3dScreen?.canRenderPresentationFrame() == true) game3dScreen?.captureScenePixmap() else null
+                image?.let { try { encodeSavePreview(it) } finally { it.dispose() } }
+            } catch (failure: Exception) {
+                Com.Warn("Could not capture save preview: ${failure.message}\n")
+                null
+            }
+            val result = finishSaveOperation(host.saveGame(slot, overwrite, preview))
+            return if (result is HostSaveResult.Completed && preview == null)
+                result.copy(warning = "Preview unavailable.") else result
+        }
+        override fun loadGame(slot: String): HostSaveResult = finishSaveOperation(host.loadGame(slot))
+        override fun deleteSave(slot: String): HostSaveResult = host.deleteSave(slot)
+
+        private fun finishSaveOperation(result: HostSaveResult): HostSaveResult {
+            if (result is HostSaveResult.Failed && host.state == HostState.STOPPED) {
+                // Late failure sent disconnect packets; clear the old client before presenting the error.
+                disconnect()
+            }
+            return result
+        }
+
         override fun hostingUnavailableReason(): String? = when {
             host.availability != HostAvailability.AVAILABLE -> "Hosting requires Cake fullgame."
             activeGameProfile == null -> "Select a game profile first."

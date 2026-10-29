@@ -20,13 +20,14 @@ class ServerSaveJsonStoreTest {
     void roundTripsServerMapCommandSnapshot() throws Exception {
         ServerSaveJsonStore store = new ServerSaveJsonStore(new DefaultWritableFileSystem(temp));
 
-        store.writeMapCommand("current", "Autosave in base1", "gamemap \"*base1\"");
+        store.writeMapCommand("current", "Autosave in base1", "gamemap \"*base1\"", "Outer Base");
 
         assertTrue(store.hasMapCommand("current"));
         ServerSaveJsonStore.ServerMapCommandSnapshot snapshot = store.readMapCommand("current");
         assertEquals(ServerSaveJsonStore.SCHEMA_VERSION, snapshot.schemaVersion());
         assertEquals("Autosave in base1", snapshot.comment());
         assertEquals("gamemap \"*base1\"", snapshot.mapCommand());
+        assertEquals("Outer Base", snapshot.mapTitle());
     }
 
     @Test

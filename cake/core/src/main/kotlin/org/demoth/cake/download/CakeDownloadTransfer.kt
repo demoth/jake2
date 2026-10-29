@@ -31,21 +31,24 @@ class CakeDownloadTransfer {
     fun handle(message: DownloadMessage): CakeDownloadTransferResult {
         val request = requireNotNull(activeRequest) { "No active download request" }
 
-        if (message.data == null) {
-            activeRequest = null
-            return CakeDownloadTransferResult.MissingOnServer(request)
+        val chunk = when (message) {
+            is DownloadMessage.Failure -> {
+                activeRequest = null
+                return CakeDownloadTransferResult.MissingOnServer(request)
+            }
+            is DownloadMessage.Chunk -> message
         }
 
         ensureParentDirectories(request)
         Files.write(
             request.tempPath,
-            message.data,
+            chunk.data.toByteArray(),
             StandardOpenOption.CREATE,
             StandardOpenOption.WRITE,
             StandardOpenOption.APPEND,
         )
 
-        val percent = message.percentage.toInt() and 0xFF
+        val percent = chunk.percentage
         if (percent >= 100) {
             Files.move(request.tempPath, request.finalPath, StandardCopyOption.REPLACE_EXISTING)
             activeRequest = null

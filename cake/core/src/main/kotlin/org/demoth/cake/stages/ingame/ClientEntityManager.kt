@@ -100,7 +100,7 @@ class ClientEntityManager : Disposable {
     }
 
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
-        clientEntities[msg.entityState.index].baseline.set(msg.entityState)
+        msg.entityState.copyTo(clientEntities[msg.entityState.index].baseline)
     }
 
     // Cross-reference: old client iterates dynamic collision entities from
@@ -171,12 +171,12 @@ class ClientEntityManager : Disposable {
 
         // Process updates in order
         for (update in msg.updates) {
-            val newnum = update.header.number
+            val newnum = update.number
 
             // Bring old pointer up to the current newnum, copying unchanged
             copyUnchangedUntil(newnum)
 
-            if ((update.header.flags and Defines.U_REMOVE) != 0) {
+            if (update !is EntityUpdate.Change) {
                 // Removal: ensure we are at the entity being removed
                 // If due to some earlier mismatch we are still behind, pull forward copying unchanged
                 copyUnchangedUntil(newnum)
@@ -214,7 +214,7 @@ class ClientEntityManager : Disposable {
     /**
      * Update entity based on the delta [update] received from server and it's previous state.
      */
-    private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate?) {
+    private fun DeltaEntity(frame: ClientFrame, newnum: Int, old: entity_state_t, update: EntityUpdate.Change?) {
         val entity: ClientEntity = clientEntities[newnum]
         // parse_entities now points to the last state from last frame
         val newState: entity_state_t = cl_parse_entities[parse_entities and (Defines.MAX_PARSE_ENTITIES - 1)]
@@ -227,7 +227,7 @@ class ClientEntityManager : Disposable {
         Math3D.VectorCopy(old.origin, newState.old_origin)
 
         if (update != null) {
-            newState.setByFlags(update.newState, update.header.flags)
+            update.delta.applyTo(newState)
         }
 
         // Cake: Decide if we should clear the cached model instance in certain cases.
@@ -732,7 +732,7 @@ class ClientEntityManager : Disposable {
         time = time.coerceIn(currentFrame.servertime - 100, currentFrame.servertime)
 
         // read areabits
-        System.arraycopy(msg.areaBits, 0, currentFrame.areabits, 0, msg.areaBits.size);
+        msg.areaBits.copyTo(currentFrame.areabits)
     }
 
     fun processPlayerInfoMessage(msg: PlayerInfoMessage) {
@@ -746,56 +746,10 @@ class ClientEntityManager : Disposable {
             currentPlayerState.set(deltaFrame.playerstate)
         }
 
-        //
-        // parse the pmove_state_t
-        //
-        if ((msg.deltaFlags and Defines.PS_M_TYPE) != 0)
-            currentPlayerState.pmove.pm_type = msg.currentState.pmove.pm_type;
+        msg.applyTo(currentPlayerState)
 
 //        if (ClientGlobals.cl.attractloop)
-//            state.pmove.pm_type = Defines.PM_FREEZE; // demo playback
-
-        if ((msg.deltaFlags and Defines.PS_M_ORIGIN) != 0)
-            currentPlayerState.pmove.origin = msg.currentState.pmove.origin;
-        if ((msg.deltaFlags and Defines.PS_M_VELOCITY) != 0)
-            currentPlayerState.pmove.velocity = msg.currentState.pmove.velocity;
-        if ((msg.deltaFlags and Defines.PS_M_TIME) != 0)
-            currentPlayerState.pmove.pm_time = msg.currentState.pmove.pm_time;
-        if ((msg.deltaFlags and Defines.PS_M_FLAGS) != 0)
-            currentPlayerState.pmove.pm_flags = msg.currentState.pmove.pm_flags;
-        if ((msg.deltaFlags and Defines.PS_M_GRAVITY) != 0)
-            currentPlayerState.pmove.gravity = msg.currentState.pmove.gravity;
-        if ((msg.deltaFlags and Defines.PS_M_DELTA_ANGLES) != 0)
-            currentPlayerState.pmove.delta_angles = msg.currentState.pmove.delta_angles;
-        //
-        // parse the rest of the player_state_t
-        //
-        if ((msg.deltaFlags and Defines.PS_VIEWOFFSET) != 0)
-            currentPlayerState.viewoffset = msg.currentState.viewoffset;
-        if ((msg.deltaFlags and Defines.PS_VIEWANGLES) != 0)
-            currentPlayerState.viewangles = msg.currentState.viewangles;
-        if ((msg.deltaFlags and Defines.PS_KICKANGLES) != 0)
-            currentPlayerState.kick_angles = msg.currentState.kick_angles;
-        if ((msg.deltaFlags and Defines.PS_WEAPONINDEX) != 0)
-            currentPlayerState.gunindex = msg.currentState.gunindex;
-        if ((msg.deltaFlags and Defines.PS_WEAPONFRAME) != 0) {
-            currentPlayerState.gunframe = msg.currentState.gunframe;
-            currentPlayerState.gunoffset = msg.currentState.gunoffset;
-            currentPlayerState.gunangles = msg.currentState.gunangles;
-        }
-        if ((msg.deltaFlags and Defines.PS_BLEND) != 0)
-            currentPlayerState.blend = msg.currentState.blend;
-        if ((msg.deltaFlags and Defines.PS_FOV) != 0)
-            currentPlayerState.fov = msg.currentState.fov;
-        if ((msg.deltaFlags and Defines.PS_RDFLAGS) != 0)
-            currentPlayerState.rdflags = msg.currentState.rdflags;
-
-        // copy only changed stats
-        for (i in (0..<Defines.MAX_STATS)) {
-            if ((msg.statbits and (1 shl i)) != 0) {
-                currentPlayerState.stats[i] = msg.currentState.stats[i];
-            }
-        }
+//            currentPlayerState.pmove.pm_type = Defines.PM_FREEZE; // demo playback
     }
 
     override fun dispose() {

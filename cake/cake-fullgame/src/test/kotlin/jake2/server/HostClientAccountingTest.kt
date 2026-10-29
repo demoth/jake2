@@ -1,5 +1,7 @@
 package jake2.server
 
+import jake2.qcommon.network.transport.NetworkAddress
+import jake2.qcommon.network.transport.IpAddress
 import jake2.game.GameEntity
 import jake2.game.GamePlayerInfo
 import jake2.qcommon.*
@@ -7,6 +9,9 @@ import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.*
 import jake2.qcommon.network.messages.client.MoveMessage
+import jake2.qcommon.network.messages.client.UserCommand
+import jake2.qcommon.network.messages.client.UserInfoMessage
+import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.vfs.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -14,9 +19,32 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 class HostClientAccountingTest {
+    @Test
+    fun `checksum rejection skips trailing commands and callbacks cannot mutate command snapshots`() {
+        val client = bind(0, first)
+        client.state = ClientStates.CS_SPAWNED
+        client.commandMsec = 1000
+        var calls = 0
+        first.gameExports = object : GameExports by first.gameExports {
+            override fun ClientThink(ent: ServerEntity, cmd: usercmd_t) { calls++; cmd.clear() }
+        }
+        val command = UserCommand(msec = 16, forwardmove = 120)
+        val movement = MoveMessage(-1, UserCommand(), UserCommand(), command)
+        host.handleClientMessages(client, listOf(movement.copy(checksumValid = false), UserInfoMessage("\\name\\must_not_apply")))
+        assertEquals(0, calls)
+        assertEquals("", client.userinfo)
+        assertEquals(ClientStates.CS_SPAWNED, client.state)
+        host.handleClientMessages(client, listOf(movement))
+        assertEquals(1, calls)
+        assertEquals(120, movement.newCmd.forwardmove)
+        assertEquals(120, client.lastcmd.forwardmove.toInt())
+        assertEquals(16, client.lastcmd.msec.toInt() and 255)
+    }
+
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
     private var previousState: ServerStates? = null
+    private lateinit var network: HostNetworkFixture
     private lateinit var host: ServerHost
     private lateinit var first: GameImportsImpl
     private lateinit var second: GameImportsImpl
@@ -29,12 +57,12 @@ class HostClientAccountingTest {
         Globals.server_state = ServerStates.SS_DEAD
         cvars.clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
-        drainPackets()
+        NetworkSettings.registerCvars()
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)
-        host = ServerHost()
+        network = HostNetworkFixture()
+        host = ServerHost(network.server)
         assertTrue(host.startMap("testbox"))
         host.games.clear()
         cvars.find<Int>("maxclients").forceSet(2)
@@ -62,13 +90,14 @@ class HostClientAccountingTest {
         lastconnect = 100
         rate = 100000
         state = ClientStates.CS_CONNECTED
-        netchan.setup(Defines.NS_SERVER, netadr_t(), index)
+        netchan.setup(netchan.remoteAddress, index)
     }
 
     @AfterEach
     fun cleanup() {
         host.clients.forEach { it.state = ClientStates.CS_FREE }
         host.close()
+        network.close()
         drainPackets()
         EngineWriteRoot.setRoot(previousRoot)
         Globals.server_state = previousState
@@ -77,7 +106,7 @@ class HostClientAccountingTest {
 
     private fun drainPackets() {
         for (side in listOf(Defines.NS_CLIENT, Defines.NS_SERVER)) {
-            while (NET.receiveNetworkPacket(null, null, NET.loopbacks[side], side == Defines.NS_SERVER) != null) { }
+            while (network.receiveLocal(side) != null) { }
         }
     }
 
@@ -137,7 +166,7 @@ class HostClientAccountingTest {
         client.download = byteArrayOf(1)
         client.downloadsize = 1
         client.downloadcount = 1
-        client.unreliable.add(jake2.qcommon.network.messages.server.StuffTextMessage("stale"))
+        client.unreliable.add(jake2.qcommon.network.messages.server.StuffTextMessage.command("stale"))
         val failure = IllegalStateException("broken callback")
         var callbacks = 0
         first.gameExports = object : GameExports by first.gameExports {
@@ -163,16 +192,36 @@ class HostClientAccountingTest {
     fun `reliable overflow disconnects only offending connection and peers still receive messages`() {
         val client = bind(0, first)
         val peer = bind(1, first)
-        client.netchan.reliablePending.add(
-            jake2.qcommon.network.messages.server.StuffTextMessage("x".repeat(Defines.MAX_MSGLEN)))
-        peer.netchan.reliablePending.add(jake2.qcommon.network.messages.server.StuffTextMessage("peer"))
-        val previousSequence = peer.netchan.outgoing_sequence
+        client.netchan.queueReliable(
+            jake2.qcommon.network.messages.server.StuffTextMessage.command("x".repeat(Defines.MAX_MSGLEN)))
+        peer.netchan.queueReliable(jake2.qcommon.network.messages.server.StuffTextMessage.command("peer"))
+        val previousSequence = peer.netchan.outgoingSequence
         host.sendClientMessages()
         assertEquals(ClientStates.CS_ZOMBIE, client.state)
         assertEquals(ClientStates.CS_CONNECTED, peer.state)
-        assertTrue(peer.netchan.outgoing_sequence > previousSequence)
+        assertTrue(peer.netchan.outgoingSequence > previousSequence)
         assertSame(first, host.games[first.name])
         assertSame(second, host.games[second.name])
+    }
+
+    @Test
+    fun `large downloads keep unsigned progress accurate through their final queued chunks`() {
+        val client = bind(0, first)
+        val source = ByteArray(24 * 1024 * 1024)
+        client.download = source
+        client.downloadsize = source.size
+        client.downloadcount = source.size - 2048
+        host.executeClientCommand(client, "nextdl")
+        val firstChunk = client.netchan.queuedReliable.single() as DownloadMessage.Chunk
+        assertEquals(99, firstChunk.percentage)
+        assertEquals(1024, firstChunk.data.size)
+        source[source.size - 2048] = 77
+        assertEquals(0.toByte(), firstChunk.data.toByteArray()[0])
+        host.executeClientCommand(client, "nextdl")
+        val lastChunk = client.netchan.queuedReliable.last() as DownloadMessage.Chunk
+        assertEquals(100, lastChunk.percentage)
+        assertEquals(1024, lastChunk.data.size)
+        assertNull(client.download)
     }
 
     @Test
@@ -180,11 +229,7 @@ class HostClientAccountingTest {
         val client = bind(0, first)
         val peer = bind(1, first)
         val invalid = object : jake2.qcommon.network.messages.client.ClientMessage(
-            jake2.qcommon.network.messages.client.ClientMessageType.CLC_BAD) {
-            override fun writeProperties(buffer: sizebuf_t) = Unit
-            override fun parse(buffer: sizebuf_t) = Unit
-            override fun getSize() = 1
-        }
+            jake2.qcommon.network.messages.client.ClientMessageType.CLC_BAD) {}
         host.handleClientMessages(client, listOf(invalid,
             jake2.qcommon.network.messages.client.UserInfoMessage("\\name\\must_not_apply")))
         assertEquals(ClientStates.CS_ZOMBIE, client.state)
@@ -234,7 +279,7 @@ class HostClientAccountingTest {
             override fun G_RunFrame() { frames++ }
             override fun ClientThink(ent: ServerEntity, cmd: usercmd_t) { moves++ }
         }
-        val move = MoveMessage(false, -1, usercmd_t(), usercmd_t(), usercmd_t(), 0).apply { valid = true }
+        val move = MoveMessage.fromInput(false, -1, usercmd_t(), usercmd_t(), usercmd_t())
         cvars.find<Boolean>("paused").forceSet(true) // Direct console request, bypassing menu filtering.
         first.runFrame()
         host.handleClientMessages(client, listOf(move))
@@ -261,7 +306,7 @@ class HostClientAccountingTest {
         client.state = ClientStates.CS_CONNECTED
         host.update(100)
         first.frameNum = 0
-        val move = MoveMessage(false, snapshot, usercmd_t(), usercmd_t(), usercmd_t(), 0)
+        val move = MoveMessage.fromInput(false, snapshot, usercmd_t(), usercmd_t(), usercmd_t())
         host.handleClientMessages(client, listOf(move))
         client.state = ClientStates.CS_SPAWNED
         host.updateClientPings()
@@ -272,7 +317,7 @@ class HostClientAccountingTest {
     fun `rate history expires by Host frames and movement budget ignores Game age`() {
         val a = bind(0, first)
         val b = bind(1, second)
-        a.netchan.remote_address.type = NetAddrType.NA_IP
+        a.netchan.setup(NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(127, 0, 0, 1)), 0), a.netchan.qport)
         a.rate = 1
         a.message_size[1] = 100
         repeat(10) {
@@ -302,43 +347,33 @@ class HostClientAccountingTest {
                 receiver.receive(packet)
                 return String(packet.data, 4, packet.length - 4).trim()
             }
-            val address = netadr_t().apply {
-                type = NetAddrType.NA_IP
-                ip = loopback.address
-                port = receiver.localPort
-            }
+            val address = NetworkAddress.Udp(IpAddress.fromBytes(loopback.address), receiver.localPort)
             cvars.find<Int>("port").forceSet(0)
             try {
-                assertTrue(NET.configureServer(true))
+                assertTrue(network.server.configure(true))
                 Globals.curtime = 1000
                 host.handleConnectionlessPacket(address, "getchallenge")
                 val issued = reply()
                 val challenge = issued.substringAfterLast(' ')
-                NET.configureServer(false)
+                network.server.configure(false)
                 // No UDP socket while filling synthetic remote addresses: no external packets.
                 Globals.curtime = -1000
                 repeat(Defines.MAX_CHALLENGES - 1) { index ->
-                    val remote = netadr_t().apply {
-                        type = NetAddrType.NA_IP
-                        ip = byteArrayOf(192.toByte(), 0, (index / 256).toByte(), (index % 256).toByte())
-                    }
+                    val remote = NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(192.toByte(), 0, (index / 256).toByte(), (index % 256).toByte())), 0)
                     host.handleConnectionlessPacket(remote, "getchallenge")
                 }
-                assertTrue(NET.configureServer(true))
+                assertTrue(network.server.configure(true))
                 host.handleConnectionlessPacket(address, "getchallenge")
                 assertEquals(issued, reply(), "Repeated requests retain the existing challenge")
-                NET.configureServer(false)
-                host.handleConnectionlessPacket(netadr_t().apply {
-                    type = NetAddrType.NA_IP
-                    ip = byteArrayOf(198.toByte(), 51, 100, 1)
-                }, "getchallenge")
-                assertTrue(NET.configureServer(true))
+                network.server.configure(false)
+                host.handleConnectionlessPacket(NetworkAddress.Udp(IpAddress.fromBytes(byteArrayOf(198.toByte(), 51, 100, 1)), 0), "getchallenge")
+                assertTrue(network.server.configure(true))
                 host.handleConnectionlessPacket(address,
                     "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester")
                 assertTrue(reply().contains("No challenge for address"))
             } finally {
                 Globals.curtime = previousTime
-                NET.configureServer(false)
+                network.server.configure(false)
             }
         }
     }
@@ -350,11 +385,11 @@ class HostClientAccountingTest {
         val loopback = java.net.InetAddress.getByName("127.0.0.1")
         java.net.DatagramSocket(0, loopback).use { receiver ->
             receiver.soTimeout = 2000
-            assertTrue(NET.configureServer(true))
+            assertTrue(network.server.configure(true))
             try {
                 val request = byteArrayOf(-1, -1, -1, -1) + "status".toByteArray()
                 receiver.send(java.net.DatagramPacket(request, request.size, loopback,
-                    NET.ip_sockets[Defines.NS_SERVER]!!.localPort))
+                    network.serverTransport.udpEndpoint!!.localAddress.port))
                 val response = java.net.DatagramPacket(ByteArray(2048), 2048)
                 // The UDP receive path is nonblocking; allow delivery before pumping it again.
                 val deadline = System.nanoTime() + 2_000_000_000L
@@ -375,33 +410,40 @@ class HostClientAccountingTest {
                 assertEquals(first.mapName, Info.Info_ValueForKey(info, "mapname"))
                 assertFalse(text.contains("another-game-map"))
             } finally {
-                NET.configureServer(false)
+                network.server.configure(false)
             }
         }
     }
 
     @Test
     fun `remote reconnect uses Host acceptance time across Game frame changes`() {
-        // Loopback transport with a nonlocal port exercises remote admission without a UDP socket.
-        val address = netadr_t().apply { port = 12345 }
-        host.handleConnectionlessPacket(address, "getchallenge")
-        val reply = NET.receiveNetworkPacket(null, null, NET.loopbacks[Defines.NS_CLIENT], false)!!.connectionlessMessage
-        val challenge = reply.trim().substringAfterLast(' ')
-        val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
-        first.frameNum = 9000
-        host.handleConnectionlessPacket(address, connect)
-        val client = host.clients[0]
-        assertEquals(ClientStates.CS_CONNECTED, client.state)
-        assertEquals(100L, client.lastconnect)
-        drainPackets()
-        cvars.find<Float>("sv_reconnect_limit").forceSet(0.5f)
-        host.update(499)
-        first.frameNum = 50000
-        host.handleConnectionlessPacket(address, connect)
-        assertEquals(100L, client.lastconnect, "Reconnect before the boundary must be rejected")
-        host.update(1)
-        host.handleConnectionlessPacket(address, connect)
-        assertEquals(600L, client.lastconnect)
-        assertEquals(600L, client.lastmessage)
+        cvars.find<Int>("port").forceSet(0)
+        assertTrue(network.server.configure(true))
+        val loopback = java.net.InetAddress.getByName("127.0.0.1")
+        java.net.DatagramSocket(0, loopback).use { receiver ->
+            receiver.soTimeout = 2000
+            val address = NetworkAddress.Udp(IpAddress.fromBytes(loopback.address), receiver.localPort)
+            host.handleConnectionlessPacket(address, "getchallenge")
+            val response = java.net.DatagramPacket(ByteArray(2048), 2048)
+            receiver.receive(response)
+            val reply = String(response.data, 4, response.length - 4)
+            val challenge = reply.trim().substringAfterLast(' ')
+            val connect = "connect ${Defines.PROTOCOL_VERSION} 7 $challenge \\name\\tester"
+            first.frameNum = 9000
+            host.handleConnectionlessPacket(address, connect)
+            val client = host.clients[0]
+            assertEquals(ClientStates.CS_CONNECTED, client.state)
+            assertEquals(100L, client.lastconnect)
+            drainPackets()
+            cvars.find<Float>("sv_reconnect_limit").forceSet(0.5f)
+            host.update(499)
+            first.frameNum = 50000
+            host.handleConnectionlessPacket(address, connect)
+            assertEquals(100L, client.lastconnect, "Reconnect before the boundary must be rejected")
+            host.update(1)
+            host.handleConnectionlessPacket(address, connect)
+            assertEquals(600L, client.lastconnect)
+            assertEquals(600L, client.lastmessage)
+        }
     }
 }

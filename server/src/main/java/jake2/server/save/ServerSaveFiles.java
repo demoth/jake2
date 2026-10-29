@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.LinkOption;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,9 +35,11 @@ public final class ServerSaveFiles {
     private static final List<String> SERVER_FILES = List.of(
             "server_latched_cvars.ssv.json", "server_mapcmd.ssv.json", "game.ssv.json");
     private final Path saveRoot;
+    private final Path writeRoot;
 
     public ServerSaveFiles(Path writeRoot) {
-        saveRoot = Objects.requireNonNull(writeRoot, "writeRoot").resolve("save");
+        this.writeRoot = Objects.requireNonNull(writeRoot, "writeRoot");
+        saveRoot = writeRoot.resolve("save");
     }
 
     /** Remove known save files, leaving unrelated files and the slot directory alone. */
@@ -61,7 +64,12 @@ public final class ServerSaveFiles {
         if (sourceDirectory.equals(destinationDirectory)) return;
 
         try {
-            wipeDirectory(destinationDirectory);
+            // Checkpoints own their whole directory. The mutable working save keeps its existing wipe policy.
+            if (!"current".equals(destination) && Files.exists(destinationDirectory, LinkOption.NOFOLLOW_LINKS)) {
+                SaveSlotDeletionKt.deleteSaveSlot(writeRoot, destination);
+            } else {
+                wipeDirectory(destinationDirectory);
+            }
             Files.createDirectories(destinationDirectory);
             for (String name : SERVER_FILES) {
                 copyIfPresent(sourceDirectory.resolve(name), destinationDirectory.resolve(name));

@@ -2,7 +2,8 @@ package org.demoth.cake.stages.ingame
 
 import jake2.qcommon.Defines
 import jake2.qcommon.entity_state_t
-import jake2.qcommon.network.messages.server.DeltaEntityHeader
+import jake2.qcommon.network.messages.server.EntityDelta
+import jake2.qcommon.network.messages.server.EntityStateSnapshot
 import jake2.qcommon.network.messages.server.EntityUpdate
 import jake2.qcommon.network.messages.server.FrameHeaderMessage
 import jake2.qcommon.network.messages.server.PacketEntitiesMessage
@@ -24,27 +25,27 @@ class ClientEntityManagerInterpolationGuardTest {
             val teleportedOrigin = floatArrayOf(160f, 32f, 8f)
 
             manager.processServerFrameHeader(frameHeader(frameNumber = 1, lastFrame = 0))
-            val firstFrameEntities = PacketEntitiesMessage().apply {
-                updates += update(
+            val firstFrameEntities = PacketEntitiesMessage(buildList {
+                add(update(
                     number = entityNumber,
                     flags = Defines.U_MODEL or Defines.U_ORIGIN1 or Defines.U_ORIGIN2 or Defines.U_ORIGIN3,
                 ) {
                     modelindex = 1
                     origin = initialOrigin.copyOf()
-                }
-            }
+                })
+            })
             manager.processPacketEntitiesMessage(firstFrameEntities)
 
             manager.processServerFrameHeader(frameHeader(frameNumber = 2, lastFrame = 1))
-            val secondFrameEntities = PacketEntitiesMessage().apply {
-                updates += update(
+            val secondFrameEntities = PacketEntitiesMessage(buildList {
+                add(update(
                     number = entityNumber,
                     flags = Defines.U_EVENT or Defines.U_ORIGIN1 or Defines.U_ORIGIN2 or Defines.U_ORIGIN3,
                 ) {
                     event = Defines.EV_OTHER_TELEPORT
                     origin = teleportedOrigin.copyOf()
-                }
-            }
+                })
+            })
             manager.processPacketEntitiesMessage(secondFrameEntities)
 
             val entity = getClientEntity(manager, entityNumber)
@@ -61,7 +62,7 @@ class ClientEntityManagerInterpolationGuardTest {
 
     private fun update(number: Int, flags: Int, apply: entity_state_t.() -> Unit): EntityUpdate {
         val newState = entity_state_t(number).apply(apply)
-        return EntityUpdate(DeltaEntityHeader(flags, number), newState)
+        return EntityUpdate.Change(EntityDelta(flags, EntityStateSnapshot.fromEngine(newState)))
     }
 
     @Suppress("UNCHECKED_CAST")

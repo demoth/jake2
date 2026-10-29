@@ -24,14 +24,12 @@ package jake2.server
 import jake2.qcommon.*
 import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
-import jake2.qcommon.network.NET
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.protocol.MessageDecodeResult
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.*
 import jake2.qcommon.network.messages.server.*
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.util.Lib
 import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
@@ -39,7 +37,10 @@ import jake2.server.save.ServerSaveFiles
 import jake2.server.save.ServerSaveJsonStore
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
-class ServerHost : AutoCloseable {
+class ServerHost @JvmOverloads constructor(
+    private val network: ServerNetwork,
+    private val startupRejection: () -> String? = { null },
+) : AutoCloseable {
     // region Host state and command dispatch
 
     private val commands = ServerCommands()
@@ -50,8 +51,7 @@ class ServerHost : AutoCloseable {
     @JvmField
     val games: MutableMap<String, GameImportsImpl> = HashMap()
 
-    private val challenges = Array(Defines.MAX_CHALLENGES) { challenge_t() }
-    private var challengeOrder = 0L
+    private val connections = ServerConnections()
 
     var clients: MutableList<ClientNetworkInfo> = mutableListOf()
         private set
@@ -239,7 +239,8 @@ class ServerHost : AutoCloseable {
         commands.add("status", true) { printStatus() }
         commands.add("serverinfo", true) { printServerInfo() }
         commands.add("dumpuser", true, Command(::dumpUser))
-        commands.add("say", true, Command(::say))
+        // Embedded applications send player chat through their client, including remote games.
+        if (Globals.dedicated.typedValue) commands.add("say", true, Command(::say))
         commands.add("save", true, Command(::saveGame))
 
         commands.add("killserver") {
@@ -294,8 +295,10 @@ class ServerHost : AutoCloseable {
 
     /** Release this manager's console hooks after ending its last session.  */
     override fun close() {
-        commands.use {
-            stop("Server stopped\n", false)
+        network.use {
+            commands.use {
+                stop("Server stopped\n", false)
+            }
         }
     }
 
@@ -316,13 +319,10 @@ class ServerHost : AutoCloseable {
             nextFrameTime = 100
             paused.forceSet(false)
             Cvar.getInstance().find<String>("mapname").forceSet("")
-            for (i in challenges.indices) challenges[i] = challenge_t()
-            challengeOrder = 0
+            connections.reset()
             // Ordinary queued commands may start the next session (killserver; gamemap ...).
             Cbuf.ClearDeferred()
-            NET.configureServer(false)
-            // Keep outgoing final messages available to the local client.
-            NET.clearLoopback(Defines.NS_SERVER)
+            network.stop()
         }
     }
 
@@ -353,7 +353,7 @@ class ServerHost : AutoCloseable {
                 client.gameName = null
                 client.edict = null
                 client.download = null
-                client.netchan.reliablePending.clear()
+                client.netchan.clearQueuedReliable()
                 client.unreliable.clear()
             }
             pendingContinuations.remove(game)
@@ -370,7 +370,7 @@ class ServerHost : AutoCloseable {
 
         // Clear all clients
         clients = MutableList(max) {
-            ClientNetworkInfo().apply { lastcmd = usercmd_t() }
+            ClientNetworkInfo(network.newChannel()).apply { lastcmd = usercmd_t() }
         }
     }
 
@@ -389,7 +389,7 @@ class ServerHost : AutoCloseable {
             Cvar.getInstance().find<Int>("maxclients").forceSet(savedMaxClients)
             savedMaxClients > 1
         }
-        check(NET.configureServer(multiplayer)) { "Could not open the server UDP port" }
+        check(network.configure(multiplayer)) { "Could not open the server UDP port" }
         if (savedMaxClients == null || clients.size != savedMaxClients) resetClients()
     }
 
@@ -481,6 +481,7 @@ class ServerHost : AutoCloseable {
 
     /** Preflight preserves the live session; failures after copying begins leave an idle Host. */
     fun loadGame(slot: String): OperationResult {
+        startupRejection()?.let { return OperationResult.Rejected(it) }
         val saveGame = try {
             ServerSaveJsonStore.normalizeSlot(slot)
         } catch (_: IllegalArgumentException) {
@@ -563,6 +564,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
     fun map(level: String): OperationResult = transitionMap(level, 0, newSession = true)
 
     private fun transitionMap(level: String, clientIndex: Int, newSession: Boolean): OperationResult {
+        startupRejection()?.let { return OperationResult.Rejected(it) }
         val target = try {
             val parsed = prepareMapTarget(level)
             require(clientIndex in 0..clients.size) { "Invalid client index: $clientIndex" }
@@ -639,9 +641,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         }
 
         // copy off the level to the autosave slot
-        if (!Globals.dedicated.typedValue) {
+        if (!Globals.dedicated.typedValue && !game.isDeathmatch) {
             game.SV_WriteServerFile(true)
-            ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
+            ServerSaveFiles(EngineWriteRoot.path()).copy("current", "autosave")
         }
 
         // multi instance preview:
@@ -680,7 +682,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             if (client.state == ClientStates.CS_SPAWNED) client.state = ClientStates.CS_CONNECTED
             client.lastReceivedFrame = -1
             if (client.state == ClientStates.CS_CONNECTED) {
-                client.netchan.reliablePending.add(StuffTextMessage("changing"))
+                client.netchan.queueReliable(StuffTextMessage.command("changing"))
             }
         }
 
@@ -701,7 +703,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         for (client in transitionClients) {
             if (client.state == ClientStates.CS_CONNECTED) {
-                client.netchan.reliablePending.add(StuffTextMessage("reconnect"))
+                client.netchan.queueReliable(StuffTextMessage.command("reconnect"))
             }
         }
         return gameImports
@@ -820,7 +822,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (delay > 0) {
             // Bound the dedicated sleep while waiting for the next scheduled tick.
             delay = delay.coerceAtMost(100)
-            NET.Sleep(delay.toInt())
+            network.sleep(delay.toInt())
             return
         }
 
@@ -967,56 +969,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         return info
     }
 
-    /**
-     * Issue or reuse the token for the connectionless getchallenge -> challenge -> connect handshake.
-     * A remote client echoes the token in its connect request; [connectClient] checks it against
-     * the cached source IP (UDP port is ignored). Local connections bypass that check.
-     *
-     * This makes blind source-IP spoofing harder: the requester normally needs to receive the
-     * reply before it can connect. The legacy 15-bit random token is not authentication or a
-     * general denial-of-service defence; it can be guessed and does not prevent request floods.
-     *
-     * The bounded Host cache has no time-based expiry. Repeated requests reuse the token without
-     * refreshing its position. New addresses take an unused entry or evict the earliest-issued
-     * entry. A Host-owned counter orders issuance even within one clock tick and across global
-     * clock resets/wrap. Session stop clears the cache and counter; this order is never sent.
-     */
-    private fun getChallenge(from: netadr_t): Int {
-        var oldest = 0
-        var oldestOrder = Long.MAX_VALUE
-
-        var i: Int
-        i = 0
-        while (i < Defines.MAX_CHALLENGES) {
-            if (from.CompareBaseAdr(challenges[i].adr)) break
-            if (challenges[i].issuedOrder < oldestOrder) {
-                oldestOrder = challenges[i].issuedOrder
-                oldest = i
-            }
-            i++
-        }
-
-        if (i == Defines.MAX_CHALLENGES) {
-            // Unused entries have order zero and are selected before issued entries.
-            challenges[oldest].challenge = Lib.rand().toInt() and 0x7fff
-            challenges[oldest].adr = from
-            // Eviction needs issuance order, not wall time or Game simulation time.
-            challenges[oldest].issuedOrder = ++challengeOrder
-            i = oldest
-        }
-
-        return challenges[i].challenge
-    }
-
     /** Validate a direct connect request, including its remote-address challenge, before admission. */
-    private fun connectClient(args: List<String>, adr: netadr_t) {
+    private fun connectClient(args: List<String>, adr: NetworkAddress) {
         Com.DPrintf("SVC_DirectConnect ()\n")
 
         val version = if (args.size >= 2) Lib.atoi(args[1]) else 0
 
         if (version != Defines.PROTOCOL_VERSION) {
-            Netchan.sendConnectionlessPacket(
-                Defines.NS_SERVER, adr, ConnectionlessCommand.print,
+            network.sendConnectionless(adr, ConnectionlessCommand.print,
                 "\nServer is version " + Globals.VERSION + "\n"
             )
             Com.DPrintf("    rejected connect from version $version\n")
@@ -1030,76 +990,35 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // force the IP key/value pair so the game can filter based on ip
         userinfo = Info.Info_SetValueForKey(userinfo, "ip", adr.toString())
 
-        // Match the source IP and echoed token before allocating/reusing a client slot.
-        var j: Int
-        if (!adr.IsLocalAddress()) {
-            j = 0
-            while (j < Defines.MAX_CHALLENGES) {
-                if (adr.CompareBaseAdr(challenges[j].adr)) {
-                    if (challenge == challenges[j].challenge) break // good
-
-                    Netchan.sendConnectionlessPacket(
-                        Defines.NS_SERVER,
-                        adr,
-                        ConnectionlessCommand.print,
-                        "\nBad challenge.\n"
-                    )
-                    return
-                }
-                j++
-            }
-            if (j == Defines.MAX_CHALLENGES) {
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    adr,
-                    ConnectionlessCommand.print,
-                    "\nNo challenge for address.\n"
-                )
+        when (connections.validateChallenge(adr, challenge)) {
+            ServerConnections.ChallengeValidation.BAD -> {
+                network.sendConnectionless(adr, ConnectionlessCommand.print, "\nBad challenge.\n")
                 return
             }
-        }
-
-        // if there is already a slot for this ip, reuse it
-        var i = 0
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_FREE) continue
-            if (adr.CompareBaseAdr(cl.netchan.remote_address)
-                && (cl.netchan.qport == qport || adr.port == cl.netchan.remote_address.port)
-            ) {
-                if (!adr.IsLocalAddress() && (realtime - cl.lastconnect) < (reconnectLimit.typedValue * 1000)) {
-                    Com.DPrintf("$adr:reconnect rejected : too soon\n")
-                    return
-                }
-                Com.Printf("$adr:reconnect\n")
-
-                initializeClientConnection(i, challenge, userinfo, adr, qport)
+            ServerConnections.ChallengeValidation.MISSING -> {
+                network.sendConnectionless(adr, ConnectionlessCommand.print, "\nNo challenge for address.\n")
                 return
             }
-            i++
+            ServerConnections.ChallengeValidation.ACCEPTED -> Unit
         }
 
-        // find a client slot
-        var index = -1
-        i = 0
-        for (cl in clients) {
-            if (cl.state == ClientStates.CS_FREE) {
-                index = i
-                break
+        when (val admission = connections.selectSlot(clients, adr, qport, realtime, reconnectLimit.typedValue * 1000)) {
+            ServerConnections.Admission.TooSoon -> Com.DPrintf("$adr:reconnect rejected : too soon\n")
+            ServerConnections.Admission.Full -> {
+                network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
+                Com.DPrintf("Rejected a connection.\n")
             }
-            i++
+            is ServerConnections.Admission.Slot -> {
+                if (admission.reconnect) Com.Printf("$adr:reconnect\n")
+                initializeClientConnection(admission.index, challenge, userinfo, adr, qport)
+            }
         }
-        if (index == -1) {
-            Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.print, "\nServer is full.\n")
-            Com.DPrintf("Rejected a connection.\n")
-            return
-        }
-        initializeClientConnection(index, challenge, userinfo, adr, qport)
     }
 
     /**
      * Initializes player structures after successfull connection.
      */
-    private fun initializeClientConnection(i: Int, challenge: Int, userinfo: String?, adr: netadr_t, qport: Int) {
+    private fun initializeClientConnection(i: Int, challenge: Int, userinfo: String?, adr: NetworkAddress, qport: Int) {
         // build a new connection
         // accept the new client
         // this is the only place a ClientNetworkInfo is ever initialized
@@ -1118,16 +1037,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // userinfo
         if (!(gameImports.gameExports.ClientConnect(ent, userinfo))) {
             if (Info.Info_ValueForKey(userinfo, "rejmsg") != null) {
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    adr,
+                network.sendConnectionless(adr,
                     ConnectionlessCommand.print,
                     "\n" + Info.Info_ValueForKey(userinfo, "rejmsg") + "\nConnection refused.\n"
                 )
             } else {
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    adr,
+                network.sendConnectionless(adr,
                     ConnectionlessCommand.print,
                     "\nConnection refused.\n"
                 )
@@ -1140,9 +1055,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.userinfo = userinfo
         updateClientUserinfo(client)
 
-        Netchan.sendConnectionlessPacket(Defines.NS_SERVER, adr, ConnectionlessCommand.client_connect, "")
+        network.sendConnectionless(adr, ConnectionlessCommand.client_connect, "")
 
-        client.netchan.setup(Defines.NS_SERVER, adr, qport)
+        client.netchan.setup(adr, qport)
 
         client.state = ClientStates.CS_CONNECTED
 
@@ -1156,7 +1071,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * it from a game channel. Clients that are in the game can still send
      * connectionless packets. It is used also by rcon commands.
      */
-    fun handleConnectionlessPacket(from: netadr_t, messageLine: String?) {
+    fun handleConnectionlessPacket(from: NetworkAddress, messageLine: String?) {
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
@@ -1169,34 +1084,28 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         when (cmd) {
             ConnectionlessCommand.ping ->                 // SVC_Ping, Just responds with an acknowledgement.
-                Netchan.sendConnectionlessPacket(Defines.NS_SERVER, from, ConnectionlessCommand.ack, "")
+                network.sendConnectionless(from, ConnectionlessCommand.ack, "")
 
             ConnectionlessCommand.ack ->                 //SVC_Ack
                 Com.Printf("Ping acknowledge from $from\n")
 
             ConnectionlessCommand.status ->                 // SVC_Status, Responds with all the info that qplug or qspy can see
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
+                network.sendConnectionless(from,
                     ConnectionlessCommand.print,
                     "\n" + buildStatusResponse()
                 )
 
             ConnectionlessCommand.info -> {
                 val info = buildInfoResponse(args)
-                if (info != null) Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
+                if (info != null) network.sendConnectionless(from,
                     ConnectionlessCommand.info,
                     "\n" + info
                 )
             }
 
             ConnectionlessCommand.getchallenge -> {
-                val challenge = getChallenge(from)
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
+                val challenge = connections.issueChallenge(from)
+                network.sendConnectionless(from,
                     ConnectionlessCommand.challenge,
                     " $challenge"
                 )
@@ -1216,7 +1125,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     fun dropClient(client: ClientNetworkInfo) {
         if (client.state == ClientStates.CS_FREE || client.state == ClientStates.CS_ZOMBIE) return
         try {
-            client.netchan.reliablePending.add(DisconnectMessage())
+            client.netchan.queueReliable(DisconnectMessage)
             if (client.state == ClientStates.CS_SPAWNED) {
                 games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
             }
@@ -1240,42 +1149,30 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * Reads packets from the network or loopback.
      */
     fun readPackets() {
-        while (true) {
-            val networkPacket = NET.receiveNetworkPacket(
-                NET.ip_sockets[Defines.NS_SERVER],
-                NET.ip_channels[Defines.NS_SERVER],
-                NET.loopbacks[Defines.NS_SERVER],
-                true
-            )
-
-            if (networkPacket == null) break
-
+        network.poll { networkPacket ->
             if (networkPacket.isConnectionless) {
                 handleConnectionlessPacket(networkPacket.from, networkPacket.connectionlessMessage)
-                continue
+                return@poll
             }
 
-            // Match incoming packet with the existing client.
-            // todo: get client by address (hashmap?)
-            for (cl in clients) {
-                if (cl.state == ClientStates.CS_FREE) continue
-                if (!networkPacket.from.CompareBaseAdr(cl.netchan.remote_address)) continue
-                if (cl.netchan.qport != networkPacket.qport) continue
-                if (cl.netchan.remote_address.port != networkPacket.from.port) {
-                    Com.Printf("SV_ReadPackets: fixing up a translated port\n")
-                    cl.netchan.remote_address.port = networkPacket.from.port
-                }
-
-                if (cl.netchan.accept(networkPacket)) {
-                    // this is a valid, sequenced packet, so process it
-                    if (cl.state != ClientStates.CS_ZOMBIE) {
-                        cl.lastmessage = realtime // don't timeout
-                        val body = networkPacket.parseBodyFromClient(cl.netchan.incoming_sequence)
-                        if (body == null) dropClient(cl)
-                        else handleClientMessages(cl, body)
+            val routed = connections.route(networkPacket, clients) ?: return@poll
+            if (routed.portChanged) Com.Printf("SV_ReadPackets: fixing up a translated port\n")
+            val client = routed.client
+            if (client.state != ClientStates.CS_ZOMBIE) {
+                client.lastmessage = realtime
+                val body = networkPacket.parseBodyFromClient(client.netchan.incomingSequence)
+                when (body) {
+                    is MessageDecodeResult.Rejected -> {
+                        Com.Printf("Bad client payload at ${body.offset}: ${body.detail}\n")
+                        dropClient(client)
+                    }
+                    is MessageDecodeResult.Decoded -> {
+                        if (network.logMessages) body.messages.forEach { message ->
+                            if (message !is MoveMessage) Com.Printf("Network: Received client msg: $message\n")
+                        }
+                        handleClientMessages(client, body.messages)
                     }
                 }
-                break
             }
         }
     }
@@ -1327,7 +1224,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 }
 
                 // if the checksum fails, ignore the rest of the packet
-                if (!msg.valid) {
+                if (!msg.checksumValid) {
                     Com.Printf("Invalid crc\n")
                     return
                 }
@@ -1351,8 +1248,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     processClientMove(cl, msg.newCmd)
                 }
 
-                // copy.
-                cl.lastcmd.set(msg.newCmd)
+                // Retain the immutable command state; game callbacks receive separate mutable copies.
+                msg.newCmd.copyTo(cl.lastcmd)
             } else {
                 Com.Printf("SV_ReadClientMessage: unknown command: " + msg.type + "\n")
                 dropClient(cl)
@@ -1360,6 +1257,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
         }
     }
+
+    private fun processClientMove(cl: ClientNetworkInfo, cmd: UserCommand) = processClientMove(cl, cmd.toEngineCommand())
 
     fun processClientMove(cl: ClientNetworkInfo, cmd: usercmd_t) {
         cl.commandMsec -= cmd.msec.toInt() and 0xFF
@@ -1448,9 +1347,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             client.edict.index - 1
         }
 
-        client.netchan.reliablePending.add(
-            ServerDataMessage(
-                Defines.PROTOCOL_VERSION,
+        client.netchan.queueReliable(
+            ServerDataMessage.forClient(
                 gameImports.spawncount,
                 gameImports.isDemo,
                 gamedir,
@@ -1469,8 +1367,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             client.lastcmd = usercmd_t()
 
             // begin fetching configstrings
-            client.netchan.reliablePending.add(
-                StuffTextMessage(
+            client.netchan.queueReliable(
+                StuffTextMessage.command(
                     String.format(
                         "cmd %s %d 0",
                         StringCmdMessage.CONFIG_STRINGS,
@@ -1505,12 +1403,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // write a packet full of data
         var currentReliableSize =
-            client.netchan.reliablePending.sumOf { it.size }
+            client.netchan.queuedReliableBytes
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_CONFIGSTRINGS) {
             if (gameImports.configstrings[start] != null && gameImports.configstrings[start].isNotEmpty()) {
                 val config = ConfigStringMessage(start, gameImports.configstrings[start])
                 currentReliableSize += config.size
-                client.netchan.reliablePending.add(config)
+                client.netchan.queueReliable(config)
             }
             start++
         }
@@ -1521,7 +1419,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         } else {
             String.format("cmd %s %d %d", StringCmdMessage.CONFIG_STRINGS, gameImports.spawncount, start)
         }
-        client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
+        client.netchan.queueReliable(StuffTextMessage.command(nextCmd))
     }
 
     private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
@@ -1545,13 +1443,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // write a packet full of data
         var currentReliableSize =
-            client.netchan.reliablePending.sumOf { it.size }
+            client.netchan.queuedReliableBytes
         while (currentReliableSize < Defines.MAX_MSGLEN / 2 && start < Defines.MAX_EDICTS) {
             val base = gameImports.baselines[start]
             if (base.modelindex != 0 || base.sound != 0 || base.effects != 0) {
                 val spawn = SpawnBaselineMessage(base)
                 currentReliableSize += spawn.size
-                client.netchan.reliablePending.add(spawn)
+                client.netchan.queueReliable(spawn)
             }
             start++
         }
@@ -1564,7 +1462,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // continue from where we finished
             String.format("cmd %s %d %d", StringCmdMessage.BASELINES, gameImports.spawncount, start)
         }
-        client.netchan.reliablePending.add(StuffTextMessage(nextCmd))
+        client.netchan.queueReliable(StuffTextMessage.command(nextCmd))
     }
 
     private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
@@ -1614,9 +1512,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             val replacement = spawnServerInstance(target, previous, routedClients)
             replacement.name = previous.name
             games[replacement.name] = replacement
-            if (!Globals.dedicated.typedValue) {
+            if (!Globals.dedicated.typedValue && !replacement.isDeathmatch) {
                 replacement.SV_WriteServerFile(true)
-                ServerSaveFiles(EngineWriteRoot.path()).copy("current", "save0")
+                ServerSaveFiles(EngineWriteRoot.path()).copy("current", "autosave")
             }
             OperationResult.Completed
         } catch (failure: Exception) {
@@ -1656,11 +1554,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.downloadcount += packet
         var size = client.downloadsize
         if (size == 0) size = 1
-        val percent = (client.downloadcount * 100 / size).toByte()
+        val percent = (client.downloadcount.toLong() * 100 / size).toInt()
 
         val data = ByteArray(packet)
         System.arraycopy(client.download, client.downloadcount - packet, data, 0, packet)
-        client.netchan.reliablePending.add(DownloadMessage(data, percent))
+        client.netchan.queueReliable(DownloadMessage.chunk(data, percent))
 
         if (client.downloadcount == client.downloadsize) {
             client.download = null
@@ -1701,7 +1599,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             // refuse
 
-            client.netchan.reliablePending.add(DownloadMessage())
+            client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
@@ -1710,7 +1608,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // The client waits for either data or an explicit refusal. Silently
         // returning here leaves precache stuck waiting for a download forever.
         if (client.download == null) {
-            client.netchan.reliablePending.add(DownloadMessage())
+            client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
@@ -1727,7 +1625,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             // refuse
-            client.netchan.reliablePending.add(DownloadMessage())
+            client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
@@ -1749,9 +1647,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // if the reliable message overflowed,
             // drop the client
             val pendingReliableSize =
-                c.netchan.reliablePending.sumOf { it.size }
+                c.netchan.queuedReliableBytes
             if (pendingReliableSize > Defines.MAX_MSGLEN - 16) {
-                c.netchan.reliablePending.clear()
+                c.netchan.clearQueuedReliable()
                 c.unreliable.clear()
                 broadcastPrint(Defines.PRINT_HIGH, c.name + " overflowed\n", c.gameName)
                 dropClient(c)
@@ -1767,7 +1665,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 sendClientDatagram(c, game)
             } else {
                 // just update reliable	if needed
-                if (c.netchan.reliablePending.isNotEmpty() || Globals.curtime - c.netchan.last_sent > 1000) c.netchan.transmit(
+                if (c.netchan.hasQueuedReliable || c.netchan.hasBeenIdleFor(1000)) c.netchan.transmit(
                     null
                 )
             }
@@ -1787,7 +1685,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         for (cl in getClientsForInstance(gameName)) {
             if (cl == null || level < cl.messagelevel) continue
             if (cl.state != ClientStates.CS_SPAWNED) continue
-            cl.netchan.reliablePending.add(PrintMessage(level, message))
+            cl.netchan.queueReliable(PrintMessage(level, message.orEmpty()))
         }
     }
 
@@ -1801,7 +1699,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     fun shouldRateLimit(c: ClientNetworkInfo): Boolean {
         // never drop over the loopback
 
-        if (c.netchan.remote_address.type == NetAddrType.NA_LOOPBACK) return false
+        if (c.netchan.remoteAddress is NetworkAddress.Local) return false
 
         var total = 0
 
@@ -1830,10 +1728,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         recipients: List<ClientNetworkInfo> = clients
     ) {
         val msgs: MutableCollection<NetworkMessage> = ArrayList()
-        msgs.add(PrintMessage(Defines.PRINT_HIGH, message))
+        msgs.add(PrintMessage(Defines.PRINT_HIGH, message.orEmpty()))
 
-        if (reconnect) msgs.add(ReconnectMessage())
-        else msgs.add(DisconnectMessage())
+        if (reconnect) msgs.add(ReconnectMessage)
+        else msgs.add(DisconnectMessage)
 
         // send it twice
         // stagger the packets to crutch operating system limited buffers
@@ -1859,12 +1757,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         unreliable.addAll(client.unreliable)
         client.unreliable.clear()
         // send the datagram
-        client.frames[gameImports.frameNum and Defines.UPDATE_MASK].senttime = realtime
-        client.netchan.transmit(unreliable)
+        val sent = client.netchan.transmit(unreliable)
+        if (sent) client.frames[gameImports.frameNum and Defines.UPDATE_MASK].senttime = realtime
 
         // record the size for rate estimation
         client.message_size[frameNum % Defines.RATE_MESSAGES] =
-            unreliable.sumOf { it.size }
+            if (sent) unreliable.sumOf { it.size } else 0
     }
 
     // endregion
@@ -1915,7 +1813,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             Com.Printf(cl.name.padEnd(16))
             val lastMessageAge = realtime - cl.lastmessage
             Com.Printf(lastMessageAge.toString().padStart(7) + " ")
-            Com.Printf(cl.netchan.remote_address.toString().padEnd(22))
+            Com.Printf(cl.netchan.remoteAddress.toString().padEnd(22))
             Com.Printf(cl.netchan.qport.toString().padStart(5))
 
             Com.Printf("\n")
@@ -2014,35 +1912,34 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return args.size >= 2 && args[1] == rconPassword
         }
 
-        /**
-         * A client issued an rcon command. Shift down the remaining args Redirect
-         * all printfs from the server to the client.
-         */
-        private fun executeRemoteCommand(args: List<String>, from: netadr_t?) {
-            val rconIsValid: Boolean = isRconAuthorized(args)
+    }
 
-            if (rconIsValid) {
-                Com.Printf("Rcon from $from:\n$args\n")
-            } else {
-                Com.Printf("Bad rcon from $from:\n$args\n")
-            }
+    /**
+     * A client issued an rcon command. Shift down the remaining args Redirect
+     * all printfs from the server to the client.
+     */
+    private fun executeRemoteCommand(args: List<String>, from: NetworkAddress) {
+        val rconIsValid: Boolean = isRconAuthorized(args)
 
-            Com.BeginRedirect { buffer ->
-                Netchan.sendConnectionlessPacket(
-                    Defines.NS_SERVER,
-                    from,
-                    ConnectionlessCommand.print,
-                    "\n" + buffer.toString()
-                )
-            }
-            if (rconIsValid) {
-                Cmd.ExecuteString(Cmd.getArguments(args, 2))
-            } else {
-                // redirected to client
-                Com.Printf("Bad rcon_password.\n")
-            }
-
-            Com.EndRedirect()
+        if (rconIsValid) {
+            Com.Printf("Rcon from $from:\n$args\n")
+        } else {
+            Com.Printf("Bad rcon from $from:\n$args\n")
         }
+
+        Com.BeginRedirect { buffer ->
+            network.sendConnectionless(from,
+                ConnectionlessCommand.print,
+                "\n" + buffer.toString()
+            )
+        }
+        if (rconIsValid) {
+            Cmd.ExecuteString(Cmd.getArguments(args, 2))
+        } else {
+            // redirected to client
+            Com.Printf("Bad rcon_password.\n")
+        }
+
+        Com.EndRedirect()
     }
 }

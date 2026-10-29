@@ -1,13 +1,14 @@
 package jake2.qcommon
 
-import jake2.qcommon.network.NET
-import jake2.qcommon.network.NetAddrType
-import jake2.qcommon.network.netadr_t
+import jake2.qcommon.network.CvarNetworkSettings
+import jake2.qcommon.network.runtime.*
+import jake2.qcommon.network.transport.LocalSide
+import jake2.qcommon.network.messages.ConnectionlessCommand
+import jake2.qcommon.network.transport.NetworkAddress
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
-import java.net.DatagramSocket
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.network.NetworkSettings
 
 class OutputFailureTest {
     @Test
@@ -41,22 +42,25 @@ class OutputFailureTest {
         assertArrayEquals(saved, buffer.data)
     }
 
-    @ParameterizedTest
-    @EnumSource(NetAddrType::class, names = ["NA_IPX", "NA_BROADCAST_IPX"])
-    fun `unsupported destination propagates without closing the socket`(type: NetAddrType) {
-        val previous = NET.ip_sockets[Defines.NS_SERVER]
-        DatagramSocket(0).use { socket ->
-            NET.ip_sockets[Defines.NS_SERVER] = socket
-            try {
+    @Test
+    fun `oversized connectionless output propagates without closing the socket`() {
+        val cvars = Cvar.getInstance()
+        cvars.clear()
+        NetworkSettings.registerCvars()
+        cvars.find("port", Int::class.javaObjectType).forceSet(0)
+        val transport = NetworkTransport.standalone(LocalSide.SECOND)
+        try {
+            PacketNetwork(transport, NetworkRole.SERVER, CvarNetworkSettings(Cvar.getInstance())).use { packets ->
+                assertTrue(packets.configure(true))
+                val endpoint = transport.udpEndpoint!!
                 val failure = assertThrows(IllegalArgumentException::class.java) {
-                    NET.SendPacket(Defines.NS_SERVER, 1, byteArrayOf(1), netadr_t().apply { this.type = type })
+                    packets.sendConnectionless(packets.localPeer, ConnectionlessCommand.print, "x".repeat(Defines.MAX_MSGLEN))
                 }
-                assertTrue(failure.message!!.contains(type.name))
-                assertSame(socket, NET.ip_sockets[Defines.NS_SERVER])
-                assertFalse(socket.isClosed)
-            } finally {
-                NET.ip_sockets[Defines.NS_SERVER] = previous
+                assertSame(endpoint, transport.udpEndpoint)
+                assertTrue(endpoint.isOpen)
             }
+        } finally {
+            cvars.clear()
         }
     }
 }

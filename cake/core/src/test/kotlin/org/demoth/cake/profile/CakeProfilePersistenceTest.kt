@@ -38,6 +38,26 @@ class CakeProfilePersistenceTest {
     }
 
     @Test
+    fun `switch to profile without config resets gameplay but retains client preferences`() {
+        cvars.register("coop", jake2.qcommon.exec.CvarTypes.BOOLEAN, false, 0).forceSet(true)
+        cvars.setResult("sv_gravity", "123")
+        cvars.find<String>("name").forceSet("player preference")
+        cvars.find<Int>("vid_windowed_width").forceSet(1280)
+        bindings.setBindingByName("F1", "say retained")
+        store.upsertProfile(CakeGameProfile("empty", temp.toString()))
+
+        CakeHostStartupSettings.reset()
+        persistence.loadConfig()
+
+        assertFalse(cvars.find<Boolean>("coop").typedValue)
+        // The Game's eventual declaration receives its default, not the old staged input.
+        assertEquals(800f, cvars.register("sv_gravity", jake2.qcommon.exec.CvarTypes.FLOAT, 800f, 0).typedValue)
+        assertEquals("player preference", cvars.find<String>("name").typedValue)
+        assertEquals(1280, cvars.find<Int>("vid_windowed_width").typedValue)
+        assertTrue(bindings.listBindings().contains("F1" to "say retained"))
+    }
+
+    @Test
     fun `selected profile takes precedence and config history and paths stay isolated`() {
         active = CakeGameProfile("runtime", temp.toString(), "rogue")
         store.upsertProfile(CakeGameProfile("selected", temp.toString()))
