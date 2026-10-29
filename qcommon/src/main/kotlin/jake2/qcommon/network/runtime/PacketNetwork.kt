@@ -2,8 +2,7 @@ package jake2.qcommon.network.runtime
 
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
-import jake2.qcommon.exec.Cvar
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkPacket
@@ -18,9 +17,11 @@ import java.nio.ByteOrder
 enum class NetworkRole { CLIENT, SERVER }
 
 /** Shared engine adapter: bind policy, packet envelopes and transport lifetime for one owner. */
-class PacketNetwork(
+class PacketNetwork @JvmOverloads constructor(
     private val transport: NetworkTransport,
     private val role: NetworkRole,
+    private val settings: NetworkSettings,
+    private val log: (String) -> Unit = { Com.Printf(it) },
 ) : AutoCloseable {
     companion object {
         /** Maximum datagrams consumed per receive pass, including malformed and dropped traffic. */
@@ -40,8 +41,8 @@ class PacketNetwork(
         return ConnectionChannel(
             if (role == NetworkRole.CLIENT) ChannelRole.CLIENT else ChannelRole.SERVER,
             transport.localPeer, transport::send,
-            logPackets = { Netchan.showpackets?.typedValue == true },
-            log = { Com.Printf(it) },
+            logPackets = { settings.logPackets },
+            log = log,
             clockMillis = { System.nanoTime() / 1_000_000L },
         )
     }
@@ -57,10 +58,8 @@ class PacketNetwork(
             return true
         }
         if (transport.udpEndpoint?.isOpen == true) return true
-        val cvars = Cvar.getInstance()
-        val ip = cvars.find("ip", String::class.java).typedValue
-        val portName = if (role == NetworkRole.CLIENT) "clientport" else "port"
-        val port = cvars.find(portName, Int::class.javaObjectType).typedValue
+        val ip = settings.bindAddress
+        val port = (if (role == NetworkRole.CLIENT) settings.clientPort else settings.serverPort)
             .let { if (it == Defines.PORT_ANY) 0 else it }
         return try {
             val bindIp = if (ip.isEmpty() || ip == "localhost") null else InetAddress.getByName(ip)
@@ -75,7 +74,7 @@ class PacketNetwork(
             transport.replaceUdp(endpoint)
             true
         } catch (error: IOException) {
-            Com.Println("$label UDP bind error: $error")
+            log("$label UDP bind error: $error\n")
             false
         }
     }
@@ -90,19 +89,19 @@ class PacketNetwork(
         transport.poll(budget) { received -> decode(received)?.let(consume) }
 
     private fun decode(received: ReceiveResult): NetworkPacket? {
-        if (received is ReceiveResult.Failed) Com.Println("$label receive error: ${received.cause}")
+        if (received is ReceiveResult.Failed) log("$label receive error: ${received.cause}\n")
         if (received !is ReceiveResult.Received) return null
         val datagram = received.datagram
         val decoded = PacketCodec.decode(datagram.payload, direction)
         if (decoded is PacketDecodeResult.Rejected) {
-            if (Netchan.showdrop?.typedValue == true)
-                Com.Println("$label dropped packet from ${datagram.source}: ${decoded.reason}")
+            if (settings.logDrops)
+                log("$label dropped packet from ${datagram.source}: ${decoded.reason}\n")
             return null
         }
         val packet = NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
-        if (packet.isConnectionless && Netchan.printNetwork?.typedValue == true) {
+        if (packet.isConnectionless && settings.logMessages) {
             val peer = if (role == NetworkRole.CLIENT) "server" else "client"
-            Com.Printf("Network: Received from $peer connectionless: ${packet.connectionlessMessage}\n")
+            log("Network: Received from $peer connectionless: ${packet.connectionlessMessage}\n")
         }
         return packet
     }
@@ -113,7 +112,7 @@ class PacketNetwork(
         require(text.size <= Defines.MAX_MSGLEN - 4)
         val bytes = ByteBuffer.allocate(text.size + 4).order(ByteOrder.LITTLE_ENDIAN).putInt(-1).put(text).array()
         val result = transport.send(to, PacketBytes.copyOf(bytes))
-        if (result is SendResult.Failed) Com.Println("$label send error: ${result.cause}")
+        if (result is SendResult.Failed) log("$label send error: ${result.cause}\n")
     }
 
     /** Session boundary: keep the local endpoint and final messages queued for its peer. */

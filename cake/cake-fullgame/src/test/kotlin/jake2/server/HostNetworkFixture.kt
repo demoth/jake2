@@ -1,5 +1,7 @@
 package jake2.server
 
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.network.CvarNetworkSettings
 import jake2.qcommon.Defines
 import jake2.qcommon.network.messages.NetworkPacket
 import jake2.qcommon.network.protocol.*
@@ -12,7 +14,7 @@ internal class HostNetworkFixture : AutoCloseable {
     val serverTransport = NetworkTransport(link.second, link.first.localAddress)
     val clientTransport = NetworkTransport(link.first, link.second.localAddress)
     val server = TransportServerNetwork(serverTransport)
-    val client = PacketNetwork(clientTransport, NetworkRole.CLIENT)
+    val client = PacketNetwork(clientTransport, NetworkRole.CLIENT, CvarNetworkSettings(Cvar.getInstance()))
 
     /** Inject a programming failure at send time without corrupting connection address state. */
     fun failTransmissions(client: ClientNetworkInfo) {

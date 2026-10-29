@@ -29,7 +29,7 @@ class DedicatedLifetimeTest {
         Cvar.getInstance().clear()
         MainCommon.registerCvars(true)
         Cmd.Init()
-        jake2.qcommon.network.Netchan.Netchan_Init()
+        jake2.qcommon.network.NetworkSettings.registerCvars()
         Cvar.getInstance().find<Int>("port").forceSet(0)
     }
 

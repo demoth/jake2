@@ -28,7 +28,7 @@ class HostSessionPreparationTest {
         Globals.server_state = ServerStates.SS_DEAD
         cvars.clear()
         MainCommon.registerCvars(false)
-        jake2.qcommon.network.Netchan.Netchan_Init()
+        jake2.qcommon.network.NetworkSettings.registerCvars()
         cvars.find<Int>("port").forceSet(0)
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))

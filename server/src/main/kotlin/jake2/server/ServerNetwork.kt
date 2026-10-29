@@ -1,6 +1,7 @@
 package jake2.server
 
 import jake2.qcommon.network.*
+import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.transport.AddressResolver
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -12,6 +13,7 @@ import jake2.qcommon.network.transport.LocalSide
 
 /** Server transport boundary. A stopped game retires UDP and incoming local traffic, not its peer. */
 interface ServerNetwork : AutoCloseable {
+    val logMessages: Boolean
     val localPeer: NetworkAddress.Local
     fun resolveAddress(text: String, defaultPort: Int): NetworkAddress? = AddressResolver.resolve(text, defaultPort, localPeer)
     fun configure(multiplayer: Boolean): Boolean
@@ -24,12 +26,16 @@ interface ServerNetwork : AutoCloseable {
 }
 
 /** Owns the supplied transport; connections borrow it through the shared packet adapter. */
-class TransportServerNetwork(private val transport: NetworkTransport) : ServerNetwork {
+class TransportServerNetwork @JvmOverloads constructor(
+    private val transport: NetworkTransport,
+    private val settings: NetworkSettings = CvarNetworkSettings(Cvar.getInstance()),
+) : ServerNetwork {
     companion object {
         @JvmStatic fun standalone() = TransportServerNetwork(
             NetworkTransport.standalone(LocalSide.SECOND))
     }
-    private val packets = PacketNetwork(transport, NetworkRole.SERVER)
+    private val packets = PacketNetwork(transport, NetworkRole.SERVER, settings)
+    override val logMessages: Boolean get() = settings.logMessages
     override val localPeer: NetworkAddress.Local get() = packets.localPeer
     override fun newChannel() = packets.newChannel()
     override fun configure(multiplayer: Boolean) = packets.configure(multiplayer)

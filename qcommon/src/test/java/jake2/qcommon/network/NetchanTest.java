@@ -1,5 +1,6 @@
 package jake2.qcommon.network;
 
+import jake2.qcommon.network.CvarNetworkSettings;
 import jake2.qcommon.Globals;
 import jake2.qcommon.network.protocol.ChannelRole;
 import jake2.qcommon.network.transport.SendResult;
@@ -34,10 +35,10 @@ class NetchanTest {
         var link = new LoopbackLink();
         client = new NetworkTransport(link.getFirst(), link.getSecond().getLocalAddress());
         server = new NetworkTransport(link.getSecond(), link.getFirst().getLocalAddress());
-        serverPackets = new PacketNetwork(server, NetworkRole.SERVER);
+        serverPackets = new PacketNetwork(server, NetworkRole.SERVER, new CvarNetworkSettings(Cvar.getInstance()));
         Cvar.getInstance().clear();
         Globals.curtime = 0;
-        Netchan.Netchan_Init();
+        NetworkSettings.registerCvars();
     }
 
     @AfterEach
@@ -48,7 +49,7 @@ class NetchanTest {
 
     @Test
     void outgoingClientPacketUsesItsSetupQport() {
-        Netchan.qport.forceSet(77);
+        Cvar.getInstance().find("qport", Integer.class).forceSet(77);
         var channel = new ConnectionChannel(ChannelRole.CLIENT, client.getLocalPeer(), client::send, () -> (long) Globals.curtime);
         channel.setup(channel.getRemoteAddress(), 1234);
         assertTrue(channel.transmit(null));

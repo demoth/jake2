@@ -14,7 +14,7 @@ import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.vfs.EngineWriteRoot
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.transport.LoopbackLink
 import jake2.qcommon.network.transport.PacketBytes
 import jake2.qcommon.network.protocol.PacketCodec
@@ -55,7 +55,7 @@ class CakeHostApplicationTest {
             Cvar.getInstance().clear()
             MainCommon.registerCvars(false)
             CakeCvars.registerAll()
-            Netchan.Netchan_Init()
+            NetworkSettings.registerCvars()
             val cvars = Cvar.getInstance()
             cvars.find<Int>("port").forceSet(0)
             cvars.find<Int>("clientport").forceSet(0)

@@ -5,7 +5,13 @@ import jake2.qcommon.network.transport.PacketBytes
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-/** Stateless envelope encoding/decoding. No sockets, Cvars, logging, or mutable channel state. */
+/**
+ * Stateless envelope encoding/decoding. No sockets, Cvars, logging, or mutable channel state.
+ *
+ * Packet header: one reliable-payload flag plus 31 sequence bits, one even/odd reliable receipt flag
+ * plus 31 acknowledgement bits, and a 16-bit qport only on client-to-server packets. Sequence -1
+ * marks a connectionless/out-of-band packet, which is handled without a connection channel.
+ */
 object PacketCodec {
     /** Encode the wire header and already-serialized body without changing channel state. */
     @JvmStatic

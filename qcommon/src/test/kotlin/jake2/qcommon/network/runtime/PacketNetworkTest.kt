@@ -1,8 +1,9 @@
 package jake2.qcommon.network.runtime
 
+import jake2.qcommon.network.CvarNetworkSettings
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.transport.*
 import org.junit.jupiter.api.Assertions.*
@@ -18,7 +19,7 @@ class PacketNetworkTest {
         val budget = PacketNetwork.DEFAULT_POLL_BUDGET
         LoopbackLink(capacity = budget + 1).use { link ->
             val transport = NetworkTransport(link.first, link.second.localAddress)
-            PacketNetwork(transport, role).use { network ->
+            PacketNetwork(transport, role, CvarNetworkSettings(Cvar.getInstance())).use { network ->
                 repeat(budget) { link.second.send(link.first.localAddress, PacketBytes.copyOf(byteArrayOf(1))) }
                 val ping = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "ping".toByteArray())
                 link.second.send(link.first.localAddress, ping)
@@ -38,7 +39,7 @@ class PacketNetworkTest {
     fun `poll continues past malformed packets within budget and bounds self-replenishing traffic`() {
         LoopbackLink().use { link ->
             val transport = NetworkTransport(link.first, link.second.localAddress)
-            PacketNetwork(transport, NetworkRole.CLIENT).use { network ->
+            PacketNetwork(transport, NetworkRole.CLIENT, CvarNetworkSettings(Cvar.getInstance())).use { network ->
                 val ping = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "ping".toByteArray())
                 link.second.send(link.first.localAddress, PacketBytes.copyOf(byteArrayOf(1)))
                 link.second.send(link.first.localAddress, ping)
@@ -60,8 +61,8 @@ class PacketNetworkTest {
         LoopbackLink().use { link ->
             val clientTransport = NetworkTransport(link.first, link.second.localAddress)
             val serverTransport = NetworkTransport(link.second, link.first.localAddress)
-            PacketNetwork(clientTransport, NetworkRole.CLIENT).use { client ->
-                PacketNetwork(serverTransport, NetworkRole.SERVER).use { server ->
+            PacketNetwork(clientTransport, NetworkRole.CLIENT, CvarNetworkSettings(Cvar.getInstance())).use { client ->
+                PacketNetwork(serverTransport, NetworkRole.SERVER, CvarNetworkSettings(Cvar.getInstance())).use { server ->
                     val clientChannel = client.newChannel()
                     clientChannel.setup(clientChannel.remoteAddress, 1234)
                     assertTrue(clientChannel.transmit(null))
@@ -96,10 +97,10 @@ class PacketNetworkTest {
     fun `server bind failure never falls back and legacy wildcard port works with explicit IP`() {
         val cvars = Cvar.getInstance()
         cvars.clear()
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         val transport = NetworkTransport.standalone(LocalSide.SECOND)
         try {
-            PacketNetwork(transport, NetworkRole.SERVER).use { server ->
+            PacketNetwork(transport, NetworkRole.SERVER, CvarNetworkSettings(Cvar.getInstance())).use { server ->
                 DatagramSocket(0).use { occupied ->
                     cvars.find("port", Int::class.javaObjectType).forceSet(occupied.localPort)
                     assertFalse(server.configure(true))

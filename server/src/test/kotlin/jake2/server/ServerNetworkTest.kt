@@ -2,7 +2,7 @@ package jake2.server
 
 import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cvar
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.transport.*
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.runtime.PacketNetwork
@@ -47,7 +47,7 @@ class ServerNetworkTest {
     fun `malformed client body drops only that client without dispatching its valid prefix`() {
         Cvar.getInstance().clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         try {
             Peer().use { peer ->
                 fun connection(qport: Int) = ClientNetworkInfo(peer.network.newChannel()).apply {
@@ -80,7 +80,7 @@ class ServerNetworkTest {
     fun `Host packet pass bounds malformed and valid traffic and resumes next pass`() {
         Cvar.getInstance().clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         try {
             val budget = PacketNetwork.DEFAULT_POLL_BUDGET
             Peer(capacity = budget + 1).use { peer ->
@@ -100,7 +100,7 @@ class ServerNetworkTest {
     fun `hosts reply on their injected links and closing one leaves the other running`() {
         Cvar.getInstance().clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         try {
             Peer().use { first -> Peer().use { second ->
                 first.ping()

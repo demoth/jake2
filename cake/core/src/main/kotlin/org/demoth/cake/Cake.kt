@@ -25,7 +25,7 @@ import jake2.qcommon.exec.find
 import org.demoth.cake.network.ClientNetwork
 import org.demoth.cake.network.ClientHandshake
 import jake2.qcommon.network.protocol.MessageDecodeResult
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.NetworkPacket
@@ -200,7 +200,7 @@ class Cake(
     private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
     init {
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
     }
 
     override fun create() {
@@ -1053,7 +1053,7 @@ class Cake(
     // The connect payload already includes current userinfo, so consume the legacy dirty flag.
     @Suppress("DEPRECATION")
     private fun connectPayload(challenge: Int): String {
-        val port = Cvar.getInstance().find<Int>("qport").typedValue
+        val port = network.qport
         Globals.userinfo_modified = false
         return " $PROTOCOL_VERSION $port $challenge \"${Cvar.getInstance().Userinfo()}\"\n"
     }
@@ -1081,7 +1081,7 @@ class Cake(
                 networkDebugSampler.recordInbound(netchan.lastReceivedSize, Globals.curtime)
                 when (val body = networkPacket.parseBodyFromServer()) {
                     is MessageDecodeResult.Decoded -> {
-                        if (Netchan.printNetwork?.typedValue == true) body.messages.forEach { message ->
+                        if (network.logMessages) body.messages.forEach { message ->
                             if (message !is FrameHeaderMessage && message !is PlayerInfoMessage && message !is PacketEntitiesMessage)
                                 Com.Printf("Network: Received server msg: $message\n")
                         }
@@ -1325,7 +1325,7 @@ class Cake(
             ConnectionlessCommand.client_connect -> {
                 if (!handshake.acceptConnection(packet.from)) return
                 networkState = CONNECTED
-                netchan.setup(packet.from, Cvar.getInstance().find<Int>("qport").typedValue)
+                netchan.setup(packet.from, network.qport)
                 netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
                 Com.Println("Connected!")
             }

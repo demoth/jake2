@@ -4,7 +4,7 @@ import jake2.qcommon.*
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.transport.NetworkAddress
 import jake2.qcommon.network.messages.server.StuffTextMessage
 import jake2.qcommon.vfs.*
@@ -30,7 +30,7 @@ class GameContinuationTest {
         Globals.server_state = ServerStates.SS_DEAD
         Cvar.getInstance().clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)

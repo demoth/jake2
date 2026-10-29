@@ -6,7 +6,7 @@ import jake2.qcommon.MainCommon
 import jake2.qcommon.ServerStates
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.server.save.ServerSaveFiles
 import org.demoth.cake.fullgame.EmbeddedCakeHost
@@ -32,7 +32,7 @@ class EmbeddedCakeSavesTest {
         cvars.clear()
         Globals.server_state = ServerStates.SS_DEAD
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         cvars.find<Int>("port").forceSet(0)
         cvars.find<Int>("clientport").forceSet(0)
         host = EmbeddedCakeHost(root)

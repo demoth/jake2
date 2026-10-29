@@ -48,6 +48,24 @@ sealed interface PrepareSendResult {
 /** Quake II reliable channel state, confined to one owner thread.
  * Times are elapsed monotonic milliseconds supplied by the caller. Every prepared
  * transmission must be completed before further channel operations, even on I/O failure.
+ *
+ * The receiver does not separately detect a missed reliable payload. The sender detects it when
+ * an acknowledgement advances beyond the last reliable sequence without the correct even/odd bit.
+ * It retransmits then, and waits for acknowledgement of a later packet before retrying again.
+ *
+ * Reliable bytes are always first; an unreliable batch follows only if it fits. The receiver
+ * processes both as one larger body, without a reliable/unreliable distinction. Out-of-order
+ * sequence numbers drop the packet without killing the connection; these rules are not authentication.
+ *
+ * The connection adapter can stage reliable messages at any time. A single oversized message or
+ * multiple frames piling up while reliable data is unacknowledged cause that adapter to signal a
+ * fatal overflow. Queued cancellation affects unsent work; transmitted bytes await acknowledgement.
+ * Idle connection/loading frames can send header-only keepalives or retransmit outstanding data.
+ *
+ * Qport works around routers remapping a client's UDP source port during gameplay. The router
+ * matches the source IP and qport even when the UDP port changes, then commits the new port only
+ * after accepting sequence state and before sending replies. Local peers instead retain their
+ * full link and endpoint identity.
  */
 class ReliableChannel @JvmOverloads constructor(
     private val role: ChannelRole,

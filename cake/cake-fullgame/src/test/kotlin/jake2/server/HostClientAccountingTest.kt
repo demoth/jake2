@@ -57,7 +57,7 @@ class HostClientAccountingTest {
         Globals.server_state = ServerStates.SS_DEAD
         cvars.clear()
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         EngineVfs.configure(VfsConfig(Path.of("src/test/resources"), "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
         EngineWriteRoot.setRoot(root)

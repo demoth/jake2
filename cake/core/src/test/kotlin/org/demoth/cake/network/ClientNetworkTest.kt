@@ -1,7 +1,7 @@
 package org.demoth.cake.network
 
 import jake2.qcommon.exec.Cvar
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.transport.*
@@ -14,7 +14,7 @@ class ClientNetworkTest {
     fun `client falls back from occupied UDP port and retains local transport on stop`() {
         val cvars = Cvar.getInstance()
         cvars.clear()
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         try {
             LoopbackLink().use { link ->
                 val transport = NetworkTransport(link.first, link.second.localAddress)

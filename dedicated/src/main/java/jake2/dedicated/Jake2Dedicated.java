@@ -2,7 +2,7 @@ package jake2.dedicated;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.MainCommon;
-import jake2.qcommon.network.Netchan;
+import jake2.qcommon.network.NetworkSettings;
 import jake2.qcommon.exec.Cbuf;
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
@@ -59,7 +59,7 @@ public class Jake2Dedicated {
             //
             // init commands and vars
 
-            Netchan.Netchan_Init();
+            NetworkSettings.registerCvars();
             runHost(args1);
         } catch (longjmpException e) {
             throw new IllegalStateException("Error during dedicated initialization", e);

@@ -22,7 +22,7 @@ class NetSocketOwnershipTest {
     void setup() {
         Cvar.getInstance().clear();
         MainCommon.registerCvars(false);
-        Netchan.Netchan_Init();
+        NetworkSettings.registerCvars();
         pair = new OwnedNetworkPair();
         Cvar.getInstance().find("port", Integer.class).forceSet(0);
         Cvar.getInstance().find("clientport", Integer.class).forceSet(0);

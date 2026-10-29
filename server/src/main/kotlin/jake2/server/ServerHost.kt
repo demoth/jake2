@@ -25,7 +25,6 @@ import jake2.qcommon.*
 import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
 import jake2.qcommon.network.protocol.MessageDecodeResult
-import jake2.qcommon.network.Netchan
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.*
@@ -1168,7 +1167,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                         dropClient(client)
                     }
                     is MessageDecodeResult.Decoded -> {
-                        if (Netchan.printNetwork?.typedValue == true) body.messages.forEach { message ->
+                        if (network.logMessages) body.messages.forEach { message ->
                             if (message !is MoveMessage) Com.Printf("Network: Received client msg: $message\n")
                         }
                         handleClientMessages(client, body.messages)

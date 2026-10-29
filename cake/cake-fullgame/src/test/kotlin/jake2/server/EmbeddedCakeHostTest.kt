@@ -6,7 +6,7 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
-import jake2.qcommon.network.Netchan
+import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.network.messages.server.ServerMessage
 import jake2.qcommon.vfs.EngineWriteRoot
@@ -38,7 +38,7 @@ class EmbeddedCakeHostTest {
         cvars.clear()
         Globals.server_state = ServerStates.SS_DEAD
         MainCommon.registerCvars(false)
-        Netchan.Netchan_Init()
+        NetworkSettings.registerCvars()
         cvars.find<Int>("port").forceSet(0)
         cvars.find<Int>("clientport").forceSet(0)
         previousRoot = EngineWriteRoot.path()

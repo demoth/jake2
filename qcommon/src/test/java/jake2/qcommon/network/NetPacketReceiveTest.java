@@ -31,7 +31,7 @@ class NetPacketReceiveTest {
     @BeforeEach
     void setup() {
         Cvar.getInstance().clear();
-        Netchan.Netchan_Init();
+        NetworkSettings.registerCvars();
         pair = new OwnedNetworkPair();
     }
 
