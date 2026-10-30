@@ -172,7 +172,7 @@ object ServerMessageCodec {
     private fun readFrameHeader(buffer: MessageReader, hasSuppressCount: Boolean): FrameHeaderMessage {
         val frameNumber = buffer.readInt()
         val lastFrame = buffer.readInt()
-        // CL_ParseFrame (Yamagi/Q2PRO): protocol 26 omits this byte; classic 32/34 include it.
+        // CL_ParseFrame (Yamagi/Q2PRO): protocol 26 omits this byte; classic 31/32/34 include it.
         val suppressCount = if (hasSuppressCount) buffer.readUnsignedByte() else 0
         val length = buffer.readUnsignedByte()
         if (length > MAX_MAP_AREAS / 8)

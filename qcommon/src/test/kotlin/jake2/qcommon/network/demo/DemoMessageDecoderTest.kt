@@ -33,7 +33,7 @@ class DemoMessageDecoderTest {
 
     @Test fun `map server data can switch between all supported layouts without leaking across decoder instances`() {
         val decoder = DemoMessageDecoder()
-        for (protocol in listOf(34, 26, 32, 26, 34)) {
+        for (protocol in listOf(34, 26, 31, 32, 26, 34)) {
             val header = messages(decoder, startup(protocol) + frame(protocol)).last() as FrameHeaderMessage
             assertEquals(protocol, decoder.protocol)
             assertEquals(if (protocol == 26) 0 else 9, header.suppressCount)
@@ -59,8 +59,9 @@ class DemoMessageDecoderTest {
 
     @Test fun `unsupported versions malformed suffixes and oversized areas reject whole records atomically`() {
         val decoder = DemoMessageDecoder()
-        for (bytes in listOf(startup(25), startup(33), startup(35),
+        for (bytes in listOf(startup(25), startup(30), startup(33), startup(35),
             startup(26) + byteArrayOf(254.toByte()),
+            startup(31) + byteArrayOf(254.toByte()),
             startup(26) + byteArrayOf(20) + int(10) + int(-1) + byteArrayOf(33))) {
             assertInstanceOf(MessageDecodeResult.Rejected::class.java, decode(decoder, bytes))
             assertEquals(34, decoder.protocol)

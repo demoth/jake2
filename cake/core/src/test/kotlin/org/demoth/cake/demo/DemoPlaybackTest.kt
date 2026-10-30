@@ -5,6 +5,8 @@ import jake2.qcommon.network.messages.server.*
 import jake2.qcommon.sizebuf_t
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -49,10 +51,12 @@ class DemoPlaybackTest {
         }
     }
 
-    @Test fun `independent protocol 32 startup and frame layouts retain suppression visibility and timing`() {
+    @ParameterizedTest
+    @ValueSource(ints = [31, 32])
+    fun `classic startup and frame layouts retain suppression visibility and timing`(protocol: Int) {
         // Hand-authored classic layouts from Yamagi CL_ParseServerData/CL_ParseFrame and
-        // Q2PRO CL_ParseFrame: only protocol 26 omits suppressCount; 32 follows the 34 layout.
-        val startup = byteArrayOf(12) + int(32) + int(1) + byteArrayOf(1) +
+        // Q2PRO CL_ParseFrame: only protocol 26 omits suppressCount; 31 and 32 follow the 34 layout.
+        val startup = byteArrayOf(12) + int(protocol) + int(1) + byteArrayOf(1) +
             "xatrix\u0000".toByteArray(Charsets.ISO_8859_1) + byteArrayOf(0, 0) +
             "legacy32\u0000".toByteArray(Charsets.ISO_8859_1)
         fun snapshot(number: Int, last: Int): ByteArray = byteArrayOf(20) + int(number) + int(last) +
@@ -66,7 +70,7 @@ class DemoPlaybackTest {
             val dispatch: (List<ServerMessage>) -> Boolean = { messages += it; true }
             assertTrue(demo.update(0f, dispatch))
             val data = messages.filterIsInstance<ServerDataMessage>().single()
-            assertEquals(32, data.protocol)
+            assertEquals(protocol, data.protocol)
             assertEquals("xatrix", data.gameName)
             assertEquals("legacy32", data.levelString)
             assertEquals(9900, demo.presentationTimeMillis)

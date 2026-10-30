@@ -25,9 +25,9 @@ class DemoMessageDecoder {
             val start = reader.readcount
             val message = ServerMessageCodec.readDemoMessage(reader, nextProtocol)
             if (message is ServerDataMessage) {
-                if (message.protocol != 26 && message.protocol != 32 && message.protocol != Defines.PROTOCOL_VERSION)
+                if (message.protocol != 26 && message.protocol != 31 && message.protocol != 32 && message.protocol != Defines.PROTOCOL_VERSION)
                     throw MessageReadException(MessageRejection.INVALID_VALUE, start,
-                        "Unsupported demo protocol ${message.protocol}; expected 26, 32 or ${Defines.PROTOCOL_VERSION}")
+                        "Unsupported demo protocol ${message.protocol}; expected 26, 31, 32 or ${Defines.PROTOCOL_VERSION}")
                 nextProtocol = message.protocol
             }
             message
