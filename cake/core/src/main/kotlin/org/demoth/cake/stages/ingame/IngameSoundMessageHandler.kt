@@ -28,6 +28,7 @@ internal class IngameSoundMessageHandler(
     private val effectsSystem: ClientEffectsSystem,
     private val audioSystem: CakeAudioSystem,
     private val dynamicLightSystem: DynamicLightSystem,
+    private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) {
     private val loopSoundRequests = mutableListOf<EntityLoopSoundRequest>()
 
@@ -304,7 +305,7 @@ internal class IngameSoundMessageHandler(
             green = profile.green,
             blue = profile.blue,
             lifetimeMs = profile.lifetimeMs,
-            currentTimeMs = Globals.curtime,
+            currentTimeMs = currentTimeMsProvider(),
         )
     }
 

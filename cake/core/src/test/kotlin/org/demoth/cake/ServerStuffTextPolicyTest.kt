@@ -6,6 +6,14 @@ import org.junit.jupiter.api.Test
 class ServerStuffTextPolicyTest {
 
     @Test
+    fun argumentlessPrecacheIsOnlyAllowedForDemoPlayback() {
+        assertEquals(listOf("precache"), filterServerStuffText("precache").rejectedCommands)
+        val demo = filterServerStuffText("precache; exec bad.cfg; precache nope", demoPlayback = true)
+        assertEquals(listOf("precache"), demo.acceptedCommands)
+        assertEquals(listOf("exec bad.cfg", "precache nope"), demo.rejectedCommands)
+    }
+
+    @Test
     fun acceptsKnownConnectionFlowCommands() {
         val result = filterServerStuffText("changing\nreconnect\ncmd configstrings 3 0\nprecache 3\nspectator 1")
 

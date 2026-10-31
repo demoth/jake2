@@ -95,6 +95,7 @@ class ConcharsAtlasGlTest {
                     assertSame(widgets.containerPanel, browser.background)
                     assertNull(browser.scrollPane.background, "Only the outer browser panel is framed")
                     assertSame(widgets.scrollPane.vScrollKnob, browser.scrollPane.vScrollKnob)
+                    assertSame(widgets.scrollPane.hScrollKnob, browser.scrollPane.hScrollKnob)
                     assertSame(widgets.separatorVertical, browser.splitPane.handle, "Splitter reuses themed separator artwork")
                 }
                 assertEquals(24f, skin.getFont("default").lineHeight, "Raw engine UI retains native font size")
@@ -125,6 +126,10 @@ class ConcharsAtlasGlTest {
                 assertSame(quake.tree.selection, quake.list.selection)
                 assertSame(quake.tree.selection, quake.selectBox.listStyle.selection)
                 assertSame(quake.separatorVertical, quake.scrollPane.vScrollKnob)
+                assertSame(quake.separatorHorizontal, quake.scrollPane.hScrollKnob)
+                assertSame(quake.separatorHorizontal, quake.selectBox.scrollStyle.hScrollKnob)
+                assertNull(quake.scrollPane.hScroll)
+                assertNull(quake.scrollPane.corner)
                 assertSame(quake.separatorVertical, quake.selectBox.scrollStyle.vScrollKnob)
                 assertNull(quake.scrollPane.vScroll, "Game scrollbar has no separate track backdrop")
                 assertNull(quake.selectBox.scrollStyle.vScroll)

@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
 import jake2.qcommon.Defines.*
+import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.assets.bsp.BspMapAsset
 import org.demoth.cake.assets.MissingResourceException
@@ -83,6 +84,9 @@ class GameConfiguration(
      * For some reason, it is not managed by the config strings.
      */
     var layout: String = ""
+
+    /** Protocol-26 demo playback may reference models absent from later game data (Yamagi R_RegisterModel). */
+    var allowMissingModelConfigs: Boolean = false
 
     private val configStrings = Array<Config?>(size) { null }
     private val trackedLoadedAssets: MutableMap<String, Class<*>> = mutableMapOf()
@@ -240,6 +244,11 @@ class GameConfiguration(
         return configStrings.getOrNull(CS_ITEMS + itemIndex)?.value
     }
 
+    /** Owned protocol values for demo startup; resource handles are excluded. */
+    fun snapshotConfigStrings(): List<ConfigStringMessage> = configStrings.mapIndexedNotNull { index, config ->
+        config?.value?.takeIf { it.isNotEmpty() }?.let { ConfigStringMessage(index, it) }
+    }
+
     fun getConfigValue(configIndex: Int): String? {
         return configStrings.getOrNull(configIndex)?.value
     }
@@ -324,7 +333,8 @@ class GameConfiguration(
             val config = configStrings[i] ?: continue
             if (!loadConfigResource(i, config)) {
                 val modelPath = config.value
-                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#")) {
+                if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#") &&
+                    modelPath !in failedAssets) {
                     Com.Warn("Failed to load model data for config $modelPath")
                 }
             }
@@ -405,6 +415,17 @@ class GameConfiguration(
     private fun loadModelConfigResource(config: Config): Boolean {
         val modelPath = config.value
         if (modelPath.isBlank() || modelPath.startsWith("*") || modelPath.startsWith("#")) {
+            return false
+        }
+        if (allowMissingModelConfigs &&
+            (modelPath.endsWith(".md2", ignoreCase = true) || modelPath.endsWith(".sp2", ignoreCase = true)) &&
+            !assetExists(modelPath)) {
+            // Yamagi registers these with crash=false. Keep the config/index, but omit absent geometry.
+            config.resource = null
+            if (modelPath !in failedAssets) {
+                failedAssets[modelPath] = "Model absent from game data during old-demo playback"
+                Com.Warn("Skipping missing demo model: $modelPath")
+            }
             return false
         }
         return when {

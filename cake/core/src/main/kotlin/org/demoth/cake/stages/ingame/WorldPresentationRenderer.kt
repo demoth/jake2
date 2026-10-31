@@ -52,6 +52,7 @@ internal class WorldPresentationRenderer {
      */
     data class FrameContext(
         val delta: Float,
+        val demoPlayback: Boolean = false,
         val currentTimeMs: Int,
         val sceneFrameBuffer: FrameBuffer?,
         val camera: PerspectiveCamera,
@@ -104,7 +105,7 @@ internal class WorldPresentationRenderer {
 
         // Cross-reference: old frame order in `CL.Frame()` calls `CL_pred.PredictMovement()`
         // before calculating render view (`CL_ents.CalcViewValues`).
-        context.prediction.predictMovement(
+        if (!context.demoPlayback) context.prediction.predictMovement(
             context.entityManager.currentFrame,
             context.inputManager,
             context.gameConfig.playerConfiguration.playerIndex,
@@ -125,6 +126,7 @@ internal class WorldPresentationRenderer {
         context.effectsSystem.update(context.delta, context.entityManager.currentFrame.serverframe)
         context.replicatedEntityEffectCollector.collectTrails(lerpFrac)
         context.dynamicLightSystem.beginFrame(context.currentTimeMs, context.delta)
+        context.effectsSystem.collectDynamicLights()
         context.replicatedEntityEffectCollector.collectDynamicLights(
             lerpFrac = lerpFrac,
             currentTimeMs = context.currentTimeMs,
@@ -211,7 +213,7 @@ internal class WorldPresentationRenderer {
                     renderedTranslucentSprites++
                 }
             }
-            context.entityManager.lerpAcc += context.delta
+            if (!context.demoPlayback) context.entityManager.lerpAcc += context.delta
         } finally {
             context.modelBatch.end()
         }
@@ -225,6 +227,7 @@ internal class WorldPresentationRenderer {
         context.modelBatch.begin(context.camera)
         try {
             context.effectsSystem.render(context.modelBatch)
+            context.effectsSystem.renderLasers(context.modelBatch, context.beamRenderer)
         } finally {
             context.modelBatch.end()
         }

@@ -86,10 +86,10 @@ class EffectAssetCatalog(
         if (assetManager.fileHandleResolver.tryResolveRaw(path) == null) {
             return
         }
-        if (!assetManager.isLoaded(path, type)) {
-            assetManager.load(path, type)
-            assetManager.finishLoadingAsset<T>(path)
-        }
+        // Acquire a reference even when another screen/config already loaded the asset.
+        // finishLoadingAsset returns immediately for cached assets, before processing that acquisition.
+        assetManager.load(path, type)
+        assetManager.finishLoading()
         ownedAssetTypes[path] = type
     }
 }
@@ -103,6 +103,8 @@ private val EFFECT_MD2_MODELS = listOf(
     "models/monsters/parasite/tip/tris.md2",
     "models/objects/r_explode/tris.md2",
     "models/objects/r_explode2/tris.md2",
+    "models/proj/lightning/tris.md2",
+    "models/proj/beam/tris.md2",
 )
 
 private val EFFECT_SP2_MODELS = listOf(
@@ -123,6 +125,7 @@ private val EFFECT_SOUNDS = listOf(
     "sound/weapons/xpld_wat.wav",
     "sound/misc/bigtele.wav",
     "sound/weapons/disrupthit.wav",
+    "sound/weapons/tesla.wav",
     "sound/infantry/infatck1.wav",
     "sound/soldier/solatck1.wav",
     "sound/soldier/solatck2.wav",

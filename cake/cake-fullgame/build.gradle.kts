@@ -23,9 +23,10 @@ dependencies {
 tasks.test {
     // Opt-in flags and content location affect which tests run and what they load.
     // Changing them must invalidate results that may otherwise contain only skipped tests.
-    listOf("CAKE_HOST_GAME_TESTS", "CAKE_HOST_GL_TESTS", "CAKE_TEST_BASEDIR").forEach { name ->
+    listOf("CAKE_HOST_GAME_TESTS", "CAKE_HOST_GL_TESTS", "CAKE_TEST_BASEDIR", "CAKE_TEST_DEMO").forEach { name ->
         inputs.property(name, providers.environmentVariable(name).orElse(""))
     }
+    providers.environmentVariable("CAKE_TEST_DEMO").orNull?.let { inputs.file(it) }
     if (providers.environmentVariable("CAKE_HOST_GAME_TESTS").orNull == "1") {
         forkEvery = 1
     }

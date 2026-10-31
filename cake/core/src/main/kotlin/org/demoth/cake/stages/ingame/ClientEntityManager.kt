@@ -99,6 +99,11 @@ class ClientEntityManager : Disposable {
         return clientEntities[entityIndex].current.angles.copyOf()
     }
 
+    /** Copy received baselines for demo startup without sharing mutable entity storage. */
+    fun snapshotBaselines(): List<SpawnBaselineMessage> = clientEntities.mapNotNull { entity ->
+        entity.baseline.takeIf { it.index > 0 }?.let(::SpawnBaselineMessage)
+    }
+
     fun processBaselineMessage(msg: SpawnBaselineMessage) {
         msg.entityState.copyTo(clientEntities[msg.entityState.index].baseline)
     }

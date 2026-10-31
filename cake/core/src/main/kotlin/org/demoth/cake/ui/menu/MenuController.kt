@@ -223,6 +223,12 @@ class MenuController(
                 refreshState(activeScreen = MenuScreen.CONTENT_BROWSER, formOverride = state.profileEditor.form)
             }
 
+            is MenuIntent.PlayDemoRequested -> {
+                if (state.activeScreen == MenuScreen.CONTENT_BROWSER && intent.profileId == backend.activeProfileId() &&
+                    intent.entry.normalizedPath.endsWith(".dm2", ignoreCase = true))
+                    bus.postSignal(MenuSignal.PlayDemo(intent.profileId, intent.entry))
+            }
+
             is MenuIntent.OpenOptions -> {
                 refreshState(
                     activeScreen = MenuScreen.OPTIONS,

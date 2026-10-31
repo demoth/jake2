@@ -14,6 +14,38 @@ import org.junit.jupiter.api.Test
 class MenuControllerTest {
 
     @Test
+    fun browserDemoRequestsAreDeferredCarryTheSelectedSourceAndRejectStaleProfiles() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        val entry = jake2.qcommon.vfs.VfsEntry("demos/test.dm2", "demos/Test.dm2",
+            jake2.qcommon.vfs.VfsLayer.PROFILE_LOOSE, 0,
+            jake2.qcommon.vfs.VfsSource(jake2.qcommon.vfs.VfsSourceType.DIRECTORY,
+                java.nio.file.Path.of("profile"), "demos/Test.dm2", null, false, false), 100, 0)
+        bus.drainSignals { }
+        bus.postIntent(MenuIntent.PlayDemoRequested("default", entry))
+        controller.pumpIntents()
+        val signals = mutableListOf<MenuSignal>()
+        bus.drainSignals { signals += it }
+        assertTrue(signals.isEmpty(), "Only the browser can launch its selected demo")
+        bus.postIntent(MenuIntent.OpenContentBrowser)
+        controller.pumpIntents()
+        bus.drainSignals { }
+        bus.postIntent(MenuIntent.PlayDemoRequested("default", entry))
+        assertTrue(signals.isEmpty())
+        controller.pumpIntents()
+        bus.drainSignals { signals += it }
+        assertEquals(listOf(MenuSignal.PlayDemo("default", entry)), signals)
+        signals.clear()
+        backend.applyProfile("other")
+        bus.postIntent(MenuIntent.PlayDemoRequested("default", entry))
+        controller.pumpIntents()
+        bus.drainSignals { signals += it }
+        assertTrue(signals.isEmpty())
+    }
+
+    @Test
     fun singleplayerHubOwnsNewGameLoadAndSaveNavigation() {
         val bus = MenuEventBus()
         val controller = MenuController(FakeMenuBackend(), bus)

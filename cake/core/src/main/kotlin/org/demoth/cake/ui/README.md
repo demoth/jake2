@@ -43,6 +43,7 @@ artwork and atlas lines; tree slots match the 8-unit game theme.
 | Component | Responsibility |
 |---|---|
 | `ContentBrowserStage` / `ContentBrowser` | Client layout; shared VFS browsing and back navigation. Hosts supply the root action. |
+| `DemoFiles` / `DemoMetadata` | Merge profile recordings with installed demo entries and read bounded startup metadata on selection, without extracting packages or loading game assets. |
 | `ContentBrowserStyles` | Resolved menu styles; standalone Skin adapter preserves viewer sizing. |
 | `FileResourcePreview` / `CinematicPreview` | Shared read-only text and CIN widgets; owns the palette reference, cinematic texture/pixmap and audio device. Closing detaches the widget and releases resources. |
 | `ImageThumbnails` | Progressive visible PCX/WAL/TGA and first-frame CIN loading; owns folder-scoped textures, released on folder change, exit, or profile change. |
@@ -56,6 +57,7 @@ artwork and atlas lines; tree slots match the 8-unit game theme.
 - Preview content resolves within the profile; engine palette/shaders remain available.
 - Selection, navigation, profile changes, and failures clear preview resources without unloading shared game textures.
 - Back/Escape restores folder scroll, then ascends folders; only root exits the browser.
+- Demo double-click/Enter requests playback through the menu bus. Value-only, profile-scoped bookmarks retain folder/selection/scroll/thumbnail size across playback cleanup and style rebuilds; returning playback errors appear above the listing.
 
 | Media | Interaction |
 |---|---|

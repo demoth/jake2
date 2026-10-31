@@ -1,5 +1,6 @@
 package jake2.qcommon.network.protocol
 
+import jake2.qcommon.network.transport.PacketBytes
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.*
 import jake2.qcommon.network.messages.server.*
@@ -12,6 +13,14 @@ object MessageBodyCodec {
     @JvmStatic fun decodeServer(envelope: PacketEnvelope): MessageDecodeResult<ServerMessage> =
         decode(envelope, PacketDirection.FROM_SERVER, ServerMessageCodec::read) { it is EndOfServerPacketMessage }
 
+    /** Decode a complete server body, including demo records which have no channel header. */
+    @JvmStatic fun decodeServerBody(bytes: PacketBytes): MessageDecodeResult<ServerMessage> =
+        decodeServerBody(bytes, ServerMessageCodec::read)
+
+    /** A stream-owned demo decoder may select its layout between messages within the same record. */
+    internal fun decodeServerBody(bytes: PacketBytes, parse: (MessageReader) -> ServerMessage?): MessageDecodeResult<ServerMessage> =
+        decodeReader(MessageReader(bytes, 0), parse) { it is EndOfServerPacketMessage }
+
     @JvmStatic fun decodeClient(envelope: PacketEnvelope, sequence: Int): MessageDecodeResult<ClientMessage> =
         decode(envelope, PacketDirection.FROM_CLIENT, { ClientMessageCodec.read(it, sequence) }) { it is EndOfClientPacketMessage }
 
@@ -23,7 +32,12 @@ object MessageBodyCodec {
             return MessageDecodeResult.Rejected(MessageRejection.NOT_SEQUENCED, 0, "Connectionless packet has no message body")
         if ((envelope.qport != null) != (direction == PacketDirection.FROM_CLIENT))
             return MessageDecodeResult.Rejected(MessageRejection.WRONG_DIRECTION, 0, "Unexpected channel header")
-        val reader = MessageReader(envelope.bytes, envelope.headerSize)
+        return decodeReader(MessageReader(envelope.bytes, envelope.headerSize), parse, isEnd)
+    }
+
+    private fun <T : NetworkMessage> decodeReader(
+        reader: MessageReader, parse: (MessageReader) -> T?, isEnd: (T) -> Boolean,
+    ): MessageDecodeResult<T> {
         val messages = ArrayList<T>()
         return try {
             while (reader.readcount < reader.cursize) {

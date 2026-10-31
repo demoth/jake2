@@ -11,6 +11,11 @@ import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.M_Flash
 import jake2.qcommon.math.Vector3f
+import jake2.qcommon.network.messages.server.LightningTEMessage
+import jake2.qcommon.network.messages.server.FlashlightTEMessage
+import jake2.qcommon.network.messages.server.ForceWallTEMessage
+import jake2.qcommon.network.messages.server.SteamTEMessage
+import jake2.qcommon.network.messages.server.WidowBeamOutTEMessage
 import jake2.qcommon.network.messages.server.BeamOffsetTEMessage
 import jake2.qcommon.network.messages.server.BeamTEMessage
 import jake2.qcommon.network.messages.server.MuzzleFlash2Message
@@ -25,6 +30,7 @@ import org.demoth.cake.audio.CakeAudioSystem
 import org.demoth.cake.audio.SoundPlaybackRequest
 import org.demoth.cake.assets.md2.Md2CustomData
 import org.demoth.cake.assets.Sp2Renderer
+import org.demoth.cake.assets.BeamRenderer
 import org.demoth.cake.createModelInstance
 import org.demoth.cake.stages.ingame.ClientEntityManager
 import org.demoth.cake.stages.ingame.DynamicLightSystem
@@ -66,10 +72,14 @@ class ClientEffectsSystem(
     private val audioSystem: CakeAudioSystem,
     private val cameraProvider: () -> Camera,
     private val dynamicLightSystem: DynamicLightSystem? = null,
+    private val currentTimeMsProvider: () -> Int = { Globals.curtime },
+    private val localPlayerEntityIndexProvider: () -> Int? = { null },
+    private val gunOffsetProvider: () -> Vector3 = { Vector3.Zero },
+    private val handednessProvider: () -> Int = { 0 },
 ) : Disposable {
     private val assetCatalog = EffectAssetCatalog(assetManager)
     private val spriteRenderer = Sp2Renderer()
-    private val particleSystem = EffectParticleSystem(assetManager)
+    private val particleSystem = EffectParticleSystem(assetManager, currentTimeMsProvider)
     private val q2Palette: IntArray? by lazy {
         if (assetManager.isLoaded("q2palette.bin", Any::class.java)) {
             assetManager.get("q2palette.bin", Any::class.java) as? IntArray
@@ -77,6 +87,33 @@ class ClientEffectsSystem(
             null
         }
     }
+    private val steamEffects = SteamEffects(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = STEAM_PARTICLE_FALLBACK)
+    })
+    private val beamModels = BeamModelRenderer { path -> assetCatalog.getModel(path)?.model }
+    private val beamEffects = BeamEffects(playSound = { request ->
+        assetCatalog.getSound(request.path)?.let { sound ->
+            audioSystem.play(SoundPlaybackRequest(sound = sound, entityIndex = request.entityIndex,
+                channel = request.channel, attenuation = Defines.ATTN_NORM.toFloat()))
+        }
+    })
+    private val heatbeamEffects = HeatbeamEffects(HeatbeamParticles(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = HEATBEAM_PARTICLE_FALLBACK)
+    }))
+    private val expansionEffects = ExpansionEffects(particleSystem.runtime,
+        paletteColor = { index -> resolvePaletteColor(index, fallback = STEAM_PARTICLE_FALLBACK) },
+        lights = dynamicLightSystem,
+        playBubbleSound = { position -> playEffectSound("sound/weapons/lashit.wav", toVector3(position)) })
+    private val shellEffects = ShellEffects(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = EXPLOSION_PARTICLE_FALLBACK)
+    })
+    private val pointParticles = PointParticles(particleSystem.runtime, paletteColor = { index ->
+        resolvePaletteColor(index, fallback = IMPACT_PARTICLE_COLOR_FALLBACK)
+    })
+    private val impactEffects = ImpactEffects(particleSystem.runtime,
+        paletteColor = { index -> resolvePaletteColor(index, fallback = IMPACT_PARTICLE_COLOR_FALLBACK) },
+        playSound = { request -> playEffectSound(request.path, toVector3(request.origin), attenuation = request.attenuation) })
+    private val laserEffects = LaserEffects()
     // Invariant: only effects owned by this system are stored here and disposed by this system.
     private val activeEffects = mutableListOf<ClientTransientEffect>()
 
@@ -126,17 +163,24 @@ class ClientEffectsSystem(
     /**
      * Handles temp-entity messages (`svc_temp_entity`) already decoded into typed message classes.
      *
-     * The codec validates subtype/layout combinations. Valid styles without an implemented renderer
-     * are still ignored silently by style branch fall-through.
+     * The codec validates subtype/layout combinations. Family controllers provide models, particles,
+     * lights and sounds through the screen-owned presentation runtimes.
      */
     fun processTempEntityMessage(msg: TEMessage) {
         when (msg) {
-            is BeamOffsetTEMessage -> handleBeamOffsetMessage(msg)
-            is BeamTEMessage -> handleBeamMessage(msg)
+            is BeamTEMessage -> {
+                val now = currentTimeMsProvider()
+                if (!heatbeamEffects.process(msg, now)) beamEffects.process(msg, now)
+            }
+            is BeamOffsetTEMessage, is LightningTEMessage -> beamEffects.process(msg, currentTimeMsProvider())
             is PointDirectionTEMessage -> handlePointDirectionMessage(msg)
             is TrailTEMessage -> handleTrailMessage(msg)
             is SplashTEMessage -> handleSplashMessage(msg)
             is PointTEMessage -> handlePointMessage(msg)
+            is SteamTEMessage -> steamEffects.process(msg, currentTimeMsProvider())
+            // Flashlight and force-wall messages feed the shared light and particle runtimes.
+            is FlashlightTEMessage, is ForceWallTEMessage -> expansionEffects.process(msg, currentTimeMsProvider())
+            is WidowBeamOutTEMessage -> shellEffects.process(msg, currentTimeMsProvider())
         }
     }
 
@@ -174,8 +218,16 @@ class ClientEffectsSystem(
 
     @Suppress("UNUSED_PARAMETER")
     fun update(deltaSeconds: Float, _serverFrame: Int) {
-        val now = Globals.curtime
-        particleSystem.update(deltaSeconds, now)
+        val now = currentTimeMsProvider()
+        particleSystem.update(now)
+        laserEffects.update(now)
+        steamEffects.update(now)
+        shellEffects.update(now)
+        beamModels.beginFrame()
+        val camera = cameraProvider()
+        val localPlayer = localPlayerEntityIndexProvider()
+        beamEffects.submit(now, localPlayer, camera.position, beamModels)
+        heatbeamEffects.submit(now, localPlayer, camera, gunOffsetProvider(), handednessProvider(), beamModels)
         val iterator = activeEffects.iterator()
         while (iterator.hasNext()) {
             val effect = iterator.next()
@@ -183,6 +235,19 @@ class ClientEffectsSystem(
                 effect.dispose()
                 iterator.remove()
             }
+        }
+    }
+
+    /** Adds animation-owned lights after the light system's frame reset. */
+    fun collectDynamicLights() {
+        val lights = dynamicLightSystem ?: return
+        activeEffects.forEach { it.collectDynamicLights(lights) }
+    }
+
+    /** Submits temporary lasers through the screen-owned RF_BEAM renderer. */
+    fun renderLasers(modelBatch: ModelBatch, beamRenderer: BeamRenderer) {
+        laserEffects.submit(currentTimeMsProvider()) { beam ->
+            beamRenderer.render(modelBatch, beam.origin, beam.destination, beam.paletteIndex, beam.diameter, beam.alpha)
         }
     }
 
@@ -194,6 +259,7 @@ class ClientEffectsSystem(
      *   use [renderParticles] for the dedicated particle renderer path.
      */
     fun render(modelBatch: ModelBatch) {
+        beamModels.render(modelBatch)
         activeEffects.forEach { effect ->
             effect.render(modelBatch)
         }
@@ -214,9 +280,15 @@ class ClientEffectsSystem(
 
     fun debugParticleRenderStats(): ParticleRenderer.Stats = particleSystem.lastRenderStats()
 
-    fun debugActiveEffectCount(): Int = activeEffects.size
+    fun debugActiveEffectCount(): Int = activeEffects.size + beamEffects.activeCount + heatbeamEffects.activeCount + steamEffects.activeSustainCount + shellEffects.activeSustainCount + laserEffects.activeCount
 
     override fun dispose() {
+        laserEffects.clear()
+        shellEffects.clear()
+        heatbeamEffects.clear()
+        beamEffects.clear()
+        beamModels.dispose()
+        steamEffects.clear()
         activeEffects.forEach { it.dispose() }
         activeEffects.clear()
         particleSystem.dispose()
@@ -271,122 +343,29 @@ class ClientEffectsSystem(
 
     private fun handlePointDirectionMessage(msg: PointDirectionTEMessage) {
         val position = toVector3(msg.position)
+        val now = currentTimeMsProvider()
+        if (steamEffects.processImpact(msg, now)) {
+            playEffectSound("sound/weapons/lashit.wav", position)
+            return
+        }
+        impactEffects.process(msg, now)
         when (msg.style) {
-            Defines.TE_BLOOD,
-            Defines.TE_MOREBLOOD,
-            Defines.TE_GREENBLOOD -> {
-                val paletteBase = when (msg.style) {
-                    Defines.TE_GREENBLOOD -> GREEN_BLOOD_PARTICLE_BASE_COLOR
-                    else -> BLOOD_PARTICLE_BASE_COLOR
-                }
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = when (msg.style) {
-                        Defines.TE_MOREBLOOD -> 250
-                        Defines.TE_GREENBLOOD -> 30
-                        else -> 60
-                    },
-                    paletteBase = paletteBase,
-                )
-            }
-
-            Defines.TE_GUNSHOT,
-            Defines.TE_SPARKS,
-            Defines.TE_BULLET_SPARKS -> {
-                val (count, paletteBase) = when (msg.style) {
-                    Defines.TE_GUNSHOT -> 40 to GUNSHOT_PARTICLE_BASE_COLOR
-                    else -> 6 to SPARK_PARTICLE_BASE_COLOR
-                }
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = count,
-                    paletteBase = paletteBase,
-                )
-                if (msg.style != Defines.TE_SPARKS) {
-                    spawnSmokeAndFlash(position)
-                    playRandomSound(RICHOCHET_SOUNDS, position)
-                }
-            }
-
-            Defines.TE_SCREEN_SPARKS,
-            Defines.TE_SHIELD_SPARKS -> {
-                val paletteBase = if (msg.style == Defines.TE_SCREEN_SPARKS) {
-                    SCREEN_SPARK_PARTICLE_BASE_COLOR
-                } else {
-                    SHIELD_SPARK_PARTICLE_BASE_COLOR
-                }
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 40,
-                    paletteBase = paletteBase,
-                )
-                playEffectSound("sound/weapons/lashit.wav", position)
-            }
-
-            Defines.TE_HEATBEAM_SPARKS -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 50,
-                    paletteBase = HEATBEAM_SPARK_PARTICLE_BASE_COLOR,
-                )
-                playEffectSound("sound/weapons/lashit.wav", position)
-            }
-
-            Defines.TE_HEATBEAM_STEAM -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 20,
-                    paletteBase = HEATBEAM_STEAM_PARTICLE_BASE_COLOR,
-                )
-                playEffectSound("sound/weapons/lashit.wav", position)
-            }
-
-            Defines.TE_ELECTRIC_SPARKS -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 40,
-                    paletteBase = ELECTRIC_SPARK_PARTICLE_BASE_COLOR,
-                )
-                playEffectSound("sound/weapons/lashit.wav", position)
-            }
-
-            Defines.TE_SHOTGUN -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = 20,
-                    paletteBase = SHOTGUN_PARTICLE_BASE_COLOR,
-                )
-                spawnSmokeAndFlash(position)
-            }
-
+            Defines.TE_GUNSHOT, Defines.TE_BULLET_SPARKS, Defines.TE_SHOTGUN -> spawnSmokeAndFlash(position)
             Defines.TE_BLASTER -> {
                 spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 0)
-                spawnDynamicLight(position, 150f, 1f, 1f, 0f)
-                playEffectSound("sound/weapons/lashit.wav", position)
             }
-
             Defines.TE_BLASTER2 -> {
                 spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 1)
-                spawnDynamicLight(position, 150f, 0f, 1f, 0f)
-                playEffectSound("sound/weapons/lashit.wav", position)
             }
-
             Defines.TE_FLECHETTE -> {
                 spawnBlasterImpact(position, msg.direction.toArray(), skinIndex = 2)
-                spawnDynamicLight(position, 150f, 0.19f, 0.41f, 0.75f)
-                playEffectSound("sound/weapons/lashit.wav", position)
             }
         }
     }
 
     private fun handleTrailMessage(msg: TrailTEMessage) {
+        val now = currentTimeMsProvider()
+        if (laserEffects.process(msg, now) || expansionEffects.process(msg, now) || impactEffects.process(msg, now)) return
         val start = toVector3(msg.position)
         val end = toVector3(msg.destination)
         when (msg.style) {
@@ -405,20 +384,11 @@ class ClientEffectsSystem(
                     speedMin = 0f,
                     speedMax = 8f,
                     spread = 0.35f,
-                    gravity = 45f,
+                    gravity = 0f,
                     sizeMin = 0.28f,
                     sizeMax = 0.75f,
                     lifetimeMinMs = 700,
                     lifetimeMaxMs = 1400,
-                )
-            }
-
-            Defines.TE_BLUEHYPERBLASTER -> {
-                emitPaletteImpactParticles(
-                    origin = start,
-                    direction = msg.destination.toArray(),
-                    count = 40,
-                    paletteBase = BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR,
                 )
             }
 
@@ -435,13 +405,13 @@ class ClientEffectsSystem(
                         resolvePaletteColor(colorIndex, fallback = Color(0.15f, 0.95f, 0.45f, 1f))
                     },
                     speedMin = 0f,
-                    speedMax = 2f,
-                    spread = 0.2f,
+                    speedMax = 0f,
+                    spread = 0f,
                     gravity = 0f,
                     sizeMin = 0.22f,
                     sizeMax = 0.55f,
-                    lifetimeMinMs = 3500,
-                    lifetimeMaxMs = 5200,
+                    lifetimeMinMs = 10000,
+                    lifetimeMaxMs = 10000,
                 )
             }
 
@@ -449,85 +419,32 @@ class ClientEffectsSystem(
                 emitRailTrailParticles(start, end)
                 playEffectSound("sound/weapons/railgf1a.wav", end)
             }
-
-            Defines.TE_BFG_LASER -> {
-                activeEffects += LineBeamEffect(
-                    start = start,
-                    end = end,
-                    color = Color(0.2f, 1f, 0.25f, 1f),
-                    spawnTimeMs = Globals.curtime,
-                    durationMs = 110,
-                    radius = 0.8f,
-                    alpha = 0.35f,
-                )
-            }
         }
     }
 
     private fun handleSplashMessage(msg: SplashTEMessage) {
-        val position = toVector3(msg.position)
-        when (msg.style) {
-            Defines.TE_SPLASH -> {
-                val splashPaletteBase = LEGACY_SPLASH_COLORS.getOrNull(msg.param) ?: LEGACY_SPLASH_DEFAULT_COLOR
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = msg.count.coerceIn(4, 64),
-                    paletteBase = splashPaletteBase,
-                )
-                if (msg.param == Defines.SPLASH_SPARKS) {
-                    playRandomSound(SPARK_SOUNDS, position, Defines.ATTN_STATIC.toFloat())
-                }
-            }
-
-            Defines.TE_LASER_SPARKS -> {
-                emitLegacyPaletteParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = msg.count,
-                    paletteIndex = msg.param,
-                    gravity = -320f,
-                )
-            }
-
-            Defines.TE_WELDING_SPARKS -> {
-                emitLegacyPaletteParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = msg.count,
-                    paletteIndex = msg.param,
-                    gravity = -320f,
-                )
-                spawnLegacyExplosionEffect(
-                    type = ExplosionType.FLASH,
-                    modelPath = "models/objects/flash/tris.md2",
-                    position = position,
-                    firstFrame = 0,
-                    frameCount = 2,
-                )
-                spawnDynamicLight(position, (100 + Globals.rnd.nextInt(75)).toFloat(), 1f, 1f, 0.3f)
-            }
-
-            Defines.TE_TUNNEL_SPARKS -> {
-                emitLegacyPaletteParticles(
-                    origin = position,
-                    direction = msg.direction.toArray(),
-                    count = msg.count,
-                    paletteIndex = msg.param,
-                    gravity = 320f,
-                )
-            }
+        impactEffects.process(msg, currentTimeMsProvider())
+        if (msg.style == Defines.TE_WELDING_SPARKS) {
+            val position = toVector3(msg.position)
+            // CL_ParseTEnt uses RF_BEAM as a no-draw flag here: welding adds a light, not a flash model.
+            activeEffects += ExplosionEffect(
+                type = ExplosionType.FLASH, spawnTimeMs = currentTimeMsProvider(), frameDurationMs = 100,
+                firstFrame = 0, frameCount = 2, position = position,
+                light = ExplosionLight((100 + Globals.rnd.nextInt(75)).toFloat(), Vector3f(1f, 1f, .3f)),
+            )
         }
     }
 
     private fun handlePointMessage(msg: PointTEMessage) {
+        val now = currentTimeMsProvider()
+        if (shellEffects.process(msg, now)) return
+        pointParticles.process(msg, now)
+        impactEffects.process(msg, now)
         val position = toVector3(msg.position)
         when (msg.style) {
             Defines.TE_EXPLOSION2,
             Defines.TE_GRENADE_EXPLOSION,
             Defines.TE_GRENADE_EXPLOSION_WATER -> {
-                emitLegacyExplosionPaletteParticles(position, count = 128)
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -542,8 +459,6 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLASMA_EXPLOSION -> {
-                emitLegacyExplosionPaletteParticles(position, count = 96)
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -558,8 +473,6 @@ class ClientEffectsSystem(
             Defines.TE_ROCKET_EXPLOSION,
             Defines.TE_ROCKET_EXPLOSION_WATER,
             Defines.TE_EXPLOSION1_NP -> {
-                emitLegacyExplosionPaletteParticles(position, count = if (msg.style == Defines.TE_EXPLOSION1_BIG) 196 else 112)
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = if (msg.style == Defines.TE_EXPLOSION1_BIG) {
                         "models/objects/r_explode2/tris.md2"
@@ -578,14 +491,14 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_BFG_EXPLOSION -> {
-                spawnDynamicLight(position, 350f, 0f, 1f, 0f)
                 spawnExplosionSpriteEffect(
                     type = ExplosionType.POLY,
                     spritePath = "sprites/s_bfg2.sp2",
                     position = position,
-                    firstFrame = 1,
+                    firstFrame = 0,
                     frameCount = 4,
                     startsTranslucent = true,
+                    light = ExplosionLight(350f, Vector3f(0f, 1f, 0f)),
                 )
             }
 
@@ -602,8 +515,6 @@ class ClientEffectsSystem(
             }
 
             Defines.TE_PLAIN_EXPLOSION -> {
-                emitLegacyExplosionPaletteParticles(position, count = 96)
-                spawnDynamicLight(position, 350f, 1f, 0.5f, 0.5f)
                 spawnExplosionModel(
                     modelPath = "models/objects/r_explode/tris.md2",
                     position = position,
@@ -611,22 +522,6 @@ class ClientEffectsSystem(
                     frameCount = 15,
                 )
                 playEffectSound("sound/weapons/rocklx1a.wav", position)
-            }
-
-            Defines.TE_CHAINFIST_SMOKE -> {
-                emitPaletteImpactParticles(
-                    origin = position,
-                    direction = floatArrayOf(0f, 0f, 1f),
-                    count = 20,
-                    paletteBase = CHAINFIST_SMOKE_PARTICLE_BASE_COLOR,
-                )
-                spawnAnimatedModelEffect(
-                    modelPath = "models/objects/smoke/tris.md2",
-                    position = position,
-                    firstFrame = 0,
-                    frameCount = 4,
-                    frameDurationMs = 100,
-                )
             }
 
             Defines.TE_TRACKER_EXPLOSION -> {
@@ -642,30 +537,6 @@ class ClientEffectsSystem(
             Defines.TE_WIDOWSPLASH -> {
                 emitWidowSplashParticles(position)
             }
-        }
-    }
-
-    private fun handleBeamMessage(msg: BeamTEMessage) {
-        if (msg.style == Defines.TE_PARASITE_ATTACK || msg.style == Defines.TE_MEDIC_CABLE_ATTACK) {
-            spawnSegmentBeam(
-                modelPath = "models/monsters/parasite/segment/tris.md2",
-                start = msg.origin.toArray(),
-                end = msg.destination.toArray(),
-                offset = null,
-                durationMs = 200,
-            )
-        }
-    }
-
-    private fun handleBeamOffsetMessage(msg: BeamOffsetTEMessage) {
-        if (msg.style == Defines.TE_GRAPPLE_CABLE) {
-            spawnSegmentBeam(
-                modelPath = "models/ctf/segment/tris.md2",
-                start = msg.origin.toArray(),
-                end = msg.destination.toArray(),
-                offset = msg.offset.toArray(),
-                durationMs = 200,
-            )
         }
     }
 
@@ -716,8 +587,13 @@ class ClientEffectsSystem(
             pitchDeg = pitch,
             yawDeg = yaw,
             skinIndex = skinIndex,
-            startsTranslucent = true,
-            fullBright = true,
+            startsTranslucent = skinIndex != 0,
+            fullBright = skinIndex != 0,
+            light = ExplosionLight(150f, when (skinIndex) {
+                0 -> Vector3f(1f, 1f, 0f)
+                1 -> Vector3f(0f, 1f, 0f)
+                else -> Vector3f(.19f, .41f, .75f)
+            }),
         )
     }
 
@@ -735,6 +611,7 @@ class ClientEffectsSystem(
             frameCount = frameCount,
             yawDeg = Globals.rnd.nextInt(360).toFloat(),
             fullBright = true,
+            light = ExplosionLight(350f, Vector3f(1f, .5f, .5f)),
         )
     }
 
@@ -750,8 +627,14 @@ class ClientEffectsSystem(
         skinIndex: Int? = null,
         startsTranslucent: Boolean = false,
         fullBright: Boolean = false,
+        light: ExplosionLight? = null,
     ) {
-        val md2 = assetCatalog.getModel(modelPath) ?: return
+        val md2 = assetCatalog.getModel(modelPath)
+        if (md2 == null) {
+            if (light != null) activeEffects += ExplosionEffect(type, currentTimeMsProvider(), 100, firstFrame,
+                frameCount, position, startsTranslucent, skinIndex, light)
+            return
+        }
         val instance = createModelInstance(md2.model)
         (instance.userData as? Md2CustomData)?.let { userData ->
             if (skinIndex != null) {
@@ -769,7 +652,7 @@ class ClientEffectsSystem(
         activeEffects += ExplosionMd2Effect(
             modelInstance = instance,
             type = type,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = 100,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -780,6 +663,7 @@ class ClientEffectsSystem(
             baseSkinIndex = skinIndex,
             fullBright = fullBright,
             startsTranslucent = startsTranslucent,
+            light = light,
         )
     }
 
@@ -790,59 +674,27 @@ class ClientEffectsSystem(
         firstFrame: Int,
         frameCount: Int,
         startsTranslucent: Boolean = false,
+        light: ExplosionLight? = null,
     ) {
-        val sprite = assetCatalog.getSprite(spritePath) ?: return
+        val sprite = assetCatalog.getSprite(spritePath)
+        if (sprite == null) {
+            if (light != null) activeEffects += ExplosionEffect(type, currentTimeMsProvider(), 100, firstFrame,
+                frameCount, position, startsTranslucent, light = light)
+            return
+        }
         activeEffects += ExplosionSpriteEffect(
             spriteRenderer = spriteRenderer,
             cameraProvider = cameraProvider,
             sprite = sprite,
             type = type,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = 100,
             firstFrame = firstFrame,
             frameCount = frameCount,
             position = Vector3(position),
             startsTranslucent = startsTranslucent,
+            light = light,
         )
-    }
-
-    private fun spawnSegmentBeam(
-        modelPath: String,
-        start: FloatArray?,
-        end: FloatArray?,
-        offset: FloatArray?,
-        durationMs: Int,
-    ) {
-        val startVector = toVector3(start) ?: return
-        val endVector = toVector3(end) ?: return
-        val offsetVector = toVector3(offset) ?: Vector3.Zero
-
-        val beamStart = Vector3(startVector).add(offsetVector)
-        val beamDirection = Vector3(endVector).sub(beamStart)
-        val beamLength = beamDirection.len()
-        if (beamLength <= 0.001f) {
-            return
-        }
-
-        beamDirection.scl(1f / beamLength)
-        val (pitch, yaw) = computeDirectionAngles(beamDirection) ?: return
-
-        val segmentStep = 30f
-        var travelled = 0f
-        while (travelled <= beamLength) {
-            val segmentPosition = Vector3(beamStart).mulAdd(beamDirection, travelled)
-            spawnAnimatedModelEffect(
-                modelPath = modelPath,
-                position = segmentPosition,
-                firstFrame = 0,
-                frameCount = 1,
-                frameDurationMs = durationMs,
-                pitchDeg = pitch,
-                yawDeg = yaw,
-                rollDeg = Globals.rnd.nextInt(360).toFloat(),
-            )
-            travelled += segmentStep
-        }
     }
 
     private fun spawnAnimatedModelEffect(
@@ -869,7 +721,7 @@ class ClientEffectsSystem(
         }
         activeEffects += AnimatedModelEffect(
             modelInstance = instance,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = frameDurationMs,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -897,7 +749,7 @@ class ClientEffectsSystem(
             spriteRenderer = spriteRenderer,
             cameraProvider = cameraProvider,
             sprite = sprite,
-            spawnTimeMs = Globals.curtime,
+            spawnTimeMs = currentTimeMsProvider(),
             frameDurationMs = frameDurationMs,
             firstFrame = firstFrame,
             frameCount = frameCount,
@@ -953,115 +805,8 @@ class ClientEffectsSystem(
             blue = blue,
             lifetimeMs = lifetimeMs,
             decayPerSecond = decayPerSecond,
-            currentTimeMs = Globals.curtime,
+            currentTimeMs = currentTimeMsProvider(),
         )
-    }
-
-    private fun emitImpactParticles(
-        origin: Vector3,
-        direction: FloatArray?,
-        count: Int,
-        color: Color,
-    ) {
-        particleSystem.emitBurst(
-            origin = origin,
-            direction = direction,
-            count = count,
-            color = color,
-            speedMin = 35f,
-            speedMax = 170f,
-            spread = 0.85f,
-            gravity = -320f,
-            startAlpha = 0.95f,
-            endAlpha = 0f,
-            sizeMin = 0.4f,
-            sizeMax = 1.3f,
-            lifetimeMinMs = 160,
-            lifetimeMaxMs = 520,
-        )
-    }
-
-    private fun emitPaletteImpactParticles(
-        origin: Vector3,
-        direction: FloatArray?,
-        count: Int,
-        paletteBase: Int,
-        paletteVariants: Int = 8,
-    ) {
-        val safeCount = count.coerceIn(1, 512)
-        val variantCount = paletteVariants.coerceAtLeast(1)
-        repeat(safeCount) {
-            val paletteIndex = paletteBase + if (variantCount > 1) {
-                Globals.rnd.nextInt(variantCount)
-            } else {
-                0
-            }
-            particleSystem.emitBurst(
-                origin = origin,
-                direction = direction,
-                count = 1,
-                color = resolvePaletteColor(paletteIndex, fallback = IMPACT_PARTICLE_COLOR_FALLBACK),
-                speedMin = 35f,
-                speedMax = 170f,
-                spread = 0.85f,
-                gravity = -320f,
-                startAlpha = 0.95f,
-                endAlpha = 0f,
-                sizeMin = 0.4f,
-                sizeMax = 1.3f,
-                lifetimeMinMs = 160,
-                lifetimeMaxMs = 520,
-            )
-        }
-    }
-
-    private fun emitExplosionParticles(
-        origin: Vector3,
-        count: Int,
-        color: Color,
-    ) {
-        particleSystem.emitBurst(
-            origin = origin,
-            direction = floatArrayOf(0f, 0f, 1f),
-            count = count,
-            color = color,
-            speedMin = 60f,
-            speedMax = 320f,
-            spread = 1.2f,
-            gravity = -210f,
-            startAlpha = 1f,
-            endAlpha = 0f,
-            sizeMin = 0.6f,
-            sizeMax = 2f,
-            lifetimeMinMs = 240,
-            lifetimeMaxMs = 900,
-        )
-    }
-
-    private fun emitLegacyExplosionPaletteParticles(
-        origin: Vector3,
-        count: Int,
-    ) {
-        val safeCount = count.coerceIn(1, 512)
-        repeat(safeCount) {
-            val colorIndex = EXPLOSION_PARTICLE_BASE_COLOR + Globals.rnd.nextInt(EXPLOSION_PARTICLE_VARIANTS)
-            particleSystem.emitBurst(
-                origin = origin,
-                direction = floatArrayOf(0f, 0f, 1f),
-                count = 1,
-                color = resolvePaletteColor(colorIndex, fallback = EXPLOSION_PARTICLE_FALLBACK),
-                speedMin = 60f,
-                speedMax = 320f,
-                spread = 1.2f,
-                gravity = -210f,
-                startAlpha = 1f,
-                endAlpha = 0f,
-                sizeMin = 0.6f,
-                sizeMax = 2f,
-                lifetimeMinMs = 240,
-                lifetimeMaxMs = 900,
-            )
-        }
     }
 
     private fun emitBlasterTrail(
@@ -1255,31 +1000,6 @@ class ClientEffectsSystem(
         }
     }
 
-    private fun emitLegacyPaletteParticles(
-        origin: Vector3,
-        direction: FloatArray?,
-        count: Int,
-        paletteIndex: Int,
-        gravity: Float,
-    ) {
-        particleSystem.emitBurst(
-            origin = origin,
-            direction = direction,
-            count = count.coerceIn(1, 128),
-            color = resolvePaletteColor(paletteIndex, fallback = Color(1f, 0.85f, 0.4f, 1f)),
-            speedMin = 8f,
-            speedMax = 48f,
-            spread = 0.55f,
-            gravity = gravity,
-            startAlpha = 1f,
-            endAlpha = 0f,
-            sizeMin = 0.3f,
-            sizeMax = 1f,
-            lifetimeMinMs = 180,
-            lifetimeMaxMs = 560,
-        )
-    }
-
     private fun emitBfgBigExplosionParticles(origin: Vector3) {
         emitPaletteOmniBurst(
             origin = origin,
@@ -1289,7 +1009,7 @@ class ClientEffectsSystem(
             speedMin = 20f,
             speedMax = 220f,
             spread = 0.15f,
-            gravity = -320f,
+            gravity = -80f,
             sizeMin = 0.38f,
             sizeMax = 1.2f,
             lifetimeMinMs = 580,
@@ -1378,7 +1098,7 @@ class ClientEffectsSystem(
             speedMin = 50f,
             speedMax = 113f,
             spread = 0.55f,
-            gravity = -320f,
+            gravity = -80f,
             sizeMin = 0.34f,
             sizeMax = 1.15f,
             lifetimeMinMs = 300,
@@ -1637,12 +1357,6 @@ class ClientEffectsSystem(
     }
 }
 
-private val RICHOCHET_SOUNDS = listOf(
-    "sound/world/ric1.wav",
-    "sound/world/ric2.wav",
-    "sound/world/ric3.wav",
-)
-
 // Visual target: Quake2 rail trail (blue spiral with bright white center).
 private const val RAIL_TRAIL_MAX_SAMPLES = 4096
 private const val RAIL_TRAIL_SPIRAL_PHASE_STEP = 0.1f
@@ -1668,21 +1382,10 @@ private const val RAIL_TRAIL_CORE_COLOR_BASE = 0x00
 private const val RAIL_TRAIL_CORE_COLOR_VARIANTS = 16
 private val RAIL_TRAIL_CORE_COLOR_FALLBACK = Color(0.94f, 0.94f, 0.94f, 1f)
 
-private const val BLOOD_PARTICLE_BASE_COLOR = 0xE8
-private const val GREEN_BLOOD_PARTICLE_BASE_COLOR = 0xDF
-private const val GUNSHOT_PARTICLE_BASE_COLOR = 0x00
-private const val SPARK_PARTICLE_BASE_COLOR = 0xE0
-private const val SCREEN_SPARK_PARTICLE_BASE_COLOR = 0xD0
-private const val SHIELD_SPARK_PARTICLE_BASE_COLOR = 0xB0
-private const val SHOTGUN_PARTICLE_BASE_COLOR = 0x00
-private const val HEATBEAM_SPARK_PARTICLE_BASE_COLOR = 0x08
-private const val HEATBEAM_STEAM_PARTICLE_BASE_COLOR = 0xE0
-private const val ELECTRIC_SPARK_PARTICLE_BASE_COLOR = 0x75
-private const val CHAINFIST_SMOKE_PARTICLE_BASE_COLOR = 0x00
-private const val EXPLOSION_PARTICLE_BASE_COLOR = 0xE0
+private val HEATBEAM_PARTICLE_FALLBACK = Color(1f, .7f, .2f, 1f)
+private val STEAM_PARTICLE_FALLBACK = Color(.75f, .75f, .75f, 1f)
 
 private val IMPACT_PARTICLE_COLOR_FALLBACK = Color(0.95f, 0.9f, 0.65f, 1f)
-private const val EXPLOSION_PARTICLE_VARIANTS = 8
 private val EXPLOSION_PARTICLE_FALLBACK = Color(1f, 0.52f, 0.22f, 1f)
 
 private data class ParticleTrailSpec(
@@ -1708,12 +1411,9 @@ private const val BLASTER_TRAIL_LIFETIME_MIN_MS = 300
 private const val BLASTER_TRAIL_LIFETIME_MAX_MS = 500
 private const val BLASTER_TRAIL_COLOR_INDEX = 0xE0
 private const val BLASTER2_TRAIL_COLOR_INDEX = 0xD0
-private const val BLUE_HYPERBLASTER_PARTICLE_BASE_COLOR = 0xE0
 private val BLASTER_TRAIL_COLOR_FALLBACK = Color(1f, 0.87f, 0.35f, 1f)
 private val BLASTER2_TRAIL_COLOR_FALLBACK = Color(0.3f, 0.95f, 0.3f, 1f)
 
-private val LEGACY_SPLASH_COLORS = intArrayOf(0x00, 0xE0, 0xB0, 0x50, 0xD0, 0xE0, 0xE8)
-private const val LEGACY_SPLASH_DEFAULT_COLOR = 0x00
 
 private const val DIMINISH_TRAIL_STEP = 0.5f
 private const val DIMINISH_TRAIL_HEAVY_ORIGIN_SCALE = 4f
@@ -1771,9 +1471,3 @@ private const val RESPAWN_EVENT_COLOR_BASE = 0xE0
 private val LOGIN_EVENT_COLOR_FALLBACK = Color(0.35f, 0.92f, 0.45f, 1f)
 private val LOGOUT_EVENT_COLOR_FALLBACK = Color(0.95f, 0.25f, 0.2f, 1f)
 private val RESPAWN_EVENT_COLOR_FALLBACK = Color(1f, 0.9f, 0.3f, 1f)
-
-private val SPARK_SOUNDS = listOf(
-    "sound/world/spark5.wav",
-    "sound/world/spark6.wav",
-    "sound/world/spark7.wav",
-)

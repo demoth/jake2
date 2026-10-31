@@ -2,6 +2,12 @@ package org.demoth.cake.assets
 
 import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.assets.AssetDescriptor
+import com.badlogic.gdx.assets.AssetLoaderParameters
+import com.badlogic.gdx.assets.loaders.SynchronousAssetLoader
+import com.badlogic.gdx.files.FileHandle
+import com.badlogic.gdx.utils.GdxRuntimeException
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
 import org.junit.jupiter.api.AfterAll
@@ -11,6 +17,10 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.demoth.cake.CakeCvars
+import org.demoth.cake.config.GameConfiguration
+import org.demoth.cake.assets.md2.Md2Asset
+import org.demoth.cake.assets.bsp.BspMapAsset
+import jake2.qcommon.Defines
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -32,6 +42,59 @@ class CakeFileResolverTest {
     lateinit var temp: Path
 
     @Test
+    fun oldDemoModelPolicyKeepsMissingModelIndicesButDoesNotRelaxMapOrResolverRequirements() {
+        setFsDebugLoaders("0")
+        val resolver = CakeFileResolver(temp.toString())
+        val assets = AssetManager(resolver, false)
+        assets.setLoader(BspMapAsset::class.java, object : SynchronousAssetLoader<BspMapAsset, AssetLoaderParameters<BspMapAsset>>(resolver) {
+            override fun load(manager: AssetManager, fileName: String, file: FileHandle, parameter: AssetLoaderParameters<BspMapAsset>?): BspMapAsset =
+                error("A missing map must fail during resolution")
+            override fun getDependencies(fileName: String, file: FileHandle, parameter: AssetLoaderParameters<BspMapAsset>?): com.badlogic.gdx.utils.Array<AssetDescriptor<*>>? = null
+        })
+        try {
+            val config = GameConfiguration(assets).apply { allowMissingModelConfigs = true }
+            for ((index, path) in listOf("models/removed.md2", "sprites/removed.sp2").withIndex()) {
+                val slot = Defines.CS_MODELS + index + 2
+                config.applyConfigString(slot, path, loadResource = true)
+                assertEquals(path, config.getConfigValue(slot))
+                assertNull(config[slot]?.resource)
+            }
+            assertEquals(0, assets.loadedAssets)
+            assertThrows(MissingResourceException::class.java) { resolver.resolve("models/removed.md2") }
+            config.applyConfigString(Defines.CS_MODELS + 1, "maps/required.bsp")
+            val missingMap = assertThrows(RuntimeException::class.java) { config.loadMapAsset() }
+            assertTrue(generateSequence<Throwable>(missingMap) { it.cause }.any {
+                it is MissingResourceException && it.path == "maps/required.bsp"
+            })
+        } finally { assets.dispose() }
+    }
+
+    @Test
+    fun missingModelToleranceIsOptInAndPresentButMalformedModelsStillFail() {
+        setFsDebugLoaders("0")
+        createFile("baseq2/models/malformed.md2", byteArrayOf(1))
+        val resolver = CakeFileResolver(temp.toString())
+        val assets = AssetManager(resolver, false)
+        assets.setLoader(Md2Asset::class.java, object : SynchronousAssetLoader<Md2Asset, AssetLoaderParameters<Md2Asset>>(resolver) {
+            override fun load(manager: AssetManager, fileName: String, file: FileHandle, parameter: AssetLoaderParameters<Md2Asset>?): Md2Asset =
+                throw GdxRuntimeException("Synthetic malformed model")
+            override fun getDependencies(fileName: String, file: FileHandle, parameter: AssetLoaderParameters<Md2Asset>?): com.badlogic.gdx.utils.Array<AssetDescriptor<*>>? = null
+        })
+        try {
+            val config = GameConfiguration(assets)
+            val missing = assertThrows(RuntimeException::class.java) {
+                config.applyConfigString(Defines.CS_MODELS + 2, "models/removed.md2", loadResource = true)
+            }
+            assertTrue(generateSequence<Throwable>(missing) { it.cause }.any { it is MissingResourceException })
+            config.allowMissingModelConfigs = true
+            val malformed = assertThrows(RuntimeException::class.java) {
+                config.applyConfigString(Defines.CS_MODELS + 3, "models/malformed.md2", loadResource = true)
+            }
+            assertTrue(generateSequence<Throwable>(malformed) { it.cause }.any { it.message == "Synthetic malformed model" })
+        } finally { assets.dispose() }
+    }
+
+    @Test
     fun contentSnapshotListsWinnersAndChangesWithProfileWithoutBundledFallbacks() {
         createFile("baseq2/shared.cfg", "base".toByteArray())
         createFile("baseq2/base-only.cfg")
@@ -51,6 +114,19 @@ class CakeFileResolverTest {
         assertEquals(temp.resolve("rogue/pak0.pak"), winner.source.containerPath, "Earlier snapshot stays intact")
         resolver.basedir = null
         assertTrue(resolver.listContentEntries().isEmpty())
+    }
+
+    @Test
+    fun streamsDemoContentFromLooseFilesAndArchives() {
+        val bytes = byteArrayOf(0, 0, 0, 0, -1, -1, -1, -1)
+        createFile("baseq2/demos/loose.dm2", bytes)
+        writePak(temp.resolve("baseq2/pak0.pak"), linkedMapOf("demos/packed.dm2" to bytes))
+        val resolver = CakeFileResolver(temp.toString())
+        for (path in listOf("demos/loose.dm2", "demos/packed.dm2")) {
+            resolver.openContent(path)!!.use { assertTrue(bytes.contentEquals(it.readBytes())) }
+        }
+        assertNull(resolver.openContent("demos/missing.dm2"))
+        assertNull(resolver.openContent("../outside.dm2"))
     }
 
     @Test

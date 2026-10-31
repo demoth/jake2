@@ -43,8 +43,9 @@ These carry communication over an established game connection (during playing th
 `MessageBodyCodec` validates the whole body before dispatch, returning all messages
 or a typed rejection. Malformed bodies cause the server to drop the sending client,
 or the receiving client to return to its console. A failed movement checksum makes
-the server ignore the rest of the packet. File/demo readers retain their existing
-`sizebuf_t` behavior.
+the server ignore the rest of the packet. Demo playback uses the same validation
+for headerless server bodies; other file readers retain their existing `sizebuf_t`
+behavior.
 
 ### Non Sequenced / Connectionless / out-of-band packets
 

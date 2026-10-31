@@ -227,8 +227,11 @@ internal fun createMenuWidgetStyles(
     val contentScrollPaneStyle = ScrollPane.ScrollPaneStyle(baseScrollPaneStyle).also { style ->
         if (concharsTexture != null) {
             style.background = containerPanel
+            style.hScroll = null
+            style.hScrollKnob = separator
             style.vScroll = null
             style.vScrollKnob = separatorVertical
+            style.corner = null
         }
     }
     val contentListStyle = Scene2dList.ListStyle(baseListStyle).also { style ->

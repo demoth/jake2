@@ -58,6 +58,9 @@ class CakeFileResolver(
     /** Profile content only, without remote downloads or bundled asset fallbacks. */
     internal fun resolveContent(path: String): FileHandle? = vfsAssetSource.resolve(path)
 
+    /** Sequential profile content, including archive entries; caller owns the returned stream. */
+    internal fun openContent(path: String): java.io.InputStream? = vfsAssetSource.openContent(path)
+
     /** Winning profile entries only; listing does not extract packages or load media. */
     fun listContentEntries(): List<VfsEntry> = vfsAssetSource.listEntries()
 

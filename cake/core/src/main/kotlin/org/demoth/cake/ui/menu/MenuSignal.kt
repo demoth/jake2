@@ -1,6 +1,7 @@
 package org.demoth.cake.ui.menu
 
 import java.nio.file.Path
+import jake2.qcommon.vfs.VfsEntry
 
 enum class MenuUiSoundEffect {
     ENTER_SUBMENU,
@@ -11,6 +12,7 @@ enum class MenuUiSoundEffect {
 sealed interface MenuSignal {
     data object ShowMenu : MenuSignal
     data object CloseMenu : MenuSignal
+    data class PlayDemo(val profileId: String, val entry: VfsEntry) : MenuSignal
     data class OpenUiSample(val game: Boolean? = null) : MenuSignal
     data object CloseUiSample : MenuSignal
     data class CaptureUiSample(val modes: List<Boolean>, val directory: Path) : MenuSignal

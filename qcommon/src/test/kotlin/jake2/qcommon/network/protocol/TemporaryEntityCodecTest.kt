@@ -28,6 +28,19 @@ class TemporaryEntityCodecTest {
         Family(PointDirectionTEMessage.SUBTYPES, pointBytes + byteArrayOf(161.toByte())) { PointDirectionTEMessage(it, position, 161) },
         Family(TrailTEMessage.SUBTYPES, pointBytes + endBytes) { TrailTEMessage(it, position, end) },
         Family(SplashTEMessage.SUBTYPES, byteArrayOf(-1) + pointBytes + byteArrayOf(161.toByte(), -2)) { SplashTEMessage(it, 255, position, 161, 254) },
+        // Independent field layouts from Yamagi CL_ParseTEnt / CL_ParseLightning / CL_ParseSteam / CL_ParseWidow.
+        Family(setOf(TE_LIGHTNING), byteArrayOf(0, -128, -1, 127) + pointBytes + endBytes) {
+            LightningTEMessage(-32768, 32767, position, end)
+        },
+        Family(setOf(TE_FLASHLIGHT), pointBytes + byteArrayOf(-1, -1)) { FlashlightTEMessage(position, -1) },
+        Family(setOf(TE_FORCEWALL), pointBytes + endBytes + byteArrayOf(-2)) { ForceWallTEMessage(position, end, 254) },
+        Family(setOf(TE_STEAM), byteArrayOf(-1, -1, -1) + pointBytes + byteArrayOf(161.toByte(), -2, 0, -128)) {
+            SteamTEMessage(-1, 255, position, 161, 254, -32768)
+        },
+        Family(setOf(TE_STEAM), byteArrayOf(7, 0, -1) + pointBytes + byteArrayOf(161.toByte(), -2, -1, 127, 4, 3, 2, 1)) {
+            SteamTEMessage(7, 255, position, 161, 254, 32767, 0x01020304)
+        },
+        Family(setOf(TE_WIDOWBEAMOUT), byteArrayOf(0, -128) + pointBytes) { WidowBeamOutTEMessage(-32768, position) },
     )
 
     private fun write(message: TEMessage): ByteArray {
@@ -53,12 +66,15 @@ class TemporaryEntityCodecTest {
 
     @Test
     fun `all supported subtypes retain their exact field order widths and signed owners`() {
-        assertEquals(45, families().flatMap { it.styles }.toSet().size)
+        // TE_RAILTRAIL2 (31) and TE_FLAME (32) have no wire parser in protocol 34's reference client.
+        assertEquals((0..55).toSet() - setOf(TE_RAILTRAIL2, TE_FLAME), families().flatMap { it.styles }.toSet())
         for (family in families()) for (style in family.styles) {
             val message = family.value(style)
             val expected = byteArrayOf(3, style.toByte()) + family.payload
             assertArrayEquals(expected, write(message), "Style $style")
             assertEquals(message, read(expected))
+            val decoded = body(expected + byteArrayOf(10, 2, 'o'.code.toByte(), 'k'.code.toByte(), 0)) as MessageDecodeResult.Decoded
+            assertEquals("ok", (decoded.messages.last() as PrintMessage).text, "Style $style must consume exactly its payload")
             assertEquals(message.hashCode(), read(expected).hashCode())
             for (length in 1 until expected.size) {
                 val result = body(expected.copyOf(length)) as MessageDecodeResult.Rejected
@@ -134,5 +150,8 @@ class TemporaryEntityCodecTest {
             assertThrows(IllegalArgumentException::class.java) { family.value(255) }
         }
         assertThrows(IllegalArgumentException::class.java) { PointDirectionTEMessage(TE_GUNSHOT, position, 255) }
+        assertThrows(IllegalArgumentException::class.java) { SteamTEMessage(-1, 1, position, 0, 1, 60, 100) }
+        assertThrows(IllegalArgumentException::class.java) { SteamTEMessage(1, 1, position, 0, 1, 60) }
+        assertThrows(IllegalArgumentException::class.java) { SteamTEMessage(-1, 1, position, 255, 1, 60) }
     }
 }

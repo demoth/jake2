@@ -159,6 +159,59 @@ the singleplayer respawn action opens Load Game automatically.
 remain visible in the menu so an invalid save or failed restore can be retried.
 Deathmatch does not create autosaves. Coop save/load remains console-only.
 
+## Demo recording and playback
+
+Both `cake-client` and `cake-fullgame` can record the connected client's view using protocol 34:
+
+- `record example` — start recording an active live game, remote or locally hosted.
+- `stop` — finish and close the recording. Disconnect/shutdown also finishes it.
+- `demomap example` — replay the saved recording.
+
+Recordings are saved under `~/.cake/<profile-id>/demos/`; nested names are supported.
+Existing recordings are not overwritten: choose a new name for another take.
+Recording waits for an accepted full snapshot, requesting one without invalidating
+the displayed frame. Map transitions remain in the same recording. An I/O failure
+stops recording and reports an error while gameplay continues. A recording stopped
+before its first full snapshot has no playable frames.
+
+Both launchers play classic protocol-26, protocol-31, protocol-32 and protocol-34 client recordings (`.dm2`)
+without running a game server. Select a profile containing the recording's maps,
+models, and sounds, then open the client console:
+
+- `demomap example` — play the active profile's saved `demos/example.dm2`, falling back to game data.
+- `demomap demos/folder/example.dm2` — play a nested demo, including archive entries.
+- `demopause` — toggle pause; opening the menu or suspending the application also pauses playback.
+- `demostop` or `disconnect` — stop and return to the browser for browser-started playback, or the console otherwise.
+
+EOF and playback errors return to the starting browser or console. Browser errors
+appear above the retained file listing. Starting another demo replaces the current session. The camera follows the recorded player; movement and mouse look
+do not control playback. Opening the console leaves playback running.
+Base-game and expansion temporary effects use Cake's rendering pipeline;
+visual fidelity varies by effect family.
+
+The content browser includes installed demos and profile-local recordings. Selecting
+a `.dm2` file shows its protocol, game directory, level and available map path,
+alongside file size and source. Local recordings take precedence over installed
+demos with the same path. Double-click or press Enter to start the selected
+demo. Playback returns to the same folder, selected file, scroll position and
+thumbnail size on completion, stop or error, including after menu-theme changes.
+Escape opens the menu and pauses playback; close the menu to resume. The menu’s
+Disconnect action stops playback and returns to the browser.
+
+Protocol-26 recordings use their shorter frame header; missing suppression counts
+are treated as zero. Missing MD2/SP2 config models in protocol-26 demos are warned
+about and skipped, since early demos may reference models absent from later game
+data. Maps and present-but-malformed assets still require successful loading.
+Extended/rerelease protocols and cinematic recordings remain
+unsupported. For a protocol-34 interoperability test file,
+record a session in Yamagi using `record example`, then `stop`, and copy its
+`demos/example.dm2` into the selected profile's game-data directory.
+
+The hidden-window playback integration tests accept an external recording through
+`CAKE_TEST_DEMO=/absolute/path/example.dm2`, alongside `CAKE_HOST_GAME_TESTS=1`
+and `CAKE_TEST_BASEDIR`. They run the untouched recording and controlled view
+updates in both host configurations; game content and recordings stay outside git.
+
 ## Subsystem Guides
 
 - [Desktop video configuration](cake-client/README.md)
