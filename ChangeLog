@@ -1,6 +1,38 @@
+1.2.7
+    - added client demo recording with profile-local storage and protocol 34 output
+    - added playback of classic protocol 26, 31, 32, and 34 demos, with pause and stop controls
+    - added demo browsing, startup metadata, and playback launch with restored browser navigation
+    - expanded base-game and mission-pack temporary effects, including cables, lightning, heatbeams, steam, and particle shells
+    - improved explosion animation, particle motion, effect timing, and shared effect asset lifetimes
+    - fixed content browser bookmarks across profile changes and added game-themed horizontal scrollbars
+
 1.2.6
     - reworked networking with owned client/server transports, immutable Kotlin messages and addresses, and injected settings
     - preserved Quake II protocol 34 compatibility and reduced player updates by omitting unchanged weapon model indices
+
+1.2.5
+    - added BSP map selection to the multiplayer hosting menu and player model previews to Player Setup
+    - unified standalone and browser resource previews, with external player skins, text files, and streaming cinematics
+    - replaced the legacy server controller with Kotlin ServerHost and separated host, game, and per-map state ownership
+    - isolated game rules, pause policy, timing, and failure handling across hosted games
+    - improved save validation, entity component restoration, and recovery from failed map and load transitions
+    - strengthened connection cleanup and dedicated server shutdown
+
+1.2.4
+    - added an active-profile content browser to the client menu, with image thumbnails and adjustable thumbnail sizes
+    - added embedded image, sound, sprite, MD2 model, and BSP map previews with shared playback and camera controls
+    - added Escape navigation through browser folders and fixed standalone WAL thumbnail palette loading
+    - refined engine and game menu themes, font sizing, frames, scrollbars, and split handles
+    - added UI sample capture tools and half-transparent console backgrounds
+    - allowed Cake Viewer to start without arguments and fixed server handling of missing downloads
+
+1.2.3
+    - expanded Cake Viewer with PAK archive browsing, folder thumbnails, and drag-and-drop file replacement
+    - added archive previews for images, sounds, sprites, MD2 models, and BSP maps
+    - added TGA image support, image fit/zoom/pan, sound audition/looping, and shared animation controls
+    - added MD2 skin selection, orbit and fly cameras, and richer resource information
+    - kept viewer UI pixel sizing stable on resize and consolidated preview resource ownership
+    - renamed cake-model-viewer to cake-viewer and fixed its native build on current GraalVM
 
 1.2.2
     - added cake-fullgame desktop distribution with Singleplayer and Host Game menus
