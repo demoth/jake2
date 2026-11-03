@@ -135,7 +135,7 @@ class Cake(
         // for loading binary blobs from the filesystem (e.g. BSP maps)
         setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
         setLoader(Sound::class.java, ConvertingSoundLoader(fileResolver))
-        setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
+        PcxLoader(fileResolver).registerWith(this)
         setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
         setLoader(BspMapAsset::class.java, "bsp", BspLoader(fileResolver))
         setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
