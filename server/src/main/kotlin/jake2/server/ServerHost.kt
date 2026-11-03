@@ -64,6 +64,7 @@ class ServerHost @JvmOverloads constructor(
     private var frameNum = 0
     private var nextFrameTime = 1000
     private var gameCounter = 0
+    private var spawnCounter = Lib.rand().toInt()
 
     val isPaused: Boolean
         get() = paused.typedValue
@@ -458,6 +459,9 @@ class ServerHost @JvmOverloads constructor(
     fun allocateGameName(): String {
         return "jake2_${gameCounter++}"
     }
+
+    /** Map loads and cinematic invalidations share one protocol generation sequence. */
+    fun allocateSpawnCount(): Int = spawnCounter++
 
     /**
      * SV_InitGame.
