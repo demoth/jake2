@@ -32,7 +32,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import kotlin.jvm.java
-import org.demoth.cake.assets.CakeTextureData
+import org.demoth.cake.assets.createMissingTexture
 import org.demoth.cake.assets.MissingResourceException
 import org.demoth.cake.assets.ResourceKind
 
@@ -90,7 +90,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
      *
      * [loadEmbeddedSkins] controls whether MD2 embedded skin paths should be used when
      * the variant key does not provide a skin prefix.
-     * [useDefaultSkinIfMissing] creates a 1x1 white skin when no skin path is resolved.
+     * [useDefaultSkinIfMissing] creates an engine missing-texture skin when no skin path is resolved.
      *
      * Typical usage:
      * - Game client players: synthetic key `<skin>|<model>`, keep defaults.
@@ -127,7 +127,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
 
         val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter)
         val defaultSkin = if (skinPaths.isEmpty() && parameter?.useDefaultSkinIfMissing == true) {
-            createDefaultSkinTexture()
+            createMissingTexture()
         } else {
             null
         }
@@ -247,13 +247,6 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
                 vertexData.vertexNormals.toFloatBuffer(),
             )
         )
-    }
-
-    private fun createDefaultSkinTexture(): Texture {
-        val pixmap = Pixmap(1, 1, Pixmap.Format.RGBA8888).apply {
-            drawPixel(0, 0, 0xFFFFFFFF.toInt())
-        }
-        return Texture(CakeTextureData(pixmap))
     }
 }
 

@@ -63,7 +63,25 @@ class CakeTextureData(private var pixmap: Pixmap) : TextureData {
     }
 }
 
-class WalLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, WalLoader.Parameters>(resolver) {
+/** Generated engine placeholder; each caller owns its texture through its usual asset lifecycle. */
+internal fun createMissingTexture(): Texture {
+    val pixels = Pixmap(64, 64, Pixmap.Format.RGBA8888)
+    for (y in 0 until 64) for (x in 0 until 64) {
+        pixels.drawPixel(x, y, if ((x / 16 + y / 16) % 2 == 0) 0xFF00FFFF.toInt() else 0x181818FF)
+    }
+    return Texture(CakeTextureData(pixels))
+}
+
+/** Missing files are recoverable; malformed files still report their decoding errors. */
+private fun resolveTextureFile(resolver: FileHandleResolver, path: String): FileHandle? = try {
+    resolver.resolve(path)?.takeIf { it.exists() }
+} catch (_: MissingResourceException) {
+    null
+}
+
+class WalLoader(private val textureResolver: FileHandleResolver) : SynchronousAssetLoader<Texture, WalLoader.Parameters>(textureResolver) {
+
+    override fun resolve(fileName: String): FileHandle? = resolveTextureFile(textureResolver, fileName)
 
     data class Parameters(
         val externalPalette: IntArray? = null,
@@ -77,14 +95,15 @@ class WalLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, 
     override fun load(
         manager: AssetManager,
         fileName: String,
-        file: FileHandle,
+        file: FileHandle?,
         parameter: Parameters?
     ): Texture {
-        val wal = WAL(file.readBytes())
-        val palette = parameter?.externalPalette
-            ?: manager.get(parameter?.paletteAssetPath ?: "q2palette.bin", Any::class.java) as IntArray
-        val pixmap = fromWal(wal, palette)
-        val texture = Texture(CakeTextureData(pixmap))
+        val texture = if (file == null || !file.exists()) createMissingTexture() else {
+            val wal = WAL(file.readBytes())
+            val palette = parameter?.externalPalette
+                ?: manager.get(parameter?.paletteAssetPath ?: "q2palette.bin", Any::class.java) as IntArray
+            Texture(CakeTextureData(fromWal(wal, palette)))
+        }
         val minFilter = parameter?.minFilter
         val magFilter = parameter?.magFilter
         if (minFilter != null || magFilter != null) {
@@ -103,7 +122,7 @@ class WalLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, 
         file: FileHandle?,
         parameter: Parameters?
     ): Array<AssetDescriptor<*>>? {
-        if (parameter?.externalPalette != null) {
+        if (file == null || !file.exists() || parameter?.externalPalette != null) {
             return null
         }
         val palettePath = parameter?.paletteAssetPath ?: "q2palette.bin"
@@ -130,7 +149,9 @@ internal fun fromWal(wal: WAL, palette: IntArray): Pixmap {
     return pixmap
 }
 
-class PcxLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, PcxLoader.Parameters>(resolver) {
+class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAssetLoader<Texture, PcxLoader.Parameters>(textureResolver) {
+
+    override fun resolve(fileName: String): FileHandle? = resolveTextureFile(textureResolver, fileName)
 
     data class Parameters(
         val externalPalette: IntArray? = null,
@@ -143,12 +164,12 @@ class PcxLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Texture, 
     override fun load(
         manager: AssetManager,
         fileName: String,
-        file: FileHandle,
+        file: FileHandle?,
         parameter: Parameters?
     ): Texture {
-        val pcx = PCX(file.readBytes())
-        val pixmap = fromPCX(pcx, parameter?.externalPalette)
-        val texture = Texture(CakeTextureData(pixmap))
+        val texture = if (file == null || !file.exists()) createMissingTexture() else {
+            Texture(CakeTextureData(fromPCX(PCX(file.readBytes()), parameter?.externalPalette)))
+        }
         val minFilter = parameter?.minFilter
         val magFilter = parameter?.magFilter
         if (minFilter != null || magFilter != null) {

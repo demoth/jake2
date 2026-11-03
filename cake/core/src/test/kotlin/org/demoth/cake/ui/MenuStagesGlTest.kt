@@ -71,6 +71,7 @@ class MenuStagesGlTest {
         val viewport = UiViewport().apply { update(640, 480, true) }
         val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false) { null }
         try {
+            verifyMissingTextures()
             verifyModsBrowser(viewport, style)
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
@@ -115,6 +116,41 @@ class MenuStagesGlTest {
             assets.dispose()
             skin.dispose()
         }
+    }
+
+    private fun verifyMissingTextures() {
+        val resolver = com.badlogic.gdx.assets.loaders.FileHandleResolver { path ->
+            when {
+                path.startsWith("null") -> null
+                path.startsWith("absent") -> Gdx.files.absolute("/nonexistent-cake-test/$path")
+                else -> throw org.demoth.cake.assets.MissingResourceException(path,
+                    org.demoth.cake.assets.ResourceKind.PCX, "test")
+            }
+        }
+        val assets = AssetManager(resolver).apply {
+            setLoader(com.badlogic.gdx.graphics.Texture::class.java, ".pcx", org.demoth.cake.assets.PcxLoader(resolver))
+            setLoader(com.badlogic.gdx.graphics.Texture::class.java, ".wal", org.demoth.cake.assets.WalLoader(resolver))
+        }
+        try {
+            for (prefix in listOf("null", "absent", "throws")) {
+                assets.load("$prefix.pcx", com.badlogic.gdx.graphics.Texture::class.java)
+                assets.load("$prefix.wal", com.badlogic.gdx.graphics.Texture::class.java,
+                    org.demoth.cake.assets.WalLoader.Parameters(wrapU = com.badlogic.gdx.graphics.Texture.TextureWrap.Repeat,
+                        wrapV = com.badlogic.gdx.graphics.Texture.TextureWrap.Repeat))
+            }
+            assets.finishLoading()
+            for (prefix in listOf("null", "absent", "throws")) {
+                val skin = assets.get("$prefix.pcx", com.badlogic.gdx.graphics.Texture::class.java)
+                val wall = assets.get("$prefix.wal", com.badlogic.gdx.graphics.Texture::class.java)
+                assertEquals(64, skin.width)
+                assertEquals(64, wall.height)
+                assertEquals(com.badlogic.gdx.graphics.Texture.TextureWrap.Repeat, wall.uWrap)
+                assertNotSame(skin, wall, "Each asset owns its placeholder for independent unloading")
+                assets.unload("$prefix.pcx")
+                assertTrue(assets.isLoaded("$prefix.wal"))
+            }
+            assertFalse(assets.isLoaded("q2palette.bin"), "Missing WAL textures need no game palette")
+        } finally { assets.dispose() }
     }
 
     private fun verifyModsBrowser(viewport: UiViewport, style: GameUiStyle) {
