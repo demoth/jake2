@@ -828,6 +828,7 @@ class Cake(
     override fun render() {
         try {
             updateGlProfilerState()
+            syncPackageSettings()
             menuController.pumpIntents()
             menuController.refreshExternalState()
             drainMenuSignals()
@@ -1749,6 +1750,54 @@ class Cake(
             Com.Printf("Cake profile saved: $path\n")
         } catch (e: Exception) {
             Com.Warn("Failed to save Cake profile: ${e.message}\n")
+        }
+    }
+
+    /** Called from menu intents (before Stage.act), never from a widget callback. */
+    private fun changeProfileMods(archive: String? = null, include: Boolean? = null, automount: Boolean? = null, explicit: Boolean = true): String {
+        if (!isProfileSwitchAllowed()) return "Disconnect and stop the local game before changing mods."
+        val previous = activeGameProfile ?: return "Select a profile first."
+        val before = fileResolver.packageSelection.automount()
+        val after = automount ?: before
+        return try {
+            var next = previous
+            if (archive != null) {
+                require(!before) { "Disable automatic archive loading before using Include or Exclude." }
+                require(!jake2.qcommon.vfs.VfsPackageSelection.isNumberedPak(archive.substringAfterLast('/'))) {
+                    "Numbered PAK files are always loaded."
+                }
+                if (include == true) org.demoth.cake.profile.ProfileArchives.resolve(previous, archive)
+                else require(archive in previous.includedArchives) { "Archive is not included." }
+                next = previous.copy(includedArchives = if (include == true)
+                    (previous.includedArchives + archive).distinct() else previous.includedArchives - archive).normalized()
+            }
+            org.demoth.cake.profile.ProfileArchives.validateActivation(next, before, after,
+                archive?.takeIf { include == true })
+            org.demoth.cake.profile.ProfileModChanges.apply(previous, next, before, after,
+                applyContent = { profile, automatic ->
+                    Cvar.getInstance().find<Boolean>(org.demoth.cake.profile.CakePackageSettings.AUTOMOUNT).forceSet(automatic)
+                    applyGameProfile(profile)
+                },
+                saveSelection = { gameProfileStore.upsertProfile(it, select = true) },
+                saveSettings = {
+                    if (explicit || Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue)
+                        profilePersistence.saveConfigOrThrow()
+                })
+            if (archive == null) "Automatic archive loading ${if (after) "enabled" else "disabled"}."
+            else "${if (include == true) "Included" else "Excluded"}: $archive"
+        } catch (failure: Exception) {
+            Cvar.getInstance().find<Boolean>(org.demoth.cake.profile.CakePackageSettings.AUTOMOUNT).forceSet(before)
+            val recovery = if (failure.suppressed.isEmpty()) "" else " Recovery also failed; reselect the profile."
+            "Could not change mods: ${failure.message}.$recovery"
+        }
+    }
+
+    private fun syncPackageSettings() {
+        if (!isProfileSwitchAllowed() || activeGameProfile == null) return
+        val automatic = org.demoth.cake.profile.CakePackageSettings.automount()
+        if (automatic != fileResolver.packageSelection.automount()) {
+            val message = changeProfileMods(automount = automatic, explicit = false)
+            Com.Printf("$message\n")
         }
     }
 
