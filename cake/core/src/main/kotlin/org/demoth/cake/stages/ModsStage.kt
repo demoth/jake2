@@ -128,7 +128,7 @@ class ModsStage(
                         }
                     }
                 }
-                val suffix = if (archive.missing) " (missing)" else if (archive.required) " (always loaded)" else ""
+                val suffix = if (archive.missing) " (missing)" else ""
                 val row = TextButton(archive.path + suffix, styles.button).apply {
                     onClick {
                         state.profile?.let { menuEventBus.postIntent(MenuIntent.SelectMod(it.id, archive.path)) }
