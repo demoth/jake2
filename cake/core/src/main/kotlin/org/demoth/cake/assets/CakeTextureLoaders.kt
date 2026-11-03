@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.TextureData
 import com.badlogic.gdx.graphics.TextureData.TextureDataType
 import com.badlogic.gdx.utils.Array
+import jake2.qcommon.Com
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 
@@ -98,7 +99,10 @@ class WalLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
         file: FileHandle?,
         parameter: Parameters?
     ): Texture {
-        val texture = if (file == null || !file.exists()) createMissingTexture() else {
+        val texture = if (file == null || !file.exists()) {
+            Com.Warn("Missing texture '$fileName'; using engine checkerboard.\n")
+            createMissingTexture()
+        } else {
             val wal = WAL(file.readBytes())
             val palette = parameter?.externalPalette
                 ?: manager.get(parameter?.paletteAssetPath ?: "q2palette.bin", Any::class.java) as IntArray
@@ -167,7 +171,10 @@ class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
         file: FileHandle?,
         parameter: Parameters?
     ): Texture {
-        val texture = if (file == null || !file.exists()) createMissingTexture() else {
+        val texture = if (file == null || !file.exists()) {
+            Com.Warn("Missing texture '$fileName'; using engine checkerboard.\n")
+            createMissingTexture()
+        } else {
             Texture(CakeTextureData(fromPCX(PCX(file.readBytes()), parameter?.externalPalette)))
         }
         val minFilter = parameter?.minFilter
