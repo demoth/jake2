@@ -17,6 +17,10 @@ class ImageThumbnails(
     private val assets: AssetManager,
     private val resolver: FileHandleResolver,
 ) : Disposable {
+    companion object {
+        val imageExtensions = setOf("pcx", "wal", "tga", "jpg", "jpeg")
+    }
+
     private val textures = mutableMapOf<String, Texture>()
     private val failures = mutableSetOf<String>()
 

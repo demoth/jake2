@@ -156,7 +156,7 @@ internal class ContentPreview(
     }
 
     private fun previewImage(entry: VfsEntry?): Actor? {
-        if (entry == null || entry.normalizedPath.substringAfterLast('.') !in setOf("pcx", "wal", "tga")) return null
+        if (entry == null || entry.normalizedPath.substringAfterLast('.') !in ImageThumbnails.imageExtensions) return null
         val texture = thumbnails.load(entry) ?: return Label("Could not load image.", styles.label)
         return Table().apply {
             add(ImagePreviewPane(Image(texture))).grow().row()

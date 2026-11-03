@@ -52,7 +52,8 @@ import org.demoth.cake.ui.FileResourcePreview
 import java.io.File
 import kotlin.system.measureTimeMillis
 
-private val SUPPORTED_FORMATS = listOf(".bsp", ".pcx", ".md2", ".wal", ".tga", ".wav", ".sp2", ".pak") + FileResourcePreview.extensions.map { ".$it" }
+private val SUPPORTED_FORMATS = listOf(".bsp", ".md2", ".wav", ".sp2", ".pak") +
+    (ImageThumbnails.imageExtensions + FileResourcePreview.extensions).map { ".$it" }
 
 class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
     private var image: Texture? = null
@@ -180,7 +181,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             closeResourcePreview()
             return null
         }
-        if (entry.normalizedPath.substringAfterLast('.') !in (listOf("pcx", "wal", "tga", "wav", "sp2", "md2", "bsp") + FileResourcePreview.extensions)) return null
+        if (entry.normalizedPath.substringAfterLast('.') !in (ImageThumbnails.imageExtensions + listOf("wav", "sp2", "md2", "bsp") + FileResourcePreview.extensions)) return null
         if (!loadArchiveResource(entry)) return null
         return createPreviewActor()
     }
@@ -239,7 +240,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 sound = previewResources.load(path, Sound::class.java)
                 soundPlayback = SoundPlayback(sound!!)
             }
-            "pcx", "wal", "tga" -> {
+            in ImageThumbnails.imageExtensions -> {
                 image = previewResources.load(path, Texture::class.java)
             }
             "md2" -> {

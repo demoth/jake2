@@ -84,7 +84,7 @@ class ContentBrowser(
 
     private class Tile(val directory: ContentDirectory?, val entry: VfsEntry?, styles: ContentBrowserStyles,
                        thumbnailsEnabled: Boolean) : Button(styles.tile) {
-        val thumbnail = entry?.normalizedPath?.substringAfterLast('.') in setOf("pcx", "wal", "tga", "cin")
+        val thumbnail = entry?.normalizedPath?.substringAfterLast('.') in (ImageThumbnails.imageExtensions + "cin")
         val placeholder = Label(if (directory != null) "Folder" else if (thumbnail && thumbnailsEnabled) "…" else
             entry!!.normalizedPath.substringAfterLast('.').uppercase(), styles.label).apply {
             setEllipsis(true)
