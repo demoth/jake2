@@ -129,7 +129,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 config.enableEngineFallback(),
                 config.caseSensitive(),
                 config.extraRoots(),
-                config.supportedPackExtensions()
+                config.supportedPackExtensions(),
+                config.packageSelection()
         );
         rebuildAll();
     }
@@ -379,7 +380,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             return stream
                     .filter(Files::isRegularFile)
                     .filter(this::isSupportedPackFile)
-                    .sorted((a, b) -> packOrder.compare(fileName(a), fileName(b)))
+                    .filter(path -> config.packageSelection().includes(config.basedir(), path))
+                    .sorted((a, b) -> packOrder.compare(fileName(b), fileName(a)))
                     .map(path -> path.toAbsolutePath().normalize())
                     .collect(Collectors.toList());
         } catch (IOException e) {
@@ -616,18 +618,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
      * @return
      */
     private static boolean isProtectedPack(Path packagePath) {
-        String name = fileName(packagePath).toLowerCase();
-        if (!name.startsWith("pak")) {
-            return false;
-        }
-        int i = 3;
-        if (i >= name.length() || !Character.isDigit(name.charAt(i))) {
-            return false;
-        }
-        while (i < name.length() && Character.isDigit(name.charAt(i))) {
-            i++;
-        }
-        return i < name.length() && name.charAt(i) == '.';
+        return VfsPackageSelection.isNumberedPak(fileName(packagePath));
     }
 
     private static String extension(Path path) {

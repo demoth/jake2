@@ -16,7 +16,8 @@ public record VfsConfig(
         boolean enableEngineFallback,
         boolean caseSensitive,
         List<Path> extraRoots,
-        Set<String> supportedPackExtensions
+        Set<String> supportedPackExtensions,
+        VfsPackageSelection packageSelection
 ) {
     public VfsConfig(
             Path basedir,
@@ -28,16 +29,16 @@ public record VfsConfig(
             List<Path> extraRoots,
             Set<String> supportedPackExtensions
     ) {
-        this.basedir = basedir;
-        this.baseGame = baseGame;
-        this.gameMod = gameMod;
-        this.serverMode = serverMode;
-        this.enableEngineFallback = enableEngineFallback;
-        this.caseSensitive = caseSensitive;
-        this.extraRoots = extraRoots == null ? Collections.emptyList() : Collections.unmodifiableList(extraRoots);
-        this.supportedPackExtensions = supportedPackExtensions == null
+        this(basedir, baseGame, gameMod, serverMode, enableEngineFallback,
+                caseSensitive, extraRoots, supportedPackExtensions, VfsPackageSelection.AUTOMATIC);
+    }
+
+    public VfsConfig {
+        extraRoots = extraRoots == null ? Collections.emptyList() : List.copyOf(extraRoots);
+        supportedPackExtensions = supportedPackExtensions == null
                 ? Collections.emptySet()
-                : Collections.unmodifiableSet(supportedPackExtensions);
+                : Set.copyOf(supportedPackExtensions);
+        packageSelection = java.util.Objects.requireNonNull(packageSelection, "packageSelection");
     }
 }
 

@@ -1,28 +1,29 @@
 package jake2.qcommon.vfs;
 
 import java.util.Comparator;
-import java.util.Locale;
+import java.math.BigInteger;
 
 /**
  * Deterministic pack ordering policy:
- * numbered {@code pakNN.*} first (ascending NN), then case-insensitive alphabetical.
+ * Load order: numbered {@code pakNN.pak} first (ascending NN), then optional archives
+ * in case-insensitive alphabetical order. Later entries take precedence.
  */
 public final class VfsPackOrder implements Comparator<String> {
 
     @Override
     public int compare(String left, String right) {
-        final String a = fileName(left).toLowerCase(Locale.ROOT);
-        final String b = fileName(right).toLowerCase(Locale.ROOT);
+        final String a = fileName(left);
+        final String b = fileName(right);
 
-        final Integer aNumbered = parsePakNumber(a);
-        final Integer bNumbered = parsePakNumber(b);
+        final BigInteger aNumbered = parsePakNumber(a);
+        final BigInteger bNumbered = parsePakNumber(b);
 
         if (aNumbered != null && bNumbered != null) {
-            int numeric = Integer.compare(aNumbered, bNumbered);
+            int numeric = aNumbered.compareTo(bNumbered);
             if (numeric != 0) {
                 return numeric;
             }
-            return a.compareToIgnoreCase(b);
+            return alphabetical(a, b);
         }
 
         if (aNumbered != null) {
@@ -32,7 +33,7 @@ public final class VfsPackOrder implements Comparator<String> {
             return 1;
         }
 
-        return a.compareToIgnoreCase(b);
+        return alphabetical(a, b);
     }
 
     private static String fileName(String path) {
@@ -43,22 +44,13 @@ public final class VfsPackOrder implements Comparator<String> {
         return slash >= 0 ? path.substring(slash + 1) : path;
     }
 
-    private static Integer parsePakNumber(String fileName) {
-        if (!fileName.startsWith("pak")) {
-            return null;
-        }
+    private static int alphabetical(String a, String b) {
+        int comparison = a.compareToIgnoreCase(b);
+        return comparison != 0 ? comparison : a.compareTo(b);
+    }
 
-        int index = 3;
-        if (index >= fileName.length() || !Character.isDigit(fileName.charAt(index))) {
-            return null;
-        }
-        while (index < fileName.length() && Character.isDigit(fileName.charAt(index))) {
-            index++;
-        }
-        if (index < fileName.length() && fileName.charAt(index) != '.') {
-            return null;
-        }
-        return Integer.parseInt(fileName.substring(3, index));
+    private static BigInteger parsePakNumber(String fileName) {
+        if (!VfsPackageSelection.isNumberedPak(fileName)) return null;
+        return new BigInteger(fileName.substring(3, fileName.length() - 4));
     }
 }
-

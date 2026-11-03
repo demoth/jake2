@@ -41,7 +41,8 @@ public final class EngineVfs {
                 config.enableEngineFallback(),
                 config.caseSensitive(),
                 config.extraRoots(),
-                config.supportedPackExtensions()
+                config.supportedPackExtensions(),
+                config.packageSelection()
         );
         VFS.setGameMod(gameMod);
     }
@@ -58,7 +59,8 @@ public final class EngineVfs {
                 config.enableEngineFallback(),
                 caseSensitive,
                 config.extraRoots(),
-                config.supportedPackExtensions()
+                config.supportedPackExtensions(),
+                config.packageSelection()
         ));
     }
 

@@ -25,12 +25,20 @@ public class VfsPackOrderTest {
 
         assertEquals(Arrays.asList(
                 "pak0.pak",
-                "pak2.pk3",
                 "pak10.pak",
                 "abc.pak",
+                "pak2.pk3",
                 "textures.zip",
                 "zzz.pkz"
         ), packs);
+    }
+
+    @Test
+    public void caseTiesAndLargePakNumbersAreDeterministic() {
+        List<String> packs = new ArrayList<>(List.of("a.zip", "A.zip",
+                "pak999999999999999999999.pak", "pak2.pak"));
+        packs.sort(new VfsPackOrder());
+        assertEquals(List.of("pak2.pak", "pak999999999999999999999.pak", "A.zip", "a.zip"), packs);
     }
 
     @Test

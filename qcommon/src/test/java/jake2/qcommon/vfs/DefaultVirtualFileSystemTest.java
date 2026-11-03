@@ -227,6 +227,84 @@ public class DefaultVirtualFileSystemTest {
         assertEquals(2, snapshot.size());
     }
 
+    @Test
+    public void explicitSelectionSurvivesRebuildAndGameDirectoryChanges() throws Exception {
+        Path root = temp.resolve("selection");
+        writePak(root.resolve("baseq2/pak0.pak"), Map.of("base.txt", new byte[]{1}));
+        writeFile(root.resolve("baseq2/loose.txt"), "loose");
+        writeZip(root.resolve("catalog/chosen.zip"), Map.of("chosen.txt", new byte[]{2}));
+        writeZip(root.resolve("catalog/excluded.zip"), Map.of("excluded.txt", new byte[]{3}));
+        writeZip(root.resolve("baseq2/pak9.zip"), Map.of("optional.txt", new byte[]{4}));
+        writeZip(root.resolve("ignored.zip"), Map.of("root.txt", new byte[]{5}));
+        VfsPackageSelection selection = new VfsPackageSelection(false,
+                Set.of("catalog/chosen.zip", "catalog/missing.zip", "ignored/absent.zip"));
+        DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem();
+        vfs.configure(new VfsConfig(root, "baseq2", "catalog", false, false, false,
+                List.of(), Set.of("pak", "zip"), selection));
+        assertTrue(vfs.exists("base.txt"));
+        assertTrue(vfs.exists("loose.txt"));
+        assertTrue(vfs.exists("chosen.txt"));
+        assertFalse(vfs.exists("excluded.txt"));
+        assertFalse(vfs.exists("optional.txt"), "A numbered ZIP is still optional");
+        assertFalse(vfs.exists("root.txt"));
+        vfs.setGameMod(null);
+        assertFalse(vfs.exists("chosen.txt"));
+        vfs.setGameMod("catalog");
+        assertTrue(vfs.exists("chosen.txt"));
+        assertFalse(vfs.exists("excluded.txt"));
+        vfs.configure(new VfsConfig(root, "baseq2", "catalog", false, false, false,
+                List.of(), Set.of("pak", "zip"), new VfsPackageSelection(false, Set.of())));
+        assertFalse(vfs.exists("chosen.txt"), "Exclusion must remove previously indexed resources");
+        assertTrue(vfs.exists("base.txt"));
+    }
+
+    @Test
+    public void engineConfigurationChangesRetainPackageSelection() throws Exception {
+        Path root = temp.resolve("engine-selection");
+        writeZip(root.resolve("baseq2/optional.zip"), Map.of("optional.txt", new byte[]{1}));
+        try {
+            EngineVfs.configure(new VfsConfig(root, "baseq2", null, true, false, false,
+                    List.of(), Set.of("zip"), new VfsPackageSelection(false, Set.of())));
+            EngineVfs.setCaseSensitive(true);
+            EngineVfs.setGameMod("catalog");
+            EngineVfs.setCaseSensitive(false);
+            assertFalse(EngineVfs.exists("optional.txt"));
+        } finally {
+            EngineVfs.configure(new VfsConfig(null, "baseq2", null, true, false, false,
+                    List.of(), Set.of("pak", "zip")));
+        }
+    }
+
+    @Test
+    public void selectionRejectsNonPortableAndEscapingPaths() {
+        for (String path : List.of("../outside.zip", "/baseq2/file.zip", "file.zip",
+                "baseq2/../file.zip", "baseq2/", "C:/file.zip", "baseq2\\file.zip")) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> new VfsPackageSelection(false, Set.of(path)), path);
+        }
+    }
+
+    @Test
+    public void laterOptionalArchivesOverrideNumberedPaksAndModOverridesBase() throws Exception {
+        Path root = temp.resolve("precedence");
+        writePak(root.resolve("baseq2/pak0.pak"), Map.of("value.txt", new byte[]{0}));
+        writePak(root.resolve("baseq2/pak1.pak"), Map.of("value.txt", new byte[]{1}));
+        writeZip(root.resolve("baseq2/a.zip"), Map.of("value.txt", new byte[]{2}));
+        writeZip(root.resolve("baseq2/z.zip"), Map.of("value.txt", new byte[]{3}));
+        writeZip(root.resolve("catalog/a.zip"), Map.of("value.txt", new byte[]{4}));
+        DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem();
+        vfs.configure(config(root, null, false, false, List.of()));
+        assertArrayEquals(new byte[]{3}, vfs.loadBytes("value.txt").value());
+        vfs.setGameMod("catalog");
+        assertArrayEquals(new byte[]{4}, vfs.loadBytes("value.txt").value());
+        vfs.configure(new VfsConfig(root, "baseq2", null, false, false, false,
+                List.of(), Set.of("pak", "zip"), new VfsPackageSelection(false, Set.of("baseq2/a.zip"))));
+        assertArrayEquals(new byte[]{2}, vfs.loadBytes("value.txt").value());
+        vfs.configure(new VfsConfig(root, "baseq2", null, false, false, false,
+                List.of(), Set.of("pak", "zip"), new VfsPackageSelection(false, Set.of())));
+        assertArrayEquals(new byte[]{1}, vfs.loadBytes("value.txt").value());
+    }
+
     private VfsConfig config(
             Path basedir,
             String gameMod,
