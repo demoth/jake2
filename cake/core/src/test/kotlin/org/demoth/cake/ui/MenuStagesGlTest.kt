@@ -182,11 +182,10 @@ class MenuStagesGlTest {
             var stage = menus.inputProcessor as Stage
             assertTrue(labels(stage.root).any { it.contains("Archive readme fixture") })
             assertTrue(resolver.listContentEntries().isEmpty(), "Inspecting must not change gameplay mounts")
-            val include = stage.root.findActor<TextButton>("mod-include")
-            assertFalse(include.isDisabled)
-            assertTrue(stage.root.findActor<TextButton>("mod-exclude").isDisabled)
-            val click = include.listeners.filterIsInstance<ClickListener>().last()
-            click.clicked(InputEvent(), 1f, 1f)
+            val checkbox = stage.root.findActor<TextButton>("mod-checkbox:catalog/example.zip")
+            assertFalse(checkbox.isDisabled)
+            assertFalse(checkbox.isChecked)
+            checkbox.isChecked = true
             val intents = mutableListOf<MenuIntent>()
             bus.drainIntents { intents += it }
             assertTrue(intents.contains(MenuIntent.SetModIncluded(profile.id, "catalog/example.zip", true)))
@@ -201,7 +200,12 @@ class MenuStagesGlTest {
                 archives = listOf(org.demoth.cake.profile.ProfileArchive("catalog/example.zip", true, false, true)))))
             menus.render(1f / 60f)
             assertTrue(labels(stage.root).any { it.contains("Could not inspect") })
-            assertFalse(stage.root.findActor<TextButton>("mod-exclude").isDisabled)
+            val missingCheckbox = stage.root.findActor<TextButton>("mod-checkbox:catalog/example.zip")
+            assertFalse(missingCheckbox.isDisabled)
+            assertTrue(missingCheckbox.isChecked)
+            missingCheckbox.isChecked = false
+            bus.drainIntents { intents += it }
+            assertTrue(intents.contains(MenuIntent.SetModIncluded(profile.id, "catalog/example.zip", false)))
             menus.select(MenuScreen.MAIN)
         } finally {
             menus.dispose(); assets.dispose()

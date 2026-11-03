@@ -46,8 +46,6 @@ class ModsStage(
     private var rendering = false
     private var rendered: ModsState? = null
     private var inspected: List<Any?>? = null
-    private val include = createMenuButton("Include", styles.button) { setIncluded(true) }.apply { name = "mod-include" }
-    private val exclude = createMenuButton("Exclude", styles.button) { setIncluded(false) }.apply { name = "mod-exclude" }
 
     init {
         automatic.onChange {
@@ -62,10 +60,6 @@ class ModsStage(
             add(ScrollPane(archiveList, styles.scrollPane).apply {
                 setFadeScrollBars(false); setScrollingDisabled(true, false)
             }).colspan(2).grow().row()
-            add(Table().apply {
-                add(include).padRight(8f)
-                add(exclude)
-            }).colspan(2).left().padTop(8f)
         }
         val right = Table().apply {
             add(archiveTitle).growX().left().row()
@@ -89,13 +83,6 @@ class ModsStage(
 
     private fun current() = menuEventBus.latestState().mods
 
-    private fun setIncluded(value: Boolean) {
-        val state = current()
-        val profile = state.profile ?: return
-        val path = state.selectedArchive ?: return
-        menuEventBus.postIntent(MenuIntent.SetModIncluded(profile.id, path, value))
-    }
-
     override fun act(delta: Float) {
         val state = current()
         if (state != rendered) show(state)
@@ -113,13 +100,14 @@ class ModsStage(
                 when {
                     state.profile == null -> "Select and apply a profile to manage its mods."
                     !state.canEdit -> "Disconnect and stop the local game to change mods."
-                    state.automount -> "Archives load automatically. Disable this setting to use Include and Exclude."
+                    state.automount -> "Archives load automatically. Disable this setting to select archives with the checkboxes."
                     else -> "Included archives override base PAKs. Later filenames win within each game directory."
                 }
             })
             archiveList.clearChildren()
             for (archive in state.archives) {
                 val checkbox = TextButton("x", widgets.checkBox).apply {
+                    name = "mod-checkbox:${archive.path}"
                     isChecked = archive.included
                     isDisabled = !state.canEdit || state.automount || archive.required || (archive.missing && !archive.included)
                     onChange {
@@ -140,10 +128,6 @@ class ModsStage(
                 archiveList.add(row).minWidth(0f).growX().padBottom(4f).row()
             }
             if (state.archives.isEmpty()) archiveList.add(Label("No archives found.", styles.label)).left()
-            val selected = state.archives.firstOrNull { it.path == state.selectedArchive }
-            val editable = state.canEdit && !state.automount && selected != null && !selected.required
-            include.isDisabled = !editable || selected.included || selected.missing
-            exclude.isDisabled = !editable || !selected.included
             val key = listOf(state.profile?.basedir, state.profile?.gamemod, state.selectedArchive, state.revision)
             if (key != inspected) {
                 inspect(state)
@@ -166,7 +150,7 @@ class ModsStage(
             media.contentPaths = entries.map { it.normalizedPath }
             val counts = entries.groupingBy { it.normalizedPath.substringBefore('/') }.eachCount()
             summary.setText("${entries.size} files | " + listOf("maps", "textures", "models", "sound", "pics")
-                .joinToString(" | ") { "$it: ${counts[it] ?: 0}" } + "\nPreview scope: this archive only.")
+                .joinToString(" | ") { "$it: ${counts[it] ?: 0}" })
             val browser = ContentBrowser(entries, file.fileName.toString(), styles,
                 previewSelection = media::open, loadThumbnail = thumbnails::load,
                 clearThumbnails = thumbnails::clear, onSelect = media::select)
