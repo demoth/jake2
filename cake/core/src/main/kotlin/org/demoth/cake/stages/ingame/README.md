@@ -73,8 +73,10 @@ Player-dependent `*` sounds are resolved through configuration at playback;
 belong to `PlayerConfiguration`. Legacy counterparts are
 `CL_parse.ParseStartSoundPacket`, `CL_fx.ParseMuzzleFlash`, and `CL_fx.EntityEvent`.
 
-Footsteps currently have no `cl_footsteps` gate. `EV_OTHER_TELEPORT` has no explicit
-entity-event sound branch.
+`cl_footsteps` (default `1`) controls only `EV_FOOTSTEP` playback and applies
+immediately. The Client options section exposes this toggle, and profile configs
+retain it. Landing/fall, respawn, teleport, and explicit server sounds are
+unaffected. `EV_OTHER_TELEPORT` has no explicit entity-event sound branch.
 
 ## Cinematic Presentation
 
