@@ -351,6 +351,7 @@ class ServerHost @JvmOverloads constructor(
         } finally {
             for (client in routedClients) {
                 client.state = ClientStates.CS_FREE
+                client.resetGameHandshake()
                 client.gameName = null
                 client.edict = null
                 client.download = null
@@ -681,6 +682,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         for (client in transitionClients) {
             if (client.state == ClientStates.CS_SPAWNED) client.state = ClientStates.CS_CONNECTED
+            client.resetGameHandshake()
             client.lastReceivedFrame = -1
             if (client.state == ClientStates.CS_CONNECTED) {
                 client.netchan.queueReliable(StuffTextMessage.command("changing"))
@@ -1060,6 +1062,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         client.netchan.setup(adr, qport)
 
+        client.resetGameHandshake()
         client.state = ClientStates.CS_CONNECTED
 
         client.lastmessage = realtime // don't timeout
@@ -1135,6 +1138,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             client.downloadsize = 0
             client.downloadcount = 0
             client.unreliable.clear()
+            client.resetGameHandshake()
             client.edict = null
             client.lastmessage = realtime // start the zombie grace period on the Host clock
             client.state = ClientStates.CS_ZOMBIE
@@ -1334,6 +1338,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return
         }
 
+        client.resetGameHandshake()
+
         //
         // serverdata needs to go over for all types of servers
         // to make sure the protocol is right, and to set the gamedir
@@ -1361,6 +1367,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // game server
         //
         if (gameImports.state == ServerStates.SS_GAME) {
+            client.handshakeGame = gameImports
             // set up the entity for the client
             val ent = gameImports.gameExports.getEdict(clientIndex + 1)
             ent.s.index = clientIndex + 1
@@ -1407,6 +1414,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         var start = cursor
+        if (client.handshakeGame !== gameImports || start > client.configstringsCursor) return
 
         // write a packet full of data
         var currentReliableSize =
@@ -1419,6 +1427,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
             start++
         }
+        client.configstringsCursor = maxOf(client.configstringsCursor, start)
 
         // send next command
         val nextCmd: String = if (start == Defines.MAX_CONFIGSTRINGS) {
@@ -1452,6 +1461,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         var start = cursor
+        if (client.handshakeGame !== gameImports || client.configstringsCursor != Defines.MAX_CONFIGSTRINGS ||
+            start > client.baselinesCursor) return
 
         // write a packet full of data
         var currentReliableSize =
@@ -1465,6 +1476,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
             start++
         }
+        client.baselinesCursor = maxOf(client.baselinesCursor, start)
 
         // send next command
         val nextCmd: String = if (start == Defines.MAX_EDICTS) {
@@ -1480,13 +1492,20 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         Com.DPrintf("Begin() from " + client.name + "\n")
 
+        // Admission and negotiation are distinct. Consume this transition before
+        // calling gameplay so duplicate (or reentrant) begin commands are harmless.
+        if (client.state != ClientStates.CS_CONNECTED) return
+
         // handle the case of a level changing while a client was connecting
-        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
+        val spawnCount = args.getOrNull(1)?.toIntOrNull() ?: return
+        if (args.size != 2) return
         if (spawnCount != gameImports.spawncount) {
             Com.Printf("SV_Begin_f from different level\n")
             sendInitialGameData(gameImports, client)
             return
         }
+
+        if (client.handshakeGame !== gameImports || client.baselinesCursor != Defines.MAX_EDICTS) return
 
         client.state = ClientStates.CS_SPAWNED
 

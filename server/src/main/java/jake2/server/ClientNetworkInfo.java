@@ -50,6 +50,19 @@ public class ClientNetworkInfo {
 
 	ClientStates state = ClientStates.CS_FREE;
 
+    // Negotiation belongs to one Game, independently of connection admission.
+    // Cursors are the highest configstring/baseline offsets already sent; lower
+    // offsets may be retried, but a request cannot skip unsent data.
+    GameImportsImpl handshakeGame;
+    int configstringsCursor;
+    int baselinesCursor;
+
+    void resetGameHandshake() {
+        handshakeGame = null;
+        configstringsCursor = 0;
+        baselinesCursor = 0;
+    }
+
 	String userinfo = "";
 
 	String gameName;
