@@ -1741,6 +1741,7 @@ class Cake(
             id = args[1],
             basedir = args[2],
             gamemod = args.getOrNull(3),
+            includedArchives = loadProfileById(args[1])?.includedArchives.orEmpty(),
         ).normalized()
 
         try {
