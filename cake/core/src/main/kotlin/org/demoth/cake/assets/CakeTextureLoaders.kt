@@ -157,11 +157,10 @@ class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
 
     override fun resolve(fileName: String): FileHandle? = resolveTextureFile(textureResolver, fileName)
 
-    /** AssetManager matches suffixes case-sensitively; preserve the requested asset path. */
+    /** Support lowercase and uppercase PCX suffixes without changing the requested asset path. */
     fun registerWith(manager: AssetManager) {
-        for (suffix in listOf("pcx", "pcX", "pCx", "pCX", "Pcx", "PcX", "PCx", "PCX")) {
-            manager.setLoader(Texture::class.java, suffix, this)
-        }
+        manager.setLoader(Texture::class.java, "pcx", this)
+        manager.setLoader(Texture::class.java, "PCX", this)
     }
 
     data class Parameters(
