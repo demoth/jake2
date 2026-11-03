@@ -10,10 +10,13 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.FrameBuffer
+import jake2.qcommon.exec.Cvar
+import org.demoth.cake.CakeCvars
 import org.demoth.cake.assets.CakeFileResolver
 import org.demoth.cake.assets.ObjectLoader
 import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.config.GameConfiguration
+import org.demoth.cake.download.CakeDownloadCache
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -37,23 +40,30 @@ class CinematicStillGlTest {
 
     @Test
     fun `stills render through shared assets and preserve skip and stream transitions`() {
+        val cvars = Cvar.getInstance()
+        cvars.clear()
+        CakeCvars.registerAssets(cvars)
         var failure: Throwable? = null
-        Lwjgl3Application(object : ApplicationAdapter() {
-            override fun create() {
-                try {
-                    verifyPresentation()
-                } catch (error: Throwable) {
-                    failure = error
-                } finally {
-                    Gdx.app.exit()
+        try {
+            Lwjgl3Application(object : ApplicationAdapter() {
+                override fun create() {
+                    try {
+                        verifyPresentation()
+                    } catch (error: Throwable) {
+                        failure = error
+                    } finally {
+                        Gdx.app.exit()
+                    }
                 }
-            }
-        }, Lwjgl3ApplicationConfiguration().apply {
-            setInitialVisible(false)
-            disableAudio(true)
-            setWindowedMode(64, 64)
-            setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
-        })
+            }, Lwjgl3ApplicationConfiguration().apply {
+                setInitialVisible(false)
+                disableAudio(true)
+                setWindowedMode(64, 64)
+                setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
+            })
+        } finally {
+            cvars.clear()
+        }
         failure?.let { throw it }
     }
 
@@ -81,7 +91,8 @@ class CinematicStillGlTest {
                 it.closeEntry()
             }
         }.toByteArray())
-        val resolver = CakeFileResolver(temp.toString(), "rogue")
+        val resolver = CakeFileResolver(temp.toString(), "rogue",
+            downloadCache = CakeDownloadCache(temp.resolve("downloads")))
         val assets = AssetManager(resolver).apply {
             setLoader(Texture::class.java, "pcx", PcxLoader(resolver))
             setLoader(Any::class.java, ObjectLoader(resolver))
@@ -125,6 +136,8 @@ class CinematicStillGlTest {
                 assertEquals("nextserver 17", controller.pollSkipCommand(1001, 17, true)?.command)
                 assertNull(controller.pollSkipCommand(1002, 17, true))
                 assertSame(texture, overlappingConfig.acquireAsset<Texture>(path))
+                // libGDX queues reference increments even for an already loaded texture.
+                assets.finishLoading()
                 controller.begin(name, 2000)
                 assertEquals(2, assets.getReferenceCount(path), "Repeated begin reuses config ownership")
                 controller.end()
