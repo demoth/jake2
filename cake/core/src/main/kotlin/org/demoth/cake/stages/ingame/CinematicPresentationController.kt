@@ -102,14 +102,17 @@ class CinematicPresentationController(
             prepareStream(cinematicName)
             return
         }
-        if (!cinematicName.endsWith(".pcx", ignoreCase = true)) {
+        if (STILL_IMAGE_EXTENSIONS.none { cinematicName.endsWith(it, ignoreCase = true) }) {
             return
         }
         val imagePath = resolvePicturePath(cinematicName)
-        if (assetManager.fileHandleResolver.tryResolveRaw(imagePath) == null) {
+        val imageHandle = assetManager.fileHandleResolver.tryResolveRaw(imagePath)
+        if (imageHandle == null || !imageHandle.exists()) {
             Com.Error(CLIENT, "Cinematic image not found: $imagePath")
             return
         }
+        // PCX uses Cake's loader; the default libGDX texture loader decodes TGA/PNG/JPEG,
+        // as in Viewer. Keep resolution and lifetime with the shared configuration.
         staticImage = gameConfig.acquireAsset<Texture>(imagePath)
     }
 
@@ -341,6 +344,7 @@ class CinematicPresentationController(
     }
 
     private companion object {
+        private val STILL_IMAGE_EXTENSIONS = listOf(".pcx", ".tga", ".png", ".jpg", ".jpeg")
         private const val CINEMATIC_FPS = 14
         private const val CINEMATIC_SKIP_DELAY_MS = 1000
         private const val PALETTE_COLOR_COUNT = 256

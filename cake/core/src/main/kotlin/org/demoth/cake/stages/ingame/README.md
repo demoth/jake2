@@ -84,8 +84,15 @@ Server data with `playerNumber == -1` selects cinematic presentation; other play
 numbers select the world runtime. Networking and normal server-message processing
 continue in either mode.
 
-`CinematicPresentationController` owns `.pcx` pictures and `.cin` decoding/display,
-centred over a black background. Streamed cinematic audio uses a dedicated
+`CinematicPresentationController` displays `.pcx`, `.tga`, `.png`, `.jpg`/`.jpeg`
+pictures and decodes `.cin` streams, centred with aspect ratio preserved over a
+black background. Bare picture names resolve under `pics/`; paths containing a
+directory resolve from the game root. Pictures use the shared resolver and
+configuration-owned textures (including mod/package overrides). Missing pictures
+warn and remain skippable after the guard; they do not silently substitute artwork.
+The embedded server classifies these pictures as picture presentation, preserving
+the terminal single-player end-screen and cooperative continuation behavior.
+Streamed cinematic audio uses a dedicated
 `AudioDevice`, separate from entity/event sounds. EOF or an immediate input action
 after the skip guard produces a one-shot `nextserver <spawncount>` command.
 
