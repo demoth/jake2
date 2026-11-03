@@ -4,6 +4,8 @@ import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
+import jake2.qcommon.exec.Cvar
+import jake2.qcommon.exec.find
 import jake2.qcommon.network.messages.server.SoundMessage
 import jake2.qcommon.network.messages.server.WeaponSoundMessage
 import jake2.qcommon.util.Lib
@@ -30,6 +32,7 @@ internal class IngameSoundMessageHandler(
     private val dynamicLightSystem: DynamicLightSystem,
     private val currentTimeMsProvider: () -> Int = { Globals.curtime },
 ) {
+    private val clFootsteps = Cvar.getInstance().find<Boolean>("cl_footsteps")
     private val loopSoundRequests = mutableListOf<EntityLoopSoundRequest>()
 
     fun processSoundMessage(msg: SoundMessage) {
@@ -57,7 +60,7 @@ internal class IngameSoundMessageHandler(
      *
      * Supported events currently mirror the subset implemented in this module:
      * - `EV_ITEM_RESPAWN` -> `items/respawn1.wav` + item respawn particles
-     * - `EV_FOOTSTEP` -> random `player/step1..4.wav`
+     * - `EV_FOOTSTEP` -> random `player/step1..4.wav` when `cl_footsteps` is enabled
      * - `EV_FALLSHORT` -> `player/land1.wav`
      * - `EV_FALL` -> variation-specific `fall2.wav`
      * - `EV_FALLFAR` -> variation-specific `fall1.wav`
@@ -77,6 +80,7 @@ internal class IngameSoundMessageHandler(
                     effectsSystem.emitItemRespawnEvent(state.index)
                 }
                 Defines.EV_FOOTSTEP -> {
+                    if (!clFootsteps.typedValue) return@forEachCurrentEntityState
                     val stepIndex = (Lib.rand().toInt() and 3) + 1
                     val sound = gameConfig.getNamedSound("player/step$stepIndex.wav") ?: return@forEachCurrentEntityState
                     playEntityEventSound(sound, state.index)

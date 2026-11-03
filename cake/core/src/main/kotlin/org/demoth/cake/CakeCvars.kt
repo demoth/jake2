@@ -97,6 +97,7 @@ object CakeCvars {
     }
 
     fun registerAudio(cvars: Cvar = Cvar.getInstance()) {
+        cvars.register("cl_footsteps", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE or CVAR_OPTIONS, "Play footstep sounds")
         cvars.register("s_volume", CvarTypes.FloatType(0f, 1f), 0.7f, CVAR_ARCHIVE or CVAR_OPTIONS, "Effects volume")
         cvars.register("s_maxvoices", CvarTypes.IntegerType(1, 128), 32, CVAR_ARCHIVE or CVAR_OPTIONS,
             "Maximum simultaneous Cake gameplay voices")

@@ -8,6 +8,8 @@ import jake2.qcommon.exec.find
 import jake2.qcommon.vfs.DefaultWritableFileSystem
 import org.demoth.cake.CakeCvars
 import org.demoth.cake.input.ClientBindings
+import org.demoth.cake.ui.menu.applyOptionEntries
+import org.demoth.cake.ui.menu.currentOptionSections
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -71,6 +73,22 @@ class CakeProfilePersistenceTest {
         assertEquals("player preference", cvars.find<String>("name").typedValue)
         assertEquals(1280, cvars.find<Int>("vid_windowed_width").typedValue)
         assertTrue(bindings.listBindings().contains("F1" to "say retained"))
+    }
+
+    @Test
+    fun `footstep option applies immediately and survives profile persistence`() {
+        active = CakeGameProfile("footsteps", temp.toString())
+        val footsteps = cvars.find<Boolean>("cl_footsteps")
+        assertTrue(footsteps.typedValue)
+        assertTrue(currentOptionSections(cvars).single { it.prefix == "cl_" }.entries.contains(footsteps))
+
+        assertEquals("Saved 1 option(s).", applyOptionEntries("cl_", mapOf("cl_footsteps" to false), cvars))
+        assertFalse(footsteps.typedValue)
+        persistence.saveConfig()
+        footsteps.set(true)
+        persistence.loadConfig()
+
+        assertFalse(footsteps.typedValue)
     }
 
     @Test
