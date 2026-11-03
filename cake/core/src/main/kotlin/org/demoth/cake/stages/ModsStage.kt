@@ -103,7 +103,7 @@ class ModsStage(
                     state.profile == null -> "Select and apply a profile to manage its mods."
                     !state.canEdit -> "Disconnect and stop the local game to change mods."
                     state.automount -> "Archives load automatically. Disable this setting to select archives with the checkboxes."
-                    else -> "Included archives override base PAKs. Later filenames win within each game directory."
+                    else -> "Included archives override loose files and numbered PAKs. Later filenames win within each game directory."
                 }
             })
             archiveList.clearChildren()

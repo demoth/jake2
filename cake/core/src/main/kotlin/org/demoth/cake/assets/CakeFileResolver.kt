@@ -81,10 +81,8 @@ class CakeFileResolver(
     /**
      * look for files in the following order:
      * 1. qcommon VFS game-data layers:
-     *      1.1 basedir/gamemod loose
-     *      1.2 basedir/gamemod packages (.pak/.pk2/.pk3/.pkz/.zip)
-     *      1.3 basedir/baseq2 loose
-     *      1.4 basedir/baseq2 packages
+     *      1.1 basedir/gamemod optional packages, loose files, then numbered PAKs
+     *      1.2 basedir/baseq2 optional packages, loose files, then numbered PAKs
      * 2. classpath fallback (java classpath)
      * 3. internal fallback (engine assets folder)
      *

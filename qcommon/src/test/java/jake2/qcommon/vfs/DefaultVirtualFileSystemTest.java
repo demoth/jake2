@@ -172,7 +172,7 @@ public class DefaultVirtualFileSystemTest {
         VfsResult<byte[]> bytes = vfs.loadBytes("textures/zip.wal");
         assertTrue(bytes.success());
         assertArrayEquals("zip".getBytes(StandardCharsets.US_ASCII), bytes.value());
-        assertEquals(VfsLayer.BASE_PACK, vfs.resolve("textures/zip.wal").entry().layer());
+        assertEquals(VfsLayer.BASE_OPTIONAL_PACK, vfs.resolve("textures/zip.wal").entry().layer());
     }
 
     @Test
@@ -303,6 +303,41 @@ public class DefaultVirtualFileSystemTest {
         vfs.configure(new VfsConfig(root, "baseq2", null, false, false, false,
                 List.of(), Set.of("pak", "zip"), new VfsPackageSelection(false, Set.of())));
         assertArrayEquals(new byte[]{1}, vfs.loadBytes("value.txt").value());
+    }
+
+    @Test
+    public void optionalArchivesOverrideLooseButKeepGameDirectoryPrecedence() throws Exception {
+        Path root = temp.resolve("optional-loose");
+        String model = "models/items/test/tris.md2";
+        writeFile(root.resolve("baseq2/" + model), "base loose");
+        writeFile(root.resolve("catalog/" + model), "mod loose");
+        writePak(root.resolve("baseq2/pak0.pak"), Map.of(model, new byte[]{0}));
+        writePak(root.resolve("catalog/pak0.pak"), Map.of(model, new byte[]{1}));
+        writeZip(root.resolve("baseq2/models.zip"), Map.of(model, new byte[]{2}));
+        writePak(root.resolve("catalog/models.pak"), Map.of(model, new byte[]{3}));
+        DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem();
+        vfs.configure(config(root, null, false, false, List.of()));
+        assertArrayEquals(new byte[]{2}, vfs.loadBytes(model).value());
+        assertEquals(VfsLayer.BASE_OPTIONAL_PACK, vfs.resolve(model).entry().layer());
+        vfs.setGameMod("catalog");
+        assertArrayEquals(new byte[]{3}, vfs.loadBytes(model).value());
+        assertEquals(VfsLayer.MOD_OPTIONAL_PACK, vfs.resolve(model).entry().layer());
+        vfs.configure(new VfsConfig(root, "baseq2", "catalog", false, false, false,
+                List.of(), Set.of("pak", "zip"), new VfsPackageSelection(false, Set.of("baseq2/models.zip"))));
+        assertEquals(VfsLayer.MOD_LOOSE, vfs.resolve(model).entry().layer());
+        Files.delete(root.resolve("catalog/" + model));
+        vfs.setGameMod("catalog");
+        assertArrayEquals(new byte[]{1}, vfs.loadBytes(model).value(), "Even numbered mod PAKs outrank base optional archives");
+        vfs.setGameMod(null);
+        assertArrayEquals(new byte[]{2}, vfs.loadBytes(model).value());
+        vfs.configure(new VfsConfig(root, "baseq2", null, false, false, false,
+                List.of(), Set.of("pak", "zip"), new VfsPackageSelection(false, Set.of())));
+        assertEquals(VfsLayer.BASE_LOOSE, vfs.resolve(model).entry().layer());
+        VfsResult<String> mount = vfs.mountPackage(root.resolve("baseq2/models.zip").toString());
+        assertTrue(mount.success());
+        assertArrayEquals(new byte[]{2}, vfs.loadBytes(model).value(), "Runtime mounts use the same optional layer");
+        assertTrue(vfs.unmount(mount.value()).success());
+        assertEquals(VfsLayer.BASE_LOOSE, vfs.resolve(model).entry().layer());
     }
 
     private VfsConfig config(

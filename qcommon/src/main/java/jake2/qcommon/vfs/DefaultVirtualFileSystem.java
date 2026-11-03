@@ -391,6 +391,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     private VfsResult<PackageMount> createPackageMount(VfsLayer layer, Path packagePath, int priority) {
         Path normalizedPath = packagePath.toAbsolutePath().normalize();
+        // Optional archives override loose content, while numbered PAKs remain below it.
+        if (!VfsPackageSelection.isNumberedPak(fileName(normalizedPath))) {
+            if (layer == VfsLayer.MOD_PACK) layer = VfsLayer.MOD_OPTIONAL_PACK;
+            else if (layer == VfsLayer.BASE_PACK) layer = VfsLayer.BASE_OPTIONAL_PACK;
+        }
         final PackReader reader;
         try {
             reader = createPackReader(normalizedPath);

@@ -5,8 +5,10 @@ package jake2.qcommon.vfs;
  */
 public enum VfsLayer {
     PROFILE_LOOSE,
+    MOD_OPTIONAL_PACK,
     MOD_LOOSE,
     MOD_PACK,
+    BASE_OPTIONAL_PACK,
     BASE_LOOSE,
     BASE_PACK,
     ENGINE_FALLBACK
