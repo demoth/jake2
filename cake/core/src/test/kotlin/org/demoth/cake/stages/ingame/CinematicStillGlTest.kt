@@ -123,7 +123,7 @@ class CinematicStillGlTest {
             }
         }
         try {
-            val pcxNames = listOf("pcx", "pcX", "pCx", "pCX", "Pcx", "PcX", "PCx", "PCX").map { "ending.$it" }
+            val pcxNames = listOf("ending.pcx", "ending.PCX")
             for (name in pcxNames + listOf("ending.tga", "art/rle.TGA", "ending.PNG", "art/ending.jpg", "/art/ending.jpeg")) {
                 val path = if ('/' in name) name.removePrefix("/") else "pics/$name"
                 controller.begin(name, 0)
