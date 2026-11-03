@@ -180,6 +180,18 @@ class ContentBrowser(
         }
     }
 
+    /** Open a known entry while preserving normal folder/back navigation. */
+    fun openPath(path: String): Boolean {
+        val folder = path.substringBeforeLast('/', "")
+        val node = nodes[folder] ?: return false
+        node.expandTo()
+        tree.selection.set(node)
+        val tile = tiles.firstOrNull { it.entry?.normalizedPath == path } ?: return false
+        selectTile(tile)
+        activateTile(tile)
+        return true
+    }
+
     fun location(): ContentBrowserLocation = ContentBrowserLocation(
         tree.selectedValue?.path.orEmpty(), tiles.firstOrNull { it.isChecked }?.entry?.normalizedPath,
         pendingScrollY ?: gridScroll.scrollY, thumbnailWidth,

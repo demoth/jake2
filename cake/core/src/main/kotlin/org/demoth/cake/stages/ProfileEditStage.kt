@@ -35,6 +35,7 @@ class ProfileEditStage(
     private var basedirField: TextField
     private var gamemodField: TextField
     private var autodetectButton: TextButton
+    private var modsButton: TextButton
     private var saveButton: TextButton
     private var statusLabel: Label
     private var suppressProfileSelectionEvents: Boolean = false
@@ -130,6 +131,11 @@ class ProfileEditStage(
                     )
                 }
                 add(saveButton).left().row()
+                modsButton = createMenuButton("Mods...", buttonStyle) {
+                    menuEventBus.postIntent(MenuIntent.OpenMods)
+                }
+                add(modsButton).left().row()
+                add(Label("Apply this profile to manage its mods.", labelStyle)).left().row()
 
                 statusLabel = Label("", labelStyle).apply {
                     setWrap(true)
@@ -187,6 +193,7 @@ class ProfileEditStage(
             statusLabel.setText(state.statusMessage)
         }
         applyProfileButton.isDisabled = !state.canApplySelectedProfile
+        modsButton.isDisabled = !state.canManageMods
 
         renderedProfileIds = normalizedIds
         renderedSelectedProfileId = normalizedSelectedId

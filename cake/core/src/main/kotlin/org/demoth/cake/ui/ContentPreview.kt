@@ -77,7 +77,8 @@ internal class ContentPreview(
                 Label(if (entry.normalizedPath.endsWith(".bsp")) "Could not load map." else "Could not load model.", styles.label)
             }
         }
-        if (entry.normalizedPath.substringAfterLast('.') in FileResourcePreview.extensions) {
+        if (entry.normalizedPath.substringAfterLast('.') in FileResourcePreview.extensions ||
+            entry.normalizedPath.substringAfterLast('/').equals("readme", ignoreCase = true)) {
             clearSound()
             clearVisualPreview()
             return try {

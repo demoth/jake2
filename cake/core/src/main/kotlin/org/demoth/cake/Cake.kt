@@ -1798,10 +1798,28 @@ class Cake(
         if (automatic != fileResolver.packageSelection.automount()) {
             val message = changeProfileMods(automount = automatic, explicit = false)
             Com.Printf("$message\n")
+            menuEventBus.postIntent(MenuIntent.RefreshMods)
         }
     }
 
     private fun createMenuBackend(): MenuBackend = object : MenuBackend {
+        override fun mods(): ModsState {
+            val profile = activeGameProfile ?: return ModsState(statusMessage = "Select a profile first.")
+            val automatic = fileResolver.packageSelection.automount()
+            return try {
+                ModsState(profile = profile, archives = org.demoth.cake.profile.ProfileArchives.discover(profile, automatic),
+                    automount = automatic, canEdit = isProfileSwitchAllowed())
+            } catch (error: Exception) {
+                ModsState(profile = profile, automount = automatic, canEdit = isProfileSwitchAllowed(),
+                    statusMessage = "Could not list archives: ${error.message}")
+            }
+        }
+
+        override fun setModIncluded(path: String, included: Boolean): String =
+            changeProfileMods(archive = path, include = included)
+
+        override fun setModAutomount(enabled: Boolean): String = changeProfileMods(automount = enabled)
+
         override fun saveAccess(): HostSaveAccess = host.saveAccess()
         override fun listSaves(): HostSaveCatalogResult = host.listSaves()
         override fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult {

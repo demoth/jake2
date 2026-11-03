@@ -71,6 +71,7 @@ class MenuStagesGlTest {
         val viewport = UiViewport().apply { update(640, 480, true) }
         val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false) { null }
         try {
+            verifyModsBrowser(viewport, style)
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
             verifySingleplayerHub(viewport, style)
@@ -113,6 +114,62 @@ class MenuStagesGlTest {
             style.dispose()
             assets.dispose()
             skin.dispose()
+        }
+    }
+
+    private fun verifyModsBrowser(viewport: UiViewport, style: GameUiStyle) {
+        val root = java.nio.file.Files.createTempDirectory("cake-mods-ui-")
+        val folder = java.nio.file.Files.createDirectories(root.resolve("catalog"))
+        val archive = folder.resolve("example.zip")
+        java.util.zip.ZipOutputStream(java.nio.file.Files.newOutputStream(archive)).use { zip ->
+            zip.putNextEntry(java.util.zip.ZipEntry("readme.txt"))
+            zip.write("Archive readme fixture".toByteArray())
+            zip.closeEntry()
+        }
+        val profile = org.demoth.cake.profile.CakeGameProfile("archive", root.toString(), "catalog")
+        val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.MODS,
+            mods = org.demoth.cake.ui.menu.ModsState(profile = profile,
+                archives = org.demoth.cake.profile.ProfileArchives.discover(profile, false),
+                automount = false, selectedArchive = "catalog/example.zip", canEdit = true)))
+        val assets = AssetManager()
+        val resolver = CakeFileResolver()
+        val menus = MenuStages(viewport, bus, assets, resolver, false) { profile.id }
+        try {
+            menus.rebuild(style)
+            menus.select(MenuScreen.MODS)
+            repeat(2) { menus.render(1f / 60f) }
+            System.getenv("CAKE_MODS_CAPTURE")?.let { path ->
+                val pixels = com.badlogic.gdx.graphics.Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.width, Gdx.graphics.height)
+                try { com.badlogic.gdx.graphics.PixmapIO.writePNG(Gdx.files.absolute(path), pixels, -1, true) }
+                finally { pixels.dispose() }
+            }
+            var stage = menus.inputProcessor as Stage
+            assertTrue(labels(stage.root).any { it.contains("Archive readme fixture") })
+            assertTrue(resolver.listContentEntries().isEmpty(), "Inspecting must not change gameplay mounts")
+            val include = stage.root.findActor<TextButton>("mod-include")
+            assertFalse(include.isDisabled)
+            assertTrue(stage.root.findActor<TextButton>("mod-exclude").isDisabled)
+            val click = include.listeners.filterIsInstance<ClickListener>().last()
+            click.clicked(InputEvent(), 1f, 1f)
+            val intents = mutableListOf<MenuIntent>()
+            bus.drainIntents { intents += it }
+            assertTrue(intents.contains(MenuIntent.SetModIncluded(profile.id, "catalog/example.zip", true)))
+            menus.rebuild(style)
+            menus.render(1f / 60f)
+            stage = menus.inputProcessor as Stage
+            assertTrue(labels(stage.root).any { it.contains("Archive readme fixture") }, "Rebuild must restore inspection")
+            // Missing packages remain listed and removable, with a visible inspection error.
+            java.nio.file.Files.delete(archive)
+            bus.postState(bus.latestState().copy(mods = bus.latestState().mods.copy(revision = 1,
+                profile = profile.copy(includedArchives = listOf("catalog/example.zip")),
+                archives = listOf(org.demoth.cake.profile.ProfileArchive("catalog/example.zip", true, false, true)))))
+            menus.render(1f / 60f)
+            assertTrue(labels(stage.root).any { it.contains("Could not inspect") })
+            assertFalse(stage.root.findActor<TextButton>("mod-exclude").isDisabled)
+            menus.select(MenuScreen.MAIN)
+        } finally {
+            menus.dispose(); assets.dispose()
+            root.toFile().deleteRecursively()
         }
     }
 

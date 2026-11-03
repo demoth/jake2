@@ -9,6 +9,11 @@ sealed interface MenuIntent {
     data class CaptureUiSample(val modes: List<Boolean>, val directory: Path) : MenuIntent
 
     data object RequestStateSync : MenuIntent
+    data object OpenMods : MenuIntent
+    data object RefreshMods : MenuIntent
+    data class SelectMod(val profileId: String, val path: String) : MenuIntent
+    data class SetModIncluded(val profileId: String, val path: String, val included: Boolean) : MenuIntent
+    data class SetModAutomount(val profileId: String, val enabled: Boolean) : MenuIntent
     data object OpenProfileEditor : MenuIntent
     data object OpenMainMenu : MenuIntent
     data object OpenSingleplayerMenu : MenuIntent

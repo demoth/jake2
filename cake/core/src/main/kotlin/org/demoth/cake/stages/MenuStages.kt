@@ -57,6 +57,7 @@ class MenuStages(
                 MenuScreen.MAIN -> MainMenuStage(viewport, menuEventBus, style, showHosting)
                 MenuScreen.LOAD_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = false, readPreview = readSavePreview)
                 MenuScreen.SAVE_GAME -> SavedGamesStage(viewport, menuEventBus, style, saving = true, readPreview = readSavePreview)
+                MenuScreen.MODS -> ModsStage(viewport, menuEventBus, style, assetManager, ::createPreviewAssets)
                 MenuScreen.PROFILE_EDIT -> ProfileEditStage(viewport, menuEventBus, style)
                 MenuScreen.MULTIPLAYER -> MultiplayerMenuStage(viewport, menuEventBus, style, showHosting)
                 MenuScreen.SINGLEPLAYER -> SingleplayerMenuStage(viewport, menuEventBus, style)
@@ -82,6 +83,7 @@ class MenuStages(
     /** Returns whether input routing needs to be refreshed. */
     fun select(screen: MenuScreen): Boolean {
         if (screen == activeScreen) return false
+        if (activeScreen == MenuScreen.MODS) (activeStage as ModsStage).hide()
         if (activeScreen == MenuScreen.CONTENT_BROWSER) contentBrowserStage.hide()
         if (activeScreen == MenuScreen.PLAYER_SETUP) playerSetupStage.hide()
         (activeStage as? SavedGamesStage)?.hidePreview()
@@ -103,6 +105,7 @@ class MenuStages(
 
     /** Stop previews before replacing the profile or effective server game directory. */
     fun hideContentPreviews() {
+        (stages[MenuScreen.MODS] as? ModsStage)?.hide()
         contentBrowserStage.hide()
         playerSetupStage.hide()
         hideSavedGamePreviews()
@@ -136,8 +139,8 @@ class MenuStages(
         }
     }
 
-    private fun createPreviewAssets(): AssetManager {
-        val resolver = FileHandleResolver { path ->
+    private fun createPreviewAssets(archiveResolver: FileHandleResolver? = null): AssetManager {
+        val resolver = archiveResolver ?: FileHandleResolver { path ->
             // Engine palette/shaders remain available; content dependencies stay within the active profile.
             if (path == "q2palette.bin" || path.startsWith("shaders/")) fileResolver.resolve(path)
             else fileResolver.resolveContent(path)

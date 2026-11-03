@@ -14,6 +14,42 @@ import org.junit.jupiter.api.Test
 class MenuControllerTest {
 
     @Test
+    fun modsInspectWithoutActivationAndRejectAutomaticStaleOrConnectedEdits() {
+        val backend = FakeMenuBackend()
+        val bus = MenuEventBus()
+        val controller = MenuController(backend, bus)
+        controller.initialize()
+        bus.postIntent(MenuIntent.OpenProfileEditor)
+        bus.postIntent(MenuIntent.OpenMods)
+        controller.pumpIntents()
+        assertEquals(MenuScreen.MODS, bus.latestState().activeScreen)
+        bus.postIntent(MenuIntent.SelectMod("default", "baseq2/map.zip"))
+        controller.pumpIntents()
+        assertEquals("baseq2/map.zip", bus.latestState().mods.selectedArchive)
+        assertTrue(backend.modEdits.isEmpty())
+        bus.postIntent(MenuIntent.SetModIncluded("default", "baseq2/map.zip", true))
+        controller.pumpIntents()
+        assertTrue(backend.modEdits.isEmpty(), "Automount prevents manual edits")
+        bus.postIntent(MenuIntent.SetModAutomount("default", false))
+        bus.postIntent(MenuIntent.SetModIncluded("default", "baseq2/map.zip", true))
+        controller.pumpIntents()
+        assertEquals(listOf("baseq2/map.zip" to true), backend.modEdits)
+        bus.postIntent(MenuIntent.SetModIncluded("other", "baseq2/map.zip", false))
+        controller.pumpIntents()
+        assertEquals(1, backend.modEdits.size)
+        backend.connected = true
+        controller.refreshExternalState()
+        bus.postIntent(MenuIntent.SetModIncluded("default", "baseq2/map.zip", false))
+        controller.pumpIntents()
+        assertEquals(1, backend.modEdits.size)
+        backend.connected = false
+        controller.refreshExternalState()
+        bus.postIntent(MenuIntent.SetModIncluded("default", "baseq2/map.zip", false))
+        controller.pumpIntents()
+        assertEquals("baseq2/map.zip" to false, backend.modEdits.last())
+    }
+
+    @Test
     fun browserDemoRequestsAreDeferredCarryTheSelectedSourceAndRejectStaleProfiles() {
         val backend = FakeMenuBackend()
         val bus = MenuEventBus()
@@ -682,6 +718,23 @@ class MenuControllerTest {
     }
 
     private class FakeMenuBackend : MenuBackend {
+        var connected = false
+        var automaticMods = true
+        val modEdits = mutableListOf<Pair<String, Boolean>>()
+        override fun mods() = ModsState(
+            profile = org.demoth.cake.profile.CakeGameProfile(activeProfileId(), "/games/quake2"),
+            archives = listOf(org.demoth.cake.profile.ProfileArchive("baseq2/map.zip", false, false, false)),
+            automount = automaticMods, canEdit = !connected,
+        )
+        override fun setModIncluded(path: String, included: Boolean): String {
+            modEdits += path to included
+            return "Updated"
+        }
+        override fun setModAutomount(enabled: Boolean): String {
+            automaticMods = enabled
+            return "Updated"
+        }
+
         var access = HostSaveAccess(null, null)
         var saves = emptyList<HostSaveEntry>()
         var saveListReads = 0
@@ -748,7 +801,7 @@ class MenuControllerTest {
 
         override fun activeProfileId(): String = selectedProfileId.orEmpty()
 
-        override fun canDisconnect(): Boolean = false
+        override fun canDisconnect(): Boolean = connected
 
         override fun disconnect() = Unit
 

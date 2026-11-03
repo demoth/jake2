@@ -8,6 +8,7 @@ enum class MenuScreen {
     LOAD_GAME,
     SAVE_GAME,
     PROFILE_EDIT,
+    MODS,
     MULTIPLAYER,
     SINGLEPLAYER,
     NEW_GAME,
@@ -34,6 +35,7 @@ data class ProfileEditorState(
     val availableProfileIds: List<String> = emptyList(),
     val selectedProfileId: String? = null,
     val canApplySelectedProfile: Boolean = false,
+    val canManageMods: Boolean = false,
     val form: ProfileFormState = ProfileFormState(),
     val statusMessage: String = "",
 )
@@ -85,6 +87,7 @@ data class MenuStateSnapshot(
     val hostGame: HostingSetupState = HostingSetupState(),
     val mainMenu: MainMenuState = MainMenuState(),
     val profileEditor: ProfileEditorState = ProfileEditorState(),
+    val mods: ModsState = ModsState(),
     val multiplayer: MultiplayerMenuState = MultiplayerMenuState(),
     val joinGame: JoinGameState = JoinGameState(),
     val playerSetup: PlayerSetupState = PlayerSetupState(),
@@ -114,4 +117,15 @@ data class HostingSetupState(
     val form: HostGameFormState = HostGameFormState(),
     val statusMessage: String = "",
     val maps: List<HostMap> = emptyList(),
+)
+
+/** Content inspection is scoped to this snapshot's profile, independently of inclusion. */
+data class ModsState(
+    val revision: Int = 0,
+    val profile: org.demoth.cake.profile.CakeGameProfile? = null,
+    val archives: List<org.demoth.cake.profile.ProfileArchive> = emptyList(),
+    val automount: Boolean = true,
+    val selectedArchive: String? = null,
+    val canEdit: Boolean = false,
+    val statusMessage: String = "",
 )

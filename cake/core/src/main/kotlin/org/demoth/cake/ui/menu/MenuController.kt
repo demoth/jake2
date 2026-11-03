@@ -5,6 +5,10 @@ import jake2.qcommon.network.transport.AddressResolver
 import org.demoth.cake.hosting.*
 
 interface MenuBackend {
+    fun mods(): ModsState = ModsState()
+    fun setModIncluded(path: String, included: Boolean): String = "Mods are unavailable."
+    fun setModAutomount(enabled: Boolean): String = "Mods are unavailable."
+
     fun saveAccess(): HostSaveAccess = HostSaveAccess("Save/load is unavailable.", "Save/load is unavailable.")
     fun listSaves(): HostSaveCatalogResult = HostSaveCatalogResult.Rejected("Save/load is unavailable.")
     fun saveGame(slot: String?, overwrite: Boolean): HostSaveResult = HostSaveResult.Rejected("Saving is unavailable.")
@@ -87,6 +91,32 @@ class MenuController(
 
     private fun handleIntent(intent: MenuIntent) {
         when (intent) {
+            MenuIntent.OpenMods -> {
+                if (!state.profileEditor.canManageMods) return
+                refreshMods()
+                refreshState(activeScreen = MenuScreen.MODS)
+            }
+            MenuIntent.RefreshMods -> if (state.activeScreen == MenuScreen.MODS) {
+                refreshMods()
+                refreshState()
+            }
+            is MenuIntent.SelectMod -> if (isCurrentModProfile(intent.profileId) &&
+                state.mods.archives.any { it.path == intent.path }) {
+                state = state.copy(mods = state.mods.copy(selectedArchive = intent.path))
+                refreshState()
+            }
+            is MenuIntent.SetModIncluded -> if (isCurrentModProfile(intent.profileId) && state.mods.canEdit &&
+                !state.mods.automount && state.mods.archives.any { it.path == intent.path && !it.required }) {
+                val message = backend.setModIncluded(intent.path, intent.included)
+                refreshMods(message)
+                refreshState()
+            }
+            is MenuIntent.SetModAutomount -> if (isCurrentModProfile(intent.profileId) && state.mods.canEdit) {
+                val message = backend.setModAutomount(intent.enabled)
+                refreshMods(message)
+                refreshState()
+            }
+
             MenuIntent.OpenSingleplayerMenu -> refreshState(activeScreen = MenuScreen.SINGLEPLAYER)
             MenuIntent.OpenLoadGame, MenuIntent.OpenSaveGame -> {
                 refreshSavedGames(saving = intent == MenuIntent.OpenSaveGame)
@@ -526,6 +556,8 @@ class MenuController(
             canApplySelectedProfile = draftProfileId == null &&
                 selectedProfileId != null &&
                 selectedProfileId != appliedProfileId,
+            canManageMods = draftProfileId == null && selectedProfileId == backend.activeProfileId() &&
+                selectedProfileId in availableProfileIds && !backend.canDisconnect(),
             form = form,
             statusMessage = statusOverride ?: state.profileEditor.statusMessage,
         )
@@ -558,6 +590,7 @@ class MenuController(
             activeScreen = activeScreen,
             canHostGame = backend.hostingUnavailableReason() == null,
             saveAccess = backend.saveAccess(),
+            mods = state.mods.copy(canEdit = !backend.canDisconnect() && state.mods.profile?.id == backend.activeProfileId()),
             savedGames = state.savedGames,
             singleplayer = state.singleplayer,
             hostGame = state.hostGame,
@@ -589,8 +622,20 @@ class MenuController(
             MenuScreen.PROFILE_EDIT, MenuScreen.MULTIPLAYER, MenuScreen.OPTIONS, MenuScreen.SINGLEPLAYER,
             MenuScreen.CONTENT_BROWSER -> 1
             MenuScreen.JOIN_GAME, MenuScreen.PLAYER_SETUP, MenuScreen.OPTIONS_SECTION, MenuScreen.HOST_GAME,
-            MenuScreen.NEW_GAME, MenuScreen.LOAD_GAME, MenuScreen.SAVE_GAME -> 2
+            MenuScreen.NEW_GAME, MenuScreen.LOAD_GAME, MenuScreen.SAVE_GAME, MenuScreen.MODS -> 2
         }
+    }
+
+    private fun isCurrentModProfile(profileId: String) = state.activeScreen == MenuScreen.MODS &&
+        state.mods.profile?.id == profileId && backend.activeProfileId() == profileId
+
+    private fun refreshMods(message: String? = null) {
+        val fresh = backend.mods()
+        val selected = state.mods.selectedArchive?.takeIf { path ->
+            state.mods.profile?.id == fresh.profile?.id && fresh.archives.any { it.path == path }
+        }
+        state = state.copy(mods = fresh.copy(revision = state.mods.revision + 1, selectedArchive = selected,
+            statusMessage = message ?: fresh.statusMessage))
     }
 
     private fun currentSelectedProfileForm(): ProfileFormState {
