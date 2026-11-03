@@ -259,4 +259,25 @@ class ServerHandshakeTest {
         command("begin ${game.spawncount}")
         assertEquals(2, gameplay.begins)
     }
+
+    @Test
+    fun `map creation and cinematic invalidation share distinct host generations`() {
+        val first = GameImportsImpl(host, ChangeMapInfo("first.pcx", false, false))
+        val cinematic = GameImportsImpl(host, ChangeMapInfo("intro.cin+next.pcx", false, false)).apply {
+            name = "default"
+            state = ServerStates.SS_CINEMATIC
+            gameExports = gameplay
+        }
+        host.games[cinematic.name] = cinematic
+        assertEquals(first.spawncount + 1, cinematic.spawncount)
+        val originalCount = cinematic.spawncount
+        command("nextserver $originalCount")
+        assertEquals(originalCount + 1, cinematic.spawncount)
+        command("nextserver $originalCount")
+        command("nextserver ${cinematic.spawncount}")
+        assertEquals(originalCount + 1, cinematic.spawncount, "Repeated completion cannot consume another generation")
+        assertNull(cinematic.takeNextMap())
+        val replacement = GameImportsImpl(host, ChangeMapInfo("next.pcx", false, false))
+        assertEquals(cinematic.spawncount + 1, replacement.spawncount)
+    }
 }

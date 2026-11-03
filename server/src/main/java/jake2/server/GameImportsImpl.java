@@ -74,8 +74,8 @@ public class GameImportsImpl implements GameImports {
     final String[] configstrings = new String[Defines.MAX_CONFIGSTRINGS];
     final entity_state_t[] baselines = new entity_state_t[Defines.MAX_EDICTS];
 
-    // todo: remove
-    public int spawncount; // incremented each server start
+    // Host-assigned protocol generation, renewed on map load or cinematic completion.
+    public int spawncount;
 
     // hack for finishing game in coop mode
     public String firstmap = "";
@@ -158,7 +158,7 @@ public class GameImportsImpl implements GameImports {
             }
         }
 
-        spawncount = Lib.rand();
+        spawncount = serverMain.allocateSpawnCount();
 
         cm = new CM((severity, message) -> new GameFailure(this, message));
         clientEntityStates = new entity_state_t[serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64];
@@ -273,7 +273,7 @@ public class GameImportsImpl implements GameImports {
         }
         String result = nextMap;
         nextMap = null;
-        spawncount++; // reject duplicate completion messages from other clients
+        spawncount = serverMain.allocateSpawnCount(); // reject duplicate completion messages from other clients
         return result;
     }
 
