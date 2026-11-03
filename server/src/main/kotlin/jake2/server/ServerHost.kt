@@ -1389,20 +1389,26 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     ) {
         Com.Debug(NETWORK, "Configstrings() from " + client.name)
 
+        val spawnCount = args.getOrNull(1)?.toIntOrNull()
+        val cursor = args.getOrNull(2)?.toIntOrNull()
+        if (args.size != 3 || spawnCount == null || cursor == null || cursor !in 0..Defines.MAX_CONFIGSTRINGS) {
+            client.netchan.queueReliable(PrintMessage(Defines.PRINT_HIGH, "Invalid configstrings request\n"))
+            return
+        }
+
         if (client.state != ClientStates.CS_CONNECTED) {
             Com.Warn(NETWORK, "configstrings not valid -- already spawned")
             return
         }
 
         // handle the case of a level changing while a client was connecting
-        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
             Com.Debug(NETWORK, "SV_Configstrings_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
 
-        var start = if (args.size >= 3) Lib.atoi(args[2]) else 0
+        var start = cursor
 
         // write a packet full of data
         var currentReliableSize =
@@ -1428,21 +1434,26 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         Com.Debug(NETWORK, "Baselines() from " + client.name)
 
+        val spawnCount = args.getOrNull(1)?.toIntOrNull()
+        val cursor = args.getOrNull(2)?.toIntOrNull()
+        if (args.size != 3 || spawnCount == null || cursor == null || cursor !in 0..Defines.MAX_EDICTS) {
+            client.netchan.queueReliable(PrintMessage(Defines.PRINT_HIGH, "Invalid baselines request\n"))
+            return
+        }
+
         if (client.state != ClientStates.CS_CONNECTED) {
             Com.Warn(NETWORK, "baselines not valid -- already spawned")
             return
         }
 
         // handle the case of a level changing while a client was connecting
-        val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
             Com.Debug(NETWORK, "SV_Baselines_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
 
-        // todo: validate argument
-        var start = if (args.size >= 3) Lib.atoi(args[2]) else 0
+        var start = cursor
 
         // write a packet full of data
         var currentReliableSize =
@@ -1576,13 +1587,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         args: List<String>,
         client: ClientNetworkInfo
     ) {
-        var offset = 0
-
-        if (args.size < 2) return
-
-        val name = args[1]
-
-        if (args.size > 2) offset = Lib.atoi(args[2]) // downloaded offset
+        val name = args.getOrNull(1)
+        val offset = if (args.size == 3) args[2].toIntOrNull() else 0
+        if (args.size !in 2..3 || name.isNullOrEmpty() || offset == null || offset < 0) {
+            client.netchan.queueReliable(DownloadMessage.Failure())
+            return
+        }
 
         // hacked by zoid to allow more conrol over download
         // first off, no .. or global allow check
@@ -1610,32 +1620,26 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return
         }
 
-        client.download = EngineVfs.loadBytes(name)
+        val download = EngineVfs.loadBytes(name)
 
         // The client waits for either data or an explicit refusal. Silently
         // returning here leaves precache stuck waiting for a download forever.
-        if (client.download == null) {
+        if (download == null || offset > download.size) {
             client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
-        client.downloadsize = client.download.size
-        client.downloadcount = offset
-
-        if (offset > client.downloadsize) client.downloadcount = client.downloadsize
-
         // special check for maps, if it came from a pak file, don't allow download ZOID
         if (name.startsWith("maps/") && EngineVfs.isFromPack(name)) {
             Com.Debug(NETWORK, "Couldn't download " + name + " to " + client.name)
-            if (client.download != null) {
-                client.download = null
-            }
-
             // refuse
             client.netchan.queueReliable(DownloadMessage.Failure())
             return
         }
 
+        client.download = download
+        client.downloadsize = download.size
+        client.downloadcount = offset
         sendNextDownloadChunk(client)
         Com.Debug(NETWORK, "Downloading " + name + " to " + client.name)
     }
