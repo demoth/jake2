@@ -72,9 +72,8 @@ object ProfileArchives {
     }
 
     fun readme(entries: List<VfsEntry>): VfsEntry? = entries
-        .filter { it.normalizedPath().substringAfterLast('/').substringBeforeLast('.').startsWith("readme") }
-        .sortedWith(compareBy<VfsEntry> { it.normalizedPath().count { c -> c == '/' } }.thenBy { it.normalizedPath() })
-        .firstOrNull()
+        .filter { '/' !in it.normalizedPath() && it.normalizedPath().substringBeforeLast('.').startsWith("readme") }
+        .minByOrNull { it.normalizedPath() }
 
     private fun supported(path: Path) = path.fileName.toString().substringAfterLast('.', "").lowercase(Locale.ROOT) in extensions
 }

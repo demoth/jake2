@@ -38,7 +38,7 @@ class ProfileModsTest {
         }
         val entries = ProfileArchives.inspect(root.resolve("catalog/map.zip"))
         assertEquals(setOf("docs/readme.txt", "maps/test.bsp"), entries.map { it.normalizedPath() }.toSet())
-        assertEquals("docs/readme.txt", ProfileArchives.readme(entries)?.normalizedPath())
+        assertNull(ProfileArchives.readme(entries))
         val profile = CakeGameProfile("test", root.toString(), "catalog")
         ProfileArchives.validateActivation(profile, false, true)
         Files.writeString(root.resolve("catalog/broken.zip"), "invalid")
