@@ -87,6 +87,7 @@ class IngameSoundMessageHandlerTest {
             entities.dispose()
             config.unloadAssets()
             assets.dispose()
+            cvars.clear()
         }
     }
 
