@@ -31,7 +31,7 @@ class ViewerFileResolver(
     openedFilePath: String? = null,
     private var basedir: String? = null,
     gamemod: String? = null,
-) : FileHandleResolver {
+) : org.demoth.cake.assets.TextureCandidateResolver {
 
     private var openedFileDirectoryPath = openedFilePath?.let { File(it).absoluteFile.parentFile?.absolutePath } ?: "."
     private var openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
@@ -97,6 +97,17 @@ class ViewerFileResolver(
         else emptyList()
         return (siblings + fallback).distinctBy { it.substringAfterLast('/').lowercase() }
             .sortedBy { it.substringAfterLast('/').lowercase() }
+    }
+
+    override fun textureCandidates(): List<String> = if (archiveContext) {
+        gameDataVfs.listEntries().map { it.normalizedPath }
+    } else {
+        localVfs.listEntries().flatMap { entry ->
+            val logical = entry.normalizedPath
+            if (entry.source.type == VfsSourceType.DIRECTORY)
+                listOf(logical, entry.source.containerPath.resolve(entry.source.entryPath).toAbsolutePath().toString())
+            else listOf(logical)
+        }.plus(gameDataVfs.listEntries().map { it.normalizedPath }).distinct()
     }
 
     override fun resolve(fileName: String): FileHandle? {

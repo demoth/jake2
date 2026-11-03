@@ -140,10 +140,12 @@ class MenuStages(
     }
 
     private fun createPreviewAssets(archiveResolver: FileHandleResolver? = null): AssetManager {
-        val resolver = archiveResolver ?: FileHandleResolver { path ->
+        val resolver = archiveResolver ?: object : TextureCandidateResolver {
+            override fun textureCandidates() = fileResolver.textureCandidates()
             // Engine palette/shaders remain available; content dependencies stay within the active profile.
-            if (path == "q2palette.bin" || path.startsWith("shaders/")) fileResolver.resolve(path)
-            else fileResolver.resolveContent(path)
+            override fun resolve(path: String) =
+                if (path == "q2palette.bin" || path.startsWith("shaders/")) fileResolver.resolve(path)
+                else fileResolver.resolveContent(path)
         }
         return AssetManager(resolver).apply {
             setLoader(Any::class.java, ObjectLoader(resolver))

@@ -41,6 +41,7 @@ object CakeStartupBootstrap {
     ): CakeStartupContext {
         ensureInitialized()
         org.demoth.cake.profile.CakePackageSettings.reset()
+        org.demoth.cake.assets.ModelTextureReplacements.reset()
         val clientBindings = ClientBindings()
         val commands = mutableListOf("cake").apply { addAll(arguments) }
         Cbuf.AddEarlySetCommands(commands, false)

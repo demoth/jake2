@@ -158,11 +158,12 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
     /** Acquire before rebinding, then release the previous skin. Geometry, camera and playback stay intact. */
     fun selectExternalSkin(path: String): String? {
         val modelInstance = checkNotNull(instance) { "Open an MD2 preview before selecting a skin" }
-        if (externalSkin?.path == path) return null
+        val resolvedPath = org.demoth.cake.assets.ModelTextureReplacements.resolve(path, assets.fileHandleResolver)
+        if (externalSkin?.path == resolvedPath) return null
         val replacement = PreviewResources(assets)
         val texture = try {
             // PCX skins have no AssetManager dependencies; a failed texture load leaves the model intact.
-            replacement.load(path, Texture::class.java)
+            replacement.load(resolvedPath, Texture::class.java)
         } catch (error: Exception) {
             replacement.close()
             Gdx.app.error("Model preview", "Could not load skin $path", error)

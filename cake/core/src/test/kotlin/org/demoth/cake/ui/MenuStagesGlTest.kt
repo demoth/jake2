@@ -34,6 +34,7 @@ import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 import org.demoth.cake.ui.menu.MenuScreen
 import org.junit.jupiter.api.Assertions.*
+import jake2.qcommon.exec.find
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 
@@ -72,6 +73,7 @@ class MenuStagesGlTest {
         val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false) { null }
         try {
             verifyMissingTextures()
+            verifyModelTextureReplacement()
             verifyModsBrowser(viewport, style)
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
@@ -115,6 +117,65 @@ class MenuStagesGlTest {
             style.dispose()
             assets.dispose()
             skin.dispose()
+        }
+    }
+
+    private fun verifyModelTextureReplacement() {
+        val root = java.nio.file.Files.createTempDirectory("cake-model-replacement-")
+        val archive = root.resolve("model.zip")
+        val modelPath = "models/test/tris.md2"
+        val skinPath = "models/test/skin.pcx"
+        val model = java.nio.ByteBuffer.allocate(228).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        listOf(jake2.qcommon.filesystem.IDALIASHEADER, 8, 64, 64, 52, 1, 3, 0, 0, 11, 1,
+            68, 132, 132, 132, 184, 228).forEach { model.putInt(it) }
+        model.put(skinPath.toByteArray())
+        model.position(132)
+        repeat(3) { model.putFloat(1f) }
+        repeat(3) { model.putFloat(0f) }
+        model.put(ByteArray(16))
+        model.put(byteArrayOf(0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0))
+        model.putInt(3)
+        repeat(3) { model.putFloat(if (it == 1) 1f else 0f); model.putFloat(if (it == 2) 1f else 0f); model.putInt(it) }
+        model.putInt(0)
+        val jpeg = java.io.ByteArrayOutputStream().also {
+            javax.imageio.ImageIO.write(java.awt.image.BufferedImage(16, 8, java.awt.image.BufferedImage.TYPE_INT_RGB), "jpg", it)
+        }.toByteArray()
+        java.util.zip.ZipOutputStream(java.nio.file.Files.newOutputStream(archive)).use { zip ->
+            for ((path, bytes) in listOf(modelPath to model.array(), "models/test/skin.jpg" to jpeg)) {
+                zip.putNextEntry(java.util.zip.ZipEntry(path)); zip.write(bytes); zip.closeEntry()
+            }
+        }
+        val source = org.demoth.cake.assets.CakeVfsAssetSource()
+        source.configureArchive(archive.toString())
+        val resolver = object : org.demoth.cake.assets.TextureCandidateResolver {
+            override fun textureCandidates() = source.listEntries().map { it.normalizedPath }
+            override fun resolve(path: String) = source.resolve(path)
+        }
+        val assets = AssetManager(resolver).apply {
+            setLoader(org.demoth.cake.assets.md2.Md2Asset::class.java, org.demoth.cake.assets.md2.Md2Loader(resolver))
+            setLoader(com.badlogic.gdx.graphics.Texture::class.java, ".pcx", org.demoth.cake.assets.PcxLoader(resolver))
+        }
+        org.demoth.cake.assets.ModelTextureReplacements.reset()
+        try {
+            assets.load(modelPath, org.demoth.cake.assets.md2.Md2Asset::class.java)
+            assets.finishLoading()
+            val loaded = assets.get(modelPath, org.demoth.cake.assets.md2.Md2Asset::class.java)
+            assertEquals(listOf("models/test/skin.jpg"), loaded.skinNames)
+            assertEquals(16, loaded.skins.single().width)
+            assertEquals(8, loaded.skins.single().height)
+            assets.unload(modelPath)
+            assertFalse(assets.isLoaded("models/test/skin.jpg"))
+            jake2.qcommon.exec.Cvar.getInstance().find<Boolean>("r_texture_replacements").forceSet(false)
+            assets.load(modelPath, org.demoth.cake.assets.md2.Md2Asset::class.java)
+            assets.finishLoading()
+            val original = assets.get(modelPath, org.demoth.cake.assets.md2.Md2Asset::class.java)
+            assertEquals(listOf(skinPath), original.skinNames)
+            assertEquals(64, original.skins.single().width, "Absent PCX uses checkerboard when replacements are off")
+        } finally {
+            assets.dispose()
+            source.configure(null, null, false)
+            root.toFile().deleteRecursively()
+            org.demoth.cake.assets.ModelTextureReplacements.reset()
         }
     }
 

@@ -16,6 +16,7 @@ object CakeCvars {
         val registry = Cvar.getInstance()
         registry.register("cfg_autosave", CvarTypes.BOOLEAN, true, 0, "Automatically persist profile settings and console history")
         org.demoth.cake.profile.CakePackageSettings.register()
+        org.demoth.cake.assets.ModelTextureReplacements.register()
         registerUserInfo(registry)
         registerClient(registry)
         registerVideoMode(registry)

@@ -26,10 +26,12 @@ class ModsStage(
     private val widgets = style.menuWidgets
     private val styles = ContentBrowserStyles.fromMenu(widgets)
     private val source = CakeVfsAssetSource()
-    private val resolver = FileHandleResolver { path ->
-        if (path == "q2palette.bin" || path.startsWith("shaders/")) {
-            Gdx.files.classpath(path).takeIf { it.exists() } ?: Gdx.files.internal(path)
-        } else source.resolve(path)
+    private val resolver = object : org.demoth.cake.assets.TextureCandidateResolver {
+        override fun textureCandidates() = source.listEntries().map { it.normalizedPath }
+        override fun resolve(path: String) =
+            if (path == "q2palette.bin" || path.startsWith("shaders/")) {
+                Gdx.files.classpath(path).takeIf { it.exists() } ?: Gdx.files.internal(path)
+            } else source.resolve(path)
     }
     private val thumbnails = ImageThumbnails(thumbnailAssets, resolver)
     private val media = ContentPreview(styles, thumbnails, createPreviewAssets(resolver)) { entry ->

@@ -38,16 +38,19 @@ class CakeProfilePersistenceTest {
     }
 
     @Test
-    fun `automount loads from config and resets for a profile without it`() {
+    fun `content settings load from config and reset for a profile without it`() {
         active = CakeGameProfile("archive", temp.toString())
         cvars.find<Boolean>(CakePackageSettings.AUTOMOUNT).forceSet(false)
+        cvars.find<Boolean>(org.demoth.cake.assets.ModelTextureReplacements.CVAR).forceSet(false)
         persistence.saveConfig(explicit = true)
         cvars.find<Boolean>(CakePackageSettings.AUTOMOUNT).forceSet(true)
         persistence.loadConfig()
         assertFalse(CakePackageSettings.automount())
+        assertFalse(org.demoth.cake.assets.ModelTextureReplacements.enabled())
         active = CakeGameProfile("empty", temp.toString())
         persistence.loadConfig()
         assertTrue(CakePackageSettings.automount())
+        assertTrue(org.demoth.cake.assets.ModelTextureReplacements.enabled())
     }
 
     @Test

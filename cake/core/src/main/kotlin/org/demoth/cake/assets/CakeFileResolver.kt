@@ -25,7 +25,7 @@ class CakeFileResolver(
     gamemod: String? = null,
     caseSensitive: Boolean = false,
     private val downloadCache: CakeDownloadCache = CakeDownloadCache(),
-) : FileHandleResolver {
+) : TextureCandidateResolver {
 
     private val fsDebugLoaders = Cvar.getInstance().find<Boolean>("fs_debug_loaders")
     private val vfsAssetSource = CakeVfsAssetSource()
@@ -68,6 +68,8 @@ class CakeFileResolver(
     internal fun openContent(path: String): java.io.InputStream? = vfsAssetSource.openContent(path)
 
     /** Winning profile entries only; listing does not extract packages or load media. */
+    override fun textureCandidates(): List<String> = listContentEntries().map { it.normalizedPath }
+
     fun listContentEntries(): List<VfsEntry> = vfsAssetSource.listEntries()
 
     fun debugResolvedFiles(): List<String> = vfsAssetSource.debugResolvedFiles()

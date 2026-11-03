@@ -83,7 +83,10 @@ class Md2Asset(
  * `lightnormalindex` from MD2 frames is resolved via `anorms` table; Cake stores those vectors
  * in a separate normal VAT texture and interpolates in shader.
  */
-class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(resolver) {
+class Md2Loader(private val skinResolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset, Md2Loader.Parameters>(skinResolver) {
+
+    // Dependency discovery and construction must agree even if a cvar changes while loading.
+    private val pendingSkinPaths = mutableMapOf<String, List<String>>()
 
     /**
      * MD2 loading options.
@@ -108,7 +111,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     ): Array<AssetDescriptor<*>>? {
         val resolvedFile = file ?: throw MissingResourceException(fileName, ResourceKind.MD2, "loader")
         val md2 = readMd2Model(resolvedFile.readBytes())
-        val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter)
+        val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter).also { pendingSkinPaths[fileName] = it }
         if (skinPaths.isEmpty()) {
             return null
         }
@@ -125,7 +128,7 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     ): Md2Asset {
         val md2 = readMd2Model(file.readBytes())
 
-        val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter)
+        val skinPaths = pendingSkinPaths.remove(fileName) ?: resolveDependencySkinPaths(md2, fileName, parameter)
         val defaultSkin = if (skinPaths.isEmpty() && parameter?.useDefaultSkinIfMissing == true) {
             createMissingTexture()
         } else {
@@ -188,13 +191,15 @@ class Md2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Md2Asset,
     private fun resolveDependencySkinPaths(md2: Md2Model, fileName: String, parameter: Parameters?): List<String> {
         // player model variants encode skin path as "<skin>|<model>".
         val skinPrefix = extractSkinPrefixFromVariantKey(fileName)
-        if (skinPrefix != null) {
-            return listOf(skinPrefix)
+        val paths = when {
+            skinPrefix != null -> listOf(skinPrefix)
+            parameter?.loadEmbeddedSkins == false -> emptyList()
+            else -> md2.skinNames
         }
-        if (parameter?.loadEmbeddedSkins == false) {
-            return emptyList()
-        }
-        return md2.skinNames
+        if (!org.demoth.cake.assets.ModelTextureReplacements.enabled() || paths.isEmpty()) return paths
+        val candidates = (skinResolver as? org.demoth.cake.assets.TextureCandidateResolver)?.textureCandidates()
+            ?: return paths
+        return paths.map { org.demoth.cake.assets.ModelTextureReplacements.select(it, candidates) }
     }
 
     private fun extractSkinPrefixFromVariantKey(fileName: String): String? {
