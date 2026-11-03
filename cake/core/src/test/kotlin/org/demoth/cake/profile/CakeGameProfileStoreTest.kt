@@ -15,6 +15,22 @@ class CakeGameProfileStoreTest {
     lateinit var temp: Path
 
     @Test
+    fun archiveSelectionsRoundTripWithoutRequiringFilesAndSurviveRelocation() {
+        val original = Files.createDirectories(temp.resolve("original"))
+        val moved = Files.createDirectories(temp.resolve("moved"))
+        val store = CakeGameProfileStore(writableFactory = { DefaultWritableFileSystem(temp) })
+        val profile = CakeGameProfile("archive", original.toString(), "catalog",
+            listOf("catalog/missing.zip", "baseq2/optional.pkz"))
+        store.upsertProfile(profile)
+        assertEquals(profile.normalized(), store.readSelected())
+        store.upsertProfile(store.readSelected()!!.copy(basedir = moved.toString()))
+        assertEquals(profile.includedArchives.toSet(), store.readSelected()!!.includedArchives.toSet())
+        assertThrows(IllegalArgumentException::class.java) {
+            store.upsertProfile(profile.copy(includedArchives = listOf("../outside.zip")))
+        }
+    }
+
+    @Test
     fun upsertAndReadSelectedRoundTrip() {
         val basedir = Files.createDirectories(temp.resolve("quake2"))
         val store = CakeGameProfileStore(

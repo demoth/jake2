@@ -54,6 +54,35 @@ class EmbeddedCakeHostTest {
     }
 
     @Test
+    fun `client and host apply the same selection including automount changes on the same profile`() {
+        org.demoth.cake.CakeCvars.registerAll()
+        val root = Files.createDirectories(temp.resolve("content"))
+        val catalog = Files.createDirectories(root.resolve("catalog"))
+        java.util.zip.ZipOutputStream(Files.newOutputStream(catalog.resolve("map.zip"))).use { zip ->
+            zip.putNextEntry(java.util.zip.ZipEntry("maps/optional.bsp"))
+            zip.write(byteArrayOf(1, 2, 3))
+            zip.closeEntry()
+        }
+        val profile = CakeGameProfile("archive", root.toString(), "catalog")
+        val client = org.demoth.cake.assets.CakeFileResolver(root.toString(), "catalog")
+        fun apply(profile: CakeGameProfile) {
+            host.activateProfile(profile)
+            client.packageSelection = profile.packageSelection()
+            assertEquals(client.listContentEntries().map { it.normalizedPath() }.sorted(),
+                jake2.qcommon.vfs.EngineVfs.debugResolvedFiles().sorted())
+        }
+        apply(profile)
+        assertTrue(jake2.qcommon.vfs.EngineVfs.exists("maps/optional.bsp"))
+        cvars.find<Boolean>(org.demoth.cake.profile.CakePackageSettings.AUTOMOUNT).forceSet(false)
+        apply(profile)
+        assertFalse(jake2.qcommon.vfs.EngineVfs.exists("maps/optional.bsp"))
+        apply(profile.copy(includedArchives = listOf("catalog/map.zip")))
+        assertTrue(jake2.qcommon.vfs.EngineVfs.exists("maps/optional.bsp"))
+        apply(profile)
+        assertFalse(jake2.qcommon.vfs.EngineVfs.exists("maps/optional.bsp"))
+    }
+
+    @Test
     fun `idle embedded Host leaves player chat to the client`() {
         val previous = Cmd.FindCommand("cmd")
         var forwarded: List<String>? = null

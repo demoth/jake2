@@ -31,26 +31,32 @@ class CakeFileResolver(
     private val vfsAssetSource = CakeVfsAssetSource()
     private val warnedMissing = LinkedHashSet<Pair<String, ResourceKind>>()
 
+    var packageSelection: jake2.qcommon.vfs.VfsPackageSelection = jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC
+        set(value) {
+            field = value
+            vfsAssetSource.configure(basedir, gamemod, caseSensitive, value)
+        }
+
     var caseSensitive: Boolean = caseSensitive
         set(value) {
             field = value
-            vfsAssetSource.configure(basedir = basedir, gameMod = gamemod, caseSensitive = field)
+            vfsAssetSource.configure(basedir = basedir, gameMod = gamemod, caseSensitive = field, selection = packageSelection)
         }
 
     var basedir: String? = basedir
         set(value) {
             field = value
-            vfsAssetSource.configure(basedir = field, gameMod = gamemod, caseSensitive = caseSensitive)
+            vfsAssetSource.configure(basedir = field, gameMod = gamemod, caseSensitive = caseSensitive, selection = packageSelection)
         }
 
     var gamemod: String? = gamemod
         set(value) {
             field = value
-            vfsAssetSource.configure(basedir = basedir, gameMod = field, caseSensitive = caseSensitive)
+            vfsAssetSource.configure(basedir = basedir, gameMod = field, caseSensitive = caseSensitive, selection = packageSelection)
         }
 
     init {
-        vfsAssetSource.configure(basedir = this.basedir, gameMod = this.gamemod, caseSensitive = this.caseSensitive)
+        vfsAssetSource.configure(basedir = this.basedir, gameMod = this.gamemod, caseSensitive = this.caseSensitive, selection = packageSelection)
     }
 
     fun isVfsInitialized(): Boolean = vfsAssetSource.isInitialized()

@@ -42,6 +42,7 @@ class CakeProfilePersistence(
 
     fun loadConfig() {
         val profileId = currentConfigProfileId() ?: return
+        CakePackageSettings.reset()
         try {
             val configText = profileConfigStore.readConfig(profileId) ?: return
             Cbuf.AddAndExecuteScript(configText)

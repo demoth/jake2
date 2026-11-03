@@ -40,6 +40,7 @@ object CakeStartupBootstrap {
         autodetectBasedir: () -> String? = ::autodetectSteamBasedir,
     ): CakeStartupContext {
         ensureInitialized()
+        org.demoth.cake.profile.CakePackageSettings.reset()
         val clientBindings = ClientBindings()
         val commands = mutableListOf("cake").apply { addAll(arguments) }
         Cbuf.AddEarlySetCommands(commands, false)

@@ -16,11 +16,20 @@ private const val PROFILES_VERSION_V1: Int = 1
 private const val PROFILE_ID_DEFAULT: String = "default"
 
 @Serializable
-data class CakeGameProfile(val id: String, val basedir: String, val gamemod: String? = null) {
+data class CakeGameProfile(
+    val id: String,
+    val basedir: String,
+    val gamemod: String? = null,
+    val includedArchives: List<String> = emptyList(),
+) {
+    fun packageSelection(automount: Boolean = CakePackageSettings.automount()) =
+        jake2.qcommon.vfs.VfsPackageSelection(automount, includedArchives.toSet())
+
     fun normalized(): CakeGameProfile = CakeGameProfile(
         id = id.trim(),
         basedir = basedir.trim(),
         gamemod = gamemod?.trim()?.takeIf { it.isNotEmpty() },
+        includedArchives = includedArchives.distinct().sorted(),
     )
 }
 
@@ -177,6 +186,7 @@ class CakeGameProfileStore(
         }
         require(Files.isDirectory(basedirPath)) { "Profile basedir does not exist: ${profile.basedir}" }
 
+        profile.packageSelection() // Validate portable relative archive paths, including missing entries.
         val mod = profile.gamemod
         if (mod != null) {
             require(mod.isNotBlank()) { "Profile gamemod must not be blank when set" }

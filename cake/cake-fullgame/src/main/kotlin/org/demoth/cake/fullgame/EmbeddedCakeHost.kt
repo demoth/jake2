@@ -53,6 +53,7 @@ class EmbeddedCakeHost(
 
     private var previousWriteRoot: Path? = null
     private var activeProfile: CakeGameProfile? = null
+    private var activePackageSelection = jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC
     private var startupRejection: () -> String? = { null }
     private var disposed = false
 
@@ -78,7 +79,8 @@ class EmbeddedCakeHost(
         check(state == HostState.STOPPED) { "Stop the local game before changing profile" }
         startupRejection()?.let { throw IllegalStateException(it) }
         val normalized = profile?.normalized()
-        if (normalized == activeProfile) return
+        val selection = normalized?.packageSelection() ?: jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC
+        if (normalized == activeProfile && selection == activePackageSelection) return
         if (normalized != null) {
             validateProfile(normalized)
             configureFilesystem(normalized)
@@ -86,6 +88,7 @@ class EmbeddedCakeHost(
             previousWriteRoot?.let(EngineWriteRoot::setRoot)
         }
         activeProfile = normalized
+        activePackageSelection = selection
     }
 
     override val availability = HostAvailability.AVAILABLE
@@ -354,7 +357,7 @@ class EmbeddedCakeHost(
         EngineVfs.configure(VfsConfig(
             Path.of(profile.basedir), "baseq2", gameMod, true, false,
             cvars.isRegistered("fs_casesensitive") && cvars.find<Boolean>("fs_casesensitive").typedValue,
-            emptyList(), setOf("pak", "pk2", "pk3", "pkz", "zip"),
+            emptyList(), setOf("pak", "pk2", "pk3", "pkz", "zip"), profile.packageSelection(),
         ))
         cvars.register("game", CvarTypes.STRING, "", Defines.CVAR_LATCH or Defines.CVAR_SERVERINFO)
             .forceSet(gameMod.orEmpty())

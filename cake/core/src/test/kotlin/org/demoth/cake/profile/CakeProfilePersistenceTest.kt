@@ -38,6 +38,19 @@ class CakeProfilePersistenceTest {
     }
 
     @Test
+    fun `automount loads from config and resets for a profile without it`() {
+        active = CakeGameProfile("archive", temp.toString())
+        cvars.find<Boolean>(CakePackageSettings.AUTOMOUNT).forceSet(false)
+        persistence.saveConfig(explicit = true)
+        cvars.find<Boolean>(CakePackageSettings.AUTOMOUNT).forceSet(true)
+        persistence.loadConfig()
+        assertFalse(CakePackageSettings.automount())
+        active = CakeGameProfile("empty", temp.toString())
+        persistence.loadConfig()
+        assertTrue(CakePackageSettings.automount())
+    }
+
+    @Test
     fun `switch to profile without config resets gameplay but retains client preferences`() {
         cvars.register("coop", jake2.qcommon.exec.CvarTypes.BOOLEAN, false, 0).forceSet(true)
         cvars.setResult("sv_gravity", "123")

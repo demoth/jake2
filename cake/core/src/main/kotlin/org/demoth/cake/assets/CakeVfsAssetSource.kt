@@ -24,9 +24,11 @@ internal class CakeVfsAssetSource {
     private var configuredCaseSensitive: Boolean = false
     private var initialized = false
     private var archiveContext = false
+    private var configuredSelection = jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC
 
     @Synchronized
-    fun configure(basedir: String?, gameMod: String?, caseSensitive: Boolean) {
+    fun configure(basedir: String?, gameMod: String?, caseSensitive: Boolean,
+                  selection: jake2.qcommon.vfs.VfsPackageSelection = jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC) {
         val normalizedBasedir = basedir?.takeIf { it.isNotBlank() }
         val normalizedGameMod = gameMod?.takeIf { it.isNotBlank() }
         if (
@@ -34,11 +36,12 @@ internal class CakeVfsAssetSource {
             !archiveContext &&
             configuredBasedir == normalizedBasedir &&
             configuredGameMod == normalizedGameMod &&
-            configuredCaseSensitive == caseSensitive
+            configuredCaseSensitive == caseSensitive && configuredSelection == selection
         ) {
             return
         }
 
+        configuredSelection = selection
         configuredBasedir = normalizedBasedir
         configuredGameMod = normalizedGameMod
         configuredCaseSensitive = caseSensitive
@@ -57,6 +60,7 @@ internal class CakeVfsAssetSource {
                 caseSensitive,
                 emptyList(),
                 setOf("pak", "pk2", "pk3", "pkz", "zip"),
+                selection,
             ),
         )
         initialized = true

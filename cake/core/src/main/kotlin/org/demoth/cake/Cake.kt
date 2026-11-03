@@ -1673,8 +1673,8 @@ class Cake(
         }
         // Selection and hosted storage are committed before discarding outgoing gameplay inputs.
         CakeHostStartupSettings.reset()
-        applyGameProfile(profile)
         profilePersistence.loadConfig()
+        applyGameProfile(profile)
         return path
     }
 
@@ -1692,6 +1692,7 @@ class Cake(
         val normalized = profile?.normalized()
         host.activateProfile(normalized)
         activeGameProfile = normalized
+        fileResolver.packageSelection = normalized?.packageSelection() ?: jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC
         fileResolver.basedir = normalized?.basedir
         fileResolver.gamemod = normalized?.gamemod
         resolveNewGameAlias()
@@ -1877,6 +1878,7 @@ class Cake(
         id = id,
         basedir = basedir,
         gamemod = gamemod.takeIf { it.isNotBlank() },
+        includedArchives = loadProfileById(id)?.includedArchives.orEmpty(),
     )
 
     private fun syncMenuStageFromBusState() {

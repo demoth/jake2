@@ -20,7 +20,7 @@ fun loadHostMaps(profile: CakeGameProfile?): List<HostMap> {
     if (profile == null) return emptyList()
     val vfs = DefaultVirtualFileSystem()
     vfs.configure(VfsConfig(Path.of(profile.basedir), "baseq2", profile.gamemod,
-        false, false, false, emptyList(), setOf("pak", "pk2", "pk3", "pkz", "zip")))
+        false, false, false, emptyList(), setOf("pak", "pk2", "pk3", "pkz", "zip"), profile.packageSelection()))
     return vfs.listEntries().mapNotNull { entry ->
         val path = entry.normalizedPath
         if (!path.startsWith("maps/") || !path.endsWith(".bsp")) return@mapNotNull null
