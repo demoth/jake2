@@ -2,6 +2,8 @@ package jake2.server;
 
 import jake2.qcommon.ServerStates;
 
+import java.util.Locale;
+
 /**
  * Used when changing map (via console or by change_map triggers)
  */
@@ -20,7 +22,8 @@ public class ChangeMapInfo {
      *
      * [*]mapname$spawnpoint+nextserver
      *
-     * command from the console or progs. Map can also be a.cin, .pcx, or .dm2 file.
+     * command from the console or progs. Map can also be a .cin, .dm2, or still image
+     * (.pcx, .tga, .png, .jpg, .jpeg) file.
      *
      * Nextserver is used to allow a cinematic to play, then proceed to
      * another level:
@@ -58,15 +61,18 @@ public class ChangeMapInfo {
         else
             mapName = levelString;
 
-        if (levelString.endsWith(".cin")) {
+        String mediaName = mapName.toLowerCase(Locale.ROOT);
+        if (mediaName.endsWith(".cin")) {
             state = ServerStates.SS_CINEMATIC;
-        } else if (levelString.endsWith(".dm2")) {
+        } else if (mediaName.endsWith(".dm2")) {
             if (!isDemo) {
                 // todo remove
                 throw new IllegalStateException(".dm2 server should have isDemo=true");
             }
             state = ServerStates.SS_DEMO;
-        } else if (levelString.endsWith(".pcx")) {
+        } else if (mediaName.endsWith(".pcx") || mediaName.endsWith(".tga")
+                || mediaName.endsWith(".png") || mediaName.endsWith(".jpg")
+                || mediaName.endsWith(".jpeg")) {
             state = ServerStates.SS_PIC;
         } else {
             state = ServerStates.SS_GAME;
