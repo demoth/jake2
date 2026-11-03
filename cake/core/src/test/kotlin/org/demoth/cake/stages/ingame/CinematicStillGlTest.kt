@@ -94,7 +94,7 @@ class CinematicStillGlTest {
         val resolver = CakeFileResolver(temp.toString(), "rogue",
             downloadCache = CakeDownloadCache(temp.resolve("downloads")))
         val assets = AssetManager(resolver).apply {
-            setLoader(Texture::class.java, "pcx", PcxLoader(resolver))
+            PcxLoader(resolver).registerWith(this)
             setLoader(Any::class.java, ObjectLoader(resolver))
         }
         val config = GameConfiguration(assets)
@@ -123,14 +123,15 @@ class CinematicStillGlTest {
             }
         }
         try {
-            for (name in listOf("ending.pcx", "ending.tga", "art/rle.TGA", "ending.PNG", "art/ending.jpg", "/art/ending.jpeg")) {
+            val pcxNames = listOf("pcx", "pcX", "pCx", "pCX", "Pcx", "PcX", "PCx", "PCX").map { "ending.$it" }
+            for (name in pcxNames + listOf("ending.tga", "art/rle.TGA", "ending.PNG", "art/ending.jpg", "/art/ending.jpeg")) {
                 val path = if ('/' in name) name.removePrefix("/") else "pics/$name"
                 controller.begin(name, 0)
                 assertTrue(assets.isLoaded(path, Texture::class.java), "Controller acquired $name")
                 val texture = assets.get(path, Texture::class.java)
                 textures += texture
                 assertTrue(texture.width > 0 && texture.height > 0)
-                if (!name.endsWith(".pcx")) draw(0)
+                if (!name.endsWith(".pcx", ignoreCase = true)) draw(0)
                 assertNull(controller.pollSkipCommand(1000, 17, true))
                 assertNull(controller.pollSkipCommand(1001, 17, false))
                 assertEquals("nextserver 17", controller.pollSkipCommand(1001, 17, true)?.command)

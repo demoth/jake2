@@ -108,7 +108,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             setLoader(String::class.java, TextAssetLoader(fileResolver))
             setLoader(Any::class.java, ObjectLoader(fileResolver))
             setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
-            setLoader(Texture::class.java, "pcx", PcxLoader(fileResolver))
+            PcxLoader(fileResolver).registerWith(this)
             setLoader(Texture::class.java, "wal", WalLoader(fileResolver))
             setLoader(Sound::class.java, ConvertingSoundLoader(fileResolver))
             setLoader(Sp2Asset::class.java, Sp2Loader(fileResolver))

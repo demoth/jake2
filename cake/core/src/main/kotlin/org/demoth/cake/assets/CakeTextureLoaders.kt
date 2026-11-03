@@ -157,6 +157,13 @@ class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
 
     override fun resolve(fileName: String): FileHandle? = resolveTextureFile(textureResolver, fileName)
 
+    /** AssetManager matches suffixes case-sensitively; preserve the requested asset path. */
+    fun registerWith(manager: AssetManager) {
+        for (suffix in listOf("pcx", "pcX", "pCx", "pCX", "Pcx", "PcX", "PCx", "PCX")) {
+            manager.setLoader(Texture::class.java, suffix, this)
+        }
+    }
+
     data class Parameters(
         val externalPalette: IntArray? = null,
         val minFilter: Texture.TextureFilter? = null,
