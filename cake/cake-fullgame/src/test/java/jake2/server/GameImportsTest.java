@@ -388,8 +388,10 @@ public class GameImportsTest {
         Cvar.getInstance().register("gamedir", jake2.qcommon.exec.CvarTypes.STRING, "", 0, "Test mod directory");
         Cvar.getInstance().find("maxclients", Integer.class).forceSet(2);
         manager.resetClients();
-        GameImportsImpl first = manager.createGameInstance(new ChangeMapInfo("testbox", false, false), null);
-        GameImportsImpl second = manager.createGameInstance(new ChangeMapInfo("testbox2", false, false), null);
+        GameImportsImpl first = manager.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+        GameImportsImpl second = manager.spawnServerInstance(new ChangeMapInfo("testbox2", false, false), 0);
+        Assertions.assertEquals(ServerStates.SS_GAME, first.state);
+        Assertions.assertEquals(ServerStates.SS_GAME, second.state);
         manager.games.put(first.name, first);
         manager.games.put(second.name, second);
         first.configstrings[Defines.CS_NAME] = "first game";
