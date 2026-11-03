@@ -119,9 +119,12 @@ public final class Com
 	}
 
 	public static void EndRedirect() {
-		rd_flusher.rd_flush(rd_buffer);
-		rd_buffer.setLength(0);
-		rd_flusher = null;
+		try {
+			rd_flusher.rd_flush(rd_buffer);
+		} finally {
+			rd_buffer.setLength(0);
+			rd_flusher = null;
+		}
 	}
 
 	// Detect recursion during shutdown

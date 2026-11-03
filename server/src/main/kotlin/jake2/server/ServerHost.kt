@@ -1922,11 +1922,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun executeRemoteCommand(args: List<String>, from: NetworkAddress) {
         val rconIsValid: Boolean = isRconAuthorized(args)
 
-        if (rconIsValid) {
-            Com.Printf("Rcon from $from:\n$args\n")
-        } else {
-            Com.Printf("Bad rcon from $from:\n$args\n")
-        }
+        // Request arguments can contain credentials, including in the command itself.
+        Com.Printf("Rcon from $from: ${if (rconIsValid) "authorized" else "rejected"}\n")
 
         Com.BeginRedirect { buffer ->
             network.sendConnectionless(from,
@@ -1934,13 +1931,15 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 "\n" + buffer.toString()
             )
         }
-        if (rconIsValid) {
-            Cmd.ExecuteString(Cmd.getArguments(args, 2))
-        } else {
-            // redirected to client
-            Com.Printf("Bad rcon_password.\n")
+        try {
+            if (rconIsValid) {
+                Cmd.ExecuteString(Cmd.getArguments(args, 2))
+            } else {
+                // redirected to client
+                Com.Printf("Bad rcon_password.\n")
+            }
+        } finally {
+            Com.EndRedirect()
         }
-
-        Com.EndRedirect()
     }
 }

@@ -1,6 +1,8 @@
 package jake2.server
 
 import jake2.qcommon.MainCommon
+import jake2.qcommon.Com
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.transport.*
@@ -28,6 +30,11 @@ class ServerNetworkTest {
             queuePing()
             host.readPackets()
         }
+        fun rcon(request: String) {
+            client.send(client.localPeer, PacketBytes.copyOf(
+                byteArrayOf(-1, -1, -1, -1) + "rcon $request".toByteArray(Charsets.ISO_8859_1)))
+            host.readPackets()
+        }
         fun countReplies(): Int {
             var count = 0
             while (client.receive() is ReceiveResult.Received) count++
@@ -40,6 +47,76 @@ class ServerNetworkTest {
         override fun close() {
             host.close()
             client.close()
+        }
+    }
+
+    private fun withRconPeer(command: (List<String>) -> Unit, test: (Peer, StringBuilder) -> Unit) {
+        val cvars = Cvar.getInstance()
+        cvars.clear()
+        MainCommon.registerCvars(false)
+        NetworkSettings.registerCvars()
+        cvars.find("rcon_password", String::class.java).forceSet("private-credential")
+        Cmd.AddCommand("test_rcon") { command(it) }
+        val log = StringBuilder()
+        val sink = Com.ConsoleSink { _, message -> log.append(message) }
+        try {
+            Peer().use {
+                Com.SetConsoleSink(sink)
+                try {
+                    test(it, log)
+                } finally {
+                    Com.ClearConsoleSink(sink)
+                }
+            }
+        } finally {
+            Cmd.RemoveCommand("test_rcon")
+            cvars.clear()
+        }
+    }
+
+    @Test
+    fun `authorized rcon logs origin and outcome without credentials or command arguments`() {
+        var executed = false
+        withRconPeer({ args ->
+            executed = true
+            assertEquals(listOf("test_rcon", "private-credential"), args)
+            Com.Printf("completed\n")
+        }) { peer, log ->
+            peer.rcon("private-credential test_rcon private-credential")
+            assertTrue(executed)
+            assertEquals("Rcon from ${peer.server.localPeer}: authorized\n", log.toString())
+            assertFalse(log.contains("private-credential"))
+            assertEquals("print\ncompleted\n", peer.reply())
+        }
+    }
+
+    @Test
+    fun `rejected rcon logs origin and outcome without the attempted credential`() {
+        var executed = false
+        withRconPeer({ executed = true }) { peer, log ->
+            peer.rcon("wrong-credential wrong-credential test_rcon private-credential")
+            assertFalse(executed)
+            assertEquals("Rcon from ${peer.server.localPeer}: rejected\n", log.toString())
+            assertFalse(log.contains("wrong-credential"))
+            assertFalse(log.contains("private-credential"))
+            assertEquals("print\nBad rcon_password.\n", peer.reply())
+        }
+    }
+
+    @Test
+    fun `throwing rcon command flushes its reply and restores normal console output`() {
+        val failure = IllegalStateException("command failed")
+        withRconPeer({
+            Com.Printf("before failure\n")
+            throw failure
+        }) { peer, log ->
+            assertSame(failure, assertThrows(IllegalStateException::class.java) {
+                peer.rcon("private-credential test_rcon")
+            })
+            assertEquals("print\nbefore failure\n", peer.reply())
+            Com.Printf("normal console output\n")
+            assertTrue(log.endsWith("normal console output\n"))
+            assertEquals(0, peer.countReplies())
         }
     }
 

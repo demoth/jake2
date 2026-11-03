@@ -12,6 +12,32 @@ import jake2.qcommon.network.NetworkSettings
 
 class OutputFailureTest {
     @Test
+    fun `failed redirect flush restores normal output and clears buffered text`() {
+        val log = StringBuilder()
+        val sink = Com.ConsoleSink { _, message -> log.append(message) }
+        Com.SetConsoleSink(sink)
+        try {
+            val failure = IllegalStateException("reply failed")
+            Com.BeginRedirect { throw failure }
+            Com.Printf("failed reply\n")
+            assertSame(failure, assertThrows(IllegalStateException::class.java) { Com.EndRedirect() })
+            Com.Printf("normal console output\n")
+            assertEquals("normal console output\n", log.toString())
+
+            val nextReply = StringBuilder()
+            Com.BeginRedirect { nextReply.append(it) }
+            try {
+                Com.Printf("next reply\n")
+            } finally {
+                Com.EndRedirect()
+            }
+            assertEquals("next reply\n", nextReply.toString())
+        } finally {
+            Com.ClearConsoleSink(sink)
+        }
+    }
+
+    @Test
     fun `disallowed overflow preserves buffer until caller handles failure`() {
         val buffer = sizebuf_t(4)
         buffer.writeInt(123)
