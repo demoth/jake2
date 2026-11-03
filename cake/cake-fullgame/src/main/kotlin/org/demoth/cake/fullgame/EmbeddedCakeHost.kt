@@ -70,7 +70,8 @@ class EmbeddedCakeHost(
                 else -> this.startupRejection()
             }
         }
-        server = ServerHost(TransportServerNetwork(serverTransport), rejection)
+        // The desktop loop owns pacing; sleeping here blocks rendering and client input too.
+        server = ServerHost(TransportServerNetwork(serverTransport), rejection, sleepWhenIdle = false)
     }
 
     override fun activateProfile(profile: CakeGameProfile?) {

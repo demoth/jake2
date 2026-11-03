@@ -40,6 +40,7 @@ import jake2.server.save.ServerSaveJsonStore
 class ServerHost @JvmOverloads constructor(
     private val network: ServerNetwork,
     private val startupRejection: () -> String? = { null },
+    private val sleepWhenIdle: Boolean = true,
 ) : AutoCloseable {
     // region Host state and command dispatch
 
@@ -822,7 +823,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (delay > 0) {
             // Bound the dedicated sleep while waiting for the next scheduled tick.
             delay = delay.coerceAtMost(100)
-            network.sleep(delay.toInt())
+            if (sleepWhenIdle) network.sleep(delay.toInt())
             return
         }
 

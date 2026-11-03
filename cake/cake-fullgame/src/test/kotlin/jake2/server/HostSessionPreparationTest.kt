@@ -46,6 +46,27 @@ class HostSessionPreparationTest {
         Globals.server_state = previousState
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `idle waiting is optional and remains so across map restarts`(sleepWhenIdle: Boolean) {
+        host.close()
+        network.close()
+        network = HostNetworkFixture()
+        val waits = mutableListOf<Int>()
+        val observedNetwork = object : ServerNetwork by network.server {
+            override fun sleep(millis: Int) { waits += millis }
+        }
+        host = ServerHost(observedNetwork, sleepWhenIdle = sleepWhenIdle)
+        cvars.find<Boolean>("deathmatch").forceSet(true)
+        repeat(2) {
+            assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+            waits.clear()
+            repeat(10) { host.update(1) }
+            if (sleepWhenIdle) assertTrue(waits.isNotEmpty(), "Standalone host should request tick waits")
+            else assertTrue(waits.isEmpty(), "Embedded host must return without blocking its caller")
+        }
+    }
+
     private fun save(coop: Boolean) {
         cvars.find<Boolean>("coop").forceSet(coop)
         host.map(listOf("map", "testbox"))
