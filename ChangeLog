@@ -1,3 +1,11 @@
+1.2.8
+    - added a profile-owned Mods manager with archive inclusion checkboxes and a saved automount setting
+    - added isolated archive browsing with root-level readmes, contents summaries, resource previews, and collapsible side panels
+    - made enabled optional archives override loose files and numbered PAKs, with deterministic ordering and preserved gamemod precedence
+    - added JPG/JPEG previews and cvar-controlled model skin replacements, enabled by default
+    - added an engine checkerboard and warnings for missing model and map textures
+    - fixed embedded server tick waits blocking rendering and input
+
 1.2.7
     - added client demo recording with profile-local storage and protocol 34 output
     - added playback of classic protocol 26, 31, 32, and 34 demos, with pause and stop controls
