@@ -1,5 +1,6 @@
 package jake2.qcommon.filesystem
 
+import jake2.qcommon.util.Lib
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -58,11 +59,11 @@ class WAL(buffer: ByteBuffer) {
     constructor(byteArray: ByteArray): this(ByteBuffer.wrap(byteArray).also { it.order(ByteOrder.LITTLE_ENDIAN) })
 
     init {
-        name = String(ByteArray(32).also { buffer.get(it) }).trim { it < ' '}
+        name = Lib.CtoJava(ByteArray(32).also { buffer.get(it) })
         width = buffer.getInt()
         height = buffer.getInt()
         offsets = IntArray(MIP_LEVELS) { buffer.getInt() }
-        nextName = String(ByteArray(32).also { buffer.get(it) }).trim { it < ' '}
+        nextName = Lib.CtoJava(ByteArray(32).also { buffer.get(it) })
         flags = buffer.getInt()
         contents = buffer.getInt()
         value = buffer.getInt()

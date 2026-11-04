@@ -938,7 +938,7 @@ public final class CL {
                                 pheader.skinsOffset
                                         + (CL.precache_model_skin - 1)
                                         * Defines.MAX_SKINNAME,
-                                Defines.MAX_SKINNAME * num_skins);
+                                Defines.MAX_SKINNAME);
 
                         if (!CL_parse.CheckOrDownloadFile(name)) {
                             CL.precache_model_skin++;

@@ -49,6 +49,18 @@ class HostMapsTest {
     }
 
     @Test
+    fun `map title ignores data after the entity string terminator`() {
+        val bytes = bsp("Valid title")
+        val garbage = "broken entity data".toByteArray(Charsets.ISO_8859_1)
+        val combined = bytes + garbage
+        ByteBuffer.wrap(combined).order(ByteOrder.LITTLE_ENDIAN)
+            .putInt(12, ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).getInt(12) + garbage.size)
+        write("baseq2/maps/trailing.bsp", combined)
+        assertEquals(listOf(HostMap("trailing", "Valid title")),
+            loadHostMaps(CakeGameProfile("test", root.toString())))
+    }
+
+    @Test
     fun `missing profile or empty content produces no choices`() {
         assertTrue(loadHostMaps(null).isEmpty())
         assertTrue(loadHostMaps(CakeGameProfile("empty", root.toString())).isEmpty())

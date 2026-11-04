@@ -2,6 +2,7 @@ package jake2.qcommon.filesystem
 
 import jake2.qcommon.Globals
 import jake2.qcommon.math.Vector3f
+import jake2.qcommon.util.Lib
 import java.lang.Float.intBitsToFloat
 import java.nio.ByteBuffer
 
@@ -148,8 +149,7 @@ class Md2Model(buffer: ByteBuffer) {
         repeat(skinCount) {
             val nameBuf = ByteArray(qfiles.MAX_SKINNAME)
             buffer.get(nameBuf)
-            val skinName = String(nameBuf)
-            skinNames.add(skinName.substring(0, skinName.indexOf(".pcx")) + ".pcx")
+            skinNames.add(Lib.CtoJava(nameBuf))
         }
     }
 }
@@ -342,7 +342,7 @@ class Md2Frame(val name: String,  val points: List<Md2Point>) {
             )
             val nameBuf = ByteArray(16)
             buffer.get(nameBuf)
-            val name = String(nameBuf).trim { it < ' ' }
+            val name = Lib.CtoJava(nameBuf)
             val points: ArrayList<Md2Point> = ArrayList(vertexCount)
             repeat(vertexCount) {
                 // vertices are all 8 bit, so no swapping needed

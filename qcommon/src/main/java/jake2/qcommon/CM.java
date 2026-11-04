@@ -824,10 +824,7 @@ public class CM {
         if (l.length > Defines.MAX_MAP_ENTSTRING)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too large entity lump");
 
-        int x = 0;
-        for (; x < l.length && cmod_base[x + l.offset] != 0; x++);
-
-        map_entitystring = new String(cmod_base, l.offset, x).trim();
+        map_entitystring = Lib.CtoJava(cmod_base, l.offset, l.length).trim();
         Com.dprintln("entitystring=" + map_entitystring.length() + 
                 " bytes, [" + map_entitystring.substring(0, Math.min (
                         map_entitystring.length(), 15)) + "...]" );

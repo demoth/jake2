@@ -4,6 +4,7 @@ import jake2.qcommon.Com
 import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.BspHeader
 import jake2.qcommon.parseEntities
+import jake2.qcommon.util.Lib
 import jake2.qcommon.vfs.DefaultVirtualFileSystem
 import jake2.qcommon.vfs.VfsConfig
 import jake2.qcommon.vfs.VfsOpenOptions
@@ -39,7 +40,7 @@ fun loadHostMaps(profile: CakeGameProfile?): List<HostMap> {
                 stream.skipNBytes((entities.offset - headerSize).toLong())
                 val bytes = stream.readNBytes(entities.length)
                 require(bytes.size == entities.length) { "Truncated entity lump" }
-                parseEntities(String(bytes, Charsets.ISO_8859_1).trimEnd('\u0000'))
+                parseEntities(Lib.CtoJava(bytes))
                     .firstOrNull { entity -> entity["classname"] == "worldspawn" }
                     ?.get("message")?.replace(Regex("\\s+"), " ")?.trim()?.takeIf(String::isNotEmpty)
             }

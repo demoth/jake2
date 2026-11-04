@@ -27,6 +27,7 @@ package jake2.qcommon.filesystem;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
+import jake2.qcommon.util.Lib;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -126,7 +127,7 @@ public class qfiles {
 			
 			byte[] nameBuf = new byte[MAX_SKINNAME];
 			b.get(nameBuf);
-			imageFileName = new String(nameBuf).trim();
+			imageFileName = Lib.CtoJava(nameBuf);
 		}
 	}
 
@@ -199,7 +200,7 @@ public class qfiles {
 			byte[] nameBuf = new byte[NAME_SIZE];
 			// fill header
 			b.get(nameBuf);
-			name = new String(nameBuf).trim();
+			name = Lib.CtoJava(nameBuf);
 			width = b.getInt();
 			height = b.getInt();
 			offsets[0] = b.getInt();
@@ -207,7 +208,7 @@ public class qfiles {
 			offsets[2] = b.getInt();
 			offsets[3] = b.getInt();
 			b.get(nameBuf);
-			animname = new String(nameBuf).trim();
+			animname = Lib.CtoJava(nameBuf);
 			flags = b.getInt();
 			contents = b.getInt();
 			value = b.getInt();

@@ -46,7 +46,7 @@ public class texinfo_t {
 		value = bb.getInt();
 
 		bb.get(str);
-		texture = new String(str, 0, Lib.strlen(str));
+		texture = Lib.CtoJava(str);
 		nexttexinfo = bb.getInt();
 	}
 

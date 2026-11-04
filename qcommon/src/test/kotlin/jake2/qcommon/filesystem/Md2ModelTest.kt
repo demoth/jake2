@@ -11,6 +11,31 @@ import java.nio.ByteOrder
 class Md2ModelTest {
 
     @Test
+    fun testFrameNamesStopAtNullWithoutShiftingVertexData() {
+        val cases = listOf(
+            // Berserk frame 26 has a leftover '0' after the null terminator.
+            "walkc2\u00000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000" to "walkc2",
+            "stand0\u0000garbage!?" to "stand0",
+            "\u0000ignored garbage" to "",
+            "abcdefghijklmnop" to "abcdefghijklmnop",
+        )
+        for ((rawName, expectedName) in cases) {
+            val buffer = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
+            repeat(3) { buffer.putFloat(1f) } // scale
+            repeat(3) { buffer.putFloat(0f) } // translation
+            buffer.put(rawName.toByteArray(Charsets.US_ASCII).copyOf(16))
+            buffer.put(byteArrayOf(1, 2, 3, 4)) // packed vertex and normal
+            buffer.flip()
+
+            val frame = Md2Frame.fromBuffer(buffer, 1)
+
+            assertEquals(expectedName, frame.name)
+            assertEquals(listOf(Md2Point(Vector3f(1f, 2f, 3f), 4)), frame.points)
+            assertEquals(44, buffer.position())
+        }
+    }
+
+    @Test
     fun testLoadModel() {
         val fileName = "models/blade/tris.md2"
         val bytes: ByteArray = this::class.java.getResourceAsStream(fileName)?.readAllBytes()

@@ -3,6 +3,7 @@ package jake2.qcommon.filesystem
 import jake2.qcommon.Defines
 import jake2.qcommon.math.Vector3f
 import jake2.qcommon.parseEntities
+import jake2.qcommon.util.Lib
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.experimental.and
@@ -30,7 +31,7 @@ class Bsp(buffer: ByteBuffer) {
         buffer.position(bspLump.offset)
         val bytes = ByteArray(bspLump.length)
         buffer.get(bytes)
-        return String(bytes).dropLast(1) // drop terminating 0 char
+        return Lib.CtoJava(bytes)
     }
 
     private fun readVertices(buffer: ByteBuffer, bspLump: BspLump): Array<Vector3f> {
@@ -120,7 +121,7 @@ class Bsp(buffer: ByteBuffer) {
                 vOffset = buffer.getFloat(),
                 flags = buffer.getInt(),
                 value = buffer.getInt(),
-                name = String(nameBytes.also { buffer.get(it) }).trim { it < ' ' },
+                name = Lib.CtoJava(nameBytes.also { buffer.get(it) }),
                 next = buffer.getInt()
             ))
         }

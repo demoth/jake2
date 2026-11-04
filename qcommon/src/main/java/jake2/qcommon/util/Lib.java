@@ -35,6 +35,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 public class Lib {
@@ -340,12 +342,13 @@ public class Lib {
 		return CtoJava(old, 0, old.length);
 	}
 
-	/** Helper method that savely handles the null termination of old C String data. */
-	public static String CtoJava(byte[] old, int offset, int maxLenght) {
-		if (old.length == 0 || old[0] == 0) return "";
-	    int i;
-	    for (i = offset; (i - offset) < maxLenght && old[i] != 0; i++);
-		return new String(old, offset, i - offset);
+    /** Decode a bounded C string as Latin-1, ignoring bytes after its first NUL. */
+    public static String CtoJava(byte[] old, int offset, int maxLength) {
+        Objects.checkFromIndexSize(offset, maxLength, old.length);
+        int end = offset + maxLength;
+        int i = offset;
+        while (i < end && old[i] != 0) i++;
+        return new String(old, offset, i - offset, StandardCharsets.ISO_8859_1);
 	}
 	
 	
