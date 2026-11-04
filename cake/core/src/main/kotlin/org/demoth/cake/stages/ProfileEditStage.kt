@@ -131,7 +131,7 @@ class ProfileEditStage(
                     )
                 }
                 add(saveButton).left().row()
-                modsButton = createMenuButton("Mods...", buttonStyle) {
+                modsButton = createMenuButton("Mods", buttonStyle) {
                     menuEventBus.postIntent(MenuIntent.OpenMods)
                 }
                 add(modsButton).left().row()

@@ -75,6 +75,17 @@ class MenuStagesGlTest {
             verifyMissingTextures()
             verifyModelTextureReplacement()
             verifyModsBrowser(viewport, style)
+            // Exercise the conchars-based game theme as well as the engine skin.
+            val atlasPixels = com.badlogic.gdx.graphics.Pixmap(128, 128, com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888)
+            val atlas = com.badlogic.gdx.graphics.Texture(atlasPixels)
+            atlasPixels.dispose()
+            val gameFont = ConcharsFontLoader.createBitmapFont(atlas)
+            try {
+                val gameStyle = object : GameUiStyle by style {
+                    override val menuWidgets = createMenuWidgetStyles(skin, gameFont, atlas)
+                }
+                verifyModsBrowser(viewport, gameStyle)
+            } finally { gameFont.dispose(); atlas.dispose() }
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
             verifySingleplayerHub(viewport, style)
@@ -235,7 +246,7 @@ class MenuStagesGlTest {
             menus.rebuild(style)
             menus.select(MenuScreen.MODS)
             repeat(2) { menus.render(1f / 60f) }
-            System.getenv("CAKE_MODS_CAPTURE")?.let { path ->
+            System.getenv("CAKE_MODS_CAPTURE")?.takeIf { style is EngineUiStyle }?.let { path ->
                 val pixels = com.badlogic.gdx.graphics.Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.width, Gdx.graphics.height)
                 try { com.badlogic.gdx.graphics.PixmapIO.writePNG(Gdx.files.absolute(path), pixels, -1, true) }
                 finally { pixels.dispose() }
@@ -244,6 +255,13 @@ class MenuStagesGlTest {
             assertTrue(labels(stage.root).any { it.contains("Archive readme fixture") })
             assertTrue(resolver.listContentEntries().isEmpty(), "Inspecting must not change gameplay mounts")
             val checkbox = stage.root.findActor<TextButton>("mod-checkbox:catalog/example.zip")
+            val row = stage.root.findActor<TextButton>("mod-row:catalog/example.zip")
+            assertEquals(checkbox.height, row.height)
+            assertEquals(checkbox.y, row.y)
+            assertSame(checkbox.style.up, row.style.up)
+            assertTrue(row.isChecked)
+            assertEquals(com.badlogic.gdx.graphics.Color(0.35f, 0.95f, 0.35f, 1f), row.style.checkedFontColor)
+            assertEquals(row.style.checkedFontColor, row.style.checkedOverFontColor)
             assertFalse(checkbox.isDisabled)
             assertFalse(checkbox.isChecked)
             checkbox.isChecked = true

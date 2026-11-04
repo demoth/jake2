@@ -149,7 +149,11 @@ class ContentBrowser(
             add(selectionInfo).minWidth(0f).height(selectionInfo.style.font.data.lineHeight *
                 ((if (showSource) 3f else 2f) + selectionDetailLines)).pad(8f).row()
         }
-        add(SplitPane(scrollPane(tree), listing, false, styles.splitPane).apply { splitAmount = 0.3f }).grow()
+        val treePanel = Container(scrollPane(tree)).minWidth(0f).fill().apply { setClip(true) }
+        add(SplitPane(treePanel, listing, false, styles.splitPane).apply {
+            splitAmount = 0.3f
+            setMinSplitAmount(0f)
+        }).grow()
 
         val root = addFolder(ContentDirectory.fromEntries(entries, rootName))
         tree.add(root)

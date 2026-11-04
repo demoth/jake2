@@ -25,6 +25,18 @@ class ModsStage(
 ) : BackNavigableMenuStage(viewport, menuEventBus, MenuIntent.OpenProfileEditor) {
     private val widgets = style.menuWidgets
     private val styles = ContentBrowserStyles.fromMenu(widgets)
+    // Archive rows share the theme's thin control border with their inclusion checkbox.
+    private val archiveRowStyle = TextButton.TextButtonStyle(widgets.button).apply {
+        up = widgets.checkBox.up
+        over = up
+        down = up
+        checked = up
+        checkedOver = up
+        disabled = up
+        checkedFontColor = com.badlogic.gdx.graphics.Color(0.35f, 0.95f, 0.35f, 1f)
+        checkedOverFontColor = checkedFontColor
+        downFontColor = checkedFontColor
+    }
     private val source = CakeVfsAssetSource()
     private val resolver = object : org.demoth.cake.assets.TextureCandidateResolver {
         override fun textureCandidates() = source.listEntries().map { it.normalizedPath }
@@ -57,11 +69,14 @@ class ModsStage(
         }
         val left = Table().apply {
             top()
-            add(Label("Archives", styles.label)).left().growX()
-            add(createMenuButton("Refresh", styles.button) { menuEventBus.postIntent(MenuIntent.RefreshMods) }).row()
+            add(Table().apply {
+                add(automatic).size(24f).padRight(6f)
+                add(Label("Automatically load archives", styles.label))
+                    .minWidth(0f).growX().left()
+            }).growX().padBottom(8f).row()
             add(ScrollPane(archiveList, styles.scrollPane).apply {
                 setFadeScrollBars(false); setScrollingDisabled(true, false)
-            }).colspan(2).grow().row()
+            }).grow()
         }
         val right = Table().apply {
             add(archiveTitle).growX().left().row()
@@ -72,13 +87,11 @@ class ModsStage(
             setFillParent(true); pad(16f)
             add(Table().apply {
                 add(title).growX().left()
-                add(automatic).size(24f).padRight(8f)
-                add(Label("Automatically load archives", styles.label)).padRight(16f)
                 add(createBackButton(style = styles.button))
             }).growX().padBottom(8f).row()
             add(notice).growX().left().padBottom(8f).row()
-            add(SplitPane(left, right, false, styles.splitPane).apply {
-                splitAmount = 0.28f; setMinSplitAmount(0.18f); setMaxSplitAmount(0.5f)
+            add(SplitPane(Container(left).minWidth(0f).fill().apply { setClip(true) }, right, false, styles.splitPane).apply {
+                splitAmount = 0.28f; setMinSplitAmount(0f); setMaxSplitAmount(0.5f)
             }).grow()
         })
     }
@@ -103,9 +116,13 @@ class ModsStage(
                     state.profile == null -> "Select and apply a profile to manage its mods."
                     !state.canEdit -> "Disconnect and stop the local game to change mods."
                     state.automount -> "Archives load automatically. Disable this setting to select archives with the checkboxes."
-                    else -> "Included archives override loose files and numbered PAKs. Later filenames win within each game directory."
+                    else -> ""
                 }
             })
+            (notice.parent as Table).getCell(notice).apply {
+                height(if (notice.text.isEmpty()) Value.Fixed.valueOf(0f) else Value.prefHeight)
+                padBottom(if (notice.text.isEmpty()) 0f else 8f)
+            }
             archiveList.clearChildren()
             for (archive in state.archives) {
                 val checkbox = TextButton("x", widgets.checkBox).apply {
@@ -119,15 +136,17 @@ class ModsStage(
                     }
                 }
                 val suffix = if (archive.missing) " (missing)" else ""
-                val row = TextButton(archive.path + suffix, styles.button).apply {
+                val row = TextButton(archive.path + suffix, archiveRowStyle).apply {
+                    name = "mod-row:${archive.path}"
                     onClick {
+                        isChecked = true
                         state.profile?.let { menuEventBus.postIntent(MenuIntent.SelectMod(it.id, archive.path)) }
                     }
                     isChecked = archive.path == state.selectedArchive
-                    label.setEllipsis(true)
                 }
-                archiveList.add(checkbox).size(24f).padRight(6f)
-                archiveList.add(row).minWidth(0f).growX().padBottom(4f).row()
+                val rowHeight = maxOf(24f, checkbox.prefHeight, row.prefHeight)
+                archiveList.add(checkbox).size(rowHeight).padRight(6f).padBottom(4f)
+                archiveList.add(row).height(rowHeight).minWidth(0f).growX().padBottom(4f).row()
             }
             if (state.archives.isEmpty()) archiveList.add(Label("No archives found.", styles.label)).left()
             val key = listOf(state.profile?.basedir, state.profile?.gamemod, state.selectedArchive, state.revision)
