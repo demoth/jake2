@@ -2,6 +2,7 @@ package org.demoth.cake.ui
 
 import jake2.qcommon.vfs.VfsEntry
 import jake2.qcommon.vfs.VfsLayer
+import jake2.qcommon.vfs.VfsPathNormalizer
 import jake2.qcommon.vfs.VfsSource
 import jake2.qcommon.vfs.VfsSourceType
 import org.junit.jupiter.api.Assertions.*
@@ -30,6 +31,33 @@ class ContentDirectoryTest {
         assertEquals("textures/z", nested.path)
         assertEquals(listOf("textures/z/a.pcx", "textures/z/b.pcx"), nested.files.map { it.normalizedPath })
         assertSame(entries[3], nested.files.first())
+    }
+
+    @Test
+    fun resolvesTankCommanderPathsBeforeAssigningFolderLabels() {
+        val entries = listOf(
+            "models/monsters/tank/tris.md2",
+            "models/monsters/tank/skin.pcx",
+            "models/monsters/tank/../ctank/skin.pcx",
+            "models/monsters/tank/../ctank/pain.pcx",
+            "./Textures//Unused/../MixedCase\\wall.wal",
+        ).map { path ->
+            VfsEntry(VfsPathNormalizer(false).normalizeOrNull(path)!!, path, VfsLayer.BASE_PACK, 0,
+                VfsSource(VfsSourceType.PACKAGE_ENTRY, Path.of("pak0.pak"), path, "pak", true, false), 123, 0)
+        }
+
+        val root = ContentDirectory.fromEntries(entries, "pak0.pak")
+        val monsters = root.folders.getValue("models").folders.getValue("monsters")
+        assertEquals(listOf("ctank", "tank"), monsters.folders.keys.toList())
+        assertEquals("ctank", monsters.folders.getValue("ctank").name)
+        assertEquals("tank", monsters.folders.getValue("tank").name)
+        assertEquals("models/monsters/ctank", monsters.folders.getValue("ctank").path)
+        assertSame(entries[3], monsters.folders.getValue("ctank").files.first())
+        assertEquals("models/monsters/tank/../ctank/pain.pcx",
+            monsters.folders.getValue("ctank").files.first().source.entryPath)
+        val textures = root.folders.getValue("textures")
+        assertEquals("Textures", textures.name)
+        assertEquals("MixedCase", textures.folders.getValue("mixedcase").name)
     }
 
     @Test

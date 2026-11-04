@@ -21,6 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Tree
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import jake2.qcommon.vfs.VfsEntry
+import jake2.qcommon.vfs.VfsPathNormalizer
 
 /** Folder hierarchy derived from a resolved VFS snapshot; files retain their original metadata. */
 internal class ContentDirectory(val path: String, val name: String) {
@@ -30,9 +31,11 @@ internal class ContentDirectory(val path: String, val name: String) {
     companion object {
         fun fromEntries(entries: List<VfsEntry>, rootName: String): ContentDirectory {
             val root = ContentDirectory("", rootName)
+            val displayNormalizer = VfsPathNormalizer(true)
             entries.sortedBy { it.normalizedPath }.forEach { entry ->
                 val parts = entry.normalizedPath.split('/')
-                val displayParts = entry.displayPath.replace('\\', '/').split('/').filter { it.isNotEmpty() }
+                // Resolve dot segments before matching labels to the VFS hierarchy, preserving case.
+                val displayParts = displayNormalizer.normalizeOrNull(entry.displayPath)?.split('/') ?: parts
                 var directory = root
                 parts.dropLast(1).forEachIndexed { index, part ->
                     val path = if (directory.path.isEmpty()) part else "${directory.path}/$part"
