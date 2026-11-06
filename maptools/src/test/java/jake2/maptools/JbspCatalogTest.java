@@ -16,7 +16,8 @@ class JbspCatalogTest {
                 + "{\"classname\" \"info_player_start\"}\n"
                 + "{\"classname\" \"target_changelevel\" \"map\" \"*next$entry\"}\n"
                 + "{\"classname\" \"target_speaker\" \"noise\" \"Ambience\\hum.wav\"}\n"
-                + "{\"classname\" \"func_door\" \"model\" \"*1\"}\n\0").getBytes(StandardCharsets.ISO_8859_1);
+                + "{\"classname\" \"func_door\" \"model\" \"*1\"}\n"
+                + "{\"classname\" \"target_speaker\" \"noise\" \"world/steam1\"}\n\0").getBytes(StandardCharsets.ISO_8859_1);
         var buffer = ByteBuffer.allocate(160 + entities.length + 76).order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(0x50534249).putInt(38);
         for (int i = 0; i < 19; i++) {
@@ -37,8 +38,10 @@ class JbspCatalogTest {
         assertEquals(1L, ((Map<?, ?>) report.get("playerStarts")).get("info_player_start"));
         assertEquals(List.of(Map.of("entity", "2", "map", "*next$entry")), report.get("transitions"));
         var references = (List<?>) report.get("explicitEntityResources");
-        assertEquals(1, references.size());
+        assertEquals(2, references.size());
         assertEquals("sound/ambience/hum.wav", ((Map<?, ?>) references.getFirst()).get("path"));
+        assertEquals("sound/world/steam1.wav", ((Map<?, ?>) references.get(1)).get("path"));
+        assertEquals("world/steam1", ((Map<?, ?>) references.get(1)).get("value"));
     }
 
     @Test void rejectsWrongVersionAndOutOfBoundsLumps() {

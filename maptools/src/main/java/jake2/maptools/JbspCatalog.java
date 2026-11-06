@@ -73,7 +73,10 @@ public final class JbspCatalog {
                 var value = entity.get(key);
                 if (!(key.equals("model") || key.startsWith("noise") || key.equals("sound"))) continue;
                 if (value.isBlank() || value.startsWith("*") || value.matches("[0-9]+")) continue;
-                var path = normalize(value);
+                // Match targetSpeaker: an omitted extension is implicitly .wav.
+                var resourceValue = type.equals("target_speaker") && key.equals("noise") && !value.contains(".wav")
+                        ? value + ".wav" : value;
+                var path = normalize(resourceValue);
                 if (!key.equals("model") && !path.startsWith("sound/")) path = "sound/" + path;
                 references.add(Map.of("entity", Integer.toString(index), "classname", type,
                         "key", key, "value", value, "path", path));
