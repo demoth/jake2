@@ -96,6 +96,37 @@ Script execution and `automation_` command registration are a subsequent slice.
 
 `AutomationUi` can also wrap a standalone stage provider and navigation callback.
 
+`Cake.automationCaptures.request(file, layer)` queues a screenshot and returns a
+`CompletableFuture<FileHandle>` for polling. It requires `developer = 1`. Requests
+become eligible at the next `Cake.render()` start, so a request made during command
+processing waits for the following frame's menu pump and draw. Callers must still
+wait for asynchronous state such as map/preview loading before requesting capture.
+
+- `CaptureLayer.PRESENTATION` (default) captures after game/menu/gallery drawing,
+  before console and diagnostics. `FINAL` includes those overlays.
+- Completion follows the PNG write at physical framebuffer dimensions. A write
+  failure completes the future exceptionally and propagates out of rendering.
+  Poll `isDone` before inspecting the result; never block the GL thread on a future.
+- Zero-sized frames leave requests pending. Callers own timeout policy and may
+  cancel individual futures or call `cancelAll(reason)`. Disabling developer mode
+  cancels pending requests at the next frame/render hook; Cake cancels on disposal.
+  Captures never request application exit.
+
+Standalone stage hosts use the same `AutomationCaptures` with explicit hooks:
+
+```kotlin
+val result = captures.request(file) // before the next frame
+captures.beginFrame()             // once per frame, before updates
+stage.act(delta)
+stage.draw()
+captures.afterDraw(CaptureLayer.PRESENTATION)
+check(result.isDone)
+result.join()                     // inspect only after completion
+```
+
+The future lets the subsequent script runner treat capture as a completion barrier;
+no runtime capture commands are registered by this slice.
+
 ## Developer gallery
 
 | Command / flag | Behavior |

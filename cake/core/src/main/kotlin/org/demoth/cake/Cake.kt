@@ -54,6 +54,8 @@ import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.*
 import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.automation.AutomationUi
+import org.demoth.cake.automation.AutomationCaptures
+import org.demoth.cake.automation.CaptureLayer
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeHostStartupSettings
@@ -202,6 +204,7 @@ class Cake(
             menuEventBus.postSignal(MenuSignal.ShowMenu)
         },
     )
+    val automationCaptures = AutomationCaptures()
 
     // Visibility and global input routing.
     private var physicalConsoleToggleKeyDown = false
@@ -854,6 +857,7 @@ class Cake(
     }
 
     override fun render() {
+        automationCaptures.beginFrame()
         try {
             updateGlProfilerState()
             syncPackageSettings()
@@ -940,6 +944,8 @@ class Cake(
                 menuStages.hideSavedGamePreviews()
             }
 
+            automationCaptures.afterDraw(CaptureLayer.PRESENTATION)
+
             // Engine console and diagnostics stay in unscaled window coordinates.
             viewport.apply()
             if (consoleVisible) {
@@ -957,6 +963,7 @@ class Cake(
                     glProfiler.reset()
                 }
             }
+            automationCaptures.afterDraw(CaptureLayer.FINAL)
         } catch (error: RuntimeException) {
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
@@ -1146,6 +1153,7 @@ class Cake(
     }
 
     override fun dispose() {
+        automationCaptures.cancelAll("Application disposed")
         closeUiSample()
         uiSample.dispose()
         try {
