@@ -1,5 +1,6 @@
 apply plugin: 'org.jetbrains.kotlin.plugin.serialization'
 apply plugin: 'com.gorylenko.gradle-git-properties'
+apply plugin: 'java-test-fixtures'
 
 dependencies {
   api libs.gdxControllersCore
@@ -20,6 +21,7 @@ dependencies {
   implementation(project(":qcommon"))
   testImplementation libs.gdxBackendHeadless
   testImplementation libs.gdxBackendLwjgl3
+  testFixturesImplementation libs.gdxBackendLwjgl3
   testRuntimeOnly(libs.gdxPlatform) {
     artifact {
       classifier = 'natives-desktop'

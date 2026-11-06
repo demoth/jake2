@@ -1,11 +1,8 @@
 package jake2.server
 
-import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.InputMultiplexer
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
@@ -16,6 +13,7 @@ import org.demoth.cake.CakeStartupBootstrap
 import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.stages.console.ConsoleStage
+import org.demoth.cake.testing.HiddenGlTest
 import org.demoth.cake.ui.sample.UiSkinSample
 import org.demoth.cake.ui.menu.MenuScreen
 import org.junit.jupiter.api.Assertions.*
@@ -30,74 +28,51 @@ class CakeUiSampleGlTest {
 
     @Test
     fun `sample uses deferred menu transitions while style cleanup remains immediate`() {
-        val previousHome = System.getProperty("user.home")
-        System.setProperty("user.home", temp.toString())
-        var failure: Throwable? = null
-        try {
+        HiddenGlTest.run(home = temp) {
             CakeStartupBootstrap.ensureInitialized()
             Cvar.getInstance().clear()
             MainCommon.registerCvars(false)
             CakeCvars.registerAll()
             CakeGameProfileStore().upsertProfile(CakeGameProfile("first", temp.toString()))
             val startup = CakeStartupBootstrap.bootstrap(arguments = listOf("+set", "developer", "1"))
-            Lwjgl3Application(object : ApplicationAdapter() {
-                private var cake: Cake? = null
-                override fun create() {
-                    try {
-                        val app = Cake(startup).also { cake = it; it.create() }
-                        val menu = activeInput()
-                        Cbuf.AddText("ui_sample engine\n")
-                        app.render()
-                        assertSame(menu, activeInput(), "Command requests open after this frame's menu pump")
-                        app.render()
-                        val sample = activeInput()
-                        assertInstanceOf(UiSkinSample::class.java, sample)
-                        assertSame(sample, app.automationUi.stage)
-                        assertNull(app.presentedMenuScreen)
-                        val oldAction = app.automationUi.element("sample-action")
-                        app.automationUi.click("sample-game")
-                        assertNotSame(oldAction, app.automationUi.element("sample-action"),
-                            "Theme rebuilds must resolve new controls with the same IDs")
-                        app.automationUi.click("sample-action")
-                        app.keyUp(Input.Keys.GRAVE)
-                        assertInstanceOf(ConsoleStage::class.java, activeInput())
-                        assertSame(activeInput(), app.automationUi.stage)
-                        app.keyUp(Input.Keys.GRAVE)
-                        assertSame(sample, activeInput())
-                        app.keyUp(Input.Keys.ESCAPE)
-                        assertSame(sample, activeInput(), "Escape requests close through the bus")
-                        app.render()
-                        assertSame(menu, activeInput())
+            val app = Cake(startup)
+            onCleanup(app::dispose)
+            app.create()
+            val menu = activeInput()
+            Cbuf.AddText("ui_sample engine\n")
+            app.render()
+            assertSame(menu, activeInput(), "Command requests open after this frame's menu pump")
+            app.render()
+            val sample = activeInput()
+            assertInstanceOf(UiSkinSample::class.java, sample)
+            assertSame(sample, app.automationUi.stage)
+            assertNull(app.presentedMenuScreen)
+            val oldAction = app.automationUi.element("sample-action")
+            app.automationUi.click("sample-game")
+            assertNotSame(oldAction, app.automationUi.element("sample-action"),
+                "Theme rebuilds must resolve new controls with the same IDs")
+            app.automationUi.click("sample-action")
+            app.keyUp(Input.Keys.GRAVE)
+            assertInstanceOf(ConsoleStage::class.java, activeInput())
+            assertSame(activeInput(), app.automationUi.stage)
+            app.keyUp(Input.Keys.GRAVE)
+            assertSame(sample, activeInput())
+            app.keyUp(Input.Keys.ESCAPE)
+            assertSame(sample, activeInput(), "Escape requests close through the bus")
+            app.render()
+            assertSame(menu, activeInput())
 
-                        app.automationUi.open(MenuScreen.OPTIONS)
-                        app.render()
-                        assertEquals(MenuScreen.OPTIONS, app.presentedMenuScreen)
+            app.automationUi.open(MenuScreen.OPTIONS)
+            app.render()
+            assertEquals(MenuScreen.OPTIONS, app.presentedMenuScreen)
 
-                        Cmd.ExecuteString("ui_sample game")
-                        app.render()
-                        assertInstanceOf(UiSkinSample::class.java, activeInput())
-                        Cmd.ExecuteString("cake_profile_set second \"$temp\"")
-                        assertFalse(activeInput() is UiSkinSample, "Profile/style replacement closes synchronously")
-                        app.render()
-                        assertFalse(activeInput() is UiSkinSample)
-                    } catch (error: Throwable) {
-                        failure = error
-                    } finally {
-                        Gdx.app.exit()
-                    }
-                }
-                override fun dispose() {
-                    try { cake?.dispose() } catch (error: Throwable) { failure = failure ?: error }
-                }
-            }, Lwjgl3ApplicationConfiguration().apply {
-                setInitialVisible(false)
-                disableAudio(true)
-                setWindowedMode(640, 480)
-                setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
-            })
-            failure?.let { throw it }
-        } finally {
-            System.setProperty("user.home", previousHome)
+            Cmd.ExecuteString("ui_sample game")
+            app.render()
+            assertInstanceOf(UiSkinSample::class.java, activeInput())
+            Cmd.ExecuteString("cake_profile_set second \"$temp\"")
+            assertFalse(activeInput() is UiSkinSample, "Profile/style replacement closes synchronously")
+            app.render()
+            assertFalse(activeInput() is UiSkinSample)
         }
     }
 

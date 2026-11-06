@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":qcommon"))
     runtimeOnly(project(":game"))
     testImplementation(project(":game"))
+    testImplementation(testFixtures(project(":cake:core")))
 }
 
 // Real-application tests bootstrap process-wide engine state and replace user.home.

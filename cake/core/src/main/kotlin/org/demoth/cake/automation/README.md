@@ -57,14 +57,27 @@ pollable `CompletableFuture<Unit>`. Tests may drive to a state without capturing
 then use ordinary Kotlin/JUnit assertions after completion:
 
 ```kotlin
-val sequence = cake.automation.runText("""
-    automation_open options
-    automation_await screen options
-""".trimIndent())
-// Continue rendering. Once sequence.isDone:
-sequence.join() // propagate failure before assertions
-assertEquals(MenuScreen.OPTIONS, cake.presentedMenuScreen)
+HiddenGlTest.run(home = temp) {
+    CakeStartupBootstrap.ensureInitialized()
+    val startup = CakeStartupBootstrap.bootstrap(arguments = listOf("+set", "developer", "1"))
+    val cake = Cake(startup)
+    onCleanup(cake::dispose)
+    cake.create()
+    renderWith(cake::render)
+    await(cake.automation.runText("""
+        automation_open options
+        automation_await screen options
+    """.trimIndent()))
+    assertEquals(MenuScreen.OPTIONS, cake.presentedMenuScreen)
+}
 ```
+
+`HiddenGlTest` is shared through core's Gradle test fixtures. Its suspendable body
+uses Kotlin's standard coroutine support and resumes after rendering, without
+blocking GL or invoking assertions inside runner callbacks. It owns the hidden
+window, overall timeout, reverse-order cleanup, and temporary home scope. Register
+cleanup before initialization; failures are rethrown to JUnit with cleanup
+errors suppressed. An early application exit cannot count as scenario completion.
 
 `automation.await(description, timeoutSeconds) { predicate }` supports test-specific
 readiness without a runtime expression language. Cancel a returned future or call
