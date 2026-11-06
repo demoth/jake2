@@ -49,6 +49,20 @@ class AutomationUi(
 
     fun element(id: String): Actor = checkNotNull(find(id)) { "UI element '$id' was not found" }
 
+    fun isVisible(id: String): Boolean = available(id, requireEnabled = false)
+
+    fun isEnabled(id: String): Boolean = available(id, requireEnabled = true)
+
+    private fun available(id: String, requireEnabled: Boolean): Boolean {
+        requireDeveloper()
+        val active = currentStage() ?: return false
+        val target = find(active, id) ?: return false
+        return generateSequence(target) { it.parent }.all {
+            it.isVisible && (!requireEnabled ||
+                ((it as? Disableable)?.isDisabled != true && it.touchable != Touchable.disabled))
+        }
+    }
+
     fun click(id: String) {
         val active = stage
         val target = checkNotNull(find(active, id)) { "UI element '$id' was not found" }

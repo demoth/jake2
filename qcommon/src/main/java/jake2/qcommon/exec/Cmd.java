@@ -371,6 +371,13 @@ public final class Cmd {
         return cmd_functions.get(name);
     }
 
+    /** Read-only alias expansion for executors that own a command queue separate from Cbuf. */
+    public static String AliasValue(String name) {
+        for (cmdalias_t alias : cmd_alias.values())
+            if (alias.getName().equalsIgnoreCase(name)) return alias.getValue();
+        return null;
+    }
+
     public static void ExecuteFunction(String name, String... args) {
         if (cmd_functions.containsKey(name)) {
             cmd_functions.get(name).function.execute(Arrays.asList(args));

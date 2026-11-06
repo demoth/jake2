@@ -63,16 +63,11 @@ All widgets and captions use the selected theme on a neutral backdrop. Broader t
 
 ## Automated captures
 
-```sh
-./gradlew :cake:cake-client:run --args='+set cfg_autosave 0 +set vid_hidden 1 +set vid_fullscreen 0 +set vid_windowed_width 1440 +set vid_windowed_height 900 +set cl_ui_size 720 +ui_sample_capture both /tmp/cake-ui'
-```
-
-- Syntax: `ui_sample_capture <engine|game|both> <directory>`; keep it last in startup commands.
-- Waits two rendered frames per mode, writes `engine.png` / `game.png`, then exits; existing files are replaced.
-- Captures before console/diagnostic overlays, using the active profile and its actual fallback behavior.
-- `cfg_autosave 0` prevents automatic profile-setting writes; `vid_hidden 1` hides the window. Both are session-only controls.
-- A graphics context/display is still required; failures produce a nonzero exit.
-- Quote paths with spaces inside the argument string: `+ui_sample_capture both "/tmp/cake UI"`.
+The gallery uses the shared [automation command scripts](../cake/core/src/main/kotlin/org/demoth/cake/automation/README.md#runtime-scripts).
+Run `cake/automation/ui-sample.cfg` with `developer = 1`; it opens each theme,
+waits for rendered frames and writes `engine.png` / `game.png` under
+`cake/build/captures/ui-sample`. The automation guide includes the hidden-window
+launch command and script syntax. The gallery owns no capture or exit sequence.
 
 ## Content browser
 

@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.utils.ScreenUtils
 import jake2.qcommon.Globals
 import jake2.qcommon.MainCommon
+import org.demoth.cake.ui.writeScreenshot
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -102,6 +103,7 @@ class AutomationCapturesGlTest {
                 }
                 assertFalse(zeroSized.isDone)
                 assertFalse(file("restored.png").exists())
+                assertThrows(IllegalStateException::class.java) { writeScreenshot(file("zero.png")) }
             } finally { Gdx.graphics = graphics }
             captures.beginFrame()
             captures.afterDraw(CaptureLayer.PRESENTATION)

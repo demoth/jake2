@@ -55,6 +55,8 @@ import org.demoth.cake.assets.*
 import org.demoth.cake.download.CakeDownloadSession
 import org.demoth.cake.automation.AutomationUi
 import org.demoth.cake.automation.AutomationCaptures
+import org.demoth.cake.automation.AutomationHost
+import org.demoth.cake.automation.AutomationRunner
 import org.demoth.cake.automation.CaptureLayer
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
@@ -94,7 +96,7 @@ class Cake(
     private val videoPlatform: CakeVideoPlatform? = null,
     val host: CakeHost = UnavailableCakeHost(),
     private val network: ClientNetwork = host.clientNetwork,
-) : KtxApplicationAdapter, KtxInputAdapter {
+) : KtxApplicationAdapter, KtxInputAdapter, AutomationHost {
     companion object {
         private const val CONNECTED_KEEPALIVE_TIMEOUT_MS = 1000
         private const val MAX_CLIENT_COMMAND_CATCHUP_STEPS = 4
@@ -186,10 +188,22 @@ class Cake(
     val isConsoleVisible: Boolean get() = consoleVisible
     val presentedMenuScreen: MenuScreen?
         get() = if (menuVisible && !consoleVisible && !uiSample.isOpen) menuStages.activeScreen else null
-    val isGamePresentationReady: Boolean
+    override val isGamePresentationReady: Boolean
         get() = networkState == ACTIVE && game3dScreen?.canRenderPresentationFrame() == true
 
-    val automationUi = AutomationUi(
+    override val presentedAutomationScreen: String?
+        get() = when {
+            consoleVisible -> "console"
+            uiSample.isOpen -> "ui_sample"
+            else -> presentedMenuScreen?.name?.lowercase(java.util.Locale.ROOT)
+        }
+
+    override fun openAutomationSample(game: Boolean?) {
+        check(Globals.developer.typedValue) { "Automation requires developer = 1" }
+        menuEventBus.postIntent(MenuIntent.OpenUiSample(game))
+    }
+
+    override val automationUi = AutomationUi(
         currentStage = {
             when {
                 consoleVisible -> consoleStage
@@ -204,7 +218,8 @@ class Cake(
             menuEventBus.postSignal(MenuSignal.ShowMenu)
         },
     )
-    val automationCaptures = AutomationCaptures()
+    override val automationCaptures = AutomationCaptures()
+    val automation = AutomationRunner(this)
 
     // Visibility and global input routing.
     private var physicalConsoleToggleKeyDown = false
@@ -553,6 +568,7 @@ class Cake(
         }
 
         // endregion
+        automation.syncCommands()
         Cbuf.AddLateCommands(startup.startupCommands)
     }
 
@@ -857,6 +873,7 @@ class Cake(
     }
 
     override fun render() {
+        automation.update()
         automationCaptures.beginFrame()
         try {
             updateGlProfilerState()
@@ -882,6 +899,7 @@ class Cake(
             // then react in the same frame by sending reliable/new packets or a reconnect challenge.
             if (demoPlayback == null) CL_ReadPackets()
             Cbuf.Execute()
+            automation.syncCommands()
             // Commands may have started/stopped a map. Tick once on this thread before sending
             // new client input; the next frame reads server replies (no second command pump).
             if (demoPlayback != null) {
@@ -964,6 +982,7 @@ class Cake(
                 }
             }
             automationCaptures.afterDraw(CaptureLayer.FINAL)
+            automation.frameRendered()
         } catch (error: RuntimeException) {
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
@@ -982,6 +1001,7 @@ class Cake(
                 handleMissingResourceFailure(missingResource)
                 return
             }
+            automation.fail(error)
             throw error
         }
     }
@@ -1153,6 +1173,7 @@ class Cake(
     }
 
     override fun dispose() {
+        automation.dispose()
         automationCaptures.cancelAll("Application disposed")
         closeUiSample()
         uiSample.dispose()
@@ -1217,10 +1238,6 @@ class Cake(
                 is MenuSignal.PlayDemo -> startDemo(signal.profileId, signal.entry)
                 is MenuSignal.OpenUiSample -> openUiSample(signal.game)
                 MenuSignal.CloseUiSample -> closeUiSample()
-                is MenuSignal.CaptureUiSample -> {
-                    openUiSample(signal.modes.first())
-                    uiSample.startCapture(signal.modes, signal.directory)
-                }
                 is MenuSignal.PlayUiSound -> playMenuUiSound(signal.effect)
                 is MenuSignal.StateUpdated -> Unit
                 is MenuSignal.StatusMessage -> Unit

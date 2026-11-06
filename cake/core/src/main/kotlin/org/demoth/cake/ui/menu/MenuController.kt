@@ -182,8 +182,6 @@ class MenuController(
             MenuIntent.CancelSaveConfirmation -> saveStatus("")
             is MenuIntent.OpenUiSample -> bus.postSignal(MenuSignal.OpenUiSample(intent.game))
             MenuIntent.CloseUiSample -> bus.postSignal(MenuSignal.CloseUiSample)
-            is MenuIntent.CaptureUiSample ->
-                bus.postSignal(MenuSignal.CaptureUiSample(intent.modes, intent.directory))
             is MenuIntent.OpenHostingSetup -> {
                 if (!intent.singleplayer) refreshHostingMaps()
                 state = if (intent.singleplayer) state.copy(singleplayer = state.singleplayer.copy(statusMessage = ""))

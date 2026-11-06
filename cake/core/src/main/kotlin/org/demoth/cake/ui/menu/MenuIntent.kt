@@ -1,12 +1,10 @@
 package org.demoth.cake.ui.menu
 
-import java.nio.file.Path
 import jake2.qcommon.vfs.VfsEntry
 
 sealed interface MenuIntent {
     data class OpenUiSample(val game: Boolean? = null) : MenuIntent
     data object CloseUiSample : MenuIntent
-    data class CaptureUiSample(val modes: List<Boolean>, val directory: Path) : MenuIntent
 
     data object RequestStateSync : MenuIntent
     data object OpenMods : MenuIntent

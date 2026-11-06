@@ -12,7 +12,7 @@ Configstring assets belong to [game configuration](../config/README.md).
 | `GameUiStyleFactory` | Tries IdTech2 assets through mod/base lookup for every mod; releases partial acquisitions and falls back to `EngineUiStyle` on failure. |
 | `Cake` | Caches style by base-directory/mod, closes samples before style disposal, rebuilds menus and supplies the HUD style. |
 | `MenuStages` | Owns menu stages; rebuilds them when the shared style changes. |
-| `UiSamplePreview` | Owns gallery, commands, local mode changes, and capture; requests application transitions through the menu bus. |
+| `UiSamplePreview` | Owns gallery, commands, and local mode changes; requests application transitions through the menu bus. |
 
 - Styles acquire their own `AssetManager` references even for already-loaded textures.
 - HUD/menu font instances share a conchars texture but have independent metrics; dispose fonts before releasing the texture.
@@ -81,14 +81,12 @@ the [automation guide](../automation/README.md).
 | Command / flag | Behavior |
 |---|---|
 | `ui_sample [engine\|game\|off]` | Switch themes while retaining fixture edits, tree state, and scroll; Escape/Close returns to the prior view. |
-| `ui_sample_capture <engine\|game\|both> <directory>` | Write PNGs after two rendered frames per mode, then exit. Capture failures propagate. |
 | `+set cfg_autosave 0` | Avoid persisting temporary settings. |
 | `+set vid_hidden 1` | Start with a hidden window. |
 
-- Open/close/capture requests follow `MenuIntent → MenuController → MenuSignal → Cake`;
+- Open/close requests follow `MenuIntent → MenuController → MenuSignal → Cake`;
   console commands take effect on the next menu pump without changing menu navigation.
-- Engine/Game buttons and capture mode advances stay local. Capture timing starts
-  when the open request is handled; closing cancels active capture.
+- Engine/Game buttons stay local. Automated capture uses the shared script runner.
 - Cake retains visibility/input/pause policy and closes the gallery synchronously
   before style disposal or shutdown.
 

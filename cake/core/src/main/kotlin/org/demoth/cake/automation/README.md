@@ -1,5 +1,80 @@
 # Automation
 
+## Runtime scripts
+
+Enable `developer 1` to register the `automation_` commands. Registration is
+synchronized before startup commands and at frame boundaries; after enabling it
+interactively, allow a frame before submitting automation. Disabling it cancels
+active work and removes the commands. No extra cvars are needed.
+
+| Command | Action |
+|---|---|
+| `automation_run <file> [exit]` | Run a local script; `exit` requests application exit after successful completion. |
+| `automation_open <screen> [argument]` | Open a `MenuScreen` name in lowercase; `options_section` requires its prefix. `ui_sample` accepts `engine` or `game`. |
+| `automation_click <id>` | Click a control through stage input. |
+| `automation_await screen <name> [seconds]` | Wait for the presented screen, including `ui_sample` or `console`. |
+| `automation_await element <id> <visible\|enabled> [seconds]` | Wait for an element in the active stage and its visible/enabled ancestors. A click also checks its center is exposed. |
+| `automation_await game_ready [seconds]` | Wait for active gameplay with a renderable presentation. |
+| `automation_frames <count> [seconds]` | Wait for completed draws; zero-sized frames and extra command-buffer passes do not count. |
+| `automation_capture <file> [presentation\|final] [seconds]` | Capture a completed frame and wait for the PNG write before advancing. |
+| `automation_cancel` | Cancel the current sequence. |
+
+Waits default to 10 seconds. Only one sequence runs at a time. The operation
+commands also work individually in the console, starting a short sequence.
+Interactive completion leaves the client running. Failures propagate with script
+location and complete the result exceptionally; batch cancellation also fails.
+Use the `exit` option instead of a trailing global `quit`: commands outside the
+script are not sequenced with it.
+
+Scripts reuse engine quoting, macro expansion, cvars, aliases, `//` comments,
+newlines, and unquoted semicolons. Ordinary commands run through `Cmd`; commands
+that print/reject rather than throw need a following readiness check. Unknown
+`automation_` commands fail explicitly. Plain `wait` is rejected: use
+`automation_frames` for an actual rendered-frame wait.
+
+Automation owns its queue so waits do not stop global `Cbuf` server/loading work.
+Inside an automation script, `exec` reads a local file relative to its containing
+script and stays in this queue. Aliases stay here too; recursive expansion is
+limited to 32 levels. Global engine `exec` and aliases retain their normal behavior.
+Capture paths are also relative to their containing script; interactive paths are
+relative to the working directory. Quote paths containing spaces.
+
+The ready-to-run gallery script is `cake/automation/ui-sample.cfg`. From the repo root:
+
+```sh
+./gradlew :cake:cake-client:run --args='+set developer 1 +set cfg_autosave 0 +set vid_hidden 1 +set vid_fullscreen 0 +set vid_windowed_width 1440 +set vid_windowed_height 900 +set cl_ui_size 720 +automation_run ../cake/automation/ui-sample.cfg exit'
+```
+
+This writes `cake/build/captures/ui-sample/engine.png` and `game.png` and exits.
+`cfg_autosave 0` avoids automatic settings writes but still reads profile config;
+tests use isolated profiles. A graphics context/display is required.
+
+## Tests and standalone hosts
+
+`Cake.automation.runScript(path)` and `runText(text, directory = ...)` return a
+pollable `CompletableFuture<Unit>`. Tests may drive to a state without capturing,
+then use ordinary Kotlin/JUnit assertions after completion:
+
+```kotlin
+val sequence = cake.automation.runText("""
+    automation_open options
+    automation_await screen options
+""".trimIndent())
+// Continue rendering. Once sequence.isDone:
+sequence.join() // propagate failure before assertions
+assertEquals(MenuScreen.OPTIONS, cake.presentedMenuScreen)
+```
+
+`automation.await(description, timeoutSeconds) { predicate }` supports test-specific
+readiness without a runtime expression language. Cancel a returned future or call
+`automation.cancel(reason)` to stop its pending capture too.
+
+Standalone fixtures implement `AutomationHost` using their UI and captures.
+Call `runner.update()` before updates, `captures.beginFrame()` before drawing,
+and `runner.frameRendered()` only after a drawable frame's final capture hook.
+Dispose the runner and cancel captures on cleanup. Tests remain responsible for
+their own fixture setup, assertions and process lifecycle.
+
 ## UI access
 
 `Cake.automationUi` provides GL-thread navigation and ID-based input for runtime
