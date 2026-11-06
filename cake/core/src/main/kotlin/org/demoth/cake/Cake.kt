@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
 import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.graphics.profiling.GLProfiler
+import com.badlogic.gdx.scenes.scene2d.Stage
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.ScreenUtils
 import com.badlogic.gdx.utils.viewport.ScreenViewport
@@ -52,6 +53,7 @@ import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.ClientNetworkState.*
 import org.demoth.cake.assets.*
 import org.demoth.cake.download.CakeDownloadSession
+import org.demoth.cake.automation.AutomationUi
 import org.demoth.cake.hosting.*
 import org.demoth.cake.input.InputManager
 import org.demoth.cake.profile.CakeHostStartupSettings
@@ -74,7 +76,7 @@ import java.time.format.DateTimeFormatter
 import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.md2.Md2Loader
 
-private enum class ClientNetworkState {
+enum class ClientNetworkState {
     DISCONNECTED,
     CONNECTING, // started the connection procedure
     CONNECTED, // connection established, preparing resources
@@ -174,6 +176,32 @@ class Cake(
     private val menuController = MenuController(createMenuBackend(), menuEventBus)
     private val uiSample = UiSamplePreview(menuEventBus)
     private var uiSampleReturnToMenu = true
+
+    // Read-only observations for GL-thread automation and integration assertions.
+    val menuState: MenuStateSnapshot get() = menuEventBus.latestState()
+    val connectionState: ClientNetworkState get() = networkState
+    val isMenuVisible: Boolean get() = menuVisible
+    val isConsoleVisible: Boolean get() = consoleVisible
+    val presentedMenuScreen: MenuScreen?
+        get() = if (menuVisible && !consoleVisible && !uiSample.isOpen) menuStages.activeScreen else null
+    val isGamePresentationReady: Boolean
+        get() = networkState == ACTIVE && game3dScreen?.canRenderPresentationFrame() == true
+
+    val automationUi = AutomationUi(
+        currentStage = {
+            when {
+                consoleVisible -> consoleStage
+                uiSample.isOpen -> uiSample.inputProcessor as? Stage
+                menuVisible -> menuStages.inputProcessor as? Stage
+                else -> null
+            }
+        },
+        navigate = { intent ->
+            menuEventBus.postIntent(MenuIntent.CloseUiSample)
+            menuEventBus.postIntent(intent)
+            menuEventBus.postSignal(MenuSignal.ShowMenu)
+        },
+    )
 
     // Visibility and global input routing.
     private var physicalConsoleToggleKeyDown = false

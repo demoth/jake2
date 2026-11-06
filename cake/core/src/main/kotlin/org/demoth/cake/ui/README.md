@@ -73,6 +73,29 @@ artwork and atlas lines; tree slots match the 8-unit game theme.
 - MenuController emits navigation-depth signals; Cake plays queued sounds.
 - Shared button helpers apply hover sound/text feedback and reset it on click or menu changes.
 
+## Automation UI access
+
+`Cake.automationUi` provides GL-thread navigation and ID-based input for runtime
+automation and integration tests. Direct driving requires `developer = 1`.
+Script execution and `automation_` command registration are a subsequent slice.
+
+- Use `Actor.name` for IDs unique within a stage, independent of labels and themes.
+  Existing save/Mods IDs are retained; gallery controls use `sample-engine`,
+  `sample-game`, `sample-close`, `sample-action`, and `sample-disabled`.
+- `open(MenuScreen, optionsSection?)` requests normal deferred menu navigation.
+  Wait for a frame and inspect `Cake.presentedMenuScreen` before interacting.
+- `find(id)` returns null for absence and fails for duplicates; `element(id)`
+  requires a match. Lookup always uses the currently presented stage, with console
+  taking priority over gallery and menus. Retained actors are invalid after rebuilds.
+- `click(id)` sends a left-button down/up through the stage at the control's
+  center, using viewport coordinates. Hidden/disabled ancestors and covered,
+  clipped, or noninteractive targets fail; scroll the target into view first.
+- `Cake.menuState`, `connectionState`, overlay visibility, and
+  `isGamePresentationReady` expose read-only observations for waits and ordinary
+  Kotlin/JUnit assertions. Menu state alone does not imply that menu is visible.
+
+`AutomationUi` can also wrap a standalone stage provider and navigation callback.
+
 ## Developer gallery
 
 | Command / flag | Behavior |

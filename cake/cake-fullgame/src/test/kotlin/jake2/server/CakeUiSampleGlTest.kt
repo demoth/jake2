@@ -17,6 +17,7 @@ import org.demoth.cake.profile.CakeGameProfile
 import org.demoth.cake.profile.CakeGameProfileStore
 import org.demoth.cake.stages.console.ConsoleStage
 import org.demoth.cake.ui.sample.UiSkinSample
+import org.demoth.cake.ui.menu.MenuScreen
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
@@ -38,7 +39,7 @@ class CakeUiSampleGlTest {
             MainCommon.registerCvars(false)
             CakeCvars.registerAll()
             CakeGameProfileStore().upsertProfile(CakeGameProfile("first", temp.toString()))
-            val startup = CakeStartupBootstrap.bootstrap()
+            val startup = CakeStartupBootstrap.bootstrap(arguments = listOf("+set", "developer", "1"))
             Lwjgl3Application(object : ApplicationAdapter() {
                 private var cake: Cake? = null
                 override fun create() {
@@ -51,14 +52,26 @@ class CakeUiSampleGlTest {
                         app.render()
                         val sample = activeInput()
                         assertInstanceOf(UiSkinSample::class.java, sample)
+                        assertSame(sample, app.automationUi.stage)
+                        assertNull(app.presentedMenuScreen)
+                        val oldAction = app.automationUi.element("sample-action")
+                        app.automationUi.click("sample-game")
+                        assertNotSame(oldAction, app.automationUi.element("sample-action"),
+                            "Theme rebuilds must resolve new controls with the same IDs")
+                        app.automationUi.click("sample-action")
                         app.keyUp(Input.Keys.GRAVE)
                         assertInstanceOf(ConsoleStage::class.java, activeInput())
+                        assertSame(activeInput(), app.automationUi.stage)
                         app.keyUp(Input.Keys.GRAVE)
                         assertSame(sample, activeInput())
                         app.keyUp(Input.Keys.ESCAPE)
                         assertSame(sample, activeInput(), "Escape requests close through the bus")
                         app.render()
                         assertSame(menu, activeInput())
+
+                        app.automationUi.open(MenuScreen.OPTIONS)
+                        app.render()
+                        assertEquals(MenuScreen.OPTIONS, app.presentedMenuScreen)
 
                         Cmd.ExecuteString("ui_sample game")
                         app.render()

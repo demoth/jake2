@@ -97,9 +97,9 @@ class UiSkinSample(
         val controls = Table().apply {
             defaults().padRight(8f)
             add(Label(heading, styles.label).apply { setWrap(true) }).growX().minWidth(0f).left()
-            add(button("Engine", styles.button) { onMode(false) }).minWidth(90f)
-            add(button("Game", styles.button) { onMode(true) }).minWidth(90f)
-            add(button("Close", styles.button, onClose)).minWidth(90f)
+            add(button("Engine", styles.button) { onMode(false) }.apply { name = "sample-engine" }).minWidth(90f)
+            add(button("Game", styles.button) { onMode(true) }.apply { name = "sample-game" }).minWidth(90f)
+            add(button("Close", styles.button, onClose).apply { name = "sample-close" }).minWidth(90f)
         }
         content.add(controls).row()
         content.add(Label("Text: ABC xyz 0123456789 !? café …", styles.label).apply { setWrap(true) })
@@ -108,8 +108,8 @@ class UiSkinSample(
         val result = Label("Clicks: $actionCount", styles.label)
         content.add(Table().apply {
             defaults().padRight(10f).left()
-            add(button("Action", styles.button) { result.setText("Clicks: ${++actionCount}") })
-            add(TextButton("Disabled", styles.button).apply { isDisabled = true })
+            add(button("Action", styles.button) { result.setText("Clicks: ${++actionCount}") }.apply { name = "sample-action" })
+            add(TextButton("Disabled", styles.button).apply { name = "sample-disabled"; isDisabled = true })
             add(result).growX()
             add(TextButton("x", styles.checkBox).apply {
                 isChecked = checked

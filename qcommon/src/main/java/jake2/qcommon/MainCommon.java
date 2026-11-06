@@ -16,7 +16,7 @@ public class MainCommon {
     public static void registerCvars(boolean dedicatedMode) {
         Cvar cvars = Cvar.getInstance();
         Globals.dedicated = cvars.register("dedicated", CvarTypes.BOOLEAN, dedicatedMode, CVAR_NOSET);
-        Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Print developer diagnostics");
+        Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer diagnostics and automation");
         Globals.host_speeds = cvars.register("host_speeds", CvarTypes.BOOLEAN, false, 0, "Legacy frame timing diagnostics; currently unused");
         Globals.showtrace = cvars.register("showtrace", CvarTypes.BOOLEAN, false, 0, "Print collision trace, point-content and brush-test counts per frame");
         Globals.fixedtime = cvars.register("fixedtime", new CvarTypes.IntegerType(0, null), 0, 0, "Override frame duration in milliseconds; 0 disables the override");
