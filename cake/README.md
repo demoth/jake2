@@ -222,6 +222,7 @@ updates in both host configurations; game content and recordings stay outside gi
 - [Input, bindings, and configuration persistence](core/src/main/kotlin/org/demoth/cake/input/README.md)
 - [UI styles and menu architecture](core/src/main/kotlin/org/demoth/cake/ui/README.md)
 - [Menu screens](core/src/main/kotlin/org/demoth/cake/stages/README.md)
+- [Developer automation](core/src/main/kotlin/org/demoth/cake/automation/README.md)
 - [Console](core/src/main/kotlin/org/demoth/cake/stages/console/README.md)
 - [Ingame runtime](core/src/main/kotlin/org/demoth/cake/stages/ingame/README.md)
 - [HUD layouts](core/src/main/kotlin/org/demoth/cake/stages/ingame/hud/README.md)
