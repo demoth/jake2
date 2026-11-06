@@ -8,7 +8,11 @@ public class Jbsp {
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            logger.info("usage: [info|transparency] <args>");
+            logger.info("usage: [info|transparency|catalog] <args>");
+            return;
+        }
+        if (args[0].equals("catalog")) {
+            JbspCatalog.main(java.util.Arrays.copyOfRange(args, 1, args.length));
             return;
         }
         jake2.qcommon.MainCommon.registerCvars(false);
@@ -20,7 +24,7 @@ public class Jbsp {
                 JbspTransparencyInfo.transparency(args);
                 break;
             default:
-                logger.info("usage: [info|transparency] <args>");
+                logger.info("usage: [info|transparency|catalog] <args>");
         }
     }
 }
