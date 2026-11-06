@@ -22,6 +22,8 @@ class HiddenGlTestGlTest {
         val result = CompletableFuture<Unit>()
         val actual = assertThrows(AssertionError::class.java) {
             HiddenGlTest.run(home = temp) {
+                val release = onCleanup { cleanups += "scoped" }
+                release()
                 onCleanup {
                     cleanups += "first"
                     assertEquals(temp.toString(), System.getProperty("user.home"))
@@ -41,7 +43,7 @@ class HiddenGlTestGlTest {
         }
         assertSame(expected, actual)
         assertTrue(actual.suppressed.contains(cleanupFailure))
-        assertEquals(listOf("second", "first"), cleanups)
+        assertEquals(listOf("scoped", "second", "first"), cleanups)
         assertEquals(home, System.getProperty("user.home"))
     }
 

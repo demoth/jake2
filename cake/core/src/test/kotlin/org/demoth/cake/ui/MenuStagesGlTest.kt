@@ -1,11 +1,20 @@
 package org.demoth.cake.ui
 
-import com.badlogic.gdx.ApplicationAdapter
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.utils.ScreenUtils
+import jake2.qcommon.Globals
+import org.demoth.cake.automation.AutomationCaptures
+import org.demoth.cake.automation.AutomationHost
+import org.demoth.cake.automation.AutomationRunner
+import org.demoth.cake.automation.AutomationUi
+import org.demoth.cake.automation.CaptureLayer
+import org.demoth.cake.testing.HiddenGlTest
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
+import java.util.Locale
 import com.badlogic.gdx.assets.AssetManager
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.Group
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -40,37 +49,32 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 
 @EnabledIfEnvironmentVariable(named = "CAKE_VIDEO_GL_TESTS", matches = "1")
 class MenuStagesGlTest {
+    @TempDir lateinit var temp: Path
+
     @Test
     fun `navigation and rebuild retain active screen and refresh browser presentation`() {
-        var failure: Throwable? = null
-        Lwjgl3Application(object : ApplicationAdapter() {
-            override fun create() {
-                try {
-                    verifyMenuStages()
-                } catch (error: Throwable) {
-                    failure = error
-                } finally {
-                    Gdx.app.exit()
-                }
-            }
-        }, Lwjgl3ApplicationConfiguration().apply {
-            setInitialVisible(false)
-            disableAudio(true)
-            setWindowedMode(640, 480)
-        })
-        failure?.let { throw it }
+        HiddenGlTest.run(home = temp) { verifyMenuStages() }
     }
 
-    private fun verifyMenuStages() {
+    private suspend fun HiddenGlTest.verifyMenuStages() {
         jake2.qcommon.MainCommon.registerCvars(false)
         org.demoth.cake.CakeCvars.registerAll()
+        val developer = Globals.developer.typedValue
+        onCleanup { Globals.developer.forceSet(developer) }
+        Globals.developer.forceSet(true)
         val skin = Skin(Gdx.files.internal("../../assets/ui/uiskin.json"))
         Scene2DSkin.defaultSkin = skin
         val style = EngineUiStyle(skin)
         val assets = AssetManager()
         val bus = MenuEventBus()
-        val viewport = UiViewport().apply { update(640, 480, true) }
+        val viewport = UiViewport().apply { update(Gdx.graphics.width, Gdx.graphics.height, true) }
         val menus = MenuStages(viewport, bus, assets, CakeFileResolver(), false) { null }
+        val release = onCleanup {
+            menus.dispose()
+            style.dispose()
+            assets.dispose()
+            skin.dispose()
+        }
         try {
             verifyMissingTextures()
             verifyModelTextureReplacement()
@@ -80,12 +84,13 @@ class MenuStagesGlTest {
             val atlas = com.badlogic.gdx.graphics.Texture(atlasPixels)
             atlasPixels.dispose()
             val gameFont = ConcharsFontLoader.createBitmapFont(atlas)
+            val releaseGameStyle = onCleanup { gameFont.dispose(); atlas.dispose() }
             try {
                 val gameStyle = object : GameUiStyle by style {
                     override val menuWidgets = createMenuWidgetStyles(skin, gameFont, atlas)
                 }
                 verifyModsBrowser(viewport, gameStyle)
-            } finally { gameFont.dispose(); atlas.dispose() }
+            } finally { releaseGameStyle() }
             verifyHostMapSelection(viewport, style)
             verifySavedGames(viewport, style)
             verifySingleplayerHub(viewport, style)
@@ -123,12 +128,7 @@ class MenuStagesGlTest {
             menus.select(MenuScreen.MAIN)
             assertNotSame(main, menus.inputProcessor)
             menus.render(1f / 60f)
-        } finally {
-            menus.dispose()
-            style.dispose()
-            assets.dispose()
-            skin.dispose()
-        }
+        } finally { release() }
     }
 
     private fun verifyModelTextureReplacement() {
@@ -252,7 +252,7 @@ class MenuStagesGlTest {
         }
     }
 
-    private fun verifyModsBrowser(viewport: UiViewport, style: GameUiStyle) {
+    private suspend fun HiddenGlTest.verifyModsBrowser(viewport: UiViewport, style: GameUiStyle) {
         verifyWrappedText(style)
         val root = java.nio.file.Files.createTempDirectory("cake-mods-ui-")
         val folder = java.nio.file.Files.createDirectories(root.resolve("catalog"))
@@ -270,20 +270,60 @@ class MenuStagesGlTest {
         val assets = AssetManager()
         val resolver = CakeFileResolver()
         val menus = MenuStages(viewport, bus, assets, resolver, false) { profile.id }
+        val intents = mutableListOf<MenuIntent>()
+        val host = object : AutomationHost {
+            override val automationUi = AutomationUi({ menus.inputProcessor as Stage }, bus::postIntent)
+            override val automationCaptures = AutomationCaptures()
+            override val presentedAutomationScreen get() = menus.activeScreen.name.lowercase(Locale.ROOT)
+            override val isGamePresentationReady = false
+            override fun openAutomationSample(game: Boolean?) = error("No gallery in this stage fixture")
+        }
+        val runner = AutomationRunner(host)
+        val release = onCleanup {
+            renderWith {}
+            runner.dispose()
+            host.automationCaptures.cancelAll("Mods fixture disposed")
+            menus.dispose()
+            assets.dispose()
+            root.toFile().deleteRecursively()
+        }
         try {
             menus.rebuild(style)
-            menus.select(MenuScreen.MODS)
-            repeat(2) { menus.render(1f / 60f) }
-            System.getenv("CAKE_MODS_CAPTURE")?.takeIf { style is EngineUiStyle }?.let { path ->
-                val pixels = com.badlogic.gdx.graphics.Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.width, Gdx.graphics.height)
-                try { com.badlogic.gdx.graphics.PixmapIO.writePNG(Gdx.files.absolute(path), pixels, -1, true) }
-                finally { pixels.dispose() }
+            renderWith {
+                runner.update()
+                host.automationCaptures.beginFrame()
+                bus.drainIntents { intent ->
+                    intents += intent
+                    // Component fixture: apply navigation only; backend requests remain assertions.
+                    val screen = when (intent) {
+                        MenuIntent.OpenMods -> MenuScreen.MODS
+                        MenuIntent.OpenMainMenu -> MenuScreen.MAIN
+                        else -> null
+                    }
+                    if (screen != null) {
+                        bus.postState(bus.latestState().copy(activeScreen = screen))
+                        menus.select(screen)
+                    }
+                }
+                if (Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0) {
+                    ScreenUtils.clear(0f, 0f, 0f, 1f)
+                    menus.render(Gdx.graphics.deltaTime)
+                    host.automationCaptures.afterDraw(CaptureLayer.PRESENTATION)
+                    host.automationCaptures.afterDraw(CaptureLayer.FINAL)
+                    runner.frameRendered()
+                }
             }
-            var stage = menus.inputProcessor as Stage
+            await(runner.runText("""
+                automation_open mods
+                automation_await screen mods
+                automation_await element mod-checkbox:catalog/example.zip enabled
+                automation_frames 2
+            """.trimIndent()))
+            var stage = host.automationUi.stage
             assertTrue(labels(stage.root).any { it.contains("Archive readme fixture") })
             assertTrue(resolver.listContentEntries().isEmpty(), "Inspecting must not change gameplay mounts")
-            val checkbox = stage.root.findActor<TextButton>("mod-checkbox:catalog/example.zip")
-            val row = stage.root.findActor<TextButton>("mod-row:catalog/example.zip")
+            val checkbox = host.automationUi.element("mod-checkbox:catalog/example.zip") as TextButton
+            val row = host.automationUi.element("mod-row:catalog/example.zip") as TextButton
             assertEquals(checkbox.height, row.height)
             assertEquals(checkbox.y, row.y)
             assertSame(checkbox.style.up, row.style.up)
@@ -292,32 +332,38 @@ class MenuStagesGlTest {
             assertEquals(row.style.checkedFontColor, row.style.checkedOverFontColor)
             assertFalse(checkbox.isDisabled)
             assertFalse(checkbox.isChecked)
-            checkbox.isChecked = true
-            val intents = mutableListOf<MenuIntent>()
-            bus.drainIntents { intents += it }
+
+            // Capture remains optional for sequences; stop for JUnit assertions before requesting it.
+            val theme = if (style is EngineUiStyle) "engine" else "game"
+            val output = Path.of("build/reports/menu-stages-$theme.png").toAbsolutePath()
+            await(runner.runText("automation_capture \"$output\" presentation"))
+            val image = Pixmap(Gdx.files.absolute(output.toString()))
+            try {
+                assertEquals(Gdx.graphics.backBufferWidth, image.width)
+                assertEquals(Gdx.graphics.backBufferHeight, image.height)
+            } finally { image.dispose() }
+
+            await(runner.runText("automation_click mod-checkbox:catalog/example.zip"))
             assertTrue(intents.contains(MenuIntent.SetModIncluded(profile.id, "catalog/example.zip", true)))
             menus.rebuild(style)
-            menus.render(1f / 60f)
-            stage = menus.inputProcessor as Stage
+            await(runner.runText("automation_frames 1"))
+            assertNotSame(stage, host.automationUi.stage)
+            stage = host.automationUi.stage
             assertTrue(labels(stage.root).any { it.contains("Archive readme fixture") }, "Rebuild must restore inspection")
             // Missing packages remain listed and removable, with a visible inspection error.
             java.nio.file.Files.delete(archive)
             bus.postState(bus.latestState().copy(mods = bus.latestState().mods.copy(revision = 1,
                 profile = profile.copy(includedArchives = listOf("catalog/example.zip")),
                 archives = listOf(org.demoth.cake.profile.ProfileArchive("catalog/example.zip", true, false, true)))))
-            menus.render(1f / 60f)
+            await(runner.runText("automation_frames 1"))
             assertTrue(labels(stage.root).any { it.contains("Could not inspect") })
-            val missingCheckbox = stage.root.findActor<TextButton>("mod-checkbox:catalog/example.zip")
+            val missingCheckbox = host.automationUi.element("mod-checkbox:catalog/example.zip") as TextButton
             assertFalse(missingCheckbox.isDisabled)
             assertTrue(missingCheckbox.isChecked)
-            missingCheckbox.isChecked = false
-            bus.drainIntents { intents += it }
+            await(runner.runText("automation_click mod-checkbox:catalog/example.zip"))
             assertTrue(intents.contains(MenuIntent.SetModIncluded(profile.id, "catalog/example.zip", false)))
-            menus.select(MenuScreen.MAIN)
-        } finally {
-            menus.dispose(); assets.dispose()
-            root.toFile().deleteRecursively()
-        }
+            await(runner.runText("automation_open main; automation_await screen main"))
+        } finally { release() }
     }
 
     private fun verifyHostMapSelection(viewport: UiViewport, style: GameUiStyle) {

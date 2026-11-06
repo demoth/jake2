@@ -78,6 +78,8 @@ blocking GL or invoking assertions inside runner callbacks. It owns the hidden
 window, overall timeout, reverse-order cleanup, and temporary home scope. Register
 cleanup before initialization; failures are rethrown to JUnit with cleanup
 errors suppressed. An early application exit cannot count as scenario completion.
+`onCleanup` returns an idempotent release function for fixtures that must close
+before the test ends; final cleanup will not dispose them again.
 
 `automation.await(description, timeoutSeconds) { predicate }` supports test-specific
 readiness without a runtime expression language. Cancel a returned future or call
@@ -88,6 +90,12 @@ Call `runner.update()` before updates, `captures.beginFrame()` before drawing,
 and `runner.frameRendered()` only after a drawable frame's final capture hook.
 Dispose the runner and cancel captures on cleanup. Tests remain responsible for
 their own fixture setup, assertions and process lifecycle.
+
+The [standalone menu-stage test](../../../../../../test/kotlin/org/demoth/cake/ui/MenuStagesGlTest.kt)
+shows this without a Cake client or server: navigation selects fixture screens,
+while backend requests remain intents checked by JUnit. It writes
+`cake/core/build/reports/menu-stages-engine.png` and `menu-stages-game.png` through
+the shared capture command at physical framebuffer dimensions.
 
 ## UI access
 

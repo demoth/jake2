@@ -22,7 +22,18 @@ class HiddenGlTest private constructor() {
     private var failure: Throwable? = null
 
     fun renderWith(render: () -> Unit) { this.render = render }
-    fun onCleanup(cleanup: () -> Unit) { cleanups += cleanup }
+    /** The returned handle may release a scoped fixture early; final cleanup will not repeat it. */
+    fun onCleanup(cleanup: () -> Unit): () -> Unit {
+        var pending: (() -> Unit)? = cleanup
+        val release = {
+            val action = pending
+            pending = null
+            action?.invoke()
+            Unit
+        }
+        cleanups += release
+        return release
+    }
 
     /** Resume after rendering, never inline in the runner's completion callback or by blocking GL. */
     suspend fun <T> await(result: CompletableFuture<T>): T = suspendCoroutine { continuation ->
