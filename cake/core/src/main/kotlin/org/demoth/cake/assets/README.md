@@ -18,7 +18,12 @@ It does **not** own gameplay selection rules (for example which player model/ski
 
 `CakeFileResolver` checks the per-mod download cache, shared VFS game-data layers,
 then bundled resources. `CakeVfsAssetSource` adapts VFS entries to libGDX file
-handles, materialising packaged assets as temporary files when needed. Shared VFS
+handles, materialising packaged assets as temporary files when needed. Mods inspection
+uses a private archive context with the selected archive above the profile's numbered
+`baseq2/pakN.pak` files. Only the selected archive is listed; baseline textures and
+other assets can satisfy preview dependencies. Loose files, other optional archives,
+and the gameplay resolver are excluded from that inspection context. Archive-only
+callers can omit the baseline directory. Shared VFS
 layering is documented in [the VFS guide](../../../../../../../../../qcommon/vfs/README.md).
 
 `resolve(...)` applies missing-resource policy after looking up the requested path:

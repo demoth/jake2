@@ -225,7 +225,35 @@ class MenuStagesGlTest {
         } finally { assets.dispose() }
     }
 
+    private fun verifyWrappedText(style: GameUiStyle) {
+        val file = java.nio.file.Files.createTempFile("cake-wrapped-text-", ".txt")
+        java.nio.file.Files.writeString(file, "Wide readme fixture " + "words on a very long line ".repeat(80))
+        val assets = AssetManager(com.badlogic.gdx.assets.loaders.FileHandleResolver {
+            com.badlogic.gdx.files.FileHandle(it)
+        })
+        val preview = FileResourcePreview(assets, ContentBrowserStyles.fromMenu(style.menuWidgets))
+        try {
+            val view = preview.open(file.toString()) as com.badlogic.gdx.scenes.scene2d.ui.Table
+            view.setSize(360f, 140f)
+            repeat(3) { view.validate() }
+            val text = view.findActor<Label>("resource-text")
+            val scroll = view.findActor<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>("resource-text-scroll")
+            val wideHeight = text.prefHeight
+            assertTrue(text.wrap)
+            assertFalse(scroll.isScrollX, "Long text must fit the viewport width")
+            assertTrue(scroll.maxY > 0f, "Wrapped text remains vertically scrollable")
+            assertTrue(text.width <= scroll.width)
+            view.setSize(180f, 140f)
+            repeat(3) { view.validate() }
+            assertTrue(text.prefHeight > wideHeight, "Text reflows when the preview becomes narrower")
+            assertFalse(scroll.isScrollX)
+        } finally {
+            preview.close(); assets.dispose(); java.nio.file.Files.delete(file)
+        }
+    }
+
     private fun verifyModsBrowser(viewport: UiViewport, style: GameUiStyle) {
+        verifyWrappedText(style)
         val root = java.nio.file.Files.createTempDirectory("cake-mods-ui-")
         val folder = java.nio.file.Files.createDirectories(root.resolve("catalog"))
         val archive = folder.resolve("example.zip")

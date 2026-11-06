@@ -167,7 +167,7 @@ class ModsStage(
         if (profile == null || path == null) return
         try {
             val file = ProfileArchives.resolve(profile, path)
-            val entries = source.configureArchive(file.toString())
+            val entries = source.configureArchive(file.toString(), profile.basedir)
             media.contentPaths = entries.map { it.normalizedPath }
             val counts = entries.groupingBy { it.normalizedPath.substringBefore('/') }.eachCount()
             summary.setText("${entries.size} files | " + listOf("maps", "textures", "models", "sound", "pics")

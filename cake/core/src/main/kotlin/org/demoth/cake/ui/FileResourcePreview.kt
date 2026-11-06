@@ -27,8 +27,14 @@ internal class FileResourcePreview(private val assets: AssetManager, private val
                     .removePrefix("\uFEFF").replace("\r\n", "\n").replace('\r', '\n').replace("\t", "    ")
                 val literal = if (styles.label.font.data.markupEnabled) text.replace("[", "[[") else text
                 Table().apply {
-                    val label = Label(literal, styles.label).apply { setAlignment(Align.topLeft) }
+                    val label = Label(literal, styles.label).apply {
+                        name = "resource-text"
+                        setAlignment(Align.topLeft)
+                        setWrap(true)
+                    }
                     add(ScrollPane(label, styles.scrollPane).apply scroll@{
+                        name = "resource-text-scroll"
+                        setScrollingDisabled(true, false)
                         setFadeScrollBars(false)
                         setFlickScroll(false)
                         addListener(object : com.badlogic.gdx.scenes.scene2d.InputListener() {

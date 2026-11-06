@@ -4,6 +4,8 @@ import com.badlogic.gdx.files.FileHandle
 import jake2.qcommon.vfs.DefaultVirtualFileSystem
 import jake2.qcommon.vfs.VfsConfig
 import jake2.qcommon.vfs.VfsEntry
+import jake2.qcommon.vfs.VfsPackageSelection
+import jake2.qcommon.vfs.VfsPackOrder
 import jake2.qcommon.vfs.VfsSourceType
 import java.nio.file.Files
 import java.nio.file.Path
@@ -66,9 +68,14 @@ internal class CakeVfsAssetSource {
         initialized = true
     }
 
-    /** Mounts only the selected archive, retaining the previous context if mounting fails. */
+    /**
+     * Isolated inspection: the selected archive overrides the profile's numbered baseq2 PAKs.
+     * Loose files and other optional archives are excluded. Returns only the selected archive's
+     * entries for browsing, while resolution and texture candidate lookup can use baseline assets.
+     * Omitting basedir retains archive-only inspection. Failure leaves the previous context intact.
+     */
     @Synchronized
-    fun configureArchive(archivePath: String): List<VfsEntry> {
+    fun configureArchive(archivePath: String, basedir: String? = null): List<VfsEntry> {
         val archiveVfs = DefaultVirtualFileSystem()
         archiveVfs.configure(
             VfsConfig(
@@ -76,13 +83,30 @@ internal class CakeVfsAssetSource {
                 setOf("pak", "pk2", "pk3", "pkz", "zip"),
             ),
         )
-        val mounted = archiveVfs.mountPackage(archivePath)
+        val selected = Path.of(archivePath).toAbsolutePath().normalize()
+        val baseDirectory = basedir?.takeIf { it.isNotBlank() }?.let { Path.of(it).resolve("baseq2") }
+        if (baseDirectory != null && Files.isDirectory(baseDirectory)) {
+            val order = VfsPackOrder()
+            Files.list(baseDirectory).use { files ->
+                files.filter { Files.isRegularFile(it) && VfsPackageSelection.isNumberedPak(it.fileName.toString()) }
+                    .sorted { a, b -> order.compare(a.toString(), b.toString()) }
+                    .forEach { basePak ->
+                        // The selected archive may itself be a numbered base PAK. Mount it last.
+                        if (basePak.toAbsolutePath().normalize() != selected) {
+                            val mounted = archiveVfs.mountPackage(basePak.toString())
+                            require(mounted.success) { mounted.error ?: "Could not mount base archive: $basePak" }
+                        }
+                    }
+            }
+        }
+        val mounted = archiveVfs.mountPackage(selected.toString())
         require(mounted.success) { mounted.error ?: "Could not mount archive: $archivePath" }
+        val entries = archiveVfs.listEntries().filter { it.source.containerPath == selected }
         clearExtractedPackageFiles()
         vfs = archiveVfs
         archiveContext = true
         initialized = true
-        return vfs.listEntries()
+        return entries
     }
 
     /** Open profile content directly, retaining the VFS handle until the caller closes the stream. */
