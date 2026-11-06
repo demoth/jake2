@@ -39,13 +39,14 @@ limited to 32 levels. Global engine `exec` and aliases retain their normal behav
 Capture paths are also relative to their containing script; interactive paths are
 relative to the working directory. Quote paths containing spaces.
 
-The ready-to-run gallery script is `cake/automation/ui-sample.cfg`. From the repo root:
+The ready-to-run gallery script is `assets/automation/ui-sample.cfg`. From the repo root:
 
 ```sh
-./gradlew :cake:cake-client:run --args='+set developer 1 +set cfg_autosave 0 +set vid_hidden 1 +set vid_fullscreen 0 +set vid_windowed_width 1440 +set vid_windowed_height 900 +set cl_ui_size 720 +automation_run ../cake/automation/ui-sample.cfg exit'
+./gradlew :cake:cake-client:run --args='+set developer 1 +set cfg_autosave 0 +set vid_hidden 1 +set vid_fullscreen 0 +set vid_windowed_width 1440 +set vid_windowed_height 900 +set cl_ui_size 720 +automation_run automation/ui-sample.cfg exit'
 ```
 
-This writes `cake/build/captures/ui-sample/engine.png` and `game.png` and exits.
+This writes `build/captures/ui-sample/engine.png` and `game.png` under the repo root
+and exits. The script uses filesystem paths; captures stay outside `assets/`.
 `cfg_autosave 0` avoids automatic settings writes but still reads profile config;
 tests use isolated profiles. A graphics context/display is required.
 

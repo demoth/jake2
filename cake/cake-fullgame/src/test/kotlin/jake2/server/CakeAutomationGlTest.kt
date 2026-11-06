@@ -79,6 +79,12 @@ class CakeAutomationGlTest {
                         assertFalse(Files.readAllBytes(temp.resolve("engine.png")).contentEquals(Files.readAllBytes(temp.resolve("game.png"))))
 
                         exited = false
+                        val sample = temp.resolve("assets/automation/ui-sample.cfg")
+                        Files.createDirectories(sample.parent)
+                        Files.copy(Path.of("../../assets/automation/ui-sample.cfg"), sample)
+                        finish(app.automation.runScript(sample))
+                        assertTrue(Files.isRegularFile(temp.resolve("build/captures/ui-sample/engine.png")))
+                        assertTrue(Files.isRegularFile(temp.resolve("build/captures/ui-sample/game.png")))
                         finish(app.automation.runText("automation_open options; automation_await screen options"))
                         assertEquals(MenuScreen.OPTIONS, app.presentedMenuScreen)
                         assertFalse(exited, "Screenshot-free interactive sequences leave the client running")

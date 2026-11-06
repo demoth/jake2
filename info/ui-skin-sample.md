@@ -64,10 +64,11 @@ All widgets and captions use the selected theme on a neutral backdrop. Broader t
 ## Automated captures
 
 The gallery uses the shared [automation command scripts](../cake/core/src/main/kotlin/org/demoth/cake/automation/README.md#runtime-scripts).
-Run `cake/automation/ui-sample.cfg` with `developer = 1`; it opens each theme,
-waits for rendered frames and writes `engine.png` / `game.png` under
-`cake/build/captures/ui-sample`. The automation guide includes the hidden-window
-launch command and script syntax. The gallery owns no capture or exit sequence.
+Run `automation_run automation/ui-sample.cfg` from the `assets/` working directory
+with `developer = 1`. The script opens each theme, waits for rendered frames and
+writes `engine.png` / `game.png` under the repo root's `build/captures/ui-sample`,
+outside the asset tree. The automation guide includes the hidden-window launch
+command and script syntax. The gallery owns no capture or exit sequence.
 
 ## Content browser
 
