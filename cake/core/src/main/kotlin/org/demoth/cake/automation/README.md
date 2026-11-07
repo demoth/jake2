@@ -21,8 +21,9 @@ active work and removes the commands. No extra cvars are needed.
 
 Waits default to 10 seconds. Only one sequence runs at a time. The operation
 commands also work individually in the console, starting a short sequence.
-Interactive completion leaves the client running. Failures propagate with script
-location and complete the result exceptionally; batch cancellation also fails.
+Interactive completion leaves the client running. Command and wait failures report
+their script location; write/render failures propagate to the caller. Failed
+sequences complete exceptionally, and batch cancellation also fails.
 Use the `exit` option instead of a trailing global `quit`: commands outside the
 script are not sequenced with it.
 
@@ -49,6 +50,17 @@ This writes `build/captures/ui-sample/engine.png` and `game.png` under the repo 
 and exits. The script uses filesystem paths; captures stay outside `assets/`.
 `cfg_autosave 0` avoids automatic settings writes but still reads profile config;
 tests use isolated profiles. A graphics context/display is required.
+
+For a capture in an already running visible client, enter `set developer 1` in
+the console, allow a frame for registration, then run:
+
+```text
+automation_capture "/tmp/cake-current.png" final
+```
+
+The client stays open. `final` includes console/diagnostic overlays; use
+`presentation` to omit those overlays. The old `ui_sample_capture` command has
+been removed; gallery capture uses the shared script above.
 
 ## Tests and standalone hosts
 
@@ -148,3 +160,27 @@ captures.afterDraw(CaptureLayer.PRESENTATION)
 check(result.isDone)
 result.join()                     // inspect only after completion
 ```
+
+## Verification
+
+| Usage | Integration check | Capture output, relative to repo root |
+|---|---|---|
+| Gallery script and screenshot-free assertions | `CakeAutomationGlTest` | `build/captures/ui-sample/{engine,game}.png` from the runtime sample |
+| Real save/load, confirmations, failure/recovery and profiles | `CakeSaveMenusGlTest` | `cake/cake-fullgame/build/reports/save-menu-layout.png` |
+| Standalone synthetic Mods fixtures, rebuilds and missing archives | `MenuStagesGlTest` | `cake/core/build/reports/menu-stages-{engine,game}.png` |
+
+Run the three integrations with a display and installed Quake II data:
+
+```sh
+CAKE_VIDEO_GL_TESTS=1 CAKE_HOST_GL_TESTS=1 CAKE_HOST_GAME_TESTS=1 \
+CAKE_TEST_BASEDIR=/absolute/path/to/quake2 \
+./gradlew :cake:core:test --tests '*MenuStagesGlTest' \
+  :cake:cake-fullgame:test --tests '*CakeAutomationGlTest' --tests '*CakeSaveMenusGlTest'
+```
+
+`CAKE_TEST_BASEDIR` contains `baseq2/`; test profiles and saves use temporary homes.
+The gallery test creates its own temporary output; the checked-in sample writes
+the repo-level files listed above. Runtime game styling follows the active profile
+and may resolve to engine fallback. Standalone game-style captures use a synthetic
+conchars fixture. Pixel output depends on assets, graphics drivers and presentation
+timing; use screenshots alongside state assertions rather than exact-pixel baselines.

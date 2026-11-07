@@ -57,8 +57,7 @@ class MenuStagesGlTest {
     }
 
     private suspend fun HiddenGlTest.verifyMenuStages() {
-        jake2.qcommon.MainCommon.registerCvars(false)
-        org.demoth.cake.CakeCvars.registerAll()
+        org.demoth.cake.CakeStartupBootstrap.ensureInitialized()
         val developer = Globals.developer.typedValue
         onCleanup { Globals.developer.forceSet(developer) }
         Globals.developer.forceSet(true)
