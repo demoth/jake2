@@ -50,12 +50,15 @@ import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ContentBrowser
 import org.demoth.cake.ui.FileResourcePreview
 import java.io.File
+import java.nio.file.Path
+import org.demoth.cake.ui.writeScreenshot
 import kotlin.system.measureTimeMillis
 
 private val SUPPORTED_FORMATS = listOf(".bsp", ".md2", ".wav", ".sp2", ".pak") +
     (ImageThumbnails.imageExtensions + FileResourcePreview.extensions).map { ".$it" }
 
-class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
+class CakeViewer(val args: Array<String>, private val captureOutput: Path? = null) : ApplicationAdapter() {
+    private var captureFrames = 0
     private var image: Texture? = null
     private var sprite: Sp2Asset? = null
     private var playback: FramePlayback? = null
@@ -86,12 +89,14 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
         initializeShaderCompatibility()
 
         if (args.isNotEmpty() && SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
+            require(captureOutput == null) { "Unsupported file: ${args.first()}" }
             println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
             return
         }
         val file = args.firstOrNull()?.let { File(expandTildePath(it)) }
         if (file != null && (!file.exists() || !file.canRead())) {
+            require(captureOutput == null) { "File $file does not exist or is unreadable" }
             println("File $file does not exist or is unreadable")
             Gdx.app.exit()
             return
@@ -124,6 +129,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             else -> null
         }
         if (rejection != null) {
+            check(captureOutput == null) { rejection }
             errorLabel.setText(rejection)
             return
         }
@@ -143,7 +149,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
                 loadPreview(file.absolutePath)
                 previewHost.actor = createPreviewActor()
                 previewHost.isVisible = true
-                if (sound != null) replaySound()
+                if (sound != null && captureOutput == null) replaySound()
             }
             filenameLabel.setText(file.name)
             controlsLabel.setText(when {
@@ -155,6 +161,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             errorLabel.setText("")
             updateResourceInfo()
         } catch (error: Exception) {
+            if (captureOutput != null) throw IllegalStateException("Could not load ${file.absolutePath}", error)
             Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
             recoverFromLoadError("Could not load ${file.name}. Drop another resource to continue.")
         }
@@ -345,9 +352,10 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             return
         }
 
+        val delta = if (captureOutput == null) Gdx.graphics.deltaTime else 0f
         soundPlayback?.update()
-        if (scenePreview.animation == null) playback?.update(Gdx.graphics.deltaTime)
-        scenePreview.act(Gdx.graphics.deltaTime)
+        if (scenePreview.animation == null) playback?.update(delta)
+        scenePreview.act(delta)
         if (playback != null) updateResourceInfo()
 
         frameTime = measureTimeMillis {
@@ -356,10 +364,17 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
             emptyState.isVisible = currentFile == null
             infoPanel.isVisible = currentFile != null || errorLabel.text.isNotEmpty()
             frameTimeLabel.setText("Frame time ms: $frameTime")
-            stage.act(Gdx.graphics.deltaTime)
+            stage.act(delta)
             stage.viewport.apply()
             stage.draw()
         }.toFloat()
+        if (captureOutput != null) {
+            frameTime = 0f
+            if (Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0 && ++captureFrames == 2) {
+                writeScreenshot(Gdx.files.absolute(captureOutput.toAbsolutePath().toString()))
+                Gdx.app.exit()
+            }
+        }
     }
 
     override fun dispose() {
@@ -375,7 +390,7 @@ class CakeViewer(val args: Array<String>) : ApplicationAdapter() {
 
     private fun closePreview() {
         closeResourcePreview()
-        archiveThumbnails.clear()
+        if (::archiveThumbnails.isInitialized) archiveThumbnails.clear()
         archiveEntryCount = null
         if (::previewHost.isInitialized) {
             previewHost.actor = null

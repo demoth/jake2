@@ -47,6 +47,47 @@ their surrounding navigation and styling differ.
 - **Native build:** `./gradlew -PenableGraalNative=true :cake:cake-viewer:nativeCompile`
 - **Native executable:** `cake/cake-viewer/build/native/nativeCompile/`
 
+## CLI captures
+
+Capture the complete Viewer UI to a PNG and exit:
+
+```sh
+./gradlew :cake:cake-viewer:run --args='/absolute/path/model.md2 --capture /tmp/model.png --size 1024x768'
+```
+
+The same options work with the packaged `bin/cake-viewer` executable. On this
+machine, the installed `cake-viewer` terminal launcher forwards CLI options
+directly to that executable; ordinary file opens use the GNOME desktop entry.
+
+```sh
+cake-viewer /absolute/path/model.md2 --capture /tmp/model.png
+cake-viewer /absolute/path/pak0.pak --capture /tmp/archive.png --size 1440x900
+cake-viewer --capture /tmp/empty.png
+cake-viewer --help
+```
+
+- `--capture output.png` uses a hidden window, disables audio, writes after two
+  completed draws, and exits. A working graphics context/display is still required.
+- `--size WIDTHxHEIGHT` defaults to 1024×768 physical pixels. Output dimensions
+  follow the framebuffer. Without capture, it sets the interactive window size.
+- Animation time is held at zero and the frame-time readout is fixed during
+  capture, so the initial preview is reproducible.
+- Exit codes: 0 for success/help, 2 for invalid arguments, 1 for load/render/write
+  failures. Capture failures propagate rather than silently capturing an error UI.
+- Paths are relative to the process working directory; Gradle `run` uses
+  `assets/`. Prefer absolute paths for automated runs. Quote paths with spaces;
+  use `--` before a filename beginning with a dash.
+
+This captures screen compositions for UI review. Asset-only thumbnails and OS
+thumbnailer registration remain separate work. The existing screenshot writer
+owns PNG output; the Viewer owns capture timing and exit behavior.
+
+Verify argument handling and the hidden-window capture lifecycle:
+
+```sh
+CAKE_VIDEO_GL_TESTS=1 ./gradlew :cake:cake-viewer:test
+```
+
 <details>
 <summary>Linux: associate MD2 files with the native viewer</summary>
 

@@ -6,19 +6,37 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowAdapter
 import com.badlogic.gdx.graphics.glutils.HdpiMode
 import org.demoth.cake.viewer.CakeViewer
+import kotlin.system.exitProcess
 
 object Lwjgl3ViewerLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
+        val options = try {
+            ViewerOptions.parse(args)
+        } catch (error: Exception) {
+            System.err.println(error.message)
+            System.err.println(ViewerOptions.USAGE)
+            exitProcess(2)
+        }
+        if (options.help) {
+            println(ViewerOptions.USAGE)
+            return
+        }
         if (startNewJvmIfRequired(args)) return  // This handles macOS support and helps on Windows.
 
-        createApplication(args)
+        try {
+            createApplication(options)
+        } catch (error: Exception) {
+            System.err.println("Cake Viewer failed: ${error.message}")
+            error.printStackTrace()
+            exitProcess(1)
+        }
     }
 }
 
-private fun createApplication(args: Array<String>): Lwjgl3Application {
-    val viewer = CakeViewer(args)
-    val configuration = createConfiguration().apply {
+private fun createApplication(options: ViewerOptions): Lwjgl3Application {
+    val viewer = CakeViewer(options.input?.let { arrayOf(it) } ?: emptyArray(), options.capture)
+    val configuration = createConfiguration(options).apply {
         setWindowListener(object : Lwjgl3WindowAdapter() {
             override fun filesDropped(files: Array<String>) {
                 files.firstOrNull()?.let { path -> Gdx.app.postRunnable { viewer.openFile(path) } }
@@ -28,7 +46,7 @@ private fun createApplication(args: Array<String>): Lwjgl3Application {
     return Lwjgl3Application(viewer, configuration)
 }
 
-private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
+private fun createConfiguration(options: ViewerOptions) = Lwjgl3ApplicationConfiguration().apply {
     setTitle("Cake Viewer 1.2.8")
     setCakeWindowIcons()
     setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
@@ -40,7 +58,11 @@ private fun createConfiguration() = Lwjgl3ApplicationConfiguration().apply {
     //// If you remove the above line and set Vsync to false, you can get unlimited FPS, which can be
     //// useful for testing performance, but can also be very stressful to some hardware.
     //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
-    setWindowedMode(1024, 768)
+    setWindowedMode(options.width, options.height)
+    if (options.capture != null) {
+        setInitialVisible(false)
+        disableAudio(true)
+    }
     setHdpiMode(HdpiMode.Pixels)
 //     setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode())
 

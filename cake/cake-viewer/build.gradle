@@ -9,3 +9,7 @@ application {
 }
 
 apply from: rootProject.file('cake/desktop.gradle')
+
+tasks.named('test') {
+  inputs.property('CAKE_VIDEO_GL_TESTS', providers.environmentVariable('CAKE_VIDEO_GL_TESTS').orElse(''))
+}
