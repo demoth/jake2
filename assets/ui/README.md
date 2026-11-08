@@ -25,7 +25,7 @@ slider/progress support from the existing Quake glyphs.
 - `buttonUp`/`buttonOver`/`buttonDown` (`TintedDrawable`) - primary button chrome.
 - `panel-thick` / `panel-thin` (`uiskin.atlas`) - separate 72×72 frames with 24-pixel corners.
 - `control-panel` (`NinePatchDrawable`) - thin frame with 12-pixel content insets and 48-pixel minimum dimensions.
-- `engine-panels.svg` - editable geometric source for the two new panels; regenerate with `magick -background none assets/ui/engine-panels.svg PNG32:assets/ui/engine-panels.png` from the repository root.
+- `engine-panels.svg` - generated neutral rounded frames; regenerate the SVG and PNG from the repository root with `python3 assets/cake-branding/rounded-panels/generate_soft_corner_panels.py --runtime` (requires Inkscape and Pillow). The generator renders each tile at 4× resolution, downsamples it once, and packs its exact pixels into the atlas page.
 
 ## Invariants
 - Skin class tags are short names (`ButtonStyle`, `Color`, ...), not fully-qualified class names.
@@ -34,6 +34,22 @@ slider/progress support from the existing Quake glyphs.
 
 ## Decision Log
 Newest first.
+
+### Decision: Strawberry accents with existing single-tint drawables
+- Slice 2 maps the candidate palette to semantic skin roles. Cream text sits on dark warm surfaces; Strawberry marks actions and scroll thumbs, Light strawberry marks hover, and Highlight Raspberry marks pressed/focused controls.
+- Quiet input rims use Biscuit; panel rims and separators use Dark caramel. Selected rows use Cocoa with cream text; placeholders use Biscuit and disabled content uses Muted cocoa.
+- The same tint colors each frame's rim and dark center. This intentionally gives frame interiors darker values than the concept surface swatches; no layered drawables were added.
+- Native viewer backgrounds use Chocolate, with Milk chocolate scroll tracks. Engine menus keep the existing ⅓ resource scale.
+- Engine hover and selected text now follow the skin. Conchars menus keep their green hover/selection feedback and game-provided artwork; shared primary/disabled text colors follow the warm palette.
+- `warning`, `error`, `success`, and `info` use Caramel, Error Raspberry, Pistachio, and Blueberry respectively. Historical palette names remain aliases for compatibility.
+- Verification and captures: [round 1 review](../cake-branding/design-review-round-1.md).
+
+### Decision: Rounded frames with softened corner shading
+- Use the round 1 thin/thick frames: a flat gray face with corner-only highlight/shadow transitions, a dark center, and transparent outer corners.
+- Keep the 72×72 tiles, 24px splits, 24/12px content insets, existing resource names, and menu scaling.
+- Keep the existing single-tint drawables. Palette choices can adapt to their combined rim/body coloring; independent layers are postponed.
+- Slice 1 changes artwork only. Existing skin colors remain for geometry review.
+- Sources and earlier studies: [rounded panel generators](../cake-branding/rounded-panels/).
 
 ### Decision: Preserve native Quake menu size; adapt engine menus
 - Quake menu font/drawables retain their native size. The 3× relationship describes engine source resolution, not a scale applied to Quake screens.

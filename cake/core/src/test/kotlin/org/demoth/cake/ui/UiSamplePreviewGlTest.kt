@@ -45,6 +45,7 @@ class UiSamplePreviewGlTest {
     private fun verifyPreview() {
         val skin = Skin(Gdx.files.internal("../../assets/ui/uiskin.json"))
         val style = EngineUiStyle(skin)
+        verifyColorIsolation(skin, style.menuWidgets)
         val bus = MenuEventBus()
         val preview = UiSamplePreview(bus)
         // MenuController's intent-to-signal forwarding is covered by its own test.
@@ -92,6 +93,27 @@ class UiSamplePreviewGlTest {
             preview.dispose()
             style.dispose()
             skin.dispose()
+        }
+    }
+
+    private fun verifyColorIsolation(skin: Skin, engine: MenuWidgetStyles) {
+        val texture = com.badlogic.gdx.graphics.Texture(128, 128, com.badlogic.gdx.graphics.Pixmap.Format.RGBA8888)
+        try {
+            val game = createMenuWidgetStyles(skin, skin.getFont("menu"), texture)
+            val gameHover = com.badlogic.gdx.graphics.Color(0.35f, 0.95f, 0.35f, 1f)
+            assertEquals(gameHover, game.button.overFontColor)
+            assertEquals(gameHover, game.list.fontColorSelected)
+            assertEquals(gameHover, game.selectBox.overFontColor)
+            assertEquals(skin.getColor("fontOver"), engine.button.overFontColor)
+            assertEquals(skin.getColor("fontSelected"), engine.list.fontColorSelected)
+            assertEquals(skin.getColor("fontOver"), engine.selectBox.overFontColor)
+            assertNotEquals(game.button.overFontColor, engine.button.overFontColor)
+            // Building content styles must not mutate the native viewer's shared skin.
+            val native = ContentBrowserStyles.fromSkin(skin)
+            assertEquals(skin.getColor("fontOver"), native.button.overFontColor)
+            assertEquals(skin.getColor("fontSelected"), native.selectBox.listStyle.fontColorSelected)
+        } finally {
+            texture.dispose()
         }
     }
 

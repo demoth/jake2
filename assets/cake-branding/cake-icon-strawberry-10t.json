@@ -1,0 +1,30 @@
+{
+  "mark_parameters": {
+    "cake_color": "#FFF3E3",
+    "cake_radius": 160,
+    "cog_thickness": 26,
+    "gear_color": "#F07883",
+    "gear_root_radius": 204,
+    "rim_color": "#D95769",
+    "rim_thickness": 20,
+    "size": 512,
+    "slice_gap": 16,
+    "teeth": 10,
+    "tooth_height": 30,
+    "tooth_root_fraction": 0.58,
+    "tooth_tip_fraction": 0.38
+  },
+  "tile": {
+    "size": 512,
+    "background": "#191412",
+    "corner_radius": 104,
+    "mark_size": 416,
+    "mark_offset": [
+      48,
+      48
+    ]
+  },
+  "source_variant": "26:369",
+  "colorway": "Strawberry",
+  "geometry": "10 teeth"
+}

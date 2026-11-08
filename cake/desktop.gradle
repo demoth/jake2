@@ -18,7 +18,7 @@ dependencies {
 }
 
 def os = System.properties['os.name'].toLowerCase()
-def iconsDir = rootProject.file('cake/desktop-common/icons')
+def iconsDir = project.file('icons')
 
 run {
   outputs.upToDateWhen { false }

@@ -1,0 +1,15 @@
+{
+  "size": 512,
+  "teeth": 12,
+  "gear_root_radius": 204,
+  "tooth_height": 30,
+  "tooth_root_fraction": 0.58,
+  "tooth_tip_fraction": 0.38,
+  "cog_thickness": 26,
+  "cake_radius": 160,
+  "rim_thickness": 20,
+  "slice_gap": 16,
+  "gear_color": "#FFF3E3",
+  "cake_color": "#F07883",
+  "rim_color": "#C9B8A5"
+}

@@ -16,99 +16,62 @@
     window: default
   }
   Color: {
-    // MAIN CAKE PALETTE
-    lavender_veil: {
-      r: 0.8902,
-      g: 0.8275,
-      b: 0.8941,
-      a: 1
-    },
-    midnight_violet: {
-      r: 0.1373,
-      g: 0.0667,
-      b: 0.1373,
-      a: 1
-    },
-    canary_yellow: {
-      r: 1,
-      g: 0.9922,
-      b: 0.4667,
-      a: 1
-    },
-    watermelon: {
-      r: 0.9098,
-      g: 0.1922,
-      b: 0.3176,
-      a: 1
-    },
-    raspberry_plum: {
-      r: 0.8078,
-      g: 0.1529,
-      b: 0.6431,
-      a: 1
-    },
-    malachite: {
-      r: 0.1804,
-      g: 0.8627,
-      b: 0.4627,
-      a: 1
-    },
-    strong_cyan: {
-      r: 0.3137,
-      g: 0.8471,
-      b: 0.8431,
-      a: 1
-    },
-    // COLORS:
-    white: lavender_veil,
-    black: midnight_violet,
-    warning: canary_yellow,
-    error: watermelon,
-    selection: raspberry_plum,
-    gray: {
-      r: 0.5,
-      g: 0.5,
-      b: 0.5,
-      a: 1
-    },
-    up: {
-      r: 0.1,
-      g: 0.1,
-      b: 0.1,
-      a: 1
-    },
-    over: selection,
-    down: strong_cyan,
-    checked: strong_cyan,
-    checkedOver: selection,
-    message : canary_yellow,
-    disabled: {
-      r: 0.4,
-      g: 0.4,
-      b: 0.4,
-      a: 1
-    },
-    // = black
-    background: black,
-    split: {
-      r: 0.44313726
-      g: 0.47843137
-      b: 0.5372549
-      a: 1
-    },
-    highlight: raspberry_plum,
-    semiTransparent: {
-      r: 0.2,
-      g: 0.2,
-      b: 0.2,
-      a: 0.6
-    },
-    font: white
-    fontOver: white
-    fontDown: gray
-    fontChecked: white
-    fontCheckedOver: white
-    fontDisabled: gray
+    // Round 1: warm surfaces, cream text, Strawberry actions.
+    dark_cocoa: { r: 0.098039, g: 0.078431, b: 0.070588, a: 1 }, // #191412
+    chocolate: { r: 0.145098, g: 0.113725, b: 0.098039, a: 1 }, // #251D19
+    milk_chocolate: { r: 0.200000, g: 0.152941, b: 0.125490, a: 1 }, // #332720
+    cocoa_surface: { r: 0.250980, g: 0.188235, b: 0.152941, a: 1 }, // #403027
+    dark_caramel: { r: 0.400000, g: 0.313725, b: 0.247059, a: 1 }, // #66503F
+    strawberry: { r: 0.941176, g: 0.470588, b: 0.513725, a: 1 }, // #F07883
+    light_strawberry: { r: 1.000000, g: 0.607843, b: 0.639216, a: 1 }, // #FF9BA3
+    highlight_raspberry: { r: 0.850980, g: 0.341176, b: 0.411765, a: 1 }, // #D95769
+    vanilla_cream: { r: 1.000000, g: 0.952941, b: 0.890196, a: 1 }, // #FFF3E3
+    whipped_cream: { r: 0.788235, g: 0.721569, b: 0.647059, a: 1 }, // #C9B8A5
+    biscuit: { r: 0.588235, g: 0.517647, b: 0.466667, a: 1 }, // #968477
+    muted_cocoa: { r: 0.443137, g: 0.388235, b: 0.352941, a: 1 }, // #71635A
+    pistachio: { r: 0.549020, g: 0.796078, b: 0.607843, a: 1 }, // #8CCB9B
+    caramel: { r: 0.956863, g: 0.705882, b: 0.372549, a: 1 }, // #F4B45F
+    error_raspberry: { r: 0.909804, g: 0.419608, b: 0.447059, a: 1 }, // #E86B72
+    blueberry: { r: 0.513725, g: 0.721569, b: 0.898039, a: 1 }, // #83B8E5
+    // Semantic roles; legacy palette names remain aliases for compatibility.
+    white: vanilla_cream,
+    black: dark_cocoa,
+    background: dark_cocoa,
+    surface: chocolate,
+    surfaceOver: milk_chocolate,
+    border: biscuit,
+    panelBorder: dark_caramel,
+    selection: cocoa_surface,
+    highlight: light_strawberry,
+    warning: caramel,
+    error: error_raspberry,
+    success: pistachio,
+    info: blueberry,
+    gray: muted_cocoa,
+    disabled: muted_cocoa,
+    up: dark_caramel,
+    over: light_strawberry,
+    down: highlight_raspberry,
+    checked: strawberry,
+    checkedOver: light_strawberry,
+    message: biscuit,
+    split: dark_caramel,
+    font: vanilla_cream,
+    fontSecondary: whipped_cream,
+    fontOver: light_strawberry,
+    fontDown: vanilla_cream,
+    fontChecked: vanilla_cream,
+    fontCheckedOver: vanilla_cream,
+    fontDisabled: muted_cocoa,
+    fontSelected: vanilla_cream,
+    lavender_veil: vanilla_cream,
+    midnight_violet: dark_cocoa,
+    canary_yellow: caramel,
+    watermelon: error_raspberry,
+    raspberry_plum: strawberry,
+    malachite: pistachio,
+    strong_cyan: strawberry,
+    semiTransparent: { r: 0.2, g: 0.152941, b: 0.12549, a: 0.85 }
   },
   TiledDrawable: {
     progress-bar-knob-t: {
@@ -133,11 +96,11 @@
   TintedDrawable: {
     console-panel: {
       name: panel-thick,
-      color: { r: 0.5, g: 0.5, b: 0.5, a: 0.5 }
+      color: panelBorder
     },
     console-input: {
       name: control-panel,
-      color: { r: 0.5, g: 0.5, b: 0.5, a: 0.5 }
+      color: border
     },
     split: {
       name: white
@@ -153,7 +116,7 @@
     },
     buttonUp: {
       name: panel-thick,
-      color: white
+      color: strawberry
     },
     buttonOver: {
       name: panel-thick,
@@ -165,7 +128,7 @@
     },
     buttonDisabled: {
       name: panel-thick,
-      color: gray
+      color: disabled
     },
     buttonChecked: {
       name: panel-thick,
@@ -177,11 +140,11 @@
     },
     checkBoxOn: {
       name: check-on,
-      color: up
+      color: checked
     },
     checkBoxOff: {
       name: check,
-      color: up
+      color: border
     },
     checkBoxOver: {
       name: check,
@@ -209,7 +172,7 @@
     },
     progressHorizontal: {
       name: line-v,
-      color: up
+      color: border
     },
     progressHorizontalKnob: {
       name: line-v,
@@ -225,7 +188,7 @@
     },
     progressVertical: {
       name: line-h,
-      color: up
+      color: border
     },
     progressVerticalKnob: {
       name: line-h,
@@ -241,19 +204,19 @@
     },
     scrollHorizontal: {
       name: line-v,
-      color: up
+      color: surfaceOver
     },
     scrollVertical: {
       name: line-h,
-      color: up
+      color: surfaceOver
     },
     scrollKnob: {
       name: knob-v,
-      color: down
+      color: checked
     },
     scrollKnobVertical: {
       name: knob-h,
-      color: down
+      color: checked
     },
     scrollPane: {
       name: rect,
@@ -261,7 +224,7 @@
     },
     selectBox: {
       name: control-panel,
-      color: white
+      color: border
     },
     selectOver: {
       name: control-panel,
@@ -269,7 +232,7 @@
     },
     selectDown: {
       name: control-panel,
-      color: over
+      color: down
     },
     selectDisabled: {
       name: control-panel,
@@ -277,19 +240,19 @@
     },
     selectList: {
       name: rect,
-      color: over
+      color: surface
     },
     splitPane: {
       name: square,
-      color: down
+      color: split
     },
     separatorHorizontal: {
       name: line-h,
-      color: gray
+      color: panelBorder
     },
     sliderHorizontal: {
       name: square,
-      color: gray
+      color: border
     },
     sliderKnob: {
       name: rect,
@@ -309,11 +272,11 @@
     },
     sliderVertical: {
       name: square,
-      color: up
+      color: border
     },
     sliderVerticalKnob: {
       name: rect,
-      color: up
+      color: checked
     },
     sliderVerticalKnobOver: {
       name: rect,
@@ -329,7 +292,7 @@
     },
     textField: {
       name: control-panel,
-      color: white
+      color: border
     },
     textFieldDown: {
       name: control-panel,
@@ -361,15 +324,15 @@
     },
     treeOver: {
       name: dot,
-      color: over
+      color: surfaceOver
     },
     treeMinus: {
       name: tree-minus,
-      color: up
+      color: fontSecondary
     },
     treePlus: {
       name: tree-plus,
-      color: up
+      color: fontSecondary
     },
     menuTreePlus: {
       name: tree-plus,
@@ -381,11 +344,11 @@
     },
     menuTreeOver: {
       name: dot,
-      color: semiTransparent
+      color: surfaceOver
     },
     window: {
       name: rect,
-      color: background
+      color: surface
     },
     windowResize: {
       name: window-resize,
@@ -499,14 +462,14 @@
     default: {
       fontColorUnselected: font,
       selection: selection,
-      fontColorSelected: fontDown,
+      fontColorSelected: fontSelected,
       font: default
     },
     background: {
       background: list,
       fontColorUnselected: font,
       selection: selection,
-      fontColorSelected: fontDown,
+      fontColorSelected: fontSelected,
       font: default
     },
     list-nobg: {
@@ -562,6 +525,7 @@
     default: {
       font: default,
       fontColor: font,
+      overFontColor: fontOver,
       disabledFontColor: fontDisabled,
       background: selectBox,
       backgroundOver: selectOver,
@@ -572,7 +536,7 @@
         background: selectList,
         fontColorUnselected: font,
         selection: selection,
-        fontColorSelected: fontDown,
+        fontColorSelected: fontSelected,
         font: default
       }
     }
@@ -640,18 +604,18 @@
     },
     text: {
       font: default,
-      fontColor: up,
-      overFontColor: over,
-      downFontColor: down,
+      fontColor: font,
+      overFontColor: fontOver,
+      downFontColor: fontDown,
       disabledFontColor: disabled,
       pressedOffsetY: -1,
       pressedOffsetX: 1
     },
     textToggle: {
       font: default,
-      fontColor: up,
-      overFontColor: over,
-      downFontColor: down,
+      fontColor: font,
+      overFontColor: fontOver,
+      downFontColor: fontDown,
       disabledFontColor: disabled,
       checkedFontColor: font,
       checkedOverFontColor: fontOver,
@@ -666,7 +630,7 @@
       fontColor: font,
       focusedFontColor: fontOver,
       disabledFontColor: fontDisabled,
-      messageFontColor: fontDown,
+      messageFontColor: message,
       background: console-input,
       focusedBackground: console-input,
       disabledBackground: console-input,
@@ -679,7 +643,7 @@
       fontColor: font,
       focusedFontColor: fontOver,
       disabledFontColor: fontDisabled,
-      messageFontColor: fontDown,
+      messageFontColor: message,
       background: textField,
       focusedBackground: textFieldDown,
       disabledBackground: textFieldDisabled,
@@ -735,22 +699,22 @@
     default: {
       titleFont: default,
       background: window,
-      titleFontColor: fontDisabled
+      titleFontColor: font
     },
     resize: {
       titleFont: default,
       background: windowResize,
-      titleFontColor: fontDisabled
+      titleFontColor: font
     },
     border: {
       titleFont: default,
       background: windowBorder,
-      titleFontColor: fontDisabled
+      titleFontColor: font
     },
     dialog: {
       titleFont: default,
       background: window,
-      titleFontColor: fontDisabled,
+      titleFontColor: font,
       stageBackground: alpha
     }
   }

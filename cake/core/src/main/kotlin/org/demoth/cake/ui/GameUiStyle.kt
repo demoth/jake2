@@ -236,7 +236,7 @@ internal fun createMenuWidgetStyles(
     }
     val contentListStyle = Scene2dList.ListStyle(baseListStyle).also { style ->
         style.font = font
-        style.fontColorSelected = MENU_HOVER_TEXT_COLOR.cpy()
+        if (concharsTexture != null) style.fontColorSelected = MENU_HOVER_TEXT_COLOR.cpy()
         style.fontColorUnselected = baseSelectBoxStyle.fontColor?.cpy() ?: Color.WHITE.cpy()
         if (contentSelectionDrawable != null) {
             style.selection = contentSelectionDrawable
@@ -260,7 +260,7 @@ internal fun createMenuWidgetStyles(
         label = Label.LabelStyle(baseLabelStyle).also { it.font = font },
         button = TextButton.TextButtonStyle(baseButtonStyle).also { style ->
             style.font = font
-            style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
+            if (concharsTexture != null) style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
             if (contentActionDrawable != null) {
                 style.up = contentActionDrawable
                 style.over = contentActionDrawable
@@ -273,11 +273,15 @@ internal fun createMenuWidgetStyles(
         // A toggle button draws the font's x inside the same border as other controls.
         checkBox = TextButton.TextButtonStyle().also { style ->
             style.up = contentControlDrawable ?: baseTextFieldStyle.background
+            style.over = contentControlDrawable ?: baseTextFieldStyle.focusedBackground
+            style.disabled = contentControlDrawable?.tint(Color(0.45f, 0.45f, 0.45f, 0.9f))
+                ?: baseTextFieldStyle.disabledBackground
             style.font = font
             style.fontColor = Color.CLEAR.cpy()
             style.checkedFontColor = baseLabelStyle.fontColor.cpy()
-            style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
-            style.checkedOverFontColor = MENU_HOVER_TEXT_COLOR.cpy()
+            style.overFontColor = if (concharsTexture != null) MENU_HOVER_TEXT_COLOR.cpy()
+                else baseTextFieldStyle.focusedFontColor?.cpy()
+            style.checkedOverFontColor = style.overFontColor?.cpy()
         },
         textField = TextField.TextFieldStyle(baseTextFieldStyle).also { style ->
             style.font = font
@@ -291,7 +295,7 @@ internal fun createMenuWidgetStyles(
         },
         selectBox = SelectBox.SelectBoxStyle(baseSelectBoxStyle).also { style ->
             style.font = font
-            style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
+            if (concharsTexture != null) style.overFontColor = MENU_HOVER_TEXT_COLOR.cpy()
             style.scrollStyle = ScrollPane.ScrollPaneStyle(contentScrollPaneStyle)
             style.listStyle = Scene2dList.ListStyle(contentListStyle)
             if (contentControlDrawable != null) {

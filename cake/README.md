@@ -20,12 +20,28 @@ and Host Game menus. Core accesses hosting through `CakeHost`; only
 
 ### `desktop-common`
 
-Shared game window configuration, video platform, JVM restart helper and desktop
-icons. Both game launchers use `CakeDesktopLauncher`; the viewer shares
-the restart helper and icons while retaining its own window configuration.
+Shared game window configuration, video platform, JVM restart helper and icon
+loading. Both game launchers use `CakeDesktopLauncher`; the viewer shares
+the restart helper and icon loading while retaining its own window configuration.
 
-The icons in `desktop-common/icons` and `desktop-common/src/main/resources` are
-the default libGDX Liftoff placeholders, pending Cake branding.
+The three apps share the ten-tooth Cake mark and dark tile, with app-specific
+colors: Fullgame uses Strawberry, Viewer uses Blueberry, and Client uses
+Pistachio. Each app owns window PNGs in `cake-<app>/src/main/resources/icons/`
+and packaging SVG/PNG/ICO/ICNS files in `cake-<app>/icons/`. Shared launcher code
+loads identical `icons/icon-<size>.png` classpath paths; each app supplies its own
+files. The packaging script uses `project.file('icons')`. Window titles are
+explicit launcher arguments. Generic `assets/icons/logo*` copies use Strawberry.
+
+Regenerate all icon exports from the repository root (Inkscape and Pillow):
+
+```sh
+python3 assets/cake-branding/generate_app_icons.py
+```
+
+The color mapping is in [app-icons.json](../assets/cake-branding/app-icons.json);
+geometry and tile proportions come from the selected Strawberry icon recipe.
+The generator also writes a size/color comparison to
+`build/captures/design-round-1/slice-3/app-icons.png`.
 
 ### `cake-viewer`
 

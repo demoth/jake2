@@ -1,0 +1,8 @@
+{
+  "recipe": "cake-icon-strawberry-10t.json",
+  "apps": {
+    "fullgame": { "label": "Fullgame / Strawberry", "gear_color": "#F07883", "rim_color": "#D95769" },
+    "viewer": { "label": "Viewer / Blueberry", "gear_color": "#83B8E5", "rim_color": "#B5A5DC" },
+    "client": { "label": "Client / Pistachio", "gear_color": "#8CCB9B", "rim_color": "#B1DDB5" }
+  }
+}

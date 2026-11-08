@@ -1,6 +1,7 @@
 package org.demoth.cake.lwjgl3
 
 import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.Files.FileType
 import com.badlogic.gdx.Graphics
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
@@ -19,17 +20,17 @@ import org.demoth.cake.hosting.CakeHost
 /** Launches the desktop (LWJGL3) application. */
 object CakeDesktopLauncher {
     @JvmStatic
-    fun launch(args: Array<String>, host: CakeHost) {
+    fun launch(args: Array<String>, host: CakeHost, windowTitle: String) {
         if (startNewJvmIfRequired(args)) return
         val startupContext = CakeStartupBootstrap.bootstrap(arguments = args.toList())
-        createApplication(startupContext, host)
+        createApplication(startupContext, host, windowTitle)
     }
 
-    private fun createApplication(startupContext: CakeStartupContext, host: CakeHost): Lwjgl3Application {
-        return Lwjgl3Application(Cake(startupContext, Lwjgl3VideoPlatform(), host), getDefaultConfiguration(startupContext.videoMode))
+    private fun createApplication(startupContext: CakeStartupContext, host: CakeHost, windowTitle: String): Lwjgl3Application {
+        return Lwjgl3Application(Cake(startupContext, Lwjgl3VideoPlatform(), host), getDefaultConfiguration(startupContext.videoMode, windowTitle))
     }
 
-    private fun getDefaultConfiguration(videoMode: CakeVideoModeSettings): Lwjgl3ApplicationConfiguration {
+    private fun getDefaultConfiguration(videoMode: CakeVideoModeSettings, windowTitle: String): Lwjgl3ApplicationConfiguration {
         val desktop = Lwjgl3ApplicationConfiguration.getDisplayMode()
         val modes = Lwjgl3ApplicationConfiguration.getDisplayModes().toList()
         publishFullscreenModes(modes.map { it.toCakeMode() })
@@ -39,7 +40,8 @@ object CakeDesktopLauncher {
         val displayMode = modes.firstOrNull { it.toCakeMode() == selected && it.bitsPerPixel == desktop.bitsPerPixel }
             ?: modes.firstOrNull { it.toCakeMode() == selected } ?: desktop
         return Lwjgl3ApplicationConfiguration().apply {
-            setTitle("Cake Engine v1.2.8")
+            setTitle(windowTitle)
+            setCakeWindowIcons()
             setInitialVisible(!videoMode.hidden)
             setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
             setBackBufferConfig(
@@ -65,12 +67,18 @@ object CakeDesktopLauncher {
             } else {
                 setWindowedMode(videoMode.width, videoMode.height)
             }
-            setWindowIcon("libgdx128.png", "libgdx64.png", "libgdx32.png", "libgdx16.png")
         }
     }
 
 }
 
+
+/** Each executable supplies its own icons at the same classpath paths. */
+fun Lwjgl3ApplicationConfiguration.setCakeWindowIcons() {
+    setWindowIcon(FileType.Classpath,
+        "icons/icon-256.png", "icons/icon-128.png", "icons/icon-64.png",
+        "icons/icon-32.png", "icons/icon-16.png")
+}
 
 private fun Graphics.DisplayMode.toCakeMode() = CakeDisplayMode(width, height, refreshRate)
 
