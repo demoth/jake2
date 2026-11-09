@@ -123,7 +123,8 @@ class SkyLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<Model, Sk
 
     companion object {
         private val PARTS = listOf("rt", "bk", "lf", "ft", "up", "dn")
-        private const val s = 2048f // size
+        internal const val HALF_SIZE = 2048f
+        private const val s = HALF_SIZE
         private fun toTexturePath(skyName: String, part: String): String = "env/$skyName$part.pcx"
 
         fun assetPath(skyName: String): String = "sky/$skyName.sky"

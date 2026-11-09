@@ -25,6 +25,48 @@ public class GameAITest {
     private float traceSuccessRate = 1.0f; // 1.0 means all traces succeed
 
     @Test
+    void weaponPickupOnlyAutoSwitchesWhenItCanFireAfterAwardingAmmo() {
+        var client = new GamePlayerInfo(0);
+        PlayerClient.InitClientPersistant(client, gameExports);
+        entity.setClient(client);
+        var shells = jake2.game.items.GameItems.FindItem("Shells", gameExports);
+        var shotgun = jake2.game.items.GameItems.FindItem("Shotgun", gameExports);
+        var pickup = new GameEntity(2);
+        pickup.item = shotgun;
+        pickup.spawnflags = GameDefines.DROPPED_ITEM;
+        gameExports.gameCvars.g_select_empty.set(true);
+
+        assertTrue(PlayerWeapon.Pickup_Weapon.interact(pickup, entity, gameExports));
+        assertEquals(1, client.pers.inventory[shotgun.index]);
+        assertNull(client.newweapon, "Empty dropped weapons should be collected without switching");
+
+        client.pers.inventory[shotgun.index] = 0;
+        client.pers.inventory[shells.index] = 1;
+        assertTrue(PlayerWeapon.Pickup_Weapon.interact(pickup, entity, gameExports));
+        assertSame(shotgun, client.newweapon, "Existing ammo permits autoswitch");
+
+        client.newweapon = null;
+        client.pers.inventory[shotgun.index] = 0;
+        client.pers.inventory[shells.index] = 0;
+        pickup.spawnflags = 0;
+        assertTrue(PlayerWeapon.Pickup_Weapon.interact(pickup, entity, gameExports));
+        assertTrue(client.pers.inventory[shells.index] > 0);
+        assertSame(shotgun, client.newweapon, "Ammo awarded by a map pickup permits autoswitch");
+
+        client.newweapon = null;
+        pickup.item = jake2.game.items.GameItems.FindItem("BFG10K", gameExports);
+        pickup.spawnflags = GameDefines.DROPPED_ITEM;
+        client.pers.inventory[jake2.game.items.GameItems.FindItem("Cells", gameExports).index] = 49;
+        assertTrue(PlayerWeapon.Pickup_Weapon.interact(pickup, entity, gameExports));
+        assertNull(client.newweapon, "49 cells are insufficient for a BFG shot");
+        client.pers.inventory[pickup.item.index] = 0;
+        client.pers.inventory[jake2.game.items.GameItems.FindItem("Cells", gameExports).index] = 50;
+        pickup.spawnflags = GameDefines.DROPPED_ITEM;
+        assertTrue(PlayerWeapon.Pickup_Weapon.interact(pickup, entity, gameExports));
+        assertSame(pickup.item, client.newweapon);
+    }
+
+    @Test
     void gameDeclarationsRejectUnsafeCountsAndPreserveSignedGravity() {
         GameCvars cvars = gameExports.gameCvars;
         assertTrue(cvars.skill.forceSet(3).getAccepted());

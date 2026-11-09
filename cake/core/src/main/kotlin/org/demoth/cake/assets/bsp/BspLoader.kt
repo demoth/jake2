@@ -52,6 +52,8 @@ class BspMapAsset(
     val generatedTextures: List<Texture> = emptyList(),
     val entities: List<Map<String, String>> = emptyList(),
     val bounds: BoundingBox = BoundingBox(),
+    /** Root-node bounds used for world range policy */
+    val rootNodeBounds: BoundingBox? = null,
 ) : Disposable {
     override fun dispose() {
         generatedTextures.forEach { it.dispose() }
@@ -290,6 +292,9 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
             },
             generatedTextures = generatedTextures,
             entities = bsp.entities,
+            rootNodeBounds = bsp.rootNodeBounds?.let {
+                BoundingBox(Vector3(it.mins.x, it.mins.y, it.mins.z), Vector3(it.maxs.x, it.maxs.y, it.maxs.z))
+            },
             bounds = bsp.models.firstOrNull()?.let {
                 BoundingBox(Vector3(it.mins.x, it.mins.y, it.mins.z), Vector3(it.maxs.x, it.maxs.y, it.maxs.z))
             } ?: BoundingBox(),

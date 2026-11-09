@@ -263,6 +263,10 @@ class Game3dScreen(
         if (skyRotationDegreesPerSecond != 0f && !skyRotationAxis.isZero) {
             skyModelInstance.transform.rotate(skyRotationAxis, skyRotationAngleDegrees)
         }
+        // Q2PRO sizes its sky cube to half the far distance. Keep it behind
+        // distant world surfaces as well as inside the camera's far plane.
+        val scale = camera.far / (2f * org.demoth.cake.assets.SkyLoader.HALF_SIZE)
+        skyModelInstance.transform.scale(scale, scale, scale)
         skyModelInstance.transform.setTranslation(camera.position)
     }
 
@@ -779,6 +783,8 @@ class Game3dScreen(
             "Missing map config string at index ${Defines.CS_MODELS + 1}"
         }
         val bspMap = gameConfig.loadMapAsset()
+        camera.far = worldCameraFar(bspMap.rootNodeBounds)
+        camera.update()
         val brushModels = bspMap.models
 
         // load inline bmodels

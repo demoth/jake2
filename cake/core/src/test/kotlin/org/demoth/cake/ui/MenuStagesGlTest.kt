@@ -264,7 +264,8 @@ class MenuStagesGlTest {
         val profile = org.demoth.cake.profile.CakeGameProfile("archive", root.toString(), "catalog")
         val bus = MenuEventBus(MenuStateSnapshot(activeScreen = MenuScreen.MODS,
             mods = org.demoth.cake.ui.menu.ModsState(profile = profile,
-                archives = org.demoth.cake.profile.ProfileArchives.discover(profile, false),
+                archives = org.demoth.cake.profile.ProfileArchives.discover(profile, false) +
+                    List(40) { org.demoth.cake.profile.ProfileArchive("catalog/extra-$it.zip", false, false, true) },
                 automount = false, selectedArchive = "catalog/example.zip", canEdit = true)))
         val assets = AssetManager()
         val resolver = CakeFileResolver()
@@ -331,6 +332,37 @@ class MenuStagesGlTest {
             assertEquals(row.style.checkedFontColor, row.style.checkedOverFontColor)
             assertFalse(checkbox.isDisabled)
             assertFalse(checkbox.isChecked)
+
+            val archiveScroll = stage.root.findActor<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>("mod-archive-scroll")
+            assertTrue(archiveScroll.maxY > 0f)
+            val pointer = archiveScroll.localToStageCoordinates(com.badlogic.gdx.math.Vector2(
+                archiveScroll.width / 2f, archiveScroll.height / 2f,
+            ))
+            stage.stageToScreenCoordinates(pointer)
+            val previousInput = Gdx.input
+            Gdx.input = java.lang.reflect.Proxy.newProxyInstance(
+                com.badlogic.gdx.Input::class.java.classLoader, arrayOf(com.badlogic.gdx.Input::class.java),
+            ) { _, method, args ->
+                when {
+                    method.name == "getX" -> pointer.x.toInt()
+                    method.name == "getY" -> pointer.y.toInt()
+                    else -> method.invoke(previousInput, *(args ?: emptyArray()))
+                }
+            } as com.badlogic.gdx.Input
+            try {
+                stage.mouseMoved(pointer.x.toInt(), pointer.y.toInt())
+                for (focus in listOf(null, stage.root)) {
+                    archiveScroll.scrollY = 0f
+                    stage.scrollFocus = focus
+                    assertTrue(stage.scrolled(0f, 1f))
+                    assertSame(archiveScroll, stage.scrollFocus)
+                    assertTrue(archiveScroll.scrollY > 0f, "Wheel over archives must work after focus changes")
+                }
+            } finally {
+                Gdx.input = previousInput
+                archiveScroll.scrollY = 0f
+                archiveScroll.updateVisualScroll()
+            }
 
             // Capture remains optional for sequences; stop for JUnit assertions before requesting it.
             val theme = if (style is EngineUiStyle) "engine" else "game"

@@ -1034,6 +1034,10 @@ public class PlayerWeapon {
     
             if (client.pers.weapon != ent.item
                     && (client.pers.inventory[index] == 1)
+                    // Pickup ammo has already been awarded. Never interrupt the current
+                    // weapon for one that cannot fire, even when g_select_empty is enabled.
+                    && (ent.item.ammo == null || client.pers.inventory[
+                            GameItems.FindItem(ent.item.ammo, gameExports).index] >= ent.item.quantity)
                     && (!gameExports.gameCvars.deathmatch.getTypedValue() || client.pers.weapon == GameItems
                             .FindItem("blaster", gameExports)))
                 client.newweapon = ent.item;

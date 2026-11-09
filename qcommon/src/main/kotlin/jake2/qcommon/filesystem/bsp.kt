@@ -14,6 +14,7 @@ const val IDBSPHEADER = (('P'.code shl 24) + ('S'.code shl 16) + ('B'.code shl 8
 
 class Bsp(buffer: ByteBuffer) {
     val header = BspHeader(buffer)
+    val rootNodeBounds = readRootNodeBounds(buffer, header.lumps[Defines.LUMP_NODES])
     val entityString = readEntities(buffer, header.lumps[0])
     // planes lump skipped
     val lighting = readLighting(buffer, header.lumps[7])
@@ -26,6 +27,19 @@ class Bsp(buffer: ByteBuffer) {
     val leafFaces = readLeafFaces(buffer, header.lumps[9])
     val models = readModels(buffer, header.lumps[13])
     val entities = parseEntities(entityString)
+
+    private fun readRootNodeBounds(buffer: ByteBuffer, lump: BspLump): BspNodeBounds? {
+        check(lump.length % qfiles.dnode_t.SIZE == 0) {
+            "Unexpected node lump size: ${lump.length}, should be divisible by ${qfiles.dnode_t.SIZE}"
+        }
+        if (lump.length == 0) return null
+        buffer.position(lump.offset)
+        val root = qfiles.dnode_t(buffer)
+        return BspNodeBounds(
+            mins = Vector3f(root.mins[0].toFloat(), root.mins[1].toFloat(), root.mins[2].toFloat()),
+            maxs = Vector3f(root.maxs[0].toFloat(), root.maxs[1].toFloat(), root.maxs[2].toFloat()),
+        )
+    }
 
     private fun readEntities(buffer: ByteBuffer, bspLump: BspLump): String {
         buffer.position(bspLump.offset)
@@ -258,6 +272,9 @@ data class BspTextureInfo(
         return listOf(normalizedU, normalizedV)
     }
 }
+
+/** Root BSP node bounds, distinct from the world model's padded bounds. */
+data class BspNodeBounds(val mins: Vector3f, val maxs: Vector3f)
 
 data class BspModel(
     val mins: Vector3f,

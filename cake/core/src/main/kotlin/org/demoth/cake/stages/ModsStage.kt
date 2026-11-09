@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.utils.viewport.Viewport
 import ktx.actors.onChange
@@ -55,6 +56,12 @@ class ModsStage(
     private val summary = Label("", styles.label).apply { setWrap(true) }
     private val notice = Label("", styles.label).apply { setWrap(true) }
     private val archiveList = Table().apply { top(); left() }
+    private val archiveScroll = ScrollPane(archiveList, styles.scrollPane).apply {
+        name = "mod-archive-scroll"
+        setFadeScrollBars(false)
+        setScrollingDisabled(true, false)
+    }
+    private val scrollPointer = Vector2()
     private val content = Container<Actor>().fill()
     private val automatic = TextButton("x", widgets.checkBox)
     private var rendering = false
@@ -74,9 +81,7 @@ class ModsStage(
                 add(Label("Automatically load archives", styles.label))
                     .minWidth(0f).growX().left()
             }).growX().padBottom(8f).row()
-            add(ScrollPane(archiveList, styles.scrollPane).apply {
-                setFadeScrollBars(false); setScrollingDisabled(true, false)
-            }).grow()
+            add(archiveScroll).grow()
         }
         val right = Table().apply {
             add(archiveTitle).growX().left().row()
@@ -97,6 +102,15 @@ class ModsStage(
     }
 
     private fun current() = menuEventBus.latestState().mods
+
+    override fun scrolled(amountX: Float, amountY: Float): Boolean {
+        // Preview creation can clear or claim scroll focus without a mouse move.
+        // Route wheel input over the archive list using the current pointer position.
+        screenToStageCoordinates(scrollPointer.set(Gdx.input.x.toFloat(), Gdx.input.y.toFloat()))
+        val target = hit(scrollPointer.x, scrollPointer.y, true)
+        if (target?.isDescendantOf(archiveScroll) == true) scrollFocus = archiveScroll
+        return super.scrolled(amountX, amountY)
+    }
 
     override fun act(delta: Float) {
         val state = current()
