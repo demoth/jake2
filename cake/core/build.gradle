@@ -43,4 +43,8 @@ gitProperties {
 tasks.withType(Test).configureEach {
   // Enabling graphics tests must invalidate an earlier run that skipped them.
   inputs.property('CAKE_VIDEO_GL_TESTS', providers.environmentVariable('CAKE_VIDEO_GL_TESTS').orElse(''))
+  if (providers.environmentVariable('CAKE_VIDEO_GL_TESTS').orNull == '1') {
+    // Isolate LibGDX globals and native GL contexts between test classes.
+    forkEvery = 1
+  }
 }
