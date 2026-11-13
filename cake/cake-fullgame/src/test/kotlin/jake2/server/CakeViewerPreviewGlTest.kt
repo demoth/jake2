@@ -181,6 +181,7 @@ class CakeViewerPreviewGlTest {
                     app.openFile(temp.resolve("sound.wav").toString())
                     app.render()
                     assertTrue(actors(stage.root).any { it.javaClass.simpleName == "SoundPreviewControls" })
+                    verifySoundTransport(stage)
                     assertTrue(stage.keyDown(Input.Keys.S))
 
                     app.openFile(temp.resolve("players/test/tris.md2").toString())
@@ -247,6 +248,26 @@ class CakeViewerPreviewGlTest {
         }
     }
 
+    private fun verifySoundTransport(stage: Stage) {
+        val panel = actors(stage.root).single { it.javaClass.simpleName == "SoundPreviewControls" }
+        fun button(text: String) = actors(panel).filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.TextButton>()
+            .single { it.text.toString() == text }
+        fun click(text: String) {
+            button(text).listeners.filterIsInstance<ClickListener>().forEach { it.clicked(InputEvent(), 0f, 0f) }
+        }
+        click("Stop")
+        click("Loop")
+        assertTrue(button("Loop").isChecked)
+        assertNotNull(button("Play"), "Changing Loop must not start playback")
+        click("Play")
+        assertNotNull(button("Pause"), "Play/Pause is one stateful control")
+        click("Pause")
+        click("Stop")
+        assertTrue(button("Loop").isChecked, "Stop retains the current resource's Loop setting")
+        val toolbar = actors(panel).single { it.javaClass.simpleName == "PlaybackToolbar" }
+        assertTrue(toolbar.localToStageCoordinates(Vector2()).y < 32f, "Sound transport stays at the bottom")
+    }
+
     private fun verifyVisibleModel(stage: Stage) {
         val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
         val target = pane.javaClass.superclass.getDeclaredField("target").let {
@@ -270,8 +291,7 @@ class CakeViewerPreviewGlTest {
     }
 
     private fun verifyCinematicThumbnail(stage: Stage, render: () -> Unit) {
-        val label = actors(stage.root).filterIsInstance<Label>().single { it.text.toString() == "intro.cin" }
-        val tile = generateSequence<Actor>(label) { it.parent }.filterIsInstance<Button>().first()
+        val tile = actors(stage.root).filterIsInstance<Button>().single { it.name == "intro.cin" }
         val scroll = generateSequence<Actor>(tile) { it.parent }
             .filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.ScrollPane>().first()
         val position = tile.localToActorCoordinates(scroll.actor, Vector2())
@@ -300,7 +320,8 @@ class CakeViewerPreviewGlTest {
         assertTrue(pane.scrollY > beforeY, "Text vertical scrolling: pane=${pane.width}x${pane.height}, maxY=${pane.maxY}, focus=${stage.scrollFocus}")
         val beforeX = pane.scrollX
         stage.scrolled(0.5f, 0f)
-        assertTrue(pane.scrollX > beforeX, "Text horizontal touchpad scrolling")
+        assertEquals(beforeX, pane.scrollX, "Wrapped text must not require horizontal scrolling")
+        assertEquals(0f, pane.maxX, "Text width stays within the viewport")
     }
 
     private fun verifyCinematic(cinematic: Actor) {
@@ -384,6 +405,15 @@ class CakeViewerPreviewGlTest {
             menus.select(MenuScreen.MAIN)
             assertNull(pane.stage, "Leaving the profile browser releases its preview")
             menus.select(MenuScreen.CONTENT_BROWSER); menus.render(0f)
+            val browser = actors(stage.root).filterIsInstance<org.demoth.cake.ui.ContentBrowser>().single()
+            assertEquals("players/test", browser.location().directory, "Reopening restores the folder")
+            while (browser.navigateBack()) { menus.render(0f) }
+            val help = actors(stage.root).filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.TextButton>().single { it.text.toString() == "Help" }
+            help.isChecked = true
+            assertNotNull(stage.root.findActor<Actor>("resource-details"))
+            stage.keyDown(Input.Keys.ESCAPE); stage.keyUp(Input.Keys.ESCAPE)
+            assertNull(stage.root.findActor<Actor>("resource-details"))
+            assertEquals("", browser.location().directory, "Closing Help leaves the browser in place")
             verifyCinematicThumbnail(stage) { menus.render(0f) }
             openTile(stage, "settings.cfg"); menus.render(0f)
             assertTrue(labels(stage).any { it.contains("set name preview") })
@@ -513,8 +543,7 @@ class CakeViewerPreviewGlTest {
     }
 
     private fun openTile(stage: Stage, name: String) {
-        val tile = actors(stage.root).filterIsInstance<Label>().filter { it.text.toString().removeSuffix("/") == name }
-            .firstNotNullOf { label -> generateSequence<Actor>(label) { it.parent }.filterIsInstance<Button>().firstOrNull() }
+        val tile = actors(stage.root).filterIsInstance<Button>().single { it.name == name }
         tile.listeners.filterIsInstance<ClickListener>().forEach {
             it.tapCount = 2
             it.clicked(InputEvent(), 0f, 0f)

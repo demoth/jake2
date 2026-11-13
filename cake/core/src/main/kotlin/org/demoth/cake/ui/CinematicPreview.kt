@@ -35,6 +35,7 @@ internal class CinematicPreview(
     private var audio: AudioDevice? = null
     private val picture = Image().apply { setScaling(Scaling.fit) }
     private val status = Label("", styles.label)
+    private lateinit var transport: PlaybackToolbar
     private var playing = false
     private var ended = false
     private var elapsed = 0f
@@ -44,20 +45,9 @@ internal class CinematicPreview(
         try {
             upload(frame)
             add(picture).minSize(0f).grow().row()
-            add(Table().apply {
-                for (name in listOf("Play", "Pause", "Stop")) {
-                    add(TextButton(name, styles.button).apply {
-                        onClick {
-                            when (name) {
-                                "Play" -> play()
-                                "Pause" -> pause()
-                                else -> stop()
-                            }
-                        }
-                    }).pad(4f)
-                }
-            }).row()
-            add(status).pad(4f)
+            transport = PlaybackToolbar(styles.label, styles.button, { playing },
+                { if (playing) pause() else play() }, { stop() }, { status.text.toString() })
+            add(transport).growX()
             updateStatus()
             addListener(object : InputListener() {
                 override fun keyDown(event: InputEvent, keycode: Int): Boolean = this@CinematicPreview.keyDown(keycode)
@@ -170,6 +160,7 @@ internal class CinematicPreview(
     private fun updateStatus() {
         status.setText("${decoder.width} x ${decoder.height} | Frame ${decoder.decodedFrameCount} | " +
             if (ended) "Finished" else if (playing) "Playing" else "Paused")
+        if (::transport.isInitialized) transport.refresh()
     }
 
     override fun dispose() {

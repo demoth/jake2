@@ -1,6 +1,7 @@
 package org.demoth.cake.ui
 
 import com.badlogic.gdx.Input
+import com.badlogic.gdx.graphics.g2d.GlyphLayout
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -95,21 +96,48 @@ class ContentBrowser(
         }
         val picture = Container<Actor>(placeholder).apply { fill() }
         var attempted = false
-        private val filename = Label(
-            directory?.let { "${it.name}/" } ?: entry!!.displayPath.replace('\\', '/').substringAfterLast('/'),
-            styles.label,
-        ).apply { setEllipsis(true) }
+        private val fullName = directory?.let { "${it.name}/" }
+            ?: entry!!.displayPath.replace('\\', '/').substringAfterLast('/')
+        private val filename = Label(fullName, styles.label).apply {
+            setAlignment(Align.topLeft)
+        }
 
         init {
+            name = fullName.removeSuffix("/")
             add(picture).row()
             add(filename).padTop(4f)
             pad(6f)
+            setClip(true)
         }
 
         fun resizePreview(width: Float) {
             getCell(picture).size(width, width * 0.75f)
-            getCell(filename).width(width)
+            getCell(filename).width(width).height(filename.style.font.data.lineHeight * 2f)
+            filename.setText(caption(width))
             invalidateHierarchy()
+        }
+        private fun caption(width: Float): String {
+            val font = filename.style.font
+            fun measure(text: String) = GlyphLayout(font, text).width
+            fun prefix(text: String, available: Float): String {
+                var low = 0
+                var high = text.length
+                while (low < high) {
+                    val middle = (low + high + 1) / 2
+                    if (measure(text.take(middle)) <= available) low = middle else high = middle - 1
+                }
+                return text.take(low)
+            }
+            if (measure(fullName) <= width) return fullName
+            val dot = fullName.lastIndexOf('.').takeIf { it > 0 } ?: fullName.length
+            var split = prefix(fullName, width).length.coerceAtLeast(1)
+            if (dot < split) split = dot
+            val first = fullName.take(split)
+            val rest = fullName.drop(split)
+            if (measure(rest) <= width) return "$first\n$rest"
+            val extension = if (dot < fullName.length) fullName.substring(dot) else ""
+            val suffix = "...$extension"
+            return "$first\n${prefix(rest, width - measure(suffix))}$suffix"
         }
     }
 
@@ -117,7 +145,7 @@ class ContentBrowser(
     private val grid = HorizontalGroup().apply { wrap(); top(); left(); space(8f); wrapSpace(8f); pad(8f) }
     private val tiles = mutableListOf<Tile>()
     private var auditionTile: Tile? = null
-    private val pathLabel = Label("/", styles.label).apply { setWrap(true) }
+    private val pathLabel = Label("/", styles.label).apply { setEllipsis(true) }
     private val selectionInfo = Label("Select a file to see its path and size.", styles.label).apply {
         setEllipsis(true)
         setAlignment(Align.topLeft)
@@ -125,7 +153,7 @@ class ContentBrowser(
     private val nodes = mutableMapOf<String, FolderNode>()
     private val gridScroll = scrollPane(grid).apply { setScrollingDisabled(true, false) }
     private val content = Container<Actor>(gridScroll).apply { fill() }
-    private val backButton = TextButton("Back to folder", styles.button).apply { isVisible = false }
+    private val backButton = TextButton("Up", styles.button)
     private var thumbnailWidth = initialLocation?.thumbnailWidth?.coerceIn(64f, 256f) ?: 128f
     private var pendingScrollY: Float? = null
     private val smallerButton = TextButton("-", styles.button)
@@ -139,19 +167,20 @@ class ContentBrowser(
         val listing = Table().apply {
             defaults().left().growX()
             add(Table().apply {
-                add(pathLabel).growX().left()
-                add(backButton).padLeft(8f)
+                add(backButton).padRight(8f)
+                add(pathLabel).minWidth(0f).growX().left()
+                add(Label("Size", styles.label)).padLeft(8f)
                 add(smallerButton).padLeft(8f)
                 add(largerButton).padLeft(4f)
-            }).pad(8f).row()
+            }).pad(4f).row()
             add(content).grow().row()
             // Reserve metadata lines before selection, keeping tiles under the pointer.
             add(selectionInfo).minWidth(0f).height(selectionInfo.style.font.data.lineHeight *
-                ((if (showSource) 3f else 2f) + selectionDetailLines)).pad(8f).row()
+                ((if (showSource) 2f else 1f) + selectionDetailLines)).pad(4f).row()
         }
         val treePanel = Container(scrollPane(tree)).minWidth(0f).fill().apply { setClip(true) }
         add(SplitPane(treePanel, listing, false, styles.splitPane).apply {
-            splitAmount = 0.3f
+            splitAmount = 0.22f
             setMinSplitAmount(0f)
         }).grow()
 
@@ -165,7 +194,7 @@ class ContentBrowser(
         })
         backButton.addListener(object : ChangeListener() {
             override fun changed(event: ChangeEvent, actor: Actor) {
-                closePreview()
+                navigateBack()
             }
         })
         smallerButton.addListener(object : ChangeListener() {
@@ -204,6 +233,8 @@ class ContentBrowser(
         pendingScrollY ?: gridScroll.scrollY, thumbnailWidth,
     )
 
+    fun selectedDetails(): String = selectionInfo.text.toString()
+
     private fun resizeThumbnails(delta: Float) {
         thumbnailWidth = (thumbnailWidth + delta).coerceIn(64f, 256f)
         tiles.forEach { it.resizePreview(thumbnailWidth) }
@@ -213,7 +244,7 @@ class ContentBrowser(
     /** Hosts forward keys here so shortcuts work even without keyboard focus on a tile. */
     fun keyDown(keycode: Int): Boolean {
         if (content.actor !== gridScroll) return false
-        if (keycode == Input.Keys.ENTER && openEntry != null) {
+        if (keycode == Input.Keys.ENTER) {
             tiles.firstOrNull { it.isChecked }?.let(::activateTile)
             return true
         }
@@ -228,6 +259,8 @@ class ContentBrowser(
 
     private fun updateSizeButtons() {
         val previewOpen = content.actor !== gridScroll
+        backButton.setText(if (previewOpen) "Back to folder" else "Up")
+        backButton.isDisabled = !previewOpen && tree.selectedNode?.parent == null
         smallerButton.isDisabled = previewOpen || thumbnailWidth <= 64f
         largerButton.isDisabled = previewOpen || thumbnailWidth >= 256f
     }
@@ -238,7 +271,6 @@ class ContentBrowser(
         clearAudition()
         previewSelection(null)
         content.actor = gridScroll
-        backButton.isVisible = false
         updateSizeButtons()
         stage?.scrollFocus = gridScroll
         return true
@@ -299,7 +331,6 @@ class ContentBrowser(
         tiles.clear()
         clearThumbnails()
         content.actor = gridScroll
-        backButton.isVisible = false
         updateSizeButtons()
         pathLabel.setText(if (directory.path.isEmpty()) "/" else "/${directory.path}/")
         directory.folders.values.forEach { addTile(it, null) }
@@ -332,7 +363,7 @@ class ContentBrowser(
     private fun selectTile(tile: Tile) {
         tiles.forEach { it.isChecked = it === tile }
         selectionInfo.setText(tile.entry?.let {
-            val basic = "${it.displayPath}\n${it.size} bytes" + if (showSource)
+            val basic = "${it.displayPath} | ${it.size} bytes" + if (showSource)
                 "\nSource: ${it.layer} / ${it.source.containerPath.fileName}" else ""
             selectionDetails(it)?.let { details -> "$basic\n$details" } ?: basic
         } ?: "${tile.directory!!.path}/")
@@ -350,7 +381,6 @@ class ContentBrowser(
             if (openEntry?.invoke(entry) == true) return
             val preview = previewSelection(entry) ?: return
             content.actor = scrollPane(preview)
-            backButton.isVisible = true
             updateSizeButtons()
         }
     }

@@ -52,7 +52,10 @@ import org.demoth.cake.ui.FileResourcePreview
 import java.io.File
 import java.nio.file.Path
 import org.demoth.cake.ui.writeScreenshot
-import kotlin.system.measureTimeMillis
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
+import org.demoth.cake.ui.RESOURCE_PREVIEW_HELP
+import org.demoth.cake.ui.showPreviewDetails
 
 private val SUPPORTED_FORMATS = listOf(".bsp", ".md2", ".wav", ".sp2", ".pak") +
     (ImageThumbnails.imageExtensions + FileResourcePreview.extensions).map { ".$it" }
@@ -77,13 +80,12 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
     private lateinit var previewHost: Container<Actor>
     private val browser: ContentBrowser? get() = previewHost.actor as? ContentBrowser
     private lateinit var filenameLabel: Label
-    private lateinit var controlsLabel: Label
     private lateinit var errorLabel: Label
     private lateinit var resourceInfo: Label
-    private lateinit var frameTimeLabel: Label
     private lateinit var emptyState: Table
     private lateinit var infoPanel: Table
-    private var frameTime = 0f // to have an idea of the fps
+    private lateinit var errorHost: Container<Actor>
+    private lateinit var summaryLabel: Label
 
     override fun create() {
         initializeShaderCompatibility()
@@ -152,12 +154,6 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
                 if (sound != null && captureOutput == null) replaySound()
             }
             filenameLabel.setText(file.name)
-            controlsLabel.setText(when {
-                archiveEntryCount != null -> "Click: select / play sound or sprite | Double-click: open | Escape: close"
-                sound != null -> "Space: play/pause | S: stop | Escape: close"
-                sprite != null || scenePreview.md2 != null -> "Space: play/pause | Left/Right: step | Escape: close"
-                else -> "Escape: close"
-            })
             errorLabel.setText("")
             updateResourceInfo()
         } catch (error: Exception) {
@@ -173,7 +169,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             "sp2" -> if (loadArchiveResource(entry)) {
                 return playback?.let {
                     it.stop()
-                    it.play()
+                    it.play(loop = false)
                     SpriteFrameImage(sprite!!, it, Scaling.fit)
                 }
             }
@@ -199,7 +195,6 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             ?: image?.let {
                 Table().apply {
                     add(ImagePreviewPane(Image(it))).grow().row()
-                    add(Label("Drag: pan | Wheel: zoom", assetManager.getLoaded<Skin>(cakeSkin))).pad(4f)
                 }
             }
             ?: sprite?.let { SpritePreview(it, playback!!, assetManager.getLoaded<Skin>(cakeSkin)) }
@@ -266,9 +261,9 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         stage = Stage(ScreenViewport())
         stage.viewport.update(Gdx.graphics.width, Gdx.graphics.height, true)
         resourceInfo = Label("", skin)
-        frameTimeLabel = Label("", skin)
-        filenameLabel = Label("No resource", skin).apply { setWrap(true) }
-        controlsLabel = Label("Drop a resource to view | Escape: close", skin).apply { setWrap(true) }
+        filenameLabel = Label("No resource", skin).apply { setEllipsis(true) }
+        summaryLabel = Label("", skin)
+        errorHost = Container<Actor>().fillX()
         errorLabel = Label("", skin).apply { setWrap(true) }
         previewHost = Container<Actor>().apply {
             fill()
@@ -289,8 +284,8 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
                         sound != null || playback != null
                     }
                     Input.Keys.S -> {
-                        soundPlayback?.stop()
-                        soundPlayback != null
+                        if (soundPlayback != null) soundPlayback?.stop() else playback?.stop()
+                        soundPlayback != null || playback != null
                     }
                     Input.Keys.RIGHT, Input.Keys.LEFT -> {
                         playback?.step(if (keycode == Input.Keys.RIGHT) 1 else -1)
@@ -305,21 +300,33 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             add(Label("Drop a resource to view", skin))
         }
         stage.addActor(emptyState)
-        infoPanel = Table(skin).apply {
-            background = skin.getDrawable("window")
-            pad(12f)
-            defaults().left().growX().padBottom(4f)
-            add(filenameLabel).row()
-            add(resourceInfo).row()
-            add(controlsLabel).row()
-            add(errorLabel).row()
-            add(frameTimeLabel)
+        val styles = ContentBrowserStyles.fromSkin(skin)
+        infoPanel = Table().apply {
+            background = styles.background
+            pad(4f)
+            add(filenameLabel).minWidth(0f).growX().left().padLeft(4f).padRight(4f)
+            add(summaryLabel).padLeft(8f).padRight(8f)
+            fun detailsButton(title: String, content: () -> String) {
+                add(TextButton(title, styles.button).apply {
+                    addListener(object : ChangeListener() {
+                        override fun changed(event: ChangeEvent, actor: Actor) {
+                            showPreviewDetails(actor, title, content(), styles)
+                        }
+                    })
+                }).padLeft(4f)
+            }
+            detailsButton("Info") {
+                listOfNotNull(currentFile?.absolutePath, browser?.selectedDetails() ?: resourceInfo.text.toString())
+                    .filter { it.isNotEmpty() }.joinToString("\n\n")
+            }
+            detailsButton("Help") { RESOURCE_PREVIEW_HELP + "\nEscape: return through folders, then close the Viewer." }
         }
         stage.addActor(Table().apply {
             setFillParent(true)
-            top().left().pad(12f)
-            add(infoPanel).growX().row()
-            add(previewHost).grow()
+            top().left().pad(8f)
+            add(infoPanel).minWidth(0f).growX().row()
+            add(errorHost).minWidth(0f).growX().row()
+            add(previewHost).minSize(0f).grow()
         })
         updateResourceInfo()
         Gdx.input.inputProcessor = stage
@@ -339,7 +346,11 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             bsp != null -> "World surfaces: ${bsp.worldRenderData.surfaces.size} | Inline brush models: ${bsp.inlineRenderData.size}"
             else -> ""
         })
-        resourceInfo.isVisible = resourceInfo.text.isNotEmpty()
+        summaryLabel.setText(when {
+            archiveEntryCount != null -> "${archiveEntryCount} files"
+            image != null -> "${image!!.width} x ${image!!.height}"
+            else -> ""
+        })
     }
 
     override fun resize(width: Int, height: Int) {
@@ -358,18 +369,18 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         scenePreview.act(delta)
         if (playback != null) updateResourceInfo()
 
-        frameTime = measureTimeMillis {
+        run {
             Gdx.gl.glClearColor(0.0f, 0.0f, 0.0f, 1f)
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT or GL20.GL_DEPTH_BUFFER_BIT)
             emptyState.isVisible = currentFile == null
             infoPanel.isVisible = currentFile != null || errorLabel.text.isNotEmpty()
-            frameTimeLabel.setText("Frame time ms: $frameTime")
+            val error = errorLabel.takeIf { it.text.isNotEmpty() }
+            if (errorHost.actor !== error) errorHost.actor = error
             stage.act(delta)
             stage.viewport.apply()
             stage.draw()
-        }.toFloat()
+        }
         if (captureOutput != null) {
-            frameTime = 0f
             if (Gdx.graphics.backBufferWidth > 0 && Gdx.graphics.backBufferHeight > 0 && ++captureFrames == 2) {
                 writeScreenshot(Gdx.files.absolute(captureOutput.toAbsolutePath().toString()))
                 Gdx.app.exit()

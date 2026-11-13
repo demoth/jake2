@@ -53,7 +53,7 @@ class SoundPlaybackTest {
         playback.toggle()
         assertTrue(playback.playing)
         assertEquals(listOf("loop()", "pause(10)", "resume(10)"), audio.calls)
-        playback.play()
+        playback.play(loop = false)
         assertFalse(playback.looping)
         assertEquals("setLooping(10, false)", audio.calls.last())
         audio.advance(750)
@@ -109,6 +109,26 @@ class SoundPlaybackTest {
         playback.toggle()
         assertTrue(playback.playing)
         assertEquals("play()", audio.calls.last())
+    }
+
+    @Test
+    fun loopSettingDoesNotStartOrResumeSoundAndSurvivesStop() {
+        val audio = Audio()
+        val playback = audio.playback()
+        playback.setLoop(true)
+        assertFalse(playback.playing)
+        assertTrue(audio.calls.isEmpty())
+        playback.toggle()
+        playback.pause()
+        val before = audio.calls.size
+        playback.setLoop(false)
+        assertFalse(playback.playing)
+        assertEquals(listOf("setLooping(10, false)"), audio.calls.drop(before))
+        playback.setLoop(true)
+        playback.stop()
+        assertTrue(playback.looping)
+        playback.toggle()
+        assertEquals("loop()", audio.calls.last())
     }
 
     @Test

@@ -25,7 +25,8 @@ data class ContentBrowserStyles(
         /** The standalone viewer keeps its native engine font and artwork sizes. */
         fun fromSkin(skin: Skin) = ContentBrowserStyles(
             skin.get(Label.LabelStyle::class.java),
-            skin.get(TextButton.TextButtonStyle::class.java),
+            compactButtons(skin.get(TextButton.TextButtonStyle::class.java),
+                skin.getDrawable("textField"), skin.getDrawable("textFieldDown"), skin.getDrawable("textFieldDisabled")),
             skin.get(Tree.TreeStyle::class.java),
             skin.get(ScrollPane.ScrollPaneStyle::class.java),
             skin.get("default-horizontal", SplitPane.SplitPaneStyle::class.java),
@@ -37,7 +38,8 @@ data class ContentBrowserStyles(
         /** Client controls and splitter artwork follow the active menu theme. */
         fun fromMenu(widgets: MenuWidgetStyles) = ContentBrowserStyles(
             widgets.label,
-            widgets.button,
+            compactButtons(widgets.button, widgets.controlPanel,
+                widgets.textField.focusedBackground, widgets.textField.disabledBackground),
             widgets.tree,
             ScrollPane.ScrollPaneStyle(widgets.scrollPane).apply { background = null },
             SplitPane.SplitPaneStyle(widgets.separatorVertical),
@@ -50,6 +52,21 @@ data class ContentBrowserStyles(
             over = selection
             down = selection
             checked = selection
+        }
+
+        /** Preview toolbars use thin controls; ordinary menu/action buttons keep their style. */
+        private fun compactButtons(base: TextButton.TextButtonStyle, normal: Drawable,
+                                   active: Drawable?, disabled: Drawable?) = TextButton.TextButtonStyle(base).apply {
+            up = normal
+            over = active ?: normal
+            down = active ?: normal
+            checked = null
+            checkedOver = null
+            this.disabled = disabled ?: normal
+            checkedFontColor = base.overFontColor ?: base.fontColor
+            checkedOverFontColor = checkedFontColor
+            pressedOffsetX = 0f
+            pressedOffsetY = 0f
         }
     }
 }

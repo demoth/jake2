@@ -26,14 +26,15 @@ their surrounding navigation and styling differ.
 | Format | Behavior and controls |
 | --- | --- |
 | PCX / WAL / TGA | Aspect-fit preview; wheel zooms around the pointer, left-drag pans. Resize retains zoom/pan; reopening resets the fit. |
-| Text | Read-only, horizontally/vertically scrollable UTF-8 text; tabs expand to four spaces. Supports CFG, TXT, LOG, INI, CSV, JSON, XML, MD, SHADER, ENT and LST. Files larger than 1 MiB show a labelled excerpt; configs are never executed. |
+| Text | Read-only, wrapped and vertically scrollable UTF-8 text; tabs expand to four spaces. Supports CFG, TXT, LOG, INI, CSV, JSON, XML, MD, SHADER, ENT and LST. Files larger than 1 MiB show a labelled excerpt; configs are never executed. |
 | CIN | Aspect-fit Quake II cinematic with audio at 14 fps. Streams from disk/archive; thumbnails decode only the first frame without audio playback. Opens paused; **Play / Pause / Stop**, **Space** toggles playback, **S** stops and returns to frame one. Play after completion restarts. |
 | WAV | Click a tile to play once; double-click opens controls without restarting. **Space** pauses/resumes; **S** stops. Supports Quake II's 8-bit PCM WAVs. |
 | SP2 | Click a tile to animate once; double-click opens controls without restarting. Frames stay centred on a fixed canvas; wheel zooms and left-drag pans. Playback runs at 10 fps. |
 | MD2 | Loose files and browser entries share an automatically framed preview: left-drag orbits and wheel zooms. Shows frame names and a skin selector; generated skins are labelled **Default skin**. |
 | BSP | Double-click to open; click the pane to focus, **WASD** flies, **Q/E** moves down/up, left-drag looks around. Click outside to release movement focus. |
 
-- **WAV/SP2/MD2 controls:** Play, Pause, Loop and Stop; sprite/model previews also have Previous/Next.
+- **Playback:** a shared bottom toolbar with one **Play/Pause** button and **Stop**; WAV/SP2/MD2 also offer a persistent **Loop** toggle, and sprites/models offer Previous/Next. Changing Loop does not start playback; Pause and Stop retain it.
+- **Header:** filename and a brief summary. **Info** opens full resource metadata; **Help** opens shortcuts. Close either with Escape. Frame timing and permanent shortcut text no longer occupy preview space.
 - **SP2/MD2 keyboard:** Space toggles playback; Left/Right step, pause and wrap. Stop resets to frame one; completed playback can restart.
 - **Player skins:** `players/<model>/tris.md2` offers sibling PCX body skins, excluding icons, weapon, and disguise textures. A loose skinless `tris.md2` also works in an extracted folder. Skin changes retain camera/animation; missing skins use white fallback and failed selections keep the previous skin with an error message.
 - **Loose files:** WAV plays on opening; SP2/MD2 start paused. BSP views start near a player spawn (or the map bounds when none exists); click the pane to fly. No grid or origin overlays.
@@ -87,6 +88,11 @@ Verify argument handling and the hidden-window capture lifecycle:
 ```sh
 CAKE_VIDEO_GL_TESTS=1 ./gradlew :cake:cake-viewer:test
 ```
+
+A resource-type capture batch is available in
+`assets/automation/capture-viewer-ui.py`. See the
+[standalone engine UI review](../assets/cake-branding/viewer-engine-ui-review.md)
+for the capture set, local-data requirements, and reproduction command.
 
 <details>
 <summary>Linux: associate MD2 files with the native viewer</summary>

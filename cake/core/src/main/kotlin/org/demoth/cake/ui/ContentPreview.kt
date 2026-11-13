@@ -44,7 +44,7 @@ internal class ContentPreview(
                 clearSound()
                 if (ensureSprite(entry)) {
                     spritePlayback!!.stop()
-                    spritePlayback!!.play()
+                    spritePlayback!!.play(loop = false)
                     return SpriteFrameImage(sprite!!, spritePlayback!!, Scaling.fit)
                 }
             }
@@ -178,6 +178,7 @@ internal class ContentPreview(
         (spritePlayback ?: scene.animation)?.let {
             when (keycode) {
                 Input.Keys.SPACE -> { it.toggle(); return true }
+                Input.Keys.S -> { it.stop(); return true }
                 Input.Keys.LEFT -> { it.step(-1); return true }
                 Input.Keys.RIGHT -> { it.step(1); return true }
             }

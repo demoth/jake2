@@ -63,9 +63,6 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
                 add(pane).grow().row()
                 add(Label("Surfaces: ${loaded.worldRenderData.surfaces.size} | Brush models: ${loaded.inlineRenderData.size}",
                     styles.label).apply { setWrap(true) }).minWidth(0f).growX().pad(4f).row()
-                add(Label("Click to focus | WASD: fly | Q/E: down/up | Drag: look", styles.label).apply {
-                    setWrap(true)
-                }).minWidth(0f).growX().pad(4f)
             }.also { actor = it }
         } catch (error: Exception) {
             close()
@@ -105,16 +102,17 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
             val playback = checkNotNull(animation)
             val data = checkNotNull(instance).userData as Md2CustomData
             return Table().apply {
-                add(pane).grow().row()
-                if (externalSkins == null) {
-                    add(Md2SkinSelector(model, data, styles.selectBox)).minWidth(0f).growX().pad(4f).row()
-                } else {
-                    add(externalSkinControls(externalSkins)).minWidth(0f).growX().pad(4f).row()
-                }
+                add(Table().apply {
+                    add(Label("Skin", styles.label)).padRight(8f)
+                    val selector = if (externalSkins == null) Md2SkinSelector(model, data, styles.selectBox)
+                        else externalSkinControls(externalSkins)
+                    add(selector).minWidth(0f).maxWidth(styles.label.font.data.lineHeight * 14f).growX()
+                    add().growX()
+                }).growX().left().pad(4f).row()
+                add(pane).minSize(0f).grow().row()
                 add(FramePlaybackControls(playback, styles.label, styles.button) {
                     model.frameNames[playback.frameIndex]
                 }).growX().row()
-                add(Label("Drag: orbit | Wheel: zoom", styles.label)).pad(4f)
             }.also { actor = it }
         } catch (error: Exception) {
             close()
@@ -125,6 +123,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
     private fun externalSkinControls(paths: List<String>): Actor {
         if (paths.isEmpty()) return Label("No player skins found; showing default skin.", styles.label)
         val status = Label("", styles.label).apply { setWrap(true) }
+        val statusHost = com.badlogic.gdx.scenes.scene2d.ui.Container<Actor>().fillX()
         val selector = SelectBox<String>(styles.selectBox).apply {
             setItems(*paths.map { it.substringAfterLast('/') }.toTypedArray())
             maxListCount = 12
@@ -144,6 +143,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
                     selector.selection.setProgrammaticChangeEvents(true)
                 }
             }
+            statusHost.actor = status.takeIf { it.text.isNotEmpty() }
         }
         selector.addListener(object : ChangeListener() {
             override fun changed(event: ChangeEvent, actor: Actor) = applySelection()
@@ -151,7 +151,7 @@ internal class SceneResourcePreview(private val assets: AssetManager, private va
         applySelection()
         return Table().apply {
             add(selector).minWidth(0f).growX().row()
-            add(status).minWidth(0f).growX()
+            add(statusHost).minWidth(0f).growX()
         }
     }
 

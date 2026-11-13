@@ -45,7 +45,7 @@ internal class SpritePreview(
     sprite: Sp2Asset, playback: FramePlayback, labelStyle: Label.LabelStyle, buttonStyle: TextButton.TextButtonStyle,
 ) : Table() {
     constructor(sprite: Sp2Asset, playback: FramePlayback, skin: Skin) : this(sprite, playback,
-        skin.get(Label.LabelStyle::class.java), skin.get(TextButton.TextButtonStyle::class.java))
+        skin.get(Label.LabelStyle::class.java), ContentBrowserStyles.fromSkin(skin).button)
 
     init {
         add(ImagePreviewPane(SpriteFrameImage(sprite, playback, Scaling.fit))).grow().row()
@@ -53,6 +53,5 @@ internal class SpritePreview(
             val frame = sprite.frames[playback.frameIndex]
             "${frame.width} x ${frame.height}"
         }).growX().row()
-        add(Label("Drag: pan | Wheel: zoom", labelStyle)).pad(4f)
     }
 }

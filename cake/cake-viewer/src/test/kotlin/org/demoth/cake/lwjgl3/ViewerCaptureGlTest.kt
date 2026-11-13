@@ -43,6 +43,17 @@ class ViewerCaptureGlTest {
                         val stage = Gdx.input.inputProcessor as Stage
                         assertTrue(labels(stage.root).any { it == input.fileName.toString() },
                             "The supplied file must be open when captured")
+                        assertFalse(labels(stage.root).any { it.contains("Frame time") })
+                        val filename = actors(stage.root).filterIsInstance<Label>()
+                            .single { it.text.toString() == input.fileName.toString() }
+                        assertTrue(filename.parent.height < 80f, "Identity header must remain compact")
+                        val info = actors(stage.root).filterIsInstance<com.badlogic.gdx.scenes.scene2d.ui.TextButton>()
+                            .single { it.text.toString() == "Info" }
+                        info.isChecked = true
+                        assertNotNull(stage.root.findActor<Actor>("resource-details"))
+                        stage.keyDown(com.badlogic.gdx.Input.Keys.ESCAPE)
+                        stage.keyUp(com.badlogic.gdx.Input.Keys.ESCAPE)
+                        assertNull(stage.root.findActor<Actor>("resource-details"), "Escape closes details")
                     }
                 } catch (error: Throwable) { failure = error; Gdx.app.exit() }
             }
@@ -58,6 +69,9 @@ class ViewerCaptureGlTest {
         assertEquals(640, image.width)
         assertEquals(480, image.height)
     }
+
+    private fun actors(actor: Actor): List<Actor> = listOf(actor) +
+        (if (actor is Group) actor.children.flatMap(::actors) else emptyList())
 
     private fun labels(actor: Actor): List<String> =
         (if (actor is Label) listOf(actor.text.toString()) else emptyList()) +

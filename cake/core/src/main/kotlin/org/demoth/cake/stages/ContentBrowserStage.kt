@@ -6,6 +6,8 @@ import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.scenes.scene2d.ui.Container
 import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.utils.viewport.Viewport
 import jake2.qcommon.vfs.VfsEntry
@@ -16,6 +18,8 @@ import org.demoth.cake.ui.ContentBrowserStyles
 import org.demoth.cake.ui.GameUiStyle
 import org.demoth.cake.ui.ContentPreview
 import org.demoth.cake.ui.ImageThumbnails
+import org.demoth.cake.ui.RESOURCE_PREVIEW_HELP
+import org.demoth.cake.ui.showPreviewDetails
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
 
@@ -44,6 +48,16 @@ class ContentBrowserStage(
             pad(16f)
             add(Table().apply {
                 add(title).growX().left()
+                for (caption in listOf("Info", "Help")) add(TextButton(caption, styles.button).apply {
+                    addListener(object : ChangeListener() {
+                        override fun changed(event: ChangeEvent, actor: Actor) {
+                            val text = if (caption == "Help") RESOURCE_PREVIEW_HELP +
+                                "\nEscape: return through folders, then return to the menu."
+                            else (content.actor as? ContentBrowser)?.selectedDetails() ?: "No resource selected."
+                            showPreviewDetails(actor, caption, text, styles)
+                        }
+                    })
+                }).padRight(8f)
                 add(createBackButton(style = styles.button)).right()
             }).growX().padBottom(8f).row()
             add(notice).growX().row()
@@ -88,6 +102,13 @@ class ContentBrowserStage(
     }
 
     override fun keyUp(keycode: Int): Boolean {
+        if (root.findActor<Actor>("resource-details") != null) {
+            keyboardFocus?.fire(com.badlogic.gdx.scenes.scene2d.InputEvent().apply {
+                type = com.badlogic.gdx.scenes.scene2d.InputEvent.Type.keyUp
+                keyCode = keycode
+            })
+            return true
+        }
         if (keycode == Input.Keys.ESCAPE && (content.actor as? ContentBrowser)?.navigateBack() == true) return true
         return super.keyUp(keycode)
     }
@@ -98,6 +119,7 @@ class ContentBrowserStage(
     }
 
     override fun keyDown(keycode: Int): Boolean =
+        if (root.findActor<Actor>("resource-details") != null) super.keyDown(keycode) else
         (content.actor as? ContentBrowser)?.keyDown(keycode) == true ||
             media.keyDown(keycode) || super.keyDown(keycode)
 

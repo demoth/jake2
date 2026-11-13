@@ -17,7 +17,7 @@ internal class SoundPlayback(
     private var lastUpdate = now()
     private val duration = durationMs?.takeIf { it > 0 }?.toLong()?.times(1_000_000L)
 
-    fun play(loop: Boolean = false) {
+    fun play(loop: Boolean = looping) {
         update()
         if (id == -1L) {
             id = if (loop) sound.loop() else sound.play()
@@ -31,7 +31,13 @@ internal class SoundPlayback(
         lastUpdate = now()
     }
 
-    fun replay() { stop(); play() }
+    fun replay() { stop(); play(loop = false) }
+
+    fun setLoop(enabled: Boolean) {
+        update()
+        if (id != -1L && looping != enabled) sound.setLooping(id, enabled)
+        looping = enabled
+    }
 
     fun pause() {
         update()
@@ -49,7 +55,6 @@ internal class SoundPlayback(
         if (id != -1L) sound.stop(id)
         id = -1L
         playing = false
-        looping = false
         elapsed = 0L
     }
 

@@ -14,7 +14,7 @@ internal class FramePlayback(val frameCount: Int) {
     private var elapsed = 0f
     private var finished = false
 
-    fun play(loop: Boolean = false) {
+    fun play(loop: Boolean = looping) {
         if (finished) { frameIndex = 0; elapsed = 0f }
         finished = false
         looping = loop
@@ -22,11 +22,11 @@ internal class FramePlayback(val frameCount: Int) {
     }
 
     fun pause() { playing = false }
+    fun setLoop(enabled: Boolean) { looping = enabled }
     fun toggle() { if (playing) pause() else play(looping) }
 
     fun stop() {
         playing = false
-        looping = false
         finished = false
         frameIndex = 0
         elapsed = 0f

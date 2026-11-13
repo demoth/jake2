@@ -63,7 +63,26 @@ class FramePlaybackTest {
         playback.toggle()
         assertTrue(playback.looping)
         playback.stop()
-        assertFalse(playback.looping)
+        assertTrue(playback.looping)
+    }
+
+    @Test
+    fun loopSettingDoesNotStartPlaybackAndSurvivesPauseAndStop() {
+        val playback = FramePlayback(4)
+        playback.setLoop(true)
+        assertFalse(playback.playing)
+        playback.toggle()
+        playback.update(0.16f)
+        playback.pause()
+        playback.setLoop(false)
+        assertFalse(playback.playing)
+        assertEquals(1, playback.frameIndex)
+        playback.setLoop(true)
+        playback.stop()
+        assertTrue(playback.looping)
+        assertEquals(0, playback.frameIndex)
+        playback.play()
+        assertTrue(playback.looping)
     }
 
     @Test
@@ -76,7 +95,7 @@ class FramePlaybackTest {
         playback.play(loop = true)
         assertEquals(0, playback.nextFrameIndex)
         assertEquals(0.5f, playback.interpolation, 0.001f)
-        playback.play()
+        playback.play(loop = false)
         playback.update(0.1f)
         assertFalse(playback.playing)
         assertEquals(2, playback.frameIndex)
