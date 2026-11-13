@@ -136,6 +136,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             return
         }
 
+        stage.root.findActor<Actor>("resource-details")?.remove()
         closePreview()
         try {
             currentFile = file

@@ -450,6 +450,12 @@ class CakeViewerPreviewGlTest {
             stage.keyDown(Input.Keys.ESCAPE); stage.keyUp(Input.Keys.ESCAPE)
             assertNull(stage.root.findActor<Actor>("resource-details"))
             assertEquals("", browser.location().directory, "Closing Help leaves the browser in place")
+            help.fire(com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent())
+            assertNotNull(stage.root.findActor<Actor>("resource-details"))
+            menus.select(MenuScreen.MAIN)
+            assertNull(stage.root.findActor<Actor>("resource-details"), "Leaving the browser dismisses Help")
+            menus.select(MenuScreen.CONTENT_BROWSER); menus.render(0f)
+            assertNull(stage.root.findActor<Actor>("resource-details"))
             verifyCinematicThumbnail(stage) { menus.render(0f) }
             openTile(stage, "settings.cfg"); menus.render(0f)
             assertTrue(labels(stage).any { it.contains("set name preview") })

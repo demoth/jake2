@@ -125,6 +125,7 @@ class ContentBrowserStage(
 
     /** Detach actors before releasing their borrowed textures; reopening supplies a new snapshot. */
     fun hide() {
+        root.findActor<Actor>("resource-details")?.remove()
         val browser = content.actor as? ContentBrowser
         profileName?.let { profile -> browser?.let { navigation.remember(profile, it.location()) } }
         unfocusAll()

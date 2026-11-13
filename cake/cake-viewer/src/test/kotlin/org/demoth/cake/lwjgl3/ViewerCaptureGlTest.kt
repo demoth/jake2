@@ -54,6 +54,11 @@ class ViewerCaptureGlTest {
                         stage.keyDown(com.badlogic.gdx.Input.Keys.ESCAPE)
                         stage.keyUp(com.badlogic.gdx.Input.Keys.ESCAPE)
                         assertNull(stage.root.findActor<Actor>("resource-details"), "Escape closes details")
+                        info.isChecked = false
+                        assertNotNull(stage.root.findActor<Actor>("resource-details"))
+                        viewer.openFile(input.toString())
+                        assertNull(stage.root.findActor<Actor>("resource-details"),
+                            "Replacing the resource dismisses its old details window")
                     }
                 } catch (error: Throwable) { failure = error; Gdx.app.exit() }
             }
