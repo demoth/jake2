@@ -14,7 +14,7 @@ Figma library, with applicable native engine variants for the standalone viewer.
 The library includes original artwork, all 256 conchars cells, typography,
 widget states, and reference captures.
 
-- [Component comparison](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=6-3971)
+- [Current component reference](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=6-3971)
 - [Conchars source grid](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=15-257)
 - [Engine typography and font reference](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=3-82)
 
@@ -39,7 +39,7 @@ Cream-led, Strawberry accents, and Filled strawberry.
 **Preferred UI direction: Strawberry accents.**
 
 - [Candidate palette](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=27-2)
-- [UI color comparisons](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=27-104)
+- [Archived UI color comparisons](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=61-11523)
 
 Final color assignments for individual roles remain open. The comparisons show
 focus, selection, disabled controls, and status feedback together so those
@@ -187,3 +187,18 @@ byte. All three Linux application images were rebuilt and launched again; their
 window icon properties still match all five app-local exports. JAR inspection
 confirmed that each app contains its own icons and desktop-common contains no
 app icons or identity enum. Shared desktop tests passed again.
+
+## Figma cleanup after round 1
+
+The active Figma reference now follows the implemented engine skin:
+
+- [Current runtime references](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=66-6885): refreshed engine/game galleries at 1440 × 900, `cl_ui_size 720`, plus reviewed standalone browser/model captures.
+- [Implemented palette and roles](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=3-44): source values match `assets/ui/uiskin.json`. Original palette variable IDs were migrated to runtime names/values; game-specific greens remain separate.
+- [Current components](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=6-3971): engine variants retain their IDs, with source-derived rounded frames and current colors. Original conchars geometry remains in place. Scrollbar thumbs and slider/progress knobs now use solid rounded rectangles and circles; separators retain their existing artwork.
+- [Accepted neutral frames](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=46-1672): promoted from Frame studies to Foundations, along with their source components.
+- [Selected Strawberry concept](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=61-11526): retained as a frozen historical intent reference, not an exact runtime specification. Runtime uses a single tint for the rim and center.
+- [Round 1 archive](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=61-8787): old runtime baseline, frozen original palette/component/color comparison boards, and editable smooth/three-shade frame studies.
+
+The twenty obsolete beveled full-tile/slice components were removed after checking that no instances remained on any page. Historical comparison snapshots are intentionally frozen so changes to the active library cannot rewrite the review history. Typography, conchars source cells, candidate palette and logo exploration remain available.
+
+The control follow-up doubles the circular knob to a 24px native diameter (8 menu units). [Neutral control sources and size specimens](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=72-564) and the existing component/state examples reflect this geometry. Game-style controls remain unchanged.

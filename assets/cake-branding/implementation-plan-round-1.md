@@ -167,5 +167,23 @@ artwork only; palette changes follow after its geometry is reviewed.
 - Slice 3: visual icons reviewed. Window and packaging assets belong to each app
   module, with shared generation/loading code and no app identity enum. Generic
   Strawberry assets remain under `assets/icons`.
-- Broader screen/state review and final Figma reconciliation remain subsequent
-  slices. The progress knob, separator, and scrollbar shapes are recorded for later.
+- Slice 4: the Viewer capture CLI is committed as `83eefd04`. Thirteen standalone
+  resource/window-size captures are ready for review; see
+  [Viewer engine UI review](viewer-engine-ui-review.md). This capture pass leaves
+  the skin and layouts unchanged. Interactive states remain follow-up coverage.
+- Broader engine-screen/state review remains. Figma references are reconciled
+  through slice 6; separator artwork remains deferred.
+
+- Slice 5: compact Viewer/shared-browser layouts implemented and reviewed for textures, maps, sprites, sounds and browsing. Shared bottom transport and independent Loop setting are installed; a separate MD2 parser fix covers triangle-only model files.
+- Figma references reconciled after round 1: current runtime captures, implemented palette, current engine component appearances and accepted frames are active. Superseded comparison boards and frame proposals are in the round 1 archive; unused bevel masters are removed. See the cleanup links in [the review record](design-review-round-1.md#figma-cleanup-after-round-1).
+
+- Slice 6: simple solid rounded scrollbar thumbs and circular slider/progress position knobs are implemented for the engine skin and reviewed by the user. Existing colors and track/separator artwork are retained. After review, the circle diameter was doubled from 12px to 24px (8 logical menu units), with a 24×24 native footprint. Scrollbar end caps use a 25px minimum thumb length at the existing 24px thickness. Conchars controls are unchanged. Captures: `build/captures/design-round-1/slice-6/{before,after}/{engine,game}.png` and `after/viewer.png`; the game gallery is pixel-identical before/after. `UiSamplePreviewGlTest` and `GameUiStyleFactoryTest` pass. Figma slider/progress and scrollbar variants, neutral source primitives and the engine runtime capture are reconciled; see the [current control specimens](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=72-564). Updated large-knob captures: `build/captures/design-round-1/slice-6/large-knob/{engine,game}.png`.
+
+## Recorded implementation commits
+
+- `ec8156fe`: shared MD2 indexed-triangle fallback, independent of the design changes. Handles missing GL command lists and includes parser plus visible-rendering regressions for loose/PAK previews.
+- `e4b80426`: repeatable resource capture tooling and baseline Viewer review.
+- `321758a3`: compact shared browser/preview UX and playback behavior.
+- `2884835d`: rounded engine scrollbars and the enlarged circular position knobs.
+
+The MD2 compatibility fix is deliberately separate: it affects gameplay and every other consumer of the shared parser, not just Viewer presentation.
