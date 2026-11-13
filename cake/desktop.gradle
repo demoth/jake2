@@ -1,4 +1,9 @@
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+// Keep authoring material in the repository, not in each desktop distribution.
+sourceSets.main.resources {
+  exclude 'cake-branding/**', 'cake-logo-draft.png'
+  exclude 'automation/*.py', 'ui/*.svg', 'ui/*.py', 'ui/*.md'
+}
 application {
   applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED']
 }
