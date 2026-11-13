@@ -1,6 +1,6 @@
 # Cake UI skin sample
 
-An internal screen for comparing engine and active-game styles with one layout and shared fixture data. Track support through **elements → styles → widgets → screens** in the [skin inventory](../assets/ui/INVENTORY.md).
+An internal screen for comparing engine and active-game styles with one layout and shared fixture data. Runtime artwork and state rules are documented in the [skin guide](../assets/ui/README.md).
 
 ## Open and switch themes
 
@@ -29,7 +29,7 @@ An internal screen for comparing engine and active-game styles with one layout a
 | Horizontal controls | Live slider, linked progress and disabled slider |
 | Dividers | Horizontal separator above the bottom group; vertical separator between tree and scrolling panel |
 
-All widgets and captions use the selected theme on a neutral backdrop. Broader target widgets and state coverage are listed in the [target widget inventory](../assets/ui/INVENTORY.md#target-widgets-for-cake-screens).
+All widgets and captions use the selected theme on a neutral backdrop. The sample exercises the implemented skin; full application screens still need their own layout/state checks.
 
 ## Styling decisions
 

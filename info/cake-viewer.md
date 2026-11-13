@@ -87,8 +87,8 @@ cake-viewer --help
   completed draws, and exits. A working graphics context/display is still required.
 - `--size WIDTHxHEIGHT` defaults to 1024×768 physical pixels. Output dimensions
   follow the framebuffer. Without capture, it sets the interactive window size.
-- Animation time is held at zero and the frame-time readout is fixed during
-  capture, so the initial preview is reproducible.
+- Animation time is held at zero during capture, so the initial preview is
+  reproducible.
 - Exit codes: 0 for success/help, 2 for invalid arguments, 1 for load/render/write
   failures. Capture failures propagate rather than silently capturing an error UI.
 - Paths are relative to the process working directory; Gradle `run` uses
@@ -107,8 +107,17 @@ CAKE_VIDEO_GL_TESTS=1 ./gradlew :cake:cake-viewer:test
 
 A resource-type capture batch is available in
 `assets/automation/capture-viewer-ui.py`. See the
-[standalone engine UI review](../assets/cake-branding/viewer-engine-ui-review.md)
-for the capture set, local-data requirements, and reproduction command.
+[branding guide](../assets/cake-branding/README.md)
+for the visual direction. Build the Viewer distribution first, then run:
+
+```sh
+python3 assets/automation/capture-viewer-ui.py --game-dir /path/to/quake2/baseq2 --cin /path/to/video/ntro.cin
+```
+
+The script requires Pillow, a working graphics context, and local game data
+including `pak0.pak` and `players/male/tris.md2` with its skins. `--cin` is
+optional; `--output` selects the capture directory. Game data and captures stay
+under `build/`.
 
 <details>
 <summary>Linux: associate MD2 files with the native viewer</summary>

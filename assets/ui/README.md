@@ -8,12 +8,9 @@ This folder owns runtime skin assets used by Scene2D:
 
 It does not own stage/layout logic (see `cake/core/.../stages`).
 
-Style coverage and consistency:
-
-- [Skin coverage inventory](INVENTORY.md) defines the target hierarchy of elements,
-  styles, widgets and screens, and tracks current coverage and consistency decisions.
-- [UI skin sample specification](../../info/ui-skin-sample.md) defines the
-  proposed gallery, screen compositions, and compact UI atlas with separate fonts.
+Current usage and capture commands are documented in the
+[UI gallery guide](../../info/ui-skin-sample.md). Selected artwork, app icon
+recipes and Figma references are in the [branding guide](../cake-branding/README.md).
 
 The accepted direction uses Quake's fixed conchars proportions as a reference
 for engine resources, with higher-resolution engine artwork allowed. The
@@ -48,14 +45,13 @@ Newest first.
 - Native viewer backgrounds use Chocolate, with Milk chocolate scroll tracks. Engine menus keep the existing ⅓ resource scale.
 - Engine hover and selected text now follow the skin. Conchars menus keep their green hover/selection feedback and game-provided artwork; shared primary/disabled text colors follow the warm palette.
 - `warning`, `error`, `success`, and `info` use Caramel, Error Raspberry, Pistachio, and Blueberry respectively. Historical palette names remain aliases for compatibility.
-- Verification and captures: [round 1 review](../cake-branding/design-review-round-1.md).
+- Verification and captures: [branding guide](../cake-branding/README.md).
 
 ### Decision: Rounded frames with softened corner shading
 - Use the round 1 thin/thick frames: a flat gray face with corner-only highlight/shadow transitions, a dark center, and transparent outer corners.
 - Keep the 72×72 tiles, 24px splits, 24/12px content insets, existing resource names, and menu scaling.
 - Keep the existing single-tint drawables. Palette choices can adapt to their combined rim/body coloring; independent layers are postponed.
-- Slice 1 changes artwork only. Existing skin colors remain for geometry review.
-- Sources and earlier studies: [rounded panel generators](../cake-branding/rounded-panels/).
+- Source generation: [branding guide](../cake-branding/README.md).
 
 ### Decision: Preserve native Quake menu size; adapt engine menus
 - Quake menu font/drawables retain their native size. The 3× relationship describes engine source resolution, not a scale applied to Quake screens.
