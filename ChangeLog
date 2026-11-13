@@ -1,3 +1,13 @@
+1.2.9
+    - fixed invisible MD2 models that contain indexed triangles but no OpenGL command list, in gameplay and previews
+    - added folder drag-and-drop and CLI browsing to Cake Viewer using the shared VFS and package precedence
+    - applied warm engine colors, rounded frames and controls, and app-specific Fullgame, Viewer and Client icons
+    - simplified shared resource browsing and previews with compact headers, Info/Help dialogs, and bottom playback controls
+    - made Loop an independent playback setting retained through Pause and Stop
+    - added Viewer PNG capture output and developer-gated, frame-driven UI automation
+    - added BSP catalog reports for map metadata, textures, transitions and explicit resource references
+    - fixed empty-weapon autoswitch, distant world/sky clipping, Mods list scrolling, and wrapped text previews
+
 1.2.8
     - added a profile-owned Mods manager with archive inclusion checkboxes and a saved automount setting
     - added isolated archive browsing with root-level readmes, contents summaries, resource previews, and collapsible side panels
