@@ -63,6 +63,9 @@ class CakeViewerPreviewGlTest {
         }
         val player = model.copyOf().also { ByteBuffer.wrap(it).order(ByteOrder.LITTLE_ENDIAN).putInt(20, 0) }
         val entries = linkedMapOf("model.md2" to model, "a.pcx" to pcx(0xff0000), "b.pcx" to pcx(0x00ff00))
+        entries["tri.md2"] = model.copyOf().also {
+            ByteBuffer.wrap(it).order(ByteOrder.LITTLE_ENDIAN).putInt(36, 0)
+        }
         entries["players/test/tris.md2"] = player
         repeat(14) { entries["players/test/skin%02d.pcx".format(it)] = pcx(if (it == 0) 0xff0000 else 0x00ff00) }
         entries["players/test/skin00_i.pcx"] = pcx(0)
@@ -121,6 +124,9 @@ class CakeViewerPreviewGlTest {
                     app.render()
                     assertTrue(pane.width > 0 && pane.height > 0)
 
+                    app.openFile(temp.resolve("tri.md2").toString())
+                    app.render()
+                    verifyVisibleModel(stage)
                     app.openFile(pak.toString())
                     app.render()
                     assertNull(pane.stage)
@@ -132,6 +138,9 @@ class CakeViewerPreviewGlTest {
                     stage.keyDown(Input.Keys.ESCAPE)
                     app.render()
                     assertNull(archivePane.stage)
+                    openTile(stage, "tri.md2")
+                    app.render()
+                    verifyVisibleModel(stage)
 
                     app.openFile(temp.resolve("a.pcx").toString())
                     app.render()
@@ -235,6 +244,28 @@ class CakeViewerPreviewGlTest {
             val brokenStage = open("broken.cin")
             assertTrue(labels(brokenStage).any { it.contains("Could not") })
             assertTrue(labels(open("settings.cfg")).any { it.contains("set name preview") })
+        }
+    }
+
+    private fun verifyVisibleModel(stage: Stage) {
+        val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
+        val target = pane.javaClass.superclass.getDeclaredField("target").let {
+            it.isAccessible = true
+            it.get(pane) as com.badlogic.gdx.graphics.glutils.FrameBuffer
+        }
+        target.begin()
+        try {
+            val pixels = com.badlogic.gdx.utils.ScreenUtils.getFrameBufferPixmap(0, 0, target.width, target.height)
+            try {
+                var visible = 0
+                for (y in 0 until pixels.height) for (x in 0 until pixels.width) {
+                    if (pixels.getPixel(x, y) ushr 8 != 0) visible++
+                }
+                assertTrue(visible > 64, "A loaded MD2 must produce visible geometry, not just valid metadata")
+            } finally { pixels.dispose() }
+        } finally {
+            target.end()
+            stage.viewport.apply()
         }
     }
 

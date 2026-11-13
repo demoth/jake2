@@ -11,6 +11,52 @@ import java.nio.ByteOrder
 class Md2ModelTest {
 
     @Test
+    fun `indexed triangles supply geometry when GL commands are absent`() {
+        for (terminatorOnly in listOf(false, true)) {
+            val buffer = triangleOnlyModel(terminatorOnly)
+            val model = Md2Model(buffer)
+            assertEquals(2, model.glCommands.size)
+            val first = model.glCommands.first().vertices
+            assertEquals(listOf(0, 1, 2), first.map { it.index })
+            assertEquals(0.5f / 64f, first[0].s)
+            assertEquals(0.5f / 32f, first[0].t)
+            assertEquals(63.5f / 64f, first[1].s)
+            // The second triangle shares a position but uses another UV at its seam.
+            assertEquals(32.5f / 64f, model.glCommands[1].vertices[0].s)
+            val data = buildVertexData(model.glCommands, model.frames)
+            assertEquals(6, data.indices.size)
+            assertEquals(listOf(0f, 2f, 1f, 0f, 1f, 2f),
+                data.vertexAttributes.toList().chunked(3).map { it.first() })
+        }
+    }
+
+    @Test
+    fun `triangle fallback rejects an out of range vertex or UV index`() {
+        for (offset in listOf(84, 90)) {
+            val buffer = triangleOnlyModel(false)
+            buffer.putShort(offset, 99)
+            org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException::class.java) { Md2Model(buffer) }
+        }
+    }
+
+    private fun triangleOnlyModel(terminatorOnly: Boolean): ByteBuffer {
+        val commands = if (terminatorOnly) 1 else 0
+        // Header, four ST pairs, two triangles, one frame of three vertices, optional terminator.
+        val buffer = ByteBuffer.allocate(160 + commands * 4).order(ByteOrder.LITTLE_ENDIAN)
+        listOf(IDALIASHEADER, ALIAS_VERSION, 64, 32, 52, 0, 3, 4, 2, commands, 1,
+            68, 68, 84, 108, 160, buffer.capacity()).forEach(buffer::putInt)
+        listOf(0, 0, 63, 0, 0, 31, 32, 16).forEach { buffer.putShort(it.toShort()) }
+        listOf(0, 1, 2, 0, 1, 2, 0, 2, 1, 3, 2, 1).forEach { buffer.putShort(it.toShort()) }
+        repeat(3) { buffer.putFloat(1f) }
+        repeat(3) { buffer.putFloat(0f) }
+        buffer.put("triangle".toByteArray().copyOf(16))
+        buffer.put(byteArrayOf(0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0))
+        if (terminatorOnly) buffer.putInt(0)
+        buffer.flip()
+        return buffer
+    }
+
+    @Test
     fun testFrameNamesStopAtNullWithoutShiftingVertexData() {
         val cases = listOf(
             // Berserk frame 26 has a leftover '0' after the null terminator.

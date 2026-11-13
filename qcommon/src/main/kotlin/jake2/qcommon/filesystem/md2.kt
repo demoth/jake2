@@ -73,22 +73,20 @@ class Md2Model(buffer: ByteBuffer) {
             "Wrong .md2 version: $version"
         }
 
-        // some properties are ignored by q2 engine
-        buffer.getInt() // skinwidth
-        buffer.getInt() // skinheight
+        val skinWidth = buffer.getInt()
+        val skinHeight = buffer.getInt()
         buffer.getInt() // framesize: byte size of each frame
 
         skinCount = buffer.getInt()
         verticesCount = buffer.getInt()
-        // actual vertex coordinates are parsed from glcmd, so these are unused in q2
-        buffer.getInt() //num_st: greater than num_xyz for seams, parsed into dstvert_t
+        val textureCoordinateCount = buffer.getInt() // can exceed num_xyz at UV seams
         trisCount = buffer.getInt()
         glcmdCount = buffer.getInt() // dwords in strip/fan command list
         framesCount = buffer.getInt()
 
         skinsOffset = buffer.getInt() // each skin is a MAX_SKINNAME string
-        buffer.getInt() // offset from start until dstvert_t[]
-        buffer.getInt() // offset from start until dtriangles[]
+        val textureCoordinatesOffset = buffer.getInt()
+        val trianglesOffset = buffer.getInt()
         firstFrameOffset = buffer.getInt() // offset for first frame
         glCommandsOffset = buffer.getInt()
         endOfFileOffset = buffer.getInt() // end of file
@@ -141,6 +139,31 @@ class Md2Model(buffer: ByteBuffer) {
                 vertices.add(Md2VertexInfo(vertexIndex, s, t))
             }
             glCommands.add(Md2GlCmd(cmdType, vertices))
+        }
+
+        // Some exporters omit the strip/fan list. Reuse the same runtime
+        // path by representing each indexed triangle as a three-vertex fan.
+        if (glCommands.isEmpty() && trisCount > 0) {
+            check(skinWidth > 0 && skinHeight > 0) { "Invalid MD2 skin dimensions" }
+            buffer.position(textureCoordinatesOffset)
+            val coordinates = List(textureCoordinateCount) {
+                // Match the texel-center convention used by Quake II's command builder.
+                Pair((buffer.short + 0.5f) / skinWidth, (buffer.short + 0.5f) / skinHeight)
+            }
+            buffer.position(trianglesOffset)
+            repeat(trisCount) {
+                val indices = List(3) { buffer.short.toInt() and 0xffff }
+                val uvIndices = List(3) { buffer.short.toInt() and 0xffff }
+                val vertices = indices.indices.map { corner ->
+                    val index = indices[corner]
+                    check(index < verticesCount) { "Invalid MD2 triangle vertex index: $index" }
+                    val uvIndex = uvIndices[corner]
+                    check(uvIndex < coordinates.size) { "Invalid MD2 triangle texture index: $uvIndex" }
+                    val (s, t) = coordinates[uvIndex]
+                    Md2VertexInfo(index, s, t)
+                }
+                glCommands.add(Md2GlCmd(Md2GlCmdType.TRIANGLE_FAN, vertices))
+            }
         }
 
         // SKINS

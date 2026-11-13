@@ -69,6 +69,10 @@ and a yaw-dependent shade vector rather than interpolating normals. Shell flags
 produce a shader rim highlight; this approximates the legacy shell appearance.
 Shader sources are `assets/shaders/md2.vert` and `md2.frag`.
 
+When an MD2 omits GL commands, the parser reconstructs three-vertex fans from
+its indexed triangles and texture coordinates, including UV seams. Existing GL
+command lists remain the preferred path.
+
 Triangle strip/fan decoding normalises winding for conventional backface culling
 (`GL_BACK`, counter-clockwise front faces); no per-model `GL_FRONT` override is needed.
 World light sampling and effect flags are supplied by the ingame runtime.
