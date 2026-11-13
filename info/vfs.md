@@ -1,7 +1,7 @@
 # Jake2 VFS
 
 The shared filesystem implementation lives in
-[`jake2.qcommon.vfs`](../src/main/java/jake2/qcommon/vfs). It indexes loose files and
+[`jake2.qcommon.vfs`](../qcommon/src/main/java/jake2/qcommon/vfs). It indexes loose files and
 packages for reads and provides a separate, explicitly rooted API for writes.
 The server and client use separate instances of this
 shared VFS implementation, with the same lookup semantics.
@@ -15,7 +15,7 @@ shared VFS implementation, with the same lookup semantics.
   and registers diagnostics and runtime commands.
 - **Client:** `CakeVfsAssetSource` owns a `DefaultVirtualFileSystem`, adapted to
   libGDX file handles. `CakeFileResolver` adds download-cache precedence and bundled
-  fallbacks; see [Cake asset loading](../../cake/core/src/main/kotlin/org/demoth/cake/assets/README.md).
+  fallbacks; see [Cake asset loading](../cake/core/src/main/kotlin/org/demoth/cake/assets/README.md).
   The viewer uses the same resolver with startup hints derived from the opened
   file and current directory.
 - `DefaultWritableFileSystem` implements `WritableFileSystem` for a caller-selected
@@ -122,4 +122,4 @@ Downloads use `baseq2` when no mod is selected. Client profile ids and mod names
 separate concepts; server save paths remain mod-based and are not profile-aware.
 
 Saving and loading client bindings and archived cvars is described in the
-[input guide](../../cake/core/src/main/kotlin/org/demoth/cake/input/README.md).
+[input guide](../cake/core/src/main/kotlin/org/demoth/cake/input/README.md).

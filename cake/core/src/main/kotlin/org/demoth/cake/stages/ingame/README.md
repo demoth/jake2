@@ -114,7 +114,7 @@ To profile representative maps and views:
    `3` to include a frame-time line.
 
 Filesystem lookup diagnostics (`fs_files`, `fs_find`, `fs_mounts`, `fs_overrides`)
-are documented in the [shared VFS guide](../../../../../../../../../../qcommon/vfs/README.md).
+are documented in the [shared VFS guide](../../../../../../../../../../info/vfs.md).
 
 ## Lifetime
 

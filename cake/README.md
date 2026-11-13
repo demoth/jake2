@@ -243,4 +243,4 @@ updates in both host configurations; game content and recordings stay outside gi
 - [Ingame runtime](core/src/main/kotlin/org/demoth/cake/stages/ingame/README.md)
 - [HUD layouts](core/src/main/kotlin/org/demoth/cake/stages/ingame/hud/README.md)
 - [Effects and particles](core/src/main/kotlin/org/demoth/cake/stages/ingame/effects/README.md)
-- [Shared virtual filesystem](../qcommon/vfs/README.md)
+- [Shared virtual filesystem](../info/vfs.md)

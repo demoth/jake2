@@ -24,7 +24,7 @@ uses a private archive context with the selected archive above the profile's num
 other assets can satisfy preview dependencies. Loose files, other optional archives,
 and the gameplay resolver are excluded from that inspection context. Archive-only
 callers can omit the baseline directory. Shared VFS
-layering is documented in [the VFS guide](../../../../../../../../../qcommon/vfs/README.md).
+layering is documented in [the VFS guide](../../../../../../../../../info/vfs.md).
 
 `resolve(...)` applies missing-resource policy after looking up the requested path:
 
