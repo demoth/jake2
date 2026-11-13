@@ -4,7 +4,7 @@ View Quake II resources standalone, or open **Content browser** from the client/
 
 ## Open resources
 
-- **Standalone:** pass a file path at launch or drop a file onto the window; the first dropped file replaces the current preview.
+- **Standalone:** pass a file or folder path at launch, or drop it onto the window; the first dropped path replaces the current view.
 - **Client:** browse the active profile's resolved content, using its theme and `cl_ui_size`.
 - Supported files: **PAK, PCX, WAL, TGA, WAV, SP2, MD2, BSP, CIN**, and text resources.
 
@@ -17,6 +17,22 @@ View Quake II resources standalone, or open **Content browser** from the client/
 - The client's top **Back** button returns directly to the menu; Escape closes loose-resource and empty standalone views directly.
 - Changing selection/folders stops the previous playback; leaving a folder releases its thumbnails.
 - Failed previews show an error; select or open another resource to recover.
+
+## Folder browsing
+
+Folders use the same browser and VFS indexing as profile content: recursive loose
+files plus supported packages at the selected root, with the existing VFS precedence
+and case-insensitive lookup. The listing and preview dependencies use the same VFS.
+The folder is the game-data root; a `baseq2` folder works directly. Extracted model
+folders also reuse sibling texture lookup and player-skin discovery. Empty folders
+remain browsable with zero files. Reopen the folder to refresh its index.
+
+```sh
+./gradlew :cake:cake-viewer:run --args='/absolute/path/to/baseq2'
+cake-viewer '/absolute/path/to/a folder' --capture /tmp/folder.png
+```
+
+This is read-only browsing; it does not select or modify a client profile.
 
 ## Previews and controls
 

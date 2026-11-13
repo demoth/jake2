@@ -10,10 +10,10 @@ internal data class ViewerOptions(
     val help: Boolean = false,
 ) {
     companion object {
-        const val USAGE = "Usage: cake-viewer [file] [--capture output.png] [--size WIDTHxHEIGHT]\n" +
+        const val USAGE = "Usage: cake-viewer [file-or-folder] [--capture output.png] [--size WIDTHxHEIGHT]\n" +
             "Capture writes the complete Viewer UI after two rendered frames, then exits.\n" +
             "Capture uses a hidden graphics window and requires a graphics context.\n" +
-            "Use -- before a filename beginning with a dash."
+            "Use -- before a path beginning with a dash."
 
         fun parse(args: Array<String>): ViewerOptions {
             var input: String? = null
@@ -47,7 +47,7 @@ internal data class ViewerOptions(
                     }
                     !positional && arg.startsWith("-") -> error("Unknown option: $arg")
                     else -> {
-                        require(input == null) { "Only one input file can be opened" }
+                        require(input == null) { "Only one input file or folder can be opened" }
                         input = arg
                     }
                 }

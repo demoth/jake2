@@ -25,6 +25,7 @@ import java.util.LinkedHashSet
  * 1. classpath/internal assets (viewer shaders, palette, icons)
  * 2. opened file folder and its parents via local VFS (for local model/map bundles)
  * 3. optional basedir/mod fallback via Cake VFS adapter (same convention as the game client)
+ * Folder mode uses one VFS game root for both listing and dependencies, plus selected-preview sibling lookup.
  * Archive mode resolves only bundled classpath assets and entries in the selected archive.
  */
 class ViewerFileResolver(
@@ -38,6 +39,8 @@ class ViewerFileResolver(
     private val localVfs = DefaultVirtualFileSystem()
     private val gameDataVfs = CakeVfsAssetSource()
     private var archiveContext = false
+    private var directoryContext = false
+    private var previewDirectory = ""
 
     init {
         if (openedFilePath != null) configure(openedFilePath, basedir, gamemod)
@@ -50,6 +53,7 @@ class ViewerFileResolver(
      */
     fun configure(openedFilePath: String, basedir: String? = null, gamemod: String? = null) {
         archiveContext = false
+        directoryContext = false
         this.basedir = basedir
         openedFileDirectoryPath = File(openedFilePath).absoluteFile.parentFile?.absolutePath ?: "."
         openedFileDirectory = Gdx.files.absolute(openedFileDirectoryPath)
@@ -72,12 +76,38 @@ class ViewerFileResolver(
     fun configureArchive(archivePath: String): List<VfsEntry> {
         val entries = gameDataVfs.configureArchive(archivePath)
         archiveContext = true
+        directoryContext = false
         return entries
+    }
+
+    /** Listing and preview dependencies share this single folder VFS snapshot. */
+    fun configureDirectory(directory: String): List<VfsEntry> {
+        val entries = gameDataVfs.configureDirectory(directory)
+        archiveContext = false
+        directoryContext = true
+        previewDirectory = ""
+        basedir = null
+        return entries
+    }
+
+    /** Reuse sibling lookup for extracted model bundles without changing the mounted roots. */
+    internal fun preparePreview(path: String) {
+        if (directoryContext) previewDirectory = path.substringBeforeLast('/', "")
     }
 
     /** Discover external body skins without changing resolver context or loading any textures. */
     internal fun playerSkinPaths(modelPath: String): List<String>? {
         if (archiveContext) return playerModelSkinPaths(modelPath, gameDataVfs.listEntries().map { it.normalizedPath })
+        if (directoryContext) {
+            val paths = gameDataVfs.listEntries().map { it.normalizedPath }
+            playerModelSkinPaths(modelPath, paths)?.let { return it }
+            if (!modelPath.substringAfterLast('/').equals("tris.md2", ignoreCase = true)) return null
+            val header = gameDataVfs.resolve(modelPath)?.read()?.use { it.readNBytes(24) } ?: return null
+            if (!isSkinlessMd2(header)) return null
+            val directory = modelPath.substringBeforeLast('/', "")
+            return paths.filter { it.substringBeforeLast('/', "") == directory &&
+                playerSkinName(it.substringAfterLast('/')) != null }.sorted()
+        }
         val model = File(modelPath)
         if (!model.isAbsolute || !model.name.equals("tris.md2", ignoreCase = true)) return null
         val normalized = model.absolutePath.replace('\\', '/')
@@ -86,9 +116,7 @@ class ViewerFileResolver(
         if (logical == null) {
             // An extracted player folder has no players/ prefix. Do not override embedded monster skins.
             val header = model.inputStream().use { it.readNBytes(24) }
-            if (header.size != 24) return null
-            val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
-            if (buffer.getInt(0) != IDALIASHEADER || buffer.getInt(4) != 8 || buffer.getInt(20) != 0) return null
+            if (!isSkinlessMd2(header)) return null
         }
         val siblings = model.parentFile.listFiles().orEmpty()
             .filter { it.isFile && playerSkinName(it.name) != null }.map { it.absolutePath }
@@ -99,7 +127,7 @@ class ViewerFileResolver(
             .sortedBy { it.substringAfterLast('/').lowercase() }
     }
 
-    override fun textureCandidates(): List<String> = if (archiveContext) {
+    override fun textureCandidates(): List<String> = if (archiveContext || directoryContext) {
         gameDataVfs.listEntries().map { it.normalizedPath }
     } else {
         localVfs.listEntries().flatMap { entry ->
@@ -122,12 +150,17 @@ class ViewerFileResolver(
         }
 
         val normalized = fileName.replace('\\', '/')
-        val roots = if (archiveContext) listOf(Gdx.files.classpath(""))
+        val roots = if (archiveContext || directoryContext) listOf(Gdx.files.classpath(""))
             else listOf(Gdx.files.classpath(""), Gdx.files.internal(""))
         resolveCaseSensitive(roots, fileName)?.let { return it }
         resolveCaseInsensitive(roots, normalized.lowercase())?.let { return it }
 
         if (archiveContext) return gameDataVfs.resolve(fileName)
+        if (directoryContext) {
+            gameDataVfs.resolve(fileName)?.let { return it }
+            val sibling = normalized.substringAfterLast('/')
+            return gameDataVfs.resolve(if (previewDirectory.isEmpty()) sibling else "$previewDirectory/$sibling")
+        }
 
         resolveFromLocalVfs(fileName)?.let { return it }
         if (basedir != null) {
@@ -153,6 +186,12 @@ class ViewerFileResolver(
             }
         }
         return null
+    }
+
+    private fun isSkinlessMd2(header: ByteArray): Boolean {
+        if (header.size != 24) return false
+        val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
+        return buffer.getInt(0) == IDALIASHEADER && buffer.getInt(4) == 8 && buffer.getInt(20) == 0
     }
 
     private fun resolveCaseInsensitive(roots: List<FileHandle>, relativePath: String): FileHandle? {

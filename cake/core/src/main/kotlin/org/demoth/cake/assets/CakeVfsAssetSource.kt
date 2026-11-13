@@ -25,7 +25,7 @@ internal class CakeVfsAssetSource {
     private var configuredGameMod: String? = null
     private var configuredCaseSensitive: Boolean = false
     private var initialized = false
-    private var archiveContext = false
+    private var inspectionContext = false
     private var configuredSelection = jake2.qcommon.vfs.VfsPackageSelection.AUTOMATIC
 
     @Synchronized
@@ -35,7 +35,7 @@ internal class CakeVfsAssetSource {
         val normalizedGameMod = gameMod?.takeIf { it.isNotBlank() }
         if (
             initialized &&
-            !archiveContext &&
+            !inspectionContext &&
             configuredBasedir == normalizedBasedir &&
             configuredGameMod == normalizedGameMod &&
             configuredCaseSensitive == caseSensitive && configuredSelection == selection
@@ -47,7 +47,7 @@ internal class CakeVfsAssetSource {
         configuredBasedir = normalizedBasedir
         configuredGameMod = normalizedGameMod
         configuredCaseSensitive = caseSensitive
-        archiveContext = false
+        inspectionContext = false
 
         clearExtractedPackageFiles()
 
@@ -104,7 +104,25 @@ internal class CakeVfsAssetSource {
         val entries = archiveVfs.listEntries().filter { it.source.containerPath == selected }
         clearExtractedPackageFiles()
         vfs = archiveVfs
-        archiveContext = true
+        inspectionContext = true
+        initialized = true
+        return entries
+    }
+
+    /** Browse a folder using the same loose/package indexing and precedence as a profile game root. */
+    @Synchronized
+    fun configureDirectory(directory: String): List<VfsEntry> {
+        val root = Path.of(directory).toAbsolutePath().normalize()
+        require(Files.isDirectory(root) && Files.isReadable(root)) { "Folder is missing or unreadable: $root" }
+        val folderVfs = DefaultVirtualFileSystem()
+        folderVfs.configure(VfsConfig(
+            root, ".", null, false, false, false, emptyList(),
+            setOf("pak", "pk2", "pk3", "pkz", "zip"),
+        ))
+        val entries = folderVfs.listEntries()
+        clearExtractedPackageFiles()
+        vfs = folderVfs
+        inspectionContext = true
         initialized = true
         return entries
     }

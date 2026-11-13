@@ -97,10 +97,18 @@ class CakeViewerPreviewGlTest {
                 try {
                     jake2.qcommon.MainCommon.registerCvars(false)
                     org.demoth.cake.CakeCvars.registerAll()
-                    val app = CakeViewer(arrayOf(temp.resolve("model.md2").toString())).also {
+                    val app = CakeViewer(arrayOf(temp.toString())).also {
                         viewer = it
                         it.create()
                     }
+                    app.render()
+                    val folderStage = Gdx.input.inputProcessor as Stage
+                    assertTrue(actors(folderStage.root).any { it is org.demoth.cake.ui.ContentBrowser },
+                        "A startup folder uses the shared browser")
+                    openTile(folderStage, "tri.md2")
+                    app.render()
+                    verifyVisibleModel(folderStage)
+                    app.openFile(temp.resolve("model.md2").toString())
                     app.render()
                     val stage = Gdx.input.inputProcessor as Stage // No fly-camera multiplexer for MD2.
                     val pane = actors(stage.root).single { it.javaClass.simpleName == "Md2PreviewPane" }
@@ -194,6 +202,23 @@ class CakeViewerPreviewGlTest {
                     openTile(stage, "tris.md2"); app.render()
                     verifyExternalSkins(app, stage)
 
+                    app.openFile(temp.toString())
+                    app.render()
+                    val folderBrowser = actors(stage.root).filterIsInstance<org.demoth.cake.ui.ContentBrowser>().single()
+                    assertTrue(folderBrowser.openPath("players/test/tris.md2"))
+                    app.render()
+                    verifyExternalSkins(app, stage)
+                    // A dropped extracted player folder has no players/ prefix.
+                    app.openFile(temp.resolve("players/test").toString())
+                    app.render()
+                    openTile(stage, "tris.md2")
+                    app.render()
+                    verifyExternalSkins(app, stage)
+                    val empty = Files.createDirectory(temp.resolve("empty.pak"))
+                    app.openFile(empty.toString())
+                    app.render()
+                    assertTrue(actors(stage.root).any { it is org.demoth.cake.ui.ContentBrowser })
+                    assertTrue(labels(stage).contains("0 files"))
                     app.openFile(broken.toString())
                     app.render()
                     app.openFile(temp.resolve("model.md2").toString())
@@ -202,6 +227,17 @@ class CakeViewerPreviewGlTest {
                         .count { it.javaClass.simpleName == "Md2PreviewPane" })
                     verifyFilePreviews(app, pak)
                     verifyProfilePlayerPreview(app, pak)
+                    app.openFile(temp.toString())
+                    app.render()
+                    val beforeFailure = Gdx.input.inputProcessor as Stage
+                    val recoveringBrowser = actors(beforeFailure.root).filterIsInstance<org.demoth.cake.ui.ContentBrowser>().single()
+                    assertTrue(recoveringBrowser.openPath("broken.md2"))
+                    app.render()
+                    val recovered = Gdx.input.inputProcessor as Stage
+                    assertNotSame(beforeFailure, recovered)
+                    assertTrue(actors(recovered.root).any { it is org.demoth.cake.ui.ContentBrowser },
+                        "A broken folder resource restores the folder browser")
+                    assertTrue(labels(recovered).contains(temp.fileName.toString()))
                     assertEquals(0, Gdx.gl.glGetError())
                 } catch (error: Throwable) {
                     failure = error

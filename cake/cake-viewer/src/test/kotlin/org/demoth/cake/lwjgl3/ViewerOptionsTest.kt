@@ -9,6 +9,7 @@ class ViewerOptionsTest {
     fun `interactive launch keeps defaults and accepts a filename containing spaces`() {
         assertEquals(ViewerOptions(), ViewerOptions.parse(emptyArray()))
         assertEquals("a folder/model.md2", ViewerOptions.parse(arrayOf("a folder/model.md2")).input)
+        assertEquals("a folder/", ViewerOptions.parse(arrayOf("a folder/")).input)
     }
 
     @Test

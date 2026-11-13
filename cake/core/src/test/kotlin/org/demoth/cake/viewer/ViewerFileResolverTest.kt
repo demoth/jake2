@@ -29,6 +29,51 @@ class ViewerFileResolverTest {
     lateinit var temp: Path
 
     @Test
+    fun folderListingAndResolutionUseTheSameVfsWinners() {
+        val root = Files.createDirectories(temp.resolve("my..content"))
+        writePak(root.resolve("pak0.pak"), linkedMapOf(
+            "nested/only.txt" to "packed".toByteArray(),
+            "nested/shared.txt" to "packed shadowed".toByteArray(),
+        ))
+        Files.createDirectories(root.resolve("nested"))
+        Files.writeString(root.resolve("nested/shared.txt"), "loose winner")
+        val resolver = ViewerFileResolver()
+        val entries = resolver.configureDirectory(root.toString())
+        assertTrue(entries.any { it.normalizedPath == "nested/only.txt" })
+        assertEquals(1, entries.count { it.normalizedPath == "nested/shared.txt" })
+        assertEquals("packed", resolver.resolve("nested/only.txt")!!.readString())
+        assertEquals("loose winner", resolver.resolve("NESTED/SHARED.TXT")!!.readString())
+        assertTrue(resolver.textureCandidates().contains("nested/only.txt"))
+    }
+
+    @Test
+    fun folderPreviewReusesSiblingFallbackWithoutChangingItsRoots() {
+        val root = Files.createDirectories(temp.resolve("bundle"))
+        Files.createDirectories(root.resolve("one"))
+        Files.createDirectories(root.resolve("two"))
+        Files.writeString(root.resolve("one/skin.pcx"), "first")
+        Files.writeString(root.resolve("two/skin.pcx"), "second")
+        val resolver = ViewerFileResolver()
+        resolver.configureDirectory(root.toString())
+        resolver.preparePreview("one/tris.md2")
+        assertEquals("first", resolver.resolve("models/original/skin.pcx")!!.readString())
+        resolver.preparePreview("two/tris.md2")
+        assertEquals("second", resolver.resolve("models/original/skin.pcx")!!.readString())
+        assertNull(resolver.resolve("unrelated.txt"))
+    }
+
+    @Test
+    fun foldersCanBeEmptyAndRejectMissingRootsWithoutReplacingTheContext() {
+        val root = Files.createDirectories(temp.resolve("empty"))
+        val resolver = ViewerFileResolver()
+        assertTrue(resolver.configureDirectory(root.toString()).isEmpty())
+        assertThrows(IllegalArgumentException::class.java) {
+            resolver.configureDirectory(root.resolve("missing").toString())
+        }
+        assertTrue(resolver.textureCandidates().isEmpty())
+    }
+
+    @Test
     fun resolvesFromOpenedFileDirectory() {
         val openedFile = createFile("viewer/tris.md2")
         val skin = createFile("viewer/skin.pcx")

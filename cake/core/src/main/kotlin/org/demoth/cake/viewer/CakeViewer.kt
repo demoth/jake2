@@ -70,8 +70,8 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
     private var soundPlayback: SoundPlayback? = null
     private lateinit var fileResolver: ViewerFileResolver
     private var currentFile: File? = null
-    private var archiveEntryCount: Int? = null
-    private lateinit var archiveThumbnails: ImageThumbnails
+    private var browserEntryCount: Int? = null
+    private lateinit var browserThumbnails: ImageThumbnails
     private lateinit var previewResources: PreviewResources
     private var filePreview: FileResourcePreview? = null
     private lateinit var scenePreview: SceneResourcePreview
@@ -90,13 +90,13 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
     override fun create() {
         initializeShaderCompatibility()
 
-        if (args.isNotEmpty() && SUPPORTED_FORMATS.none { args.first().lowercase().endsWith(it) }) {
+        val file = args.firstOrNull()?.let { File(expandTildePath(it)) }
+        if (file != null && !file.isDirectory && SUPPORTED_FORMATS.none { file.name.lowercase().endsWith(it) }) {
             require(captureOutput == null) { "Unsupported file: ${args.first()}" }
-            println("Usage: provide $SUPPORTED_FORMATS file as the first argument")
+            println("Usage: provide a folder or $SUPPORTED_FORMATS file as the first argument")
             Gdx.app.exit()
             return
         }
-        val file = args.firstOrNull()?.let { File(expandTildePath(it)) }
         if (file != null && (!file.exists() || !file.canRead())) {
             require(captureOutput == null) { "File $file does not exist or is unreadable" }
             println("File $file does not exist or is unreadable")
@@ -116,7 +116,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             setLoader(Md2Asset::class.java, "md2", Md2Loader(fileResolver))
         }
 
-        archiveThumbnails = ImageThumbnails(assetManager, fileResolver)
+        browserThumbnails = ImageThumbnails(assetManager, fileResolver)
         previewResources = PreviewResources(assetManager)
         createStage()
         if (file != null) openFile(file.absolutePath)
@@ -126,8 +126,8 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
     fun openFile(path: String) {
         val file = File(expandTildePath(path)).absoluteFile
         val rejection = when {
-            SUPPORTED_FORMATS.none { file.name.lowercase().endsWith(it) } -> "Unsupported file: ${file.name}"
-            !file.isFile || !file.canRead() -> "File is missing or unreadable: ${file.name}"
+            !file.exists() || !file.canRead() -> "Path is missing or unreadable: ${file.name}"
+            !file.isDirectory && (!file.isFile || SUPPORTED_FORMATS.none { file.name.lowercase().endsWith(it) }) -> "Unsupported file: ${file.name}"
             else -> null
         }
         if (rejection != null) {
@@ -139,11 +139,12 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         closePreview()
         try {
             currentFile = file
-            if (file.extension.equals("pak", ignoreCase = true)) {
-                val entries = fileResolver.configureArchive(file.absolutePath)
-                archiveEntryCount = entries.size
-                previewHost.actor = ContentBrowser(entries, file.name, assetManager.getLoaded<Skin>(cakeSkin),
-                    ::previewArchiveResource, archiveThumbnails::load, archiveThumbnails::clear, ::selectArchiveResource)
+            if (file.isDirectory || file.extension.equals("pak", ignoreCase = true)) {
+                val entries = if (file.isDirectory) fileResolver.configureDirectory(file.absolutePath)
+                    else fileResolver.configureArchive(file.absolutePath)
+                browserEntryCount = entries.size
+                previewHost.actor = ContentBrowser(entries, file.name.ifEmpty { file.path }, assetManager.getLoaded<Skin>(cakeSkin),
+                    ::previewBrowserResource, browserThumbnails::load, browserThumbnails::clear, ::selectBrowserResource)
                 previewHost.isVisible = true
             } else {
                 val hints = detectViewerStartupHints(file.absolutePath)
@@ -153,20 +154,20 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
                 previewHost.isVisible = true
                 if (sound != null && captureOutput == null) replaySound()
             }
-            filenameLabel.setText(file.name)
+            filenameLabel.setText(file.name.ifEmpty { file.path })
             errorLabel.setText("")
             updateResourceInfo()
         } catch (error: Exception) {
             if (captureOutput != null) throw IllegalStateException("Could not load ${file.absolutePath}", error)
             Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
-            recoverFromLoadError("Could not load ${file.name}. Drop another resource to continue.")
+            recoverFromLoadError("Could not load ${file.name}. Drop another file or folder to continue.")
         }
     }
 
-    private fun selectArchiveResource(entry: VfsEntry?): Actor? {
+    private fun selectBrowserResource(entry: VfsEntry?): Actor? {
         when (entry?.normalizedPath?.substringAfterLast('.')) {
-            "wav" -> if (loadArchiveResource(entry)) replaySound()
-            "sp2" -> if (loadArchiveResource(entry)) {
+            "wav" -> if (loadBrowserResource(entry)) replaySound()
+            "sp2" -> if (loadBrowserResource(entry)) {
                 return playback?.let {
                     it.stop()
                     it.play(loop = false)
@@ -178,14 +179,14 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         return null
     }
 
-    private fun previewArchiveResource(entry: VfsEntry?): Actor? {
+    private fun previewBrowserResource(entry: VfsEntry?): Actor? {
         errorLabel.setText("")
         if (entry == null) {
             closeResourcePreview()
             return null
         }
         if (entry.normalizedPath.substringAfterLast('.') !in (ImageThumbnails.imageExtensions + listOf("wav", "sp2", "md2", "bsp") + FileResourcePreview.extensions)) return null
-        if (!loadArchiveResource(entry)) return null
+        if (!loadBrowserResource(entry)) return null
         return createPreviewActor()
     }
 
@@ -202,16 +203,16 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             ?: filePreview?.actor
     }
 
-    private fun loadArchiveResource(entry: VfsEntry): Boolean {
+    private fun loadBrowserResource(entry: VfsEntry): Boolean {
         errorLabel.setText("")
         if (previewResources.path == entry.normalizedPath || scenePreview.path == entry.normalizedPath) return true
-        val archive = currentFile
+        val location = currentFile
         return try {
             loadPreview(entry.normalizedPath)
             true
         } catch (error: Exception) {
             Gdx.app.error("Cake Viewer", "Could not preview ${entry.displayPath}", error)
-            recoverFromLoadError("Could not preview ${entry.displayPath}.", archive)
+            recoverFromLoadError("Could not preview ${entry.displayPath}.", location)
             false
         }
     }
@@ -220,19 +221,20 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         soundPlayback?.replay()
     }
 
-    private fun recoverFromLoadError(message: String, archiveToReopen: File? = null) {
+    private fun recoverFromLoadError(message: String, browserToReopen: File? = null) {
         closePreview()
         // Failed dependency loads can leave assets and dependency records behind.
         stage.dispose()
         assetManager.clear()
         createStage()
-        if (archiveToReopen != null) openFile(archiveToReopen.absolutePath)
+        if (browserToReopen != null) openFile(browserToReopen.absolutePath)
         errorLabel.setText(message)
     }
 
     /** Same resource lifetime for loose absolute paths and archive logical paths. */
     private fun loadPreview(path: String) {
         closeResourcePreview()
+        fileResolver.preparePreview(path)
         when (path.substringAfterLast('.').lowercase()) {
             "sp2" -> {
                 sprite = previewResources.load(path, Sp2Asset::class.java)
@@ -297,7 +299,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         })
         emptyState = Table().apply {
             setFillParent(true)
-            add(Label("Drop a resource to view", skin))
+            add(Label("Drop a file or folder to view", skin))
         }
         stage.addActor(emptyState)
         val styles = ContentBrowserStyles.fromSkin(skin)
@@ -338,7 +340,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         val md2 = scenePreview.md2
         val durationMs = sound?.let { SoundDurationRegistry.durationMs(it) }
         resourceInfo.setText(when {
-            archiveEntryCount != null -> "Files: $archiveEntryCount"
+            browserEntryCount != null -> "Files: $browserEntryCount"
             frame != null -> "Frame ${playback!!.frameIndex + 1}/${sprite!!.frames.size} | ${frame.width} x ${frame.height}"
             image != null -> "${image!!.width} x ${image!!.height}"
             md2 != null -> "Frame ${playback!!.frameIndex + 1}/${md2.frames}: ${md2.frameNames[playback!!.frameIndex]} | Skin textures: ${md2.skins.size}"
@@ -347,7 +349,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             else -> ""
         })
         summaryLabel.setText(when {
-            archiveEntryCount != null -> "${archiveEntryCount} files"
+            browserEntryCount != null -> "${browserEntryCount} files"
             image != null -> "${image!!.width} x ${image!!.height}"
             else -> ""
         })
@@ -401,8 +403,8 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
 
     private fun closePreview() {
         closeResourcePreview()
-        if (::archiveThumbnails.isInitialized) archiveThumbnails.clear()
-        archiveEntryCount = null
+        if (::browserThumbnails.isInitialized) browserThumbnails.clear()
+        browserEntryCount = null
         if (::previewHost.isInitialized) {
             previewHost.actor = null
             previewHost.isVisible = false
@@ -414,7 +416,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         filePreview?.close()
         soundPlayback?.stop()
         // Loose widgets must detach before their borrowed textures are released.
-        if (::previewHost.isInitialized && archiveEntryCount == null) previewHost.actor = null
+        if (::previewHost.isInitialized && browserEntryCount == null) previewHost.actor = null
         if (::previewResources.isInitialized) previewResources.close()
         if (::scenePreview.isInitialized) {
             // Detach borrowed actors before disposing their render targets and model resources.
