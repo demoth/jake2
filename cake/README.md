@@ -20,28 +20,9 @@ and Host Game menus. Core accesses hosting through `CakeHost`; only
 
 ### `desktop-common`
 
-Shared game window configuration, video platform, JVM restart helper and icon
-loading. Both game launchers use `CakeDesktopLauncher`; the viewer shares
-the restart helper and icon loading while retaining its own window configuration.
-
-The three apps share the ten-tooth Cake mark and dark tile, with app-specific
-colors: Fullgame uses Strawberry, Viewer uses Blueberry, and Client uses
-Pistachio. Each app owns window PNGs in `cake-<app>/src/main/resources/icons/`
-and packaging SVG/PNG/ICO/ICNS files in `cake-<app>/icons/`. Shared launcher code
-loads identical `icons/icon-<size>.png` classpath paths; each app supplies its own
-files. The packaging script uses `project.file('icons')`. Window titles are
-explicit launcher arguments. Generic `assets/icons/logo*` copies use Strawberry.
-
-Regenerate all icon exports from the repository root (Inkscape and Pillow):
-
-```sh
-python3 assets/cake-branding/generate_app_icons.py
-```
-
-The color mapping is in [app-icons.json](../assets/cake-branding/app-icons.json);
-geometry and tile proportions come from the selected Strawberry icon recipe.
-The generator also writes a size/color comparison to
-`build/captures/design-round-1/slice-3/app-icons.png`.
+Shared desktop window configuration, video platform, JVM restart helper and icon
+loading. Each app owns its icons; see the [icon guide](../assets/cake-branding/app-icons.md)
+for assets and regeneration.
 
 ### `cake-viewer`
 
@@ -54,7 +35,7 @@ Standalone desktop tooling for engine asset generation workflows.
 
 ## Building and running
 
-### Running
+### Running from sources
 
 From repository root:
 
@@ -68,46 +49,33 @@ Main desktop entrypoint:
 
 ### JVM distributions
 
-Build portable ZIPs with Java 25:
+Build ZIPs that require Java 25 to run:
 
 ```sh
-./gradlew :cake:cake-client:distZip :cake:cake-viewer:distZip
-./gradlew :cake:cake-fullgame:distZip
+./gradlew :cake:cake-client:distZip :cake:cake-fullgame:distZip :cake:cake-viewer:distZip
 ```
 
-Each launcher's `build/distributions/` contains a ZIP with `bin/` launch scripts
-and `lib/` application/dependency JARs. Extract the entire ZIP and run
-`bin/cake-client`, `bin/cake-fullgame`, or `bin/cake-viewer` (the `.bat` script on Windows).
-Pass an asset path to the viewer; Quake 2 game data remains external.
+ZIPs are under each app's `build/distributions/`. Extract the complete archive
+and run `bin/cake-<app>` (`.bat` on Windows).
 
-For a local installation, use `:cake:cake-client:installDist` or
-`:cake:cake-viewer:installDist`; scripts are under the corresponding
-`build/install/<application>/bin/` directory. JARs under `build/libs/` are normal
-project JARs and need the distribution classpath. Use `distZip` instead of the
-former custom `dist` task; standalone fat JARs are no longer produced.
-
-The existing launcher helper supplies macOS first-thread startup by restarting
-the JVM when needed. ZIPs require Java; bundled-runtime images and native
-executables use the separate Beryx and Graal tasks.
-
-Configuration cache is enabled for ordinary builds, JVM distributions, and run
-tasks. Beryx 2.0.1 still requires `--no-configuration-cache` for
-`runtime`, `runtimeZip`, `jpackageImage`, and `jpackage`, for example:
+To bundle Java and a native launcher instead, build on the target OS and architecture:
 
 ```sh
-./gradlew :cake:cake-client:runtimeZip --no-configuration-cache
-./gradlew :cake:cake-client:jpackageImage --no-configuration-cache
+./gradlew :cake:cake-client:jpackageImage :cake:cake-fullgame:jpackageImage :cake:cake-viewer:jpackageImage --no-configuration-cache
 ```
 
-`runtimeZip` writes `build/image.zip`; `jpackageImage` writes an application
-under `build/jpackage/`. Use the corresponding viewer tasks for that app.
-These outputs bundle the project Java toolchain and target the build machine's
-OS and architecture. Installers remain disabled.
+Application images are under each app's `build/jpackage/`.
+
+### GitHub desktop packages
+
+In GitHub Actions, select **Desktop packages → Run workflow**, or push a tag
+matching `1.*` or `v1.*`. Download the archives from the run's **Artifacts**
+section. Extract the complete archive; Java is bundled.
 
 ### Native executables
 
-Graal support is opt-in. Enable the native plugin and helpers when building an
-experimental native executable:
+Experimental GraalVM builds require GraalVM 25 with Native Image. Set
+`GRAALVM_HOME` to its installation, then run:
 
 ```sh
 ./gradlew -PenableGraalNative=true :cake:cake-client:nativeCompile
@@ -115,118 +83,44 @@ experimental native executable:
 ./gradlew -PenableGraalNative=true :cake:cake-fullgame:nativeCompile
 ```
 
-These tasks require GraalVM 25 or newer with Native Image. Set `GRAALVM_HOME` to
-that installation; Gradle can continue running on the regular project JDK.
-Native resources are detected from the runtime classpath, including repository
-assets and dependency libraries. Ordinary JVM builds and ZIPs omit the Graal helpers.
-All three launchers use the shared native configuration and explicit reflection
-metadata for audio and Scene2D skin/pool classes. The `game` module supplies
-type registrations for its callback preload list; keep these aligned with
-`GameExportsImpl.preloadclasslist`. The `qcommon`, `server`, and `game` modules
-also register their save DTOs for Jackson reflection.
-Native compilation, basic startup, local map transitions, and console save/load
-are verified on Linux ARM64. Multiplayer hosting still needs native runtime
-validation.
-
 ## Playing and hosting
 
-`cake-client` connects to remote servers. `cake-fullgame` also provides Singleplayer
-and Host Game menus, using the selected profile's game data and mod.
+`cake-client` is a thin client - it can only connect to remote servers.
 
-Hosting automatically connects the local player. Disconnect before switching
-profiles or starting another session.
+`cake-fullgame` also provides Singleplayer and Host Game menus, using the selected profile's game data and mod.
 
-Switching profiles resets built-in gameplay startup settings before loading the
-selected profile's config. Video and client preferences are not reset. Initial
-startup preserves command-line overrides; loading a save restores its saved
-latched settings, including difficulty.
-
-Console equivalents:
+Console commands:
 
 - `map <map>` / `gamemap <map>` — start a local game or change maps while hosting.
 - `disconnect` — disconnect and stop the local game, retaining the idle Host.
 - `killserver` — stop the hosted game, retaining the idle Host.
 
-For multiplayer, set `coop`, `deathmatch`, and `maxclients` before starting the
-map, for example `set coop 1; set deathmatch 0; set maxclients 4; map base1`.
-The Host Game menu configures these settings for you.
-
 Saves are stored in `~/.cake/<profileId>/save/`. Console `load <slot>` restores a
 game even while disconnected. `save <slot>` requires an active game.
 
-Fullgame's Singleplayer submenu contains New Game, Load Game and Save Game.
-New Game opens difficulty selection. The submenu stays accessible during play,
-with each action enabled when eligible; Back from these screens returns there.
-Escape goes back through the menus and returns to gameplay from the main menu.
-Saved games refresh automatically whenever Load Game or Save Game is opened.
-Each screen shows a scrolling checkpoint list alongside preview space and save
-details, with actions along the bottom. Manual saves from the menu include a
-thumbnail of the scene without menus (up to 320×240). Missing or unreadable
-thumbnails show a placeholder; image capture/write failures leave the save usable
-and display a warning. Autosaves and console saves do not capture thumbnails.
-Replacing a checkpoint clears its old contents, including any previous thumbnail.
-New Save creates a checkpoint; Save asks before replacing the selected manual save.
-Delete asks before removing the selected checkpoint. Autosave is
-listed for loading and reserved against manual overwrite. Save requires a living,
-spawned local player. Loading is available from startup and during singleplayer;
-the singleplayer respawn action opens Load Game automatically.
-
-`menu_loadgame` and `menu_savegame` open those screens from the console. Errors
-remain visible in the menu so an invalid save or failed restore can be retried.
-Deathmatch does not create autosaves. Coop save/load remains console-only.
+Autosaves can be loaded but cannot be overwritten manually. Coop save/load uses the console
+commands above.
 
 ## Demo recording and playback
 
-Both `cake-client` and `cake-fullgame` can record the connected client's view using protocol 34:
+Both launchers record protocol-34 demos and play classic protocol-26/31/32/34
+`.dm2` files. Select a profile containing the required maps, models and sounds.
 
-- `record example` — start recording an active live game, remote or locally hosted.
-- `stop` — finish and close the recording. Disconnect/shutdown also finishes it.
-- `demomap example` — replay the saved recording.
+Console commands:
 
-Recordings are saved under `~/.cake/<profile-id>/demos/`; nested names are supported.
-Existing recordings are not overwritten: choose a new name for another take.
-Recording waits for an accepted full snapshot, requesting one without invalidating
-the displayed frame. Map transitions remain in the same recording. An I/O failure
-stops recording and reports an error while gameplay continues. A recording stopped
-before its first full snapshot has no playable frames.
+- `record example` — record the current local or remote game.
+- `stop` — finish recording.
+- `demomap example` — play `demos/example.dm2`, looking in profile recordings before game data.
+- `demopause` — toggle playback pause.
+- `demostop` or `disconnect` — stop playback.
 
-Both launchers play classic protocol-26, protocol-31, protocol-32 and protocol-34 client recordings (`.dm2`)
-without running a game server. Select a profile containing the recording's maps,
-models, and sounds, then open the client console:
+Recordings are saved in `~/.cake/<profile-id>/demos/`. Nested names are supported;
+existing recordings are not overwritten. Disconnecting also finishes recording.
 
-- `demomap example` — play the active profile's saved `demos/example.dm2`, falling back to game data.
-- `demomap demos/folder/example.dm2` — play a nested demo, including archive entries.
-- `demopause` — toggle pause; opening the menu or suspending the application also pauses playback.
-- `demostop` or `disconnect` — stop and return to the browser for browser-started playback, or the console otherwise.
-
-EOF and playback errors return to the starting browser or console. Browser errors
-appear above the retained file listing. Starting another demo replaces the current session. The camera follows the recorded player; movement and mouse look
-do not control playback. Opening the console leaves playback running.
-Base-game and expansion temporary effects use Cake's rendering pipeline;
-visual fidelity varies by effect family.
-
-The content browser includes installed demos and profile-local recordings. Selecting
-a `.dm2` file shows its protocol, game directory, level and available map path,
-alongside file size and source. Local recordings take precedence over installed
-demos with the same path. Double-click or press Enter to start the selected
-demo. Playback returns to the same folder, selected file, scroll position and
-thumbnail size on completion, stop or error, including after menu-theme changes.
-Escape opens the menu and pauses playback; close the menu to resume. The menu’s
-Disconnect action stops playback and returns to the browser.
-
-Protocol-26 recordings use their shorter frame header; missing suppression counts
-are treated as zero. Missing MD2/SP2 config models in protocol-26 demos are warned
-about and skipped, since early demos may reference models absent from later game
-data. Maps and present-but-malformed assets still require successful loading.
-Extended/rerelease protocols and cinematic recordings remain
-unsupported. For a protocol-34 interoperability test file,
-record a session in Yamagi using `record example`, then `stop`, and copy its
-`demos/example.dm2` into the selected profile's game-data directory.
-
-The hidden-window playback integration tests accept an external recording through
-`CAKE_TEST_DEMO=/absolute/path/example.dm2`, alongside `CAKE_HOST_GAME_TESTS=1`
-and `CAKE_TEST_BASEDIR`. They run the untouched recording and controlled view
-updates in both host configurations; game content and recordings stay outside git.
+In the content browser, double-click a demo or press Enter to play it. Opening
+the menu pauses playback; closing it resumes. Browser-started playback returns
+to the browser when finished or stopped. Extended/rerelease protocols and
+cinematic recordings are unsupported.
 
 ## Subsystem Guides
 

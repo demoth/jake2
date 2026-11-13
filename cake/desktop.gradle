@@ -1,3 +1,5 @@
+def os = System.properties['os.name'].toLowerCase()
+
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
 // Keep authoring material in the repository, not in each desktop distribution.
 sourceSets.main.resources {
@@ -6,6 +8,8 @@ sourceSets.main.resources {
 }
 application {
   applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED']
+  // GLFW needs this in packaged launchers as well as Gradle run.
+  if (os.contains('mac')) applicationDefaultJvmArgs += '-XstartOnFirstThread'
 }
 dependencies {
   implementation rootProject.libs.gdxControllersDesktop
@@ -22,14 +26,11 @@ dependencies {
   implementation project(':cake:desktop-common')
 }
 
-def os = System.properties['os.name'].toLowerCase()
 def iconsDir = project.file('icons')
 
 run {
   outputs.upToDateWhen { false }
   workingDir = rootProject.file('assets').path
-
-  if (os.contains('mac')) jvmArgs += "-XstartOnFirstThread"
 }
 
 runtime {

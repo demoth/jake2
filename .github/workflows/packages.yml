@@ -1,0 +1,58 @@
+name: Desktop packages
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['1.*', 'v1.*']
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Package ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            target: linux-x64
+          - runner: windows-2022
+            target: windows-x64
+          - runner: macos-15
+            target: macos-arm64
+          - runner: macos-15-intel
+            target: macos-x64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build application images
+        run: >-
+          bash ./gradlew
+          :cake:core:test :cake:cake-viewer:test :cake:cake-fullgame:test
+          :cake:cake-client:jpackageImage
+          :cake:cake-fullgame:jpackageImage
+          :cake:cake-viewer:jpackageImage
+          --no-configuration-cache
+      - name: Check launchers and archive application images
+        run: python .github/scripts/archive-app-images.py --target '${{ matrix.target }}'
+      - name: Upload application archives
+        uses: actions/upload-artifact@v7
+        with:
+          name: cake-${{ matrix.target }}
+          path: build/packages/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
