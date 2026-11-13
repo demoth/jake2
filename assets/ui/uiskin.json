@@ -211,11 +211,11 @@
       color: surfaceOver
     },
     scrollKnob: {
-      name: knob-v,
+      name: scroll-thumb-horizontal,
       color: checked
     },
     scrollKnobVertical: {
-      name: knob-h,
+      name: scroll-thumb-vertical,
       color: checked
     },
     scrollPane: {
@@ -255,19 +255,19 @@
       color: border
     },
     sliderKnob: {
-      name: rect,
+      name: slider-circle,
       color: down
     },
     sliderKnobOver: {
-      name: rect,
+      name: slider-circle,
       color: over
     },
     sliderKnobDown: {
-      name: rect,
+      name: slider-circle,
       color: down
     },
     sliderKnobDisabled: {
-      name: rect,
+      name: slider-circle,
       color: disabled
     },
     sliderVertical: {
@@ -275,19 +275,19 @@
       color: border
     },
     sliderVerticalKnob: {
-      name: rect,
+      name: slider-circle,
       color: checked
     },
     sliderVerticalKnobOver: {
-      name: rect,
+      name: slider-circle,
       color: over
     },
     sliderVerticalKnobDown: {
-      name: rect,
+      name: slider-circle,
       color: down
     },
     sliderVerticalKnobDisabled: {
-      name: rect,
+      name: slider-circle,
       color: disabled
     },
     textField: {

@@ -313,7 +313,8 @@ or inherited assets without a current screen consumer.
 | Checkbox artwork | `check`, `check-on`, `checkbox`, `checkbox-over`, `checkbox-selected`, `checkbox-selected-over` |
 | Radio artwork | `radio`, `radio-over`, `radio-selected`, `radio-selected-over` |
 | Old font regions | `font`, `font-list`, `font-subtitle`, `font-window` (the current font uses its separate PNG) |
-| Scroll and line primitives | `knob-h`, `knob-v`, `line-h`, `line-v`, `scrollbar` |
+| Engine scroll/position shapes | `scroll-thumb-horizontal`, `scroll-thumb-vertical` (rounded nine-patches); `slider-circle` (24px circle in a 24×24 footprint); `engine-controls.svg` / `.png` |
+| Legacy scroll and line primitives | `knob-h`, `knob-v`, `line-h`, `line-v`, `scrollbar` (retained for compatibility/other uses) |
 | List | `list` |
 | Progress alternatives | `progress-bar`, `progress-bar-knob`, `progress-bar-square`, `progress-bar-square-knob` |
 | Dropdown alternatives | `select`, `select-box`, `select-box-open` |

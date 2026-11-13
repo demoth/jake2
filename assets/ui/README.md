@@ -3,7 +3,7 @@
 ## Overview
 This folder owns runtime skin assets used by Scene2D:
 - `uiskin.json` (style/resource map),
-- `uiskin.atlas` + `uiskin.png` / `engine-panels.png` (drawables/nine-patch metadata),
+- `uiskin.atlas` + `uiskin.png` / `engine-panels.png` / `engine-controls.png` (drawables/nine-patch metadata),
 - bitmap fonts (`share-tech-mono*.fnt/.png`).
 
 It does not own stage/layout logic (see `cake/core/.../stages`).
@@ -34,6 +34,12 @@ slider/progress support from the existing Quake glyphs.
 
 ## Decision Log
 Newest first.
+
+### Decision: Solid rounded scrollbar thumbs and circular position knobs
+- Engine scrollbars use solid white capsule artwork, tinted Strawberry. Horizontal and vertical nine-patches stretch their middle while preserving 12px end caps. Their native thickness remains 24px; the minimum thumb length is 25px so both caps remain intact.
+- Slider and read-only position/progress controls use a solid 24px circle (twice the initial diameter), with a 24×24 native footprint. Hover, pressed, disabled colors and the engine menu's ⅓ scale are preserved.
+- Tracks and separators keep their existing artwork. Conchars controls retain their own source glyphs.
+- Regenerate the neutral SVG and PNG with `python3 assets/ui/generate_engine_controls.py` (Inkscape and Pillow required). The generated controls occupy a separate atlas page; legacy primitives remain available for other uses.
 
 ### Decision: Strawberry accents with existing single-tint drawables
 - Slice 2 maps the candidate palette to semantic skin roles. Cream text sits on dark warm surfaces; Strawberry marks actions and scroll thumbs, Light strawberry marks hover, and Highlight Raspberry marks pressed/focused controls.

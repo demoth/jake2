@@ -418,3 +418,34 @@ panel-thin
   orig: 72, 72
   offset: 0, 0
   index: -1
+
+engine-controls.png
+size: 56,56
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+scroll-thumb-horizontal
+  rotate: false
+  xy: 1, 1
+  size: 25, 24
+  split: 12, 12, 0, 0
+  pad: 0, 0, 0, 0
+  orig: 25, 24
+  offset: 0, 0
+  index: -1
+scroll-thumb-vertical
+  rotate: false
+  xy: 28, 1
+  size: 24, 25
+  split: 0, 0, 12, 12
+  pad: 0, 0, 0, 0
+  orig: 24, 25
+  offset: 0, 0
+  index: -1
+slider-circle
+  rotate: false
+  xy: 1, 28
+  size: 24, 24
+  orig: 24, 24
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56">
+  <rect id="scroll-thumb-horizontal" x="1" y="1" width="25" height="24" rx="12" fill="#ffffff"/>
+  <rect id="scroll-thumb-vertical" x="28" y="1" width="24" height="25" rx="12" fill="#ffffff"/>
+  <circle id="slider-circle" cx="13" cy="40" r="12" fill="#ffffff"/>
+</svg>
