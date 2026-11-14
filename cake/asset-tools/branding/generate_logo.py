@@ -4,7 +4,7 @@
 Edit logo-parameters.json, then run this script. CLI overrides allow quick
 experiments, for example:
 
-    python3 assets/cake-branding/generate_logo.py --teeth 10 --cog-thickness 32 \
+    python3 cake/asset-tools/branding/generate_logo.py --teeth 10 --cog-thickness 32 \
         --rim-thickness 16 --output /tmp/cake-logo-variant.svg
 
 All dimensions use the 512-unit drawing coordinates. Gear and slice groups

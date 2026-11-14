@@ -2,7 +2,7 @@
 """Generate neutral, rounded half-round nine-patch frame artwork.
 
 Run from the repository root:
-    python3 assets/cake-branding/rounded-panels/generate_panels.py --rasterize
+    python3 cake/asset-tools/branding/rounded-panels/generate_panels.py --rasterize
 
 The atlas is a review asset, not installed into the runtime skin. Both tiles
 are 72x72, with 24px fixed corners. Thick/thin padding matches the existing

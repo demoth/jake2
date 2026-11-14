@@ -1,11 +1,44 @@
 """Validate and archive jpackage images without losing Unix modes or symlinks."""
 
 import argparse
+from fnmatch import fnmatchcase
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 import tarfile
+import zipfile
+
+
+def check_bundle(app, directory, target):
+    classifier = {"linux-x64": "linux", "windows-x64": "windows",
+                  "macos-arm64": "macos-arm64", "macos-x64": "macos"}[target]
+    native_modules = set()
+    for jar in directory.glob("*.jar"):
+        native = re.fullmatch(r"(lwjgl.*?)-[\d.]+-natives-(.+)\.jar", jar.name)
+        if native:
+            if native[2] != classifier:
+                raise RuntimeError(f"Foreign native library in bundle: {jar.name}")
+            native_modules.add(native[1])
+        if jar.name.startswith(("gdx-controllers-", "jamepad-", "gdx-freetype-", "ktx-freetype-")):
+            raise RuntimeError(f"Unused dependency in bundle: {jar.name}")
+    required = {"lwjgl", "lwjgl-glfw", "lwjgl-jemalloc", "lwjgl-openal", "lwjgl-opengl", "lwjgl-stb"}
+    if missing := required - native_modules:
+        raise RuntimeError(f"Missing {classifier} native libraries: {sorted(missing)}")
+
+    app_jars = list(directory.glob(f"{app}-*.jar"))
+    if len(app_jars) != 1:
+        raise RuntimeError(f"Expected one application jar for {app}, found {app_jars}")
+    excluded = ("*.py", "*.svg", "*.md", "*.ttf", "cake-branding/*",
+                "cake-logo-draft.png", "libgdx.png", "triangloid.png", "icons/logo*")
+    with zipfile.ZipFile(app_jars[0]) as archive:
+        leftovers = [name for name in archive.namelist()
+                     if any(fnmatchcase(name, pattern) for pattern in excluded)]
+        if leftovers:
+            raise RuntimeError(f"Unused resources in {app}: {leftovers}")
+        if "ui/ShareTechMono-OFL.txt" not in archive.namelist():
+            raise RuntimeError(f"Missing bitmap font license in {app}")
 
 
 def main():
@@ -44,6 +77,7 @@ def main():
             raise RuntimeError(f"Missing native-access option in {config}")
         if system == "macos" and "-XstartOnFirstThread" not in options:
             raise RuntimeError(f"Missing GLFW first-thread option in {config}")
+        check_bundle(app, config.parent, args.target)
         subprocess.run([str(java), "-version"], check=True, timeout=60)
         if app == "cake-viewer":
             subprocess.run([str(launcher), "--help"], check=True, timeout=60)

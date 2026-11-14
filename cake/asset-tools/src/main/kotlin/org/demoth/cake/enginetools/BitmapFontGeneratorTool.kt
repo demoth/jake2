@@ -163,7 +163,7 @@ object BitmapFontGeneratorTool {
 
     private fun printUsage() {
         println("Usage:")
-        println("  ./gradlew :cake:engine-tools:run --args=\"--ttf /path/font.ttf --out /path/output [options]\"")
+        println("  ./gradlew :cake:asset-tools:run --args=\"--ttf /path/font.ttf --out /path/output [options]\"")
         println()
         println("Required:")
         println("  --ttf <path>          Input TTF file")

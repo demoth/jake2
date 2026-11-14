@@ -13,7 +13,7 @@ Viewer Blueberry, and Client Pistachio. See [app-icons.md](app-icons.md) for
 recipes, output locations and platform coverage.
 
 ```sh
-python3 assets/cake-branding/generate_app_icons.py
+python3 cake/asset-tools/branding/generate_app_icons.py
 ```
 
 The selected geometry/tile recipe is `cake-icon-strawberry-10t.json`; app colors
@@ -33,14 +33,14 @@ scale; the standalone Viewer uses native sizes. Separators keep their existing
 artwork.
 
 ```sh
-python3 assets/cake-branding/rounded-panels/generate_soft_corner_panels.py --runtime
-python3 assets/ui/generate_engine_controls.py
+python3 cake/asset-tools/branding/rounded-panels/generate_soft_corner_panels.py --runtime
+python3 cake/asset-tools/ui/generate_engine_controls.py
 ```
 
 Generation requires Inkscape and Pillow. Keep `generate_panels.py` and
 `generate_flat_panels.py`: the selected generator imports their geometry helpers.
-Runtime sources/exports are `assets/ui/engine-panels.{svg,png}` and
-`assets/ui/engine-controls.{svg,png}`. Their atlas geometry is in
+SVG sources are in `cake/asset-tools/ui/`; PNG exports go to `assets/ui/`.
+Their atlas geometry is in
 `assets/ui/uiskin.atlas`. See [the skin guide](../ui/README.md) for font generation
 and state rules.
 
@@ -52,9 +52,9 @@ and state rules.
 - [Current runtime captures](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=66-6885)
 - [Archived design exploration](https://www.figma.com/design/ATgASPuXFCxO40preR7b3h?node-id=61-8787)
 
-Use the [UI gallery](../../info/ui-skin-sample.md) to compare engine and game
+Use the [UI gallery](../../../info/ui-skin-sample.md) to compare engine and game
 themes at 1440×900, `cl_ui_size 720`. Viewer resource captures use
-`assets/automation/capture-viewer-ui.py`; see [Viewer documentation](../../info/cake-viewer.md).
+`cake/asset-tools/automation/capture-viewer-ui.py`; see [Viewer documentation](../../../info/cake-viewer.md).
 Generated captures and local game data stay under `build/`.
 
 Check native Viewer sizing as well as menu scaling, normal/hover/pressed/disabled

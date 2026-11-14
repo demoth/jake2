@@ -14,7 +14,7 @@ import subprocess
 from PIL import Image, ImageDraw
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def pak_entries(file):

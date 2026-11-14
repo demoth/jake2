@@ -25,7 +25,7 @@ include (":cake")
 include (":cake:core")
 include (":cake:cake-client")
 include (":cake:cake-viewer")
-include (":cake:engine-tools")
+include (":cake:asset-tools")
 
 include(":cake:desktop-common")
 include(":cake:cake-fullgame")

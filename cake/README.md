@@ -21,7 +21,7 @@ and Host Game menus. Core accesses hosting through `CakeHost`; only
 ### `desktop-common`
 
 Shared desktop window configuration, video platform, JVM restart helper and icon
-loading. Each app owns its icons; see the [icon guide](../assets/cake-branding/app-icons.md)
+loading. Each app owns its icons; see the [icon guide](asset-tools/branding/app-icons.md)
 for assets and regeneration.
 
 ### `cake-viewer`
@@ -29,7 +29,7 @@ for assets and regeneration.
 Standalone desktop launcher for the Cake Viewer.
 Opens MD2 models, BSP maps, and PCX/WAL images; see the [viewer guide](../info/cake-viewer.md).
 
-### [`engine-tools`](engine-tools/README.md)
+### [`asset-tools`](asset-tools/README.md)
 
 Standalone desktop tooling for engine asset generation workflows.
 

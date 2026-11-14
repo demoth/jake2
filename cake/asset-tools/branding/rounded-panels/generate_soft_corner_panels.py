@@ -18,6 +18,7 @@ from generate_flat_panels import piece as flat_piece, ring, FACE, HIGHLIGHT, SHA
 
 
 HERE=Path(__file__).resolve().parent
+ROOT=HERE.parents[3]
 
 
 def gradient(name,x1,y1,x2,y2,stops):
@@ -55,10 +56,10 @@ def piece(index,thickness,prefix):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--runtime',action='store_true',
-                        help='Render and install assets/ui/engine-panels.svg and .png (Inkscape and Pillow required)')
+                        help='Render assets/ui/engine-panels.png (Inkscape and Pillow required)')
     args=parser.parse_args()
     ET.register_namespace('','http://www.w3.org/2000/svg')
-    build=Path('build/figma-ui/soft-corner-panels');build.mkdir(parents=True,exist_ok=True)
+    build=ROOT/'build/figma-ui/soft-corner-panels';build.mkdir(parents=True,exist_ok=True)
     manifest={'tileSize':72,'split':[24]*4,'cornerRadius':24,'center':CENTER,
               'rimColors':[HIGHLIGHT,FACE,SHADOW],'gradientCorners':[2,6],
               'sourceScale':3,'weights':{}}
@@ -90,9 +91,8 @@ def main():
             tile.save(build/f'panel-{name}.png')
             packed.paste(tile,(x,1))
             raster.unlink()
-        runtime=HERE.parents[1]/'ui'
-        shutil.copyfile(HERE/'soft-corner-panels.svg',runtime/'engine-panels.svg')
-        packed.save(runtime/'engine-panels.png')
+        shutil.copyfile(HERE/'soft-corner-panels.svg',HERE.parents[1]/'ui/engine-panels.svg')
+        packed.save(ROOT/'assets/ui/engine-panels.png')
     print('Generated corner-only fades; flat faces, straight edges and fixed corners preserved.')
 
 

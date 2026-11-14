@@ -3,15 +3,12 @@ apply plugin: 'com.gorylenko.gradle-git-properties'
 apply plugin: 'java-test-fixtures'
 
 dependencies {
-  api libs.gdxControllersCore
-  api libs.gdxFreetype
   api libs.gdx
 //  api "com.badlogicgames.gdx:scene2d.ui:<version>"
   api libs.ktxActors
   api libs.ktxApp
   api libs.ktxAssets
   api libs.ktxCollections
-  api libs.ktxFreetype
   api libs.ktxGraphics
   api libs.ktxLog
   api libs.ktxScene2d

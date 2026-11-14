@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate all desktop icons from the selected Cake geometry.
 
-From the repository root: python3 assets/cake-branding/generate_app_icons.py
+From the repository root: python3 cake/asset-tools/branding/generate_app_icons.py
 Requires Inkscape and Pillow. SVG rendering is a development dependency only.
 """
 
@@ -16,7 +16,7 @@ from generate_logo import generate
 
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+ROOT = HERE.parents[2]
 SIZES = (16, 24, 32, 48, 64, 128, 256, 512, 1024)
 
 
@@ -82,12 +82,6 @@ def main():
             sheet.paste(images[size], (cursor, 318), images[size])
             cursor += size + 10
     sheet.save(build / 'app-icons.png')
-    # Existing generic assets remain the Strawberry brand/Fullgame icon.
-    fullgame = ROOT / 'cake/cake-fullgame/icons'
-    legacy = ROOT / 'assets/icons'
-    for ext in ('png', 'ico'):
-        shutil.copyfile(fullgame / f'logo.{ext}', legacy / f'logo.{ext}')
-    shutil.copyfile(ROOT / 'cake/cake-fullgame/src/main/resources/icons/icon-32.png', legacy / 'logo-32.png')
     print('Generated Fullgame/Viewer/Client window and PNG/ICO/ICNS packaging icons.')
 
 

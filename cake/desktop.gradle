@@ -1,23 +1,12 @@
 def os = System.properties['os.name'].toLowerCase()
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-// Keep authoring material in the repository, not in each desktop distribution.
-sourceSets.main.resources {
-  exclude 'cake-branding/**', 'cake-logo-draft.png'
-  exclude 'automation/*.py', 'ui/*.svg', 'ui/*.py', 'ui/*.md'
-}
 application {
   applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED']
   // GLFW needs this in packaged launchers as well as Gradle run.
   if (os.contains('mac')) applicationDefaultJvmArgs += '-XstartOnFirstThread'
 }
 dependencies {
-  implementation rootProject.libs.gdxControllersDesktop
-  runtimeOnly(rootProject.libs.gdxFreetypePlatform) {
-    artifact {
-      classifier = 'natives-desktop'
-    }
-  }
   runtimeOnly(rootProject.libs.gdxPlatform) {
     artifact {
       classifier = 'natives-desktop'
@@ -31,6 +20,20 @@ def iconsDir = project.file('icons')
 run {
   outputs.upToDateWhen { false }
   workingDir = rootProject.file('assets').path
+}
+
+// jpackage consumes installDist; keep portable distZip archives unchanged.
+def nativePlatform = os.contains('win') ? 'windows' : os.contains('mac') ? 'macos' : 'linux'
+def nativeArch = System.properties['os.arch'].toLowerCase()
+def nativeSuffix = ['amd64': '', 'x86_64': '', 'aarch64': '-arm64', 'arm64': '-arm64']
+tasks.named('installDist') {
+  inputs.property('nativeClassifier', "${nativePlatform}-${nativeArch}")
+  exclude { details ->
+    def nativeJar = details.name =~ /^lwjgl.*-natives-(.+)\.jar$/
+    if (!nativeJar.matches()) return false
+    if (!nativeSuffix.containsKey(nativeArch)) throw new GradleException("Unsupported desktop architecture: $nativeArch")
+    nativeJar[0][1] != nativePlatform + nativeSuffix[nativeArch]
+  }
 }
 
 runtime {

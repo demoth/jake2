@@ -14,6 +14,7 @@ from PIL import Image
 
 
 HERE = Path(__file__).resolve().parent
+RUNTIME = HERE.parents[2] / 'assets/ui'
 SVG = '''<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56">
   <rect id="scroll-thumb-horizontal" x="1" y="1" width="25" height="24" rx="12" fill="#ffffff"/>
   <rect id="scroll-thumb-vertical" x="28" y="1" width="24" height="25" rx="12" fill="#ffffff"/>
@@ -35,8 +36,8 @@ def main():
                         '--export-filename=' + str(raster),
                         '--export-width=448', '--export-height=448'], check=True)
         with Image.open(raster) as image:
-            image.convert('RGBA').resize((56, 56), Image.Resampling.LANCZOS).save(HERE / 'engine-controls.png')
-    print('Generated engine-controls.svg and engine-controls.png.')
+            image.convert('RGBA').resize((56, 56), Image.Resampling.LANCZOS).save(RUNTIME / 'engine-controls.png')
+    print('Generated source SVG and assets/ui/engine-controls.png.')
 
 
 if __name__ == '__main__':

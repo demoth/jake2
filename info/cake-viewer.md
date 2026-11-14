@@ -106,12 +106,12 @@ CAKE_VIDEO_GL_TESTS=1 ./gradlew :cake:cake-viewer:test
 ```
 
 A resource-type capture batch is available in
-`assets/automation/capture-viewer-ui.py`. See the
-[branding guide](../assets/cake-branding/README.md)
+`cake/asset-tools/automation/capture-viewer-ui.py`. See the
+[branding guide](../cake/asset-tools/branding/README.md)
 for the visual direction. Build the Viewer distribution first, then run:
 
 ```sh
-python3 assets/automation/capture-viewer-ui.py --game-dir /path/to/quake2/baseq2 --cin /path/to/video/ntro.cin
+python3 cake/asset-tools/automation/capture-viewer-ui.py --game-dir /path/to/quake2/baseq2 --cin /path/to/video/ntro.cin
 ```
 
 The script requires Pillow, a working graphics context, and local game data

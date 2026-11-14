@@ -92,5 +92,5 @@ the [automation guide](../automation/README.md).
 
 The gallery follows `cl_ui_size` live and identifies engine fallback explicitly.
 `writeScreenshot` serves gallery captures and profile screenshots; callers choose
-paths and error handling. See the [skin guide](../../../../../../../../../assets/ui/README.md)
+paths and error handling. See the [skin guide](../../../../../../../../../cake/asset-tools/ui/README.md)
 and [gallery guide](../../../../../../../../../info/ui-skin-sample.md).

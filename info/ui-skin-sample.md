@@ -1,6 +1,6 @@
 # Cake UI skin sample
 
-An internal screen for comparing engine and active-game styles with one layout and shared fixture data. Runtime artwork and state rules are documented in the [skin guide](../assets/ui/README.md).
+An internal screen for comparing engine and active-game styles with one layout and shared fixture data. Runtime artwork and state rules are documented in the [skin guide](../cake/asset-tools/ui/README.md).
 
 ## Open and switch themes
 
