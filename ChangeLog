@@ -1,4 +1,6 @@
 1.2.9
+    - added GitHub Actions builds of self-contained Fullgame, Viewer and Client bundles for Linux, Windows and macOS (Intel and Apple Silicon)
+    - reduced desktop bundle sizes by removing unused dependencies, foreign native libraries and authoring assets
     - fixed invisible MD2 models that contain indexed triangles but no OpenGL command list, in gameplay and previews
     - added folder drag-and-drop and CLI browsing to Cake Viewer using the shared VFS and package precedence
     - applied warm engine colors, rounded frames and controls, and app-specific Fullgame, Viewer and Client icons
