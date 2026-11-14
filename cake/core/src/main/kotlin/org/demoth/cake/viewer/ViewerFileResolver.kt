@@ -123,8 +123,8 @@ class ViewerFileResolver(
         val fallback = if (logical != null && basedir != null)
             playerModelSkinPaths(logical, gameDataVfs.listEntries().map { it.normalizedPath }).orEmpty()
         else emptyList()
-        return (siblings + fallback).distinctBy { it.substringAfterLast('/').lowercase() }
-            .sortedBy { it.substringAfterLast('/').lowercase() }
+        return (siblings + fallback).distinctBy { it.replace('\\', '/').substringAfterLast('/').lowercase() }
+            .sortedBy { it.replace('\\', '/').substringAfterLast('/').lowercase() }
     }
 
     override fun textureCandidates(): List<String> = if (archiveContext || directoryContext) {
