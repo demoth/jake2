@@ -85,6 +85,30 @@ Experimental GraalVM builds require GraalVM 25 with Native Image. Set
 
 ## Playing and hosting
 
+### Game data and profiles
+
+Quake II game data is not included. Both Cake Client and Cake Fullgame select
+their game-data location through profiles.
+
+On first launch, Cake attempts to detect a Steam installation and create a
+default profile. If no usable profile is available, it opens the profile editor.
+You can also open it through **Switch profile** in the main menu while disconnected.
+
+To configure a profile manually:
+
+1. Choose **Create New Profile** and enter a **Profile ID**.
+2. Set **Basedir** to the installation directory containing `baseq2`, for example
+   `/path/to/Quake 2` with game packages under `/path/to/Quake 2/baseq2`.
+   You can also try the **Autodetect** button.
+3. Leave **Gamemod (optional)** empty for the base game, or enter the mod directory
+   name relative to Basedir.
+4. Click **Save**, select the profile, and click **Apply Selected Profile**.
+
+Client startup uses the selected profile rather than command-line `+set basedir`
+configuration. For asset lookup rules, see the [shared filesystem guide](../info/vfs.md).
+
+### Game modes
+
 `cake-client` is a thin client - it can only connect to remote servers.
 
 `cake-fullgame` also provides Singleplayer and Host Game menus, using the selected profile's game data and mod.
