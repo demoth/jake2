@@ -99,9 +99,6 @@ demo support, and limitations.
 | Work on Cake rendering and asset loading | [Asset pipeline](cake/core/src/main/kotlin/org/demoth/cake/assets/README.md) |
 | Generate fonts and application artwork | [Asset tools](cake/asset-tools/README.md) |
 
-The original Jake2 client is archived on the `jake2-legacy` branch and excluded
-from the current build. See the [legacy client notes](client/readme.md).
-
 ## Project direction
 
 Jake2 and Cake are hobby projects with a shared aim: keep the engine usable on

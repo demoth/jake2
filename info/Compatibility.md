@@ -54,6 +54,3 @@ Building requires JDK 25. JVM desktop distributions require Java 25 or newer;
 architecture. Desktop applications also depend on compatible libGDX/LWJGL3
 native libraries and a working graphics context. Java availability alone does
 not guarantee desktop support on every platform.
-
-The legacy LWJGL2 client is excluded from the active build. See its
-[README](../client/readme.md) for the historical branch.

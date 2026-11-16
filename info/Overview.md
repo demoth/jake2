@@ -5,8 +5,6 @@ The project consists of several modules:
   * `game` - game related logic: monsters, items, weapons, game rules
   * `server` - server runtime: keeps master game state, sends game state updates to clients, receives client input 
   (over the network) and routes it to the `game`
-  * `client` - (Deprecated) client is responsible for handling updates from the server, drawing picture, playing sounds,
-  getting inputs from human and sending them over the net to the `server` (excluded from the build)
   * `cake` - new reimplementation of Jake2 client with libGDX engine
   
 In addition to that there are several auxiliary modules:
@@ -40,11 +38,8 @@ Server manages:
 
 This module is the client facing interactive application and is responsible for gathering input, rendering the level and entities and playing sounds.
 
-# Module `client` (deprecated)
-
-This module is kept for history and reference and is not part of the active build.
-Where it makes sense, it is possible to move an original file or class (preserving the history) into the new `cake` module and refactor later.
-
+The original client and fullgame launcher live on the `legacy-jake2-client` tag.
+See the [legacy client notes](Legacy-client.md) for historical source references.
 
 # Notable patterns
 
