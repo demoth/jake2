@@ -246,6 +246,7 @@ public class Globals extends Defines {
 	
 	public static final float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
 
+	// todo: do not use shared random, use per instance one (server, client, one per game) - for testing & development
 	public static Random rnd = new Random();
 
 }

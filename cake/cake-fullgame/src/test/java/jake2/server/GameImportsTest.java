@@ -457,34 +457,47 @@ public class GameImportsTest {
         Assertions.assertFalse(store.hasMapCommand("idle"));
     }
 
+    /**
+     * just checks the monster combat code and behavior works.
+     * Assumes textbox.bsp has these 2 monsters
+     */
     @Test
-    public void runGame() {
-
-        final ServerHost sv_main = manager = new ServerHost(TransportServerNetwork.standalone());
-        GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
-        final GameExports gameExports = game.gameExports;
-        GameEntity gunner = null;
-        GameEntity soldier = null;
-        for (int i = 1; i < gameExports.getNumEdicts(); i++) {
-            GameEntity e = (GameEntity) gameExports.getEdict(i);
-            if ("monster_gunner".equals(e.classname)) {
-                gunner = e;
-            } else if ("monster_soldier".equals(e.classname)) {
-                soldier = e;
+    public void runGameSmokeText() {
+        // todo: inject a seeded generator (or seed) into the game instance directly; try catch and saving/resoring Globals.rnd will then be unnecessary
+        // Combat uses shared randomness for attack selection and damage. Keep this
+        // integration scenario repeatable without changing other tests' RNG state.
+        final java.util.Random previousRandom = Globals.rnd;
+        Globals.rnd = new java.util.Random(0);
+        try {
+            final ServerHost sv_main = manager = new ServerHost(TransportServerNetwork.standalone());
+            GameImportsImpl game = sv_main.spawnServerInstance(new ChangeMapInfo("testbox", false, false), 0);
+            final GameExports gameExports = game.gameExports;
+            GameEntity gunner = null;
+            GameEntity soldier = null;
+            // find references
+            for (int i = 1; i < gameExports.getNumEdicts(); i++) {
+                GameEntity e = (GameEntity) gameExports.getEdict(i);
+                if ("monster_gunner".equals(e.classname)) {
+                    gunner = e;
+                } else if ("monster_soldier".equals(e.classname)) {
+                    soldier = e;
+                }
             }
-        }
-        Assertions.assertNotNull(gunner);
-        Assertions.assertNotNull(soldier);
-        gunner.enemy = soldier;
-        gunner.goalentity = soldier;
-        gunner.monsterinfo.currentmove = M_Gunner.gunner_move_run;
-        for (int i = 0; i < 100; i++) {
-            gameExports.G_RunFrame();
-            if (soldier.health <= 0) {
-                System.out.println("soldier killed on frame: " + i);
-                return;
+            Assertions.assertNotNull(gunner);
+            Assertions.assertNotNull(soldier);
+            gunner.enemy = soldier;
+            gunner.goalentity = soldier;
+            gunner.monsterinfo.currentmove = M_Gunner.gunner_move_run;
+            for (int i = 0; i < 100; i++) {
+                gameExports.G_RunFrame();
+                if (soldier.health <= 0) {
+                    System.out.println("soldier killed on frame: " + i);
+                    return;
+                }
             }
+            Assertions.fail("Soldier was not killed");
+        } finally {
+            Globals.rnd = previousRandom;
         }
-        Assertions.fail("Soldier was not killed");
     }
 }
