@@ -1,141 +1,130 @@
-Jake2 README
-============
+# Jake2 & Cake
 
-![jake2 screenshot](info/screenshots/jake2-screenshot-1.png "Jake 2")
+
+
+![Jake2 model viewer, runtime profiling, engine UI, and content browser](info/screenshots/jake2-intro.png)
+
+Welcome to the Jake2 and Cake game engine repository.
+
+Jake2 is a Java source port of the Quake II engine. Cake is its modern
+Kotlin/libGDX client and desktop application layer, providing interfaces for
+playing, hosting, and exploring game content.
+
+Both projects are developed together in this repository: Jake2 provides the
+server, gameplay, and shared engine code; Cake provides the new client, desktop
+applications, and content viewer.
 
 [Screenshots](info/screenshots/Screenshots.md)
 
-Jake2 is a port of the GPL'd Quake2 engine from id Software to Java. Jake2 is
-distributed under the terms of the GPL (see LICENSE).
+The projects build on id Software's Quake II engine and content formats, with
+ongoing work to modernize the codebase and expand its use for game development
+and tooling. Development is active; bug reports and contributions are welcome.
 
-The port is implemented in Java, but some native libraries (LWJGL) are used for the
-visual rendering, input processing and audio playback (OpenAL) functionality. 
+Distributed under the [GNU General Public License](LICENSE).
 
-Jake2 is still under development. Feel free to send bug report if you find one.
+## What's included
 
-Currently, Jake2 supports most platforms supported by Java.
+| Component | What it provides |
+| --- | --- |
+| **Jake2 engine** | Shared engine code, server runtime, and Quake II gameplay implementation. See the [architecture overview](info/Overview.md). |
+| **Cake Fullgame** | Desktop application for singleplayer, connecting to multiplayer servers, and hosting games. |
+| **Cake Client** | Desktop application for connecting to remote multiplayer servers. |
+| **Cake Viewer** | Standalone content browser for inspecting maps, models, images, sounds, and other game resources. See the [viewer guide](info/cake-viewer.md). |
+| **Dedicated server** | Server application for hosting games without a graphical client. |
+| **Map tools(WIP)** | Command-line BSP inspection and cataloging tools. See the [map tools guide](maptools/README.md). |
 
-Requirements:
+Start with **Cake Fullgame** to play or host games. Use **Cake Client** when you
+only need to connect to a remote server, or **Cake Viewer** to explore content
+without starting a game. See the [Cake guide](cake/README.md) for application
+setup and usage.
 
- * JDK 25 is required to build; JVM distributions require Java 25 or newer.
+## Quick start
 
-Documentation & Info
---------------------
-The `info` folder contains documentation and other useful information:
+You can download precompiled binaries for your platform (Linux/Windows/MacOS) in the releases.
 
- * [Project Overview](info/Overview.md)
- * [Networking](info/Networking.md)
+### Build and test
 
-What is Cake? Important note about client side code
----------------------------------------------------
+Install **JDK 25** and run these commands from the repository root. On Windows,
+use `gradlew.bat` instead of `./gradlew`.
 
-Jake2 client in its vanilla form is archived in `jake2-legacy` branch and will not be maintained.
-The historical `client/` sources are excluded from the current Gradle build and may reference retired engine APIs.
-Use the `jake2-legacy` branch to build that client; network wire compatibility remains required for the current applications.
-Even though one of the core ideas of this project was to reuse and improve (rather than reimplement from scratch) - 
-the client side code was particularly hard to maintain and develop. 
-Firstly, because it is written on top of the unmaintained and obsolete second LWJGL version,
-which is incompatible with the current LWJGL version.
-Secondly, jake2 rendering is implemented in OpenGL immediate mode and had to be rewritten on a modern shader pipeline anyway.
-And lastly, there is a libGDX framework that can provide a lot of useful functionality, and ditch a lot of code (yes, `Menu.java`, I am looking at you)
 
-The legacy `client` module is excluded from the build.
-The `cake` modules provide the new client: `cake-client` connects to remote servers,
-while `cake-fullgame` also supports singleplayer and hosting games.
+```sh
+./gradlew build
+```
 
-See [README.md](cake/README.md)
+Building and running tests does not require Quake II game data.
 
-Installation and running
-------------------------
+### Run Cake Fullgame
 
-build from source:
-- `./gradlew build` - to build (and run tests) from source. Building and testing does not require quake2 game files.
-- `./gradlew :cake:cake-client:run` - to run the Cake client (running the game requires quake2 game files)
-- `./gradlew :cake:cake-fullgame:run` - to run Cake with singleplayer and hosting support
-- `./gradlew :cake:cake-client:distZip` - to build the desktop Java distribution
-- `./gradlew :cake:cake-fullgame:distZip` - to build the full game desktop Java distribution
-- `./gradlew :cake:cake-viewer:distZip` - to build the viewer desktop Java distribution
+```sh
+./gradlew :cake:cake-fullgame:run
+```
 
-If you run jake from an IDE:
-  1. to run the server run `Jake2Dedicated.main` with the desired args (`+set coop 1 +map base1`)
-  2. to run the cake client run `Lwjgl3GameLauncher.main` and click `Multiplayer`
+Playing requires separately supplied Quake II game data; it is not included in
+this repository. Cake attempts to detect a Steam installation on first launch.
+If no usable profile is found, it opens the profile editor so you can configure
+your game-data location.  See [game-data setup](cake/README.md#game-data-and-profiles) for manual configuration.
 
-Installation of Quake2 data:
-----------------------------
+### Other applications
 
-Jake can autodetect steam installation.
-If it doesn't (when you have a non-steam version or when you install it to a custom location) pass basedir parameter to the game
+See the [Cake guide](cake/README.md#building-and-running) for desktop packages,
+IDE entry points, and native builds, or the [viewer guide](info/cake-viewer.md)
+for supported resources and controls. JVM distributions require Java 25 or newer;
+application images built with `jpackage` include Java.
 
-`+set basedir "/home/demoth/.local/share/Steam/steamapps/common/Quake 2"`
+## Content and compatibility
 
-If you want to have the latest experimental features you can grab the latest
-Jake2 sources from GIT.
+Jake2 and Cake use Quake II content formats and the classic **protocol 34** for
+multiplayer. Interoperability with other Quake II clients and servers depends on
+their support for that protocol and the required game content.
 
-Compatibility
--------------
+Custom maps and assets can be used within the supported formats. Native gameplay
+modules such as `game.dll` and `game.so` cannot be loaded: Jake2's gameplay runs
+on the JVM, so mods requiring custom native logic need a port.
 
-Jake2 is not compatible with the mods that have custom logic (game.dll).
+See the [compatibility guide](info/Compatibility.md) for content formats, packages,
+demo support, and limitations.
 
-Jake2 is network compatible with other clients, like Yamagi, Q2pro etc.
+## Documentation
 
-Jake2 is compatible with all map/models/sounds/textures as id Quake 2.
+| Start here | Guide |
+| --- | --- |
+| Play, host, or package the desktop applications | [Cake guide](cake/README.md) |
+| Configure game data and mods | [Profiles and game data](cake/README.md#game-data-and-profiles) |
+| Browse and preview content | [Cake Viewer](info/cake-viewer.md) |
+| Inspect BSP maps from the command line | [Map tools](maptools/README.md) |
+| Understand the engine and gameplay boundaries | [Architecture overview](info/Overview.md) |
+| Work on multiplayer networking | [Networking](info/Networking.md) |
+| Understand asset lookup and package precedence | [Virtual filesystem](info/vfs.md) |
+| Work on Cake rendering and asset loading | [Asset pipeline](cake/core/src/main/kotlin/org/demoth/cake/assets/README.md) |
+| Generate fonts and application artwork | [Asset tools](cake/asset-tools/README.md) |
 
-Goals of the project
---------------------
+## Project direction
 
-While Jake2 is a hobby project, it is important to keep at least high level goals in mind:
+Jake2 and Cake are hobby projects with a shared aim: keep the engine usable on
+modern systems while making it easier to understand, extend, and build with (and have fun!).
 
-  1. Maintain the project runnable on modern machines and operating systems
-  2. Bring the codebase up to contemporary expectations.
-  3. Expand features of jake2 to bring more fun playing/modding it
+The longer-term ambition is to support new games and a broader set of development
+tools on these foundations. See the [roadmap](info/Roadmap.md) for current
+foundations, areas for further work, and exploratory ideas.
 
-At the moment of writing the goal N1 is achieved, and goal N2 is in progress.
+## Contributing
 
-Roadmap
--------
+Bug reports, documentation improvements, and code contributions are welcome.
+Use this repository's GitHub issue tracker for bugs and feature discussions.
+Testing Cake with custom mods/maps is a good way to verify expected compatibility.
 
-With accordance to the goals, we can put a list of more concrete steps:
+For engine and gameplay changes, start with the [architecture overview](info/Overview.md).
+For client and application changes, start with the [Cake guide](cake/README.md).
+Build and run the tests with `./gradlew build`; individual modules can be checked
+with tasks such as `./gradlew :qcommon:test` or `./gradlew :maptools:test`.
 
-  * gather game state in classes. at the moment state of the process is scattered across many static fields.
-  * code cleanup - move to modern libraries (filesystem, network, logging)
-  * file formats - support modern file formats (zip, image, audio, video, models?)
-  * support "brother projects" content: q2 mission packs, q1? q3? hl?
+## License and credits
 
-### Crazy ideas area (proceed with caution):
+Jake2 derives from id Software's Quake II engine. The project is distributed under
+the [GNU General Public License, version 2](LICENSE). Quake II game data is
+separately licensed and is not included.
 
-  * add script support: GraalVM supports many scripting JVM languages, with little overhead. implement monster, items behavior with scripts
-  * change 3d rendering code to something more recent (like yq2 gl3, q2xp?...)
-  * implement mmo-like replayable campaign for q2:
- npc, quests, character progression, item & monster randomization, trading
-  * Jake2 game engine suite (unreal like):
-full set of tools to support game development and creation of new games.
-3d editor, entity editor, scripting, and so on
-  * procedural map generation
-  * utilize kotlin multiplatform support and create jake2 clients for various platforms (desktop, web, android, ios)
-
-3rd party components
---------------------
-
-Jake2 uses:
-lwjgl    Light Weight Java Game Library http://www.lwjgl.org
-openal   Audio library                  http://www.openal.org
-
-Use github issue tracker for bug reports and feedback.
-
-have fun!
-
-Authors
--------
-Daniil Bubnov <bubnov.d.e@gmail.com> - current maintainer (2019+)
-
-## bytonic Software
-Developed the project in 2003 - 2015
- * Holger Zickner <hoz@bytonic.de>
- * Carsten Weiße <cwei@bytonic.de>
- * Rene Stoeckel  <rst@bytonic.de>
-
-## Contributors
-
- * David Sanders - lwjgl support
- * Kenneth Russell	(Sun Microsystems) - jogl improvements
- * Scott Franzyshen	- 3rd Person Camera, CD Player emulation (MP3), Console Patch
+Daniil Bubnov (demoth) maintains Jake2 (2019–present). The original Java port was developed
+by bytonic Software (2003–2015). See [Authors and contributors](AUTHORS.md) for
+individual credits.
