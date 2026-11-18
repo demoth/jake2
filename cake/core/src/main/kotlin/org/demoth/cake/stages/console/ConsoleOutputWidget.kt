@@ -141,7 +141,8 @@ class ConsoleOutputWidget(
     private fun maxTopLine(): Int = (wrappedLines.size - visibleLineCapacity()).coerceAtLeast(0)
 
     private fun colorFor(severity: Com.ConsoleLevel): Color = when (severity) {
-        Com.ConsoleLevel.INFO -> infoColor
+        // TODO: Give DEBUG its muted skin color when console presentation is migrated.
+        Com.ConsoleLevel.INFO, Com.ConsoleLevel.PRINT, Com.ConsoleLevel.DEBUG -> infoColor
         Com.ConsoleLevel.WARN -> warningColor
         Com.ConsoleLevel.ERROR -> errorColor
     }

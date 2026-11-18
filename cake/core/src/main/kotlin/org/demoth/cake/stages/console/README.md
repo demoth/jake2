@@ -19,7 +19,7 @@ visibility and input routing.
 ## Output and Commands
 
 ```text
-Com.Printf / Com.Warn / Com.Error
+Com.Print / Com.Info / Com.Debug / Com.Warn / Com.Error
   -> Com.ConsoleSink -> ConsoleStage.appendOutput -> ConsoleBuffer
   -> ConsoleOutputWidget: wrap and draw visible rows
 
@@ -30,14 +30,41 @@ Input -> ConsoleInputController
   -> PageUp/PageDown: output scrolling
 ```
 
+The sink carries level and display text. Consecutive same-level appends coalesce
+until a newline or carriage-return boundary. Debug source attribution and class
+prefixes are deferred; no unused source metadata is retained in scrollback.
+
 Command exceptions are caught and displayed in the console. Severity maps to skin
-colours; consecutive same-severity appends coalesce until a newline boundary.
+colours. PRINT and DEBUG currently use the main text color alongside INFO;
+muted DEBUG presentation and visibility controls are deferred to the console slice.
 `clear` clears scrollback. Mouse-wheel scrolling is attached to the output widget;
 scrolling is line-based, without a `ScrollPane`.
 
 Completion covers command and cvar names. Multiple matches extend the longest
 common prefix and print the candidate list. Input focus stays on the text field;
 output is excluded from focus traversal.
+
+## Engine messaging contract
+
+- `Com.Print`: gameplay and requested command output.
+- `Com.Info`: sparse lifecycle and significant system-state messages.
+- `Com.Debug(message)`: diagnostics emitted only when developer mode is enabled.
+- `Com.Warn`: recoverable/unexpected conditions and useful anticipated failure feedback.
+- `Com.Error(message)`: report an operation failure without throwing or initiating recovery.
+  Cause/stack-trace reporting is a later slice; `Com.Error(code, ...)` still performs
+  legacy recovery and must not be confused with the reporting-only overload.
+
+New entry points ensure a terminal newline. Only Print accepts `endLine = false`
+for fragments (`Com.Print("fragment", false)` in Java or Kotlin).
+Existing LF, CRLF, or CR endings and
+intentional blank lines are preserved. Warn no longer inserts a textual `Warn:`
+prefix or duplicates an existing final newline; its severity is carried separately.
+
+Deprecated `Printf`/`Println` retain their boundaries and INFO level during caller
+migration. Deprecated `DPrintf`/`dprintln` retain their boundaries and developer gate, but now
+carry DEBUG. Legacy `Error(code, ...)` overloads are also deprecated; migrate their
+recovery into the failure handler rather than simply replacing the call. Redirects still capture plain display text before
+the sink and stdout; redirect lifecycle fixes and the logback backend are deferred.
 
 ## History and Presentation
 

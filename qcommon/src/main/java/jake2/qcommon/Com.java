@@ -33,31 +33,76 @@ import jake2.qcommon.util.Vargs;
 import java.util.Locale;
 
 /**
- * Common print related functions including redirection
- *
+ * Engine messaging and plain-text redirection.
  */
-@SuppressWarnings("deprecation")
 public final class Com
 {
     public enum ConsoleLevel {
+        PRINT,
         INFO,
+        DEBUG,
         WARN,
         ERROR
     }
 
+    @FunctionalInterface
     public interface ConsoleSink {
         void print(ConsoleLevel level, String message);
     }
 
     private static ConsoleSink consoleSink;
 
-    public static String debugContext = "";
-    private static String _debugContext = "";
+    /** User-facing gameplay and command output. */
+    public static void Print(String message) {
+        Print(message, true);
+    }
+
+    public static void Print(String message, boolean endLine) {
+        emit(ConsoleLevel.PRINT, message, endLine);
+    }
+
+    /** Sparse lifecycle and significant system-state messages. */
+    public static void Info(String message) {
+        emit(ConsoleLevel.INFO, message, true);
+    }
+
+    /** Report a warning without changing control flow. */
+    public static void Warn(String message) {
+        emit(ConsoleLevel.WARN, message, true);
+    }
+
+    /** Report a failure only. Recovery belongs to the caller handling that failure. */
+    public static void Error(String message) {
+        emit(ConsoleLevel.ERROR, message, true);
+    }
+
+    /** Developer diagnostics. Class attribution is deferred until a simpler API is chosen. */
+    public static void Debug(String message) {
+        if (isDeveloperEnabled()) {
+            emit(ConsoleLevel.DEBUG, message, true);
+        }
+    }
+
+    private static boolean isDeveloperEnabled() {
+        return Globals.developer != null && Globals.developer.getTypedValue();
+    }
+
+    private static void emit(ConsoleLevel level, String message, boolean endLine) {
+        // Preserve existing line endings and intentional blank lines, including CR-only input.
+        if (endLine && !message.endsWith("\n") && !message.endsWith("\r")) {
+            message += "\n";
+        }
+        printToConsole(level, message);
+    }
     
+    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void Printf(int print_level, String fmt) {
 		Printf(print_level, fmt, null);
 	}
 
+    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void Printf(int print_level, String fmt, Vargs vargs) {
 		if (print_level == Defines.PRINT_ALL)
 			Printf(fmt, vargs);
@@ -284,11 +329,15 @@ public final class Com
 		return new String(com_token, 0, len);
 	}
 
+    /** @deprecated Legacy recovery API; migrate recovery to the failure handler and report with Error(String). */
+    @Deprecated
 	public static void Error(int code, String fmt) throws longjmpException
 	{
 		Error(code, fmt, null);
 	}
 
+    /** @deprecated Legacy recovery API; migrate recovery to the failure handler and report with Error(String). */
+    @Deprecated
 	public static void Error(int code, String fmt, Vargs vargs) throws longjmpException
 	{
 		if (recursive)
@@ -324,36 +373,42 @@ public final class Com
 		Sys.Error(msg);
 	}
 
+    /** @deprecated Use Debug according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void DPrintf(String fmt)
 	{
-	    _debugContext = debugContext;
 		DPrintf(fmt, null);
-		_debugContext = "";
 	}
 	
+    /** @deprecated Use Debug according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void dprintln(String fmt)
 	{
-		DPrintf(_debugContext + fmt + "\n", null);
+		DPrintf(fmt + "\n", null);
 	}
 
+    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void Printf(String fmt)
 	{
-		Printf(_debugContext + fmt, null);
+		Printf(fmt, null);
 	}
 
+    /** @deprecated Use Debug according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void DPrintf(String fmt, Vargs vargs)
 	{
-		if (Globals.developer == null || !Globals.developer.getTypedValue())
+		if (!isDeveloperEnabled())
 			return; // don't confuse non-developers with techie stuff...
-		_debugContext = debugContext;
-		Printf(fmt, vargs);
-		_debugContext="";
+        // Legacy fragments retain their boundaries until callers migrate to Debug.
+        printToConsole(ConsoleLevel.DEBUG, sprintf(fmt, vargs));
 	}
 
-	/** Prints out messages, which can also be redirected to a remote client. */
+    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void Printf(String fmt, Vargs vargs)
 	{
-		String msg= sprintf(_debugContext + fmt, vargs);
+		String msg= sprintf(fmt, vargs);
         printToConsole(ConsoleLevel.INFO, msg);
     }
 
@@ -390,15 +445,12 @@ public final class Com
 		System.out.print(msg);
 	}
 
+    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
+    @Deprecated
 	public static void Println(String fmt)
 	{
-		Printf(_debugContext + fmt + "\n");
+		Printf(fmt + "\n");
 	}
-
-	public static void Warn(String fmt) {
-        // todo: handle warnings differently
-        printToConsole(ConsoleLevel.WARN, "Warn: " + fmt + "\n");
-    }
 
 	@Deprecated
 	public static String sprintf(String fmt, Vargs vargs) {
