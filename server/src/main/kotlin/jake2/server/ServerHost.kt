@@ -1164,17 +1164,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             val client = routed.client
             if (client.state != ClientStates.CS_ZOMBIE) {
                 client.lastmessage = realtime
-                val body = networkPacket.parseBodyFromClient(client.netchan.incomingSequence)
-                when (body) {
+                when (val body = networkPacket.parseBodyFromClient(client.netchan.incomingSequence)) {
                     is MessageDecodeResult.Rejected -> {
                         Com.Warn("Bad client payload at ${body.offset}: ${body.detail}")
                         dropClient(client)
                     }
                     is MessageDecodeResult.Decoded -> {
-                        val logMessages = network.logMessages
-                        if (logMessages) body.messages.forEach { message ->
-                            if (message !is MoveMessage) Com.Debug("Network: Received client msg: $message", logMessages)
-                        }
+                        if (Com.isTraceEnabled())
+                            body.messages.forEach { Com.Trace { "Network: Received client msg: $it" } }
                         handleClientMessages(client, body.messages)
                     }
                 }
@@ -1268,7 +1265,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         cl.commandMsec -= cmd.msec.toInt() and 0xFF
 
         if (cl.commandMsec < 0 && enforceMoveTime.typedValue) {
-            Com.Debug("commandMsec underflow from " + cl.name)
+            Com.Trace { "commandMsec underflow from ${cl.name}" }
             return
         }
 
@@ -1304,7 +1301,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     fun executeClientCommand(cl: ClientNetworkInfo, command: String?) {
-        Com.Debug("SV_ExecuteUserCommand:$command")
+        Com.Trace { "SV_ExecuteUserCommand:$command" }
 
         val args = Cmd.TokenizeString(command, true)
         if (args.isEmpty()) return

@@ -49,6 +49,10 @@ with the server is defined by `GameImports` and `GameExports`; see the
 
 ## Runtime and platforms
 
+High-volume engine diagnostics use TRACE. The former logging cvars `showtrace`,
+`showpackets`, `showdrop`, `sv_print_network`, `cl_debug_stufftext`, and
+`r_bsp_batch_debug` have been retired.
+
 Building requires JDK 25. JVM desktop distributions require Java 25 or newer;
 `jpackage` application images bundle Java and are built for a particular OS and
 architecture. Desktop applications also depend on compatible libGDX/LWJGL3

@@ -35,7 +35,6 @@ class CinematicPresentationController(
     private var framePixmap: Pixmap? = null
     private var streamDecoder: CinematicCinDecoder? = null
     private var audioDevice: AudioDevice? = null
-    private var lastDebugLogTimeMs = Int.MIN_VALUE
 
     fun begin(cinematicName: String, currentTimeMs: Int) {
         releaseMedia()
@@ -61,7 +60,6 @@ class CinematicPresentationController(
             Com.Warn("Cinematic stream failed: ${error.message}\n")
         }
         renderStaticImage(spriteBatch, screenWidth, screenHeight)
-        logDiagnostics(currentTimeMs)
     }
 
     /**
@@ -336,32 +334,6 @@ class CinematicPresentationController(
         staticImage = null
     }
 
-    private fun logDiagnostics(currentTimeMs: Int) {
-        val enabled = RenderTuningCvars.bspBatchDebugEnabled()
-        if (!enabled) {
-            lastDebugLogTimeMs = Int.MIN_VALUE
-            return
-        }
-        if (lastDebugLogTimeMs != Int.MIN_VALUE && currentTimeMs - lastDebugLogTimeMs < DEBUG_LOG_INTERVAL_MS) {
-            return
-        }
-        lastDebugLogTimeMs = currentTimeMs
-        val decoder = streamDecoder
-        val elapsedMs = if (startTimeMs == Int.MIN_VALUE) 0 else (currentTimeMs - startTimeMs).coerceAtLeast(0)
-        val targetFrame = elapsedMs * CINEMATIC_FPS / 1000
-        val mediaKind = when {
-            decoder != null -> "cin"
-            frameTexture != null -> "stream-frame"
-            staticImage != null -> "image"
-            else -> "none"
-        }
-        Com.Debug(
-            "cinematic_debug t=$currentTimeMs media=$mediaKind decoded=${decoder?.decodedFrameCount ?: 0} " +
-                "target=$targetFrame auto=$autoAdvancePending skip=$skipSent audio=${audioDevice != null}",
-            enabled,
-        )
-    }
-
     override fun dispose() {
         end()
     }
@@ -370,6 +342,5 @@ class CinematicPresentationController(
         private const val CINEMATIC_FPS = 14
         private const val CINEMATIC_SKIP_DELAY_MS = 1000
         private const val PALETTE_COLOR_COUNT = 256
-        private const val DEBUG_LOG_INTERVAL_MS = 1000
     }
 }

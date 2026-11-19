@@ -13,7 +13,6 @@ import jake2.qcommon.network.transport.LocalSide
 
 /** Server transport boundary. A stopped game retires UDP and incoming local traffic, not its peer. */
 interface ServerNetwork : AutoCloseable {
-    val logMessages: Boolean
     val localPeer: NetworkAddress.Local
     fun resolveAddress(text: String, defaultPort: Int): NetworkAddress? = AddressResolver.resolve(text, defaultPort, localPeer)
     fun configure(multiplayer: Boolean): Boolean
@@ -35,7 +34,6 @@ class TransportServerNetwork @JvmOverloads constructor(
             NetworkTransport.standalone(LocalSide.SECOND))
     }
     private val packets = PacketNetwork(transport, NetworkRole.SERVER, settings)
-    override val logMessages: Boolean get() = settings.logMessages
     override val localPeer: NetworkAddress.Local get() = packets.localPeer
     override fun newChannel() = packets.newChannel()
     override fun configure(multiplayer: Boolean) = packets.configure(multiplayer)

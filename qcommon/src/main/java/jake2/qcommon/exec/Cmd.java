@@ -302,8 +302,6 @@ public final class Cmd {
      * FIXME: lookupnoadd the token to speed search? 
      */
     public static void ExecuteString(String text) {
-        Com.Debug("Executing command: " + text);
-
         if (text.trim().startsWith("//"))
             return;
 
@@ -312,6 +310,8 @@ public final class Cmd {
         // execute the command line
         if (args.size() == 0)
             return; // no tokens
+
+        Com.Trace(() -> "Executing command: " + args.getFirst());
 
         // check functions
         cmd_function_t cmd = cmd_functions.get(args.get(0));

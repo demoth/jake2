@@ -26,7 +26,6 @@ object RenderTuningCvars {
     private val gl3OverbrightBits = cvars.register("gl3_overbrightbits", CvarTypes.FloatType(min = Float.MIN_VALUE), 1.3f, Defines.CVAR_ARCHIVE, "BSP static lightmap multiplier, applied before dynamic lighting")
     private val rDlights = cvars.register("r_dlights", CvarTypes.BOOLEAN, true, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Dynamic lights")
     private val rParticles = cvars.register("r_particles", CvarTypes.IntegerType(min = 0, max = Defines.MAX_PARTICLES), Defines.MAX_PARTICLES, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Maximum live particles; 0 disables particles")
-    private val rBspBatchDebug = cvars.register("r_bsp_batch_debug", CvarTypes.BOOLEAN, false, Defines.CVAR_ARCHIVE, "Log BSP batch renderer stats")
     val rPostVignette = cvars.register("r_post_vignette", CvarTypes.BOOLEAN, true, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Postprocess vignette")
     val rPostVignetteStrength = cvars.register("r_post_vignette_strength", CvarTypes.FloatType(min = 0f), 1.30f, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Vignette strength")
     private val rUnderwaterWarp = cvars.register("r_underwater_warp", CvarTypes.BOOLEAN, true, Defines.CVAR_ARCHIVE or Defines.CVAR_OPTIONS, "Underwater warp")
@@ -62,11 +61,6 @@ object RenderTuningCvars {
     }
 
     fun particlesEnabled(): Boolean = particleBudget() > 0
-
-    /**
-     * Enables periodic world/entity pass diagnostics for BSP batching migration.
-     */
-    fun bspBatchDebugEnabled(): Boolean = rBspBatchDebug.typedValue
 
     /**
      * Enables postprocess underwater screen warp when `RDF_UNDERWATER` is active.

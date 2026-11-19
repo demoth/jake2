@@ -35,9 +35,6 @@ interface NetworkSettings {
     val serverPort: Int
     val clientPort: Int
     val qport: Int
-    val logPackets: Boolean
-    val logDrops: Boolean
-    val logMessages: Boolean
 
     companion object {
         /** Declare protected settings after startup config has supplied early values. */
@@ -49,9 +46,6 @@ interface NetworkSettings {
                 "Local bind address; empty or localhost binds all interfaces")
             cvars.register("clientport", CvarTypes.IntegerType(Defines.PORT_ANY, 65535), Defines.PORT_CLIENT, Defines.CVAR_NOSET,
                 "Client UDP port; 0 lets the OS choose, -1 is the legacy wildcard-bind equivalent")
-            cvars.register("showpackets", CvarTypes.BOOLEAN, false, 0, "Log packet sizes, sequences and acknowledgements")
-            cvars.register("showdrop", CvarTypes.BOOLEAN, false, 0, "Log dropped or out-of-order packets")
-            cvars.register("sv_print_network", CvarTypes.BOOLEAN, false, 0, "Log decoded incoming network messages")
             // Reinitializing networks retains the process's original random qport declaration.
             if (cvars.isRegistered("qport")) cvars.find("qport", Int::class.javaObjectType)
             else cvars.register("qport", CvarTypes.IntegerType(0, 65535),
@@ -66,15 +60,11 @@ interface NetworkSettings {
  * Cvar-backed settings at the engine composition boundary. Construction does not declare settings:
  * an application may create its network owners before startup config is loaded and registered.
  * Resolve through the supplied registry on each read, so live edits and registry resets cannot leave
- * a network holding stale Cvar handles. Unregistered diagnostics remain disabled during startup.
+ * a network holding stale Cvar handles.
  */
 class CvarNetworkSettings(private val cvars: Cvar) : NetworkSettings {
     override val bindAddress: String get() = cvars.find("ip", String::class.java).typedValue
     override val serverPort: Int get() = cvars.find("port", Int::class.javaObjectType).typedValue
     override val clientPort: Int get() = cvars.find("clientport", Int::class.javaObjectType).typedValue
     override val qport: Int get() = cvars.find("qport", Int::class.javaObjectType).typedValue
-    override val logPackets: Boolean get() = flag("showpackets")
-    override val logDrops: Boolean get() = flag("showdrop")
-    override val logMessages: Boolean get() = flag("sv_print_network")
-    private fun flag(name: String): Boolean = cvars.isRegistered(name) && cvars.find(name, Boolean::class.javaObjectType).typedValue
 }

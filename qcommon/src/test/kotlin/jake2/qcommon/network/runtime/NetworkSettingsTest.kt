@@ -13,9 +13,6 @@ class NetworkSettingsTest {
     fun `registration consumes early values protects declarations and retains original qport seed`() {
         val cvars = Cvar()
         val settings = CvarNetworkSettings(cvars)
-        assertFalse(settings.logPackets)
-        assertFalse(settings.logDrops)
-        assertFalse(settings.logMessages)
         assertFalse(cvars.isRegistered("port"), "Constructing settings must leave startup registration to its owner")
         cvars.setResult("ip", "127.0.0.1")
         cvars.setResult("port", "28000")
@@ -42,24 +39,18 @@ class NetworkSettingsTest {
     }
 
     @Test
-    fun `live provider follows edits and registry reset without retaining stale handles`() {
+    fun `live provider follows registry reset without retaining stale handles`() {
         val cvars = Cvar()
         val settings = NetworkSettings.registerCvars(cvars) { -1 }
         assertEquals(65535, settings.qport)
-        cvars.setResult("showpackets", "true")
-        cvars.setResult("showdrop", "true")
-        cvars.setResult("sv_print_network", "true")
-        assertTrue(settings.logPackets && settings.logDrops && settings.logMessages)
         cvars.clear()
-        assertFalse(settings.logPackets || settings.logDrops || settings.logMessages)
         NetworkSettings.registerCvars(cvars) { 7 }
         assertEquals(7, settings.qport)
         assertEquals(Defines.PORT_SERVER, settings.serverPort)
-        assertFalse(settings.logPackets || settings.logDrops || settings.logMessages)
     }
 
     @Test
-    fun `owners bind and log through independent injected registries including live channel diagnostics`() {
+    fun `owners bind through independent injected registries`() {
         val a = Cvar()
         val b = Cvar()
         val settingsA = NetworkSettings.registerCvars(a) { 11 }
@@ -68,40 +59,14 @@ class NetworkSettingsTest {
         b.forceSetResult("ip", "127.0.0.1")
         a.forceSetResult("port", "0")
         b.forceSetResult("port", "0")
-        val logsA = mutableListOf<String>()
-        val logsB = mutableListOf<String>()
         LoopbackLink().use { linkA -> LoopbackLink().use { linkB ->
             val transportA = NetworkTransport(linkA.second, linkA.first.localAddress)
             val transportB = NetworkTransport(linkB.second, linkB.first.localAddress)
-            PacketNetwork(transportA, NetworkRole.SERVER, settingsA, logsA::add).use { networkA ->
-                PacketNetwork(transportB, NetworkRole.SERVER, settingsB, logsB::add).use { networkB ->
+            PacketNetwork(transportA, NetworkRole.SERVER, settingsA).use { networkA ->
+                PacketNetwork(transportB, NetworkRole.SERVER, settingsB).use { networkB ->
                     assertTrue(networkA.configure(true))
                     assertTrue(networkB.configure(true))
                     assertNotEquals(transportA.udpEndpoint!!.localAddress, transportB.udpEndpoint!!.localAddress)
-                    val channelA = networkA.newChannel().apply { setup(networkA.localPeer, settingsA.qport) }
-                    val channelB = networkB.newChannel().apply { setup(networkB.localPeer, settingsB.qport) }
-                    channelA.transmit(null); channelB.transmit(null)
-                    assertTrue(logsA.isEmpty() && logsB.isEmpty())
-                    a.setResult("showpackets", "true")
-                    channelA.transmit(null); channelB.transmit(null)
-                    assertTrue(logsA.single().contains("Netchan:"))
-                    assertTrue(logsB.isEmpty())
-                    logsA.clear()
-                    a.setResult("showdrop", "true")
-                    val malformed = PacketBytes.copyOf(byteArrayOf(1))
-                    linkA.first.send(linkA.second.localAddress, malformed)
-                    linkB.first.send(linkB.second.localAddress, malformed)
-                    networkA.poll {}; networkB.poll {}
-                    assertTrue(logsA.single().contains("dropped packet"))
-                    assertTrue(logsB.isEmpty())
-                    logsA.clear()
-                    a.setResult("sv_print_network", "true")
-                    val ping = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + "ping".toByteArray())
-                    linkA.first.send(linkA.second.localAddress, ping)
-                    linkB.first.send(linkB.second.localAddress, ping)
-                    networkA.poll {}; networkB.poll {}
-                    assertTrue(logsA.single().contains("connectionless: ping"))
-                    assertTrue(logsB.isEmpty())
                     networkA.configure(false)
                     assertTrue(transportB.udpEndpoint!!.isOpen)
                     assertEquals(11, settingsA.qport)

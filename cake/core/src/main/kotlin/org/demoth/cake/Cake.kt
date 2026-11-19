@@ -258,7 +258,6 @@ class Cake(
     private var transitionBackdropActive = false
 
     // Live cvar handles (startup bootstrap registers their defaults).
-    private val clDebugStufftext = Cvar.getInstance().find<Boolean>("cl_debug_stufftext")
     private val clMaxfps = Cvar.getInstance().find<Float>("cl_maxfps")
     private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
@@ -1323,10 +1322,8 @@ class Cake(
                 networkDebugSampler.recordInbound(netchan.lastReceivedSize, Globals.curtime)
                 when (val body = networkPacket.parseBodyFromServer()) {
                     is MessageDecodeResult.Decoded -> {
-                        val logMessages = network.logMessages
-                        if (logMessages) body.messages.forEach { message ->
-                            if (message !is FrameHeaderMessage && message !is PlayerInfoMessage && message !is PacketEntitiesMessage)
-                                Com.Debug("Network: Received server msg: $message", logMessages)
+                        if (Com.isTraceEnabled()) body.messages.forEach { message ->
+                            Com.Trace { "Network: Received server msg: $message" }
                         }
                         val recording = demoRecording
                         val envelope = networkPacket.sequencedEnvelope()
@@ -1378,10 +1375,6 @@ class Cake(
                 }
 
                 is StuffTextMessage -> {
-                    val logStufftext = clDebugStufftext.typedValue
-                    if (logStufftext) {
-                        Com.Debug("svc_stufftext: ${Com.makePrintable(msg.text)}", logStufftext)
-                    }
                     val filtered = filterServerStuffText(msg.text, demoPlayback = demoPlayback != null)
                     filtered.rejectedCommands.forEach {
                         Com.Warn("Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")

@@ -55,7 +55,5 @@ class CommonCvarsTest {
         assertEquals(65535, cvars.find("qport", Integer.class).getTypedValue());
         NetworkSettings.registerCvars();
         assertEquals(65535, cvars.find("qport", Integer.class).getTypedValue());
-        cvars.setResult("sv_print_network", "true");
-        assertTrue(cvars.find("sv_print_network", Boolean.class).getTypedValue());
     }
 }

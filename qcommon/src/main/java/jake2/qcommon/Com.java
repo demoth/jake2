@@ -31,6 +31,7 @@ import jake2.qcommon.sys.Sys;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Engine messaging and plain-text redirection.
@@ -41,6 +42,7 @@ public final class Com
         PRINT,
         INFO,
         DEBUG,
+        TRACE,
         WARN,
         ERROR
     }
@@ -78,17 +80,24 @@ public final class Com
 
     /** Developer diagnostics. Class attribution is deferred until a simpler API is chosen. */
     public static void Debug(String message) {
-        Debug(message, isDeveloperEnabled());
-    }
-
-    /** Emit diagnostics controlled by the caller's own setting. */
-    public static void Debug(String message, boolean enabled) {
-        if (enabled) {
+        if (isDebugEnabled()) {
             emit(ConsoleLevel.DEBUG, message, true);
         }
     }
 
-    private static boolean isDeveloperEnabled() {
+    /** High-volume diagnostics. Build the message only when TRACE is enabled. */
+    public static void Trace(Supplier<String> message) {
+        if (isTraceEnabled()) {
+            emit(ConsoleLevel.TRACE, message.get(), true);
+        }
+    }
+
+    public static boolean isTraceEnabled() {
+        // TODO: Use the log level switch when it is available.
+        return false;
+    }
+
+    public static boolean isDebugEnabled() {
         return Globals.developer != null && Globals.developer.getTypedValue();
     }
 

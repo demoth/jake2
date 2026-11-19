@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static jake2.qcommon.MainCommon.adjustTime;
-import static jake2.qcommon.MainCommon.debugLogTraces;
+import static jake2.qcommon.MainCommon.logCollisionTraceCounts;
 
 public class Jake2Dedicated {
 
@@ -94,7 +94,7 @@ public class Jake2Dedicated {
 
                     int adjustedTime = adjustTime(time);
 
-                    debugLogTraces();
+                    logCollisionTraceCounts();
 
                     Cbuf.Execute();
 

@@ -19,7 +19,6 @@ public class MainCommon {
         Globals.dedicated = cvars.register("dedicated", CvarTypes.BOOLEAN, dedicatedMode, CVAR_NOSET);
         Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer diagnostics and automation");
         Globals.host_speeds = cvars.register("host_speeds", CvarTypes.BOOLEAN, false, 0, "Legacy frame timing diagnostics; currently unused");
-        Globals.showtrace = cvars.register("showtrace", CvarTypes.BOOLEAN, false, 0, "Print collision trace, point-content and brush-test counts per frame");
         Globals.fixedtime = cvars.register("fixedtime", new CvarTypes.IntegerType(0, null), 0, 0, "Override frame duration in milliseconds; 0 disables the override");
         Globals.timescale = cvars.register("timescale", new CvarTypes.FloatType(0f, null), 0f, 0, "Multiply elapsed frame time; 0 disables scaling, fixedtime takes precedence");
         cvars.register("version", CvarTypes.STRING, "1.0.0", CVAR_SERVERINFO | CVAR_NOSET);
@@ -40,14 +39,12 @@ public class MainCommon {
         cvars.register("allow_download_players", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Allow player model and skin downloads and server file transfers");
     }
 
-    public static void debugLogTraces() {
-        boolean enabled = Globals.showtrace.getTypedValue();
-        if (enabled) {
-            Com.Debug(String.format(Locale.ROOT, "%4d traces  %4d points", Globals.c_traces, Globals.c_pointcontents), enabled);
-            Globals.c_traces= 0;
-            Globals.c_brush_traces= 0;
-            Globals.c_pointcontents= 0;
-        }
+    public static void logCollisionTraceCounts() {
+        Com.Trace(() -> String.format(Locale.ROOT, "%4d traces  %4d points  %4d brush tests",
+                Globals.c_traces, Globals.c_pointcontents, Globals.c_brush_traces));
+        Globals.c_traces = 0;
+        Globals.c_brush_traces = 0;
+        Globals.c_pointcontents = 0;
     }
 
     public static int adjustTime(int msec) {

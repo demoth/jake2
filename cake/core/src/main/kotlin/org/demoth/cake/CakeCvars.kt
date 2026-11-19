@@ -60,7 +60,6 @@ object CakeCvars {
 
     private fun registerClient(cvars: Cvar) {
         cvars.register("rcon_address", CvarTypes.STRING, "127.0.0.1", 0, "Remote console target address")
-        cvars.register("cl_debug_stufftext", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Log raw server stufftext commands")
 
         registerInput(cvars)
 

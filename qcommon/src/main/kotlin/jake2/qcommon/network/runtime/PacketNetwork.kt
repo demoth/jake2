@@ -18,11 +18,10 @@ import java.nio.ByteOrder
 enum class NetworkRole { CLIENT, SERVER }
 
 /** Shared engine adapter: bind policy, packet envelopes and transport lifetime for one owner. */
-class PacketNetwork @JvmOverloads constructor(
+class PacketNetwork(
     private val transport: NetworkTransport,
     private val role: NetworkRole,
     private val settings: NetworkSettings,
-    private val log: ((String) -> Unit)? = null,
 ) : AutoCloseable {
     companion object {
         /** Maximum datagrams consumed per receive pass, including malformed and dropped traffic. */
@@ -42,8 +41,6 @@ class PacketNetwork @JvmOverloads constructor(
         return ConnectionChannel(
             if (role == NetworkRole.CLIENT) ChannelRole.CLIENT else ChannelRole.SERVER,
             transport.localPeer, transport::send,
-            logPackets = { settings.logPackets },
-            log = log,
             clockMillis = { System.nanoTime() / 1_000_000L },
         )
     }
@@ -75,7 +72,7 @@ class PacketNetwork @JvmOverloads constructor(
             transport.replaceUdp(endpoint)
             true
         } catch (error: IOException) {
-            logFailure("$label UDP bind error: $error\n")
+            Com.Error("$label UDP bind error: $error")
             false
         }
     }
@@ -89,31 +86,22 @@ class PacketNetwork @JvmOverloads constructor(
     fun poll(budget: Int = DEFAULT_POLL_BUDGET, consume: (NetworkPacket) -> Unit): Int =
         transport.poll(budget) { received -> decode(received)?.let(consume) }
 
-    private fun logDiagnostic(message: String) {
-        log?.invoke(message) ?: Com.Debug(message, true)
-    }
-
-    private fun logFailure(message: String) {
-        log?.invoke(message) ?: Com.Warn(message)
-    }
-
     private fun decode(received: ReceiveResult): NetworkPacket? {
-        if (received is ReceiveResult.Failed) logFailure("$label receive error: ${received.cause}\n")
+        if (received is ReceiveResult.Failed) Com.Warn("$label receive error: ${received.cause}")
         if (received !is ReceiveResult.Received) return null
         val datagram = received.datagram
         val decoded = PacketCodec.decode(datagram.payload, direction)
         if (decoded is PacketDecodeResult.Rejected) {
-            if (settings.logDrops)
-                logDiagnostic("$label dropped packet from ${datagram.source}: ${decoded.reason}\n")
+            Com.Warn("$label dropped packet from ${datagram.source}: ${decoded.reason}")
             return null
         }
         val packet = NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
-        if (packet.isConnectionless && settings.logMessages) {
+        if (packet.isConnectionless && Com.isDebugEnabled()) {
             val peer = if (role == NetworkRole.CLIENT) "server" else "client"
             val line = packet.connectionlessMessage
             val command = if (role == NetworkRole.SERVER) Cmd.TokenizeString(line, false).firstOrNull() else null
             val loggedLine = if (command == ConnectionlessCommand.rcon.name) command else line
-            logDiagnostic("Network: Received from $peer connectionless: $loggedLine\n")
+            Com.Debug("Network: Received from $peer connectionless: $loggedLine")
         }
         return packet
     }
@@ -124,7 +112,7 @@ class PacketNetwork @JvmOverloads constructor(
         require(text.size <= Defines.MAX_MSGLEN - 4)
         val bytes = ByteBuffer.allocate(text.size + 4).order(ByteOrder.LITTLE_ENDIAN).putInt(-1).put(text).array()
         val result = transport.send(to, PacketBytes.copyOf(bytes))
-        if (result is SendResult.Failed) logFailure("$label send error: ${result.cause}\n")
+        if (result is SendResult.Failed) Com.Warn("$label send error: ${result.cause}")
     }
 
     /** Session boundary: keep the local endpoint and final messages queued for its peer. */

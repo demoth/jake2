@@ -142,7 +142,7 @@ class ConsoleOutputWidget(
 
     private fun colorFor(severity: Com.ConsoleLevel): Color = when (severity) {
         // TODO: Give DEBUG its muted skin color when console presentation is migrated.
-        Com.ConsoleLevel.INFO, Com.ConsoleLevel.PRINT, Com.ConsoleLevel.DEBUG -> infoColor
+        Com.ConsoleLevel.INFO, Com.ConsoleLevel.PRINT, Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE -> infoColor
         Com.ConsoleLevel.WARN -> warningColor
         Com.ConsoleLevel.ERROR -> errorColor
     }

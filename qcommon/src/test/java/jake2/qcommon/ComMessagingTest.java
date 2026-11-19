@@ -102,14 +102,6 @@ class ComMessagingTest {
     }
 
     @Test
-    void featureDebugUsesItsOwnSetting() {
-        Com.Debug("feature disabled", false);
-        Globals.developer.forceSet(false);
-        Com.Debug("feature enabled", true);
-        assertEquals(List.of(new Message(Com.ConsoleLevel.DEBUG, "feature enabled\n")), messages);
-    }
-
-    @Test
     void redirectCapturesNewMessagesWithoutLocalEcho() {
         StringBuilder redirected = new StringBuilder();
         Com.RedirectOutput(redirected::append, () -> {

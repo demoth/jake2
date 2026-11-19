@@ -48,9 +48,9 @@ output is excluded from focus traversal.
 
 - `Com.Print`: gameplay and requested command output.
 - `Com.Info`: sparse lifecycle and significant system-state messages.
-- `Com.Debug(message)`: diagnostics emitted only when developer mode is enabled.
-  Feature diagnostics can use `Com.Debug(message, enabled)` with their own
-  switch, such as `r_bsp_batch_debug`, `showtrace`, or `sv_print_network`.
+- `Com.Debug(message)`: occasional developer diagnostics controlled by `developer`.
+- `Com.Trace { message }`: high-volume diagnostics such as per-packet or per-frame
+  output.
 - `Com.Warn`: recoverable/unexpected conditions and useful anticipated failure feedback.
 - `Com.Error(message)`: report an operation failure without throwing or initiating recovery.
   The reporting API takes a message. `Com.Error(code, ...)` still performs

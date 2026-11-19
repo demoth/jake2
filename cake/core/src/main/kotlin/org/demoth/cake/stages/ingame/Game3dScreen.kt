@@ -503,8 +503,7 @@ class Game3dScreen(
     }
 
     private fun logBatchDiagnostics(frameDiagnostics: WorldPresentationRenderer.WorldFrameDiagnostics) {
-        val enabled = RenderTuningCvars.bspBatchDebugEnabled()
-        if (!enabled) {
+        if (!Com.isTraceEnabled()) {
             lastBatchDebugLogTimeMs = Int.MIN_VALUE
             return
         }
@@ -517,7 +516,7 @@ class Game3dScreen(
         val opaqueWorldStats = worldBatchRenderer?.lastOpaqueStats
         val translucentWorldStats = worldBatchRenderer?.lastTranslucentStats
         val particleStats = effectsSystem.debugParticleRenderStats()
-        Com.Debug(
+        Com.Trace {
             "bsp_batch_debug t=${frameDiagnostics.currentTimeMs} " +
                 "worldOpaque(vis=${opaqueWorldStats?.visibleSurfaceCount ?: 0},grp=${opaqueWorldStats?.groupedSurfaceCount ?: 0},dc=${opaqueWorldStats?.drawCalls ?: 0}) " +
                 "worldTrans(vis=${translucentWorldStats?.visibleSurfaceCount ?: 0},grp=${translucentWorldStats?.groupedSurfaceCount ?: 0},dc=${translucentWorldStats?.drawCalls ?: 0}) " +
@@ -525,9 +524,8 @@ class Game3dScreen(
                 "sprites(vis=${frameDiagnostics.visibleSprites},opq=${frameDiagnostics.renderedOpaqueSprites},trans=${frameDiagnostics.renderedTranslucentSprites}) " +
                 "beams(vis=${frameDiagnostics.visibleBeams},draw=${frameDiagnostics.renderedBeams}) " +
                 "particles(live=${effectsSystem.debugLiveParticleCount()},sub=${particleStats.submittedParticles},dc=${particleStats.drawCalls}) " +
-                "effects(active=${effectsSystem.debugActiveEffectCount()})",
-            enabled,
-        )
+                "effects(active=${effectsSystem.debugActiveEffectCount()})"
+        }
     }
 
     private fun worldVisibilityMask(): BooleanArray {

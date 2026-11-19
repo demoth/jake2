@@ -939,7 +939,7 @@ public class CM {
         while (true) {
             if (nodenum < 0) {
                 if (leaf_count >= leaf_maxcount) {
-                    Com.Debug("CM_BoxLeafnums_r: overflow");
+                    Com.Trace(() -> "CM_BoxLeafnums_r: overflow");
                     return;
                 }
                 leaf_list[leaf_count++] = -1 - nodenum;
@@ -1539,14 +1539,14 @@ public class CM {
         }
 
         if (offset < 0 || offset >= numvisibility || offset >= in.length) {
-            Com.Debug("warning: Vis offset out of bounds (" + offset + ")");
+            Com.Trace(() -> "Vis offset out of bounds (" + offset + ")");
             Arrays.fill(out, 0, row, (byte) 0xFF);
             return;
         }
 
         while (outp < row) {
             if (inp >= numvisibility || inp >= in.length) {
-                Com.Debug("warning: Vis decompression read overrun");
+                Com.Trace(() -> "Vis decompression read overrun");
                 Arrays.fill(out, outp, row, (byte) 0xFF);
                 return;
             }
@@ -1558,21 +1558,21 @@ public class CM {
             }
 
             if (inp >= numvisibility || inp >= in.length) {
-                Com.Debug("warning: Vis decompression truncated RLE sequence");
+                Com.Trace(() -> "Vis decompression truncated RLE sequence");
                 Arrays.fill(out, outp, row, (byte) 0xFF);
                 return;
             }
 
             int c = in[inp++] & 0xFF;
             if (c == 0) {
-                Com.Debug("warning: Vis decompression invalid zero run length");
+                Com.Trace(() -> "Vis decompression invalid zero run length");
                 Arrays.fill(out, outp, row, (byte) 0xFF);
                 return;
             }
 
             if (outp + c > row) {
                 c = row - (outp);
-                Com.Debug("warning: Vis decompression overrun");
+                Com.Trace(() -> "Vis decompression overrun");
             }
             while (c != 0) {
                 out[outp++] = 0;

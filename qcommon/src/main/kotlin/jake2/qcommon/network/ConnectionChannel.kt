@@ -37,14 +37,12 @@ import java.util.function.LongSupplier
 /**
  * Engine connection adapter, confined to its owner's game-loop thread. Protocol state and reliable
  * bytes belong to [ReliableChannel]. The sender borrows its owner's transport; clearing a connection
- * never closes it. Transport, monotonic clock, and diagnostics are supplied explicitly.
+ * never closes it. Transport and the monotonic clock are supplied explicitly.
  */
-class ConnectionChannel @JvmOverloads constructor(
+class ConnectionChannel(
     private val role: ChannelRole,
     private val localPeer: NetworkAddress.Local,
     private val sendPacket: (NetworkAddress, PacketBytes) -> SendResult,
-    private val logPackets: () -> Boolean = { false },
-    private val log: ((String) -> Unit)? = null,
     private val clockMillis: LongSupplier,
 ) {
     private var channel = ReliableChannel(role, 0)
@@ -113,7 +111,7 @@ class ConnectionChannel @JvmOverloads constructor(
     fun transmit(unreliable: Collection<NetworkMessage>?): Boolean {
         if (queuedReliableBytes > Defines.MAX_MSGLEN - 16) {
             fatalError = true
-            logWarning("$destination:Outgoing message overflow\n")
+            Com.Warn("$destination:Outgoing message overflow")
             return false
         }
         var staged = false
@@ -140,12 +138,11 @@ class ConnectionChannel @JvmOverloads constructor(
             }
             if (sent) {
                 idleSinceMillis = channel.lastSentMillis
-                if (transmission.unreliableDropped) logWarning("Netchan_Transmit: dumped unreliable\n")
-                val logPackets = logPackets()
-                if (logPackets) logDiagnostic(String.format(
+                if (transmission.unreliableDropped) Com.Warn("Netchan_Transmit: dumped unreliable")
+                Com.Trace { String.format(
                     "Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d \n",
                     if (role == ChannelRole.CLIENT) "client" else "server", transmission.sequence,
-                    channel.incomingSequence, if (transmission.containsReliable) 1 else 0, channel.reliableReceivedFlag))
+                    channel.incomingSequence, if (transmission.containsReliable) 1 else 0, channel.reliableReceivedFlag) }
             }
             return sent
         } finally {
@@ -154,14 +151,6 @@ class ConnectionChannel @JvmOverloads constructor(
                 else channel.discardPending() // Leave unsent staging available to cancellation paths.
             }
         }
-    }
-
-    private fun logWarning(message: String) {
-        log?.invoke(message) ?: Com.Warn(message)
-    }
-
-    private fun logDiagnostic(message: String) {
-        log?.invoke(message) ?: Com.Debug(message, true)
     }
 
     private fun send(bytes: PacketBytes): SendResult = try {
