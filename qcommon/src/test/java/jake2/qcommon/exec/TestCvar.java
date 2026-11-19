@@ -49,15 +49,15 @@ class TestCvar {
         String command = "test_quiet_command_probe";
         String collision = "test_empty_cvar_collision";
         var output = new StringBuilder();
-        Com.BeginRedirect(output::append);
         try {
-            Cmd.AddCommand(command, true, args -> {});
-            assertNotNull(Cmd.FindCommand(command));
-            cvars.register(collision, CvarTypes.STRING, "");
-            Cmd.AddCommand(collision, args -> {});
-            assertNull(Cmd.FindCommand(collision));
+            Com.RedirectOutput(output::append, () -> {
+                Cmd.AddCommand(command, true, args -> {});
+                assertNotNull(Cmd.FindCommand(command));
+                cvars.register(collision, CvarTypes.STRING, "");
+                Cmd.AddCommand(collision, args -> {});
+                assertNull(Cmd.FindCommand(collision));
+            });
         } finally {
-            Com.EndRedirect();
             Cmd.RemoveCommand(command);
         }
         assertFalse(output.toString().contains("not registered"));

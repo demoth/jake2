@@ -94,6 +94,25 @@ class PacketNetworkTest {
     }
 
     @Test
+    fun `server packet logging omits remote console arguments`() {
+        LoopbackLink().use { link ->
+            val transport = NetworkTransport(link.first, link.second.localAddress)
+            val settings = object : NetworkSettings by CvarNetworkSettings(Cvar.getInstance()) {
+                override val logMessages = true
+            }
+            val log = mutableListOf<String>()
+            PacketNetwork(transport, NetworkRole.SERVER, settings) { log.add(it) }.use { server ->
+                val line = "  \"rcon\" test-password status"
+                val packet = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + line.toByteArray(Charsets.ISO_8859_1))
+                link.second.send(link.first.localAddress, packet)
+
+                assertEquals(line, server.receive()!!.connectionlessMessage)
+                assertEquals(listOf("Network: Received from client connectionless: rcon\n"), log)
+            }
+        }
+    }
+
+    @Test
     fun `server bind failure never falls back and legacy wildcard port works with explicit IP`() {
         val cvars = Cvar.getInstance()
         cvars.clear()

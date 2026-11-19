@@ -2,6 +2,7 @@ package jake2.qcommon.network.runtime
 
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
+import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -101,7 +102,10 @@ class PacketNetwork @JvmOverloads constructor(
         val packet = NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
         if (packet.isConnectionless && settings.logMessages) {
             val peer = if (role == NetworkRole.CLIENT) "server" else "client"
-            log("Network: Received from $peer connectionless: ${packet.connectionlessMessage}\n")
+            val line = packet.connectionlessMessage
+            val command = if (role == NetworkRole.SERVER) Cmd.TokenizeString(line, false).firstOrNull() else null
+            val loggedLine = if (command == ConnectionlessCommand.rcon.name) command else line
+            log("Network: Received from $peer connectionless: $loggedLine\n")
         }
         return packet
     }

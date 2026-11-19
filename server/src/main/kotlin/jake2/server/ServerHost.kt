@@ -1922,32 +1922,20 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     }
 
-    /**
-     * A client issued an rcon command. Shift down the remaining args Redirect
-     * all printfs from the server to the client.
-     */
+    /** Execute a remote command and send its console output back to the requester. */
     private fun executeRemoteCommand(args: List<String>, from: NetworkAddress) {
-        val rconIsValid: Boolean = isRconAuthorized(args)
+        val authorized = isRconAuthorized(args)
+        Com.Info(if (authorized) "Rcon from $from" else "Bad rcon from $from")
 
-        if (rconIsValid) {
-            Com.Printf("Rcon from $from:\n$args\n")
-        } else {
-            Com.Printf("Bad rcon from $from:\n$args\n")
+        if (!authorized) {
+            network.sendConnectionless(from, ConnectionlessCommand.print, "\nBad rcon_password.\n")
+            return
         }
 
-        Com.BeginRedirect { buffer ->
-            network.sendConnectionless(from,
-                ConnectionlessCommand.print,
-                "\n" + buffer.toString()
-            )
-        }
-        if (rconIsValid) {
+        Com.RedirectOutput({ chunk ->
+            network.sendConnectionless(from, ConnectionlessCommand.print, "\n$chunk")
+        }) {
             Cmd.ExecuteString(Cmd.getArguments(args, 2))
-        } else {
-            // redirected to client
-            Com.Printf("Bad rcon_password.\n")
         }
-
-        Com.EndRedirect()
     }
 }

@@ -272,8 +272,7 @@ class TypedCvarTest {
     @Test
     void earlyWritesStayOutOfRegisteredViewsAndProduceDiagnostics() {
         var output = new StringBuilder();
-        Com.BeginRedirect(output::append);
-        try {
+        Com.RedirectOutput(output::append, () -> {
             registry.setResult("early", "private-invalid-value");
             assertNull(registry.find("early"));
             assertTrue(registry.listByPrefixAndFlags("", 0).isEmpty());
@@ -282,9 +281,7 @@ class TypedCvarTest {
             assertEquals("private-invalid-value", registry.getRawString("early"));
             assertNull(registry.find("missing"));
             assertEquals(7, register("early", CvarTypes.INTEGER, 7, CVAR_USERINFO).getTypedValue());
-        } finally {
-            Com.EndRedirect();
-        }
+        });
         assertFalse(output.toString().contains("private-invalid-value"));
         assertTrue(output.toString().contains("Cvar 'missing' is not registered"));
         assertTrue(output.toString().contains("storing early input"));
@@ -299,12 +296,9 @@ class TypedCvarTest {
         registry.setResult("number", "3");
         registry.setResult("old_number", "4");
         var output = new StringBuilder();
-        Com.BeginRedirect(output::append);
-        try {
+        Com.RedirectOutput(output::append, () -> {
             registry.AddAlias("old_number", "number");
-        } finally {
-            Com.EndRedirect();
-        }
+        });
         assertTrue(output.toString().contains("Alias 'old_number' was used before alias registration"));
         var number = register("number", CvarTypes.INTEGER, 1, 0);
         assertEquals(4, number.getTypedValue());

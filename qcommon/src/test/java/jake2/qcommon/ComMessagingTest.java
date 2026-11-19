@@ -107,18 +107,92 @@ class ComMessagingTest {
     @Test
     void redirectCapturesNewMessagesWithoutLocalEcho() {
         StringBuilder redirected = new StringBuilder();
-        Com.BeginRedirect(redirected::append);
-        try {
+        Com.RedirectOutput(redirected::append, () -> {
             Com.Print("first", false);
             Com.Print(" second");
             Com.Debug("details");
             Com.Error("operation failed");
-        } finally {
-            Com.EndRedirect();
-        }
+        });
         assertEquals("first second\ndetails\noperation failed\n", redirected.toString());
         assertTrue(messages.isEmpty());
         assertEquals("", stdout.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void redirectPreservesCommandFailureAndReleasesCaptureWhenFlushAlsoFails() {
+        var commandFailure = new IllegalStateException("command failed");
+        var flushFailure = new IllegalStateException("flush failed");
+        var thrown = assertThrows(IllegalStateException.class, () ->
+                Com.RedirectOutput(chunk -> { throw flushFailure; }, () -> {
+                    Com.Print("partial output");
+                    throw commandFailure;
+                }));
+
+        assertSame(commandFailure, thrown);
+        assertArrayEquals(new Throwable[]{flushFailure}, thrown.getSuppressed());
+        Com.Print("local again");
+        assertEquals("local again\n", stdout.toString(StandardCharsets.UTF_8));
+        var chunks = new ArrayList<String>();
+        Com.RedirectOutput(chunks::add, () -> {});
+        assertEquals(List.of(""), chunks);
+    }
+
+    @Test
+    void redirectSplitsLongFragmentsWithoutCapturingCallbackLogs() {
+        int limit = Defines.SV_OUTPUTBUF_LENGTH - 1;
+        String first = "é".repeat(limit - 1);
+        String second = "x".repeat(limit * 2);
+        var chunks = new ArrayList<String>();
+        Com.RedirectOutput(chunk -> {
+            chunks.add(chunk);
+            Com.Warn("local transport diagnostic");
+        }, () -> {
+            assertThrows(IllegalStateException.class, () -> Com.RedirectOutput(chunks::add, () -> {}));
+            Com.Print(first, false);
+            Com.Print(second, false);
+        });
+
+        assertEquals(first + second, String.join("", chunks));
+        assertTrue(chunks.size() > 1);
+        for (String chunk : chunks) {
+            assertFalse(chunk.isEmpty());
+            int packetSize = 4 + "print\n".length() + chunk.getBytes(StandardCharsets.ISO_8859_1).length;
+            assertTrue(packetSize <= Defines.MAX_MSGLEN);
+        }
+        assertEquals("local transport diagnostic\n".repeat(chunks.size()), stdout.toString(StandardCharsets.UTF_8));
+        assertEquals(chunks.size(), messages.size());
+    }
+
+    @Test
+    void redirectLeavesUnrelatedThreadsOnLocalOutput() throws InterruptedException {
+        var chunks = new ArrayList<String>();
+        Thread background = new Thread(() -> Com.Info("background diagnostic"));
+        Com.RedirectOutput(chunks::add, () -> {
+            background.start();
+            try {
+                background.join();
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw new AssertionError(interrupted);
+            }
+            Com.Print("command output");
+        });
+
+        assertEquals(List.of("command output\n"), chunks);
+        assertEquals("background diagnostic\n", stdout.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void redirectReleasesCaptureAfterAnIntermediateFlushFails() {
+        var chunks = new ArrayList<String>();
+        assertThrows(IllegalStateException.class, () -> Com.RedirectOutput(chunk -> {
+            chunks.add(chunk);
+            throw new IllegalStateException("send failed");
+        }, () -> Com.Print("x".repeat(Defines.MAX_MSGLEN))));
+        assertEquals(1, chunks.size());
+
+        Com.Print("local again");
+        assertEquals("local again\n", stdout.toString(StandardCharsets.UTF_8));
     }
 
     @Test

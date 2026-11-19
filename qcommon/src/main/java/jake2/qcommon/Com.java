@@ -31,6 +31,8 @@ import jake2.qcommon.util.PrintfFormat;
 import jake2.qcommon.util.Vargs;
 
 import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Engine messaging and plain-text redirection.
@@ -147,27 +149,76 @@ public final class Com
         return result.toString();
     }
 
-	public interface RD_Flusher {
-		void rd_flush(StringBuilder buffer);
-	}
+    private static volatile Redirect redirect;
 
-	private static final int rd_buffersize = Defines.SV_OUTPUTBUF_LENGTH;
-	private static final StringBuilder rd_buffer = new StringBuilder();
-	private static RD_Flusher rd_flusher;
+    /** Capture this thread's messages for the duration of a command. */
+    public static void RedirectOutput(Consumer<String> flush, Runnable command) {
+        Objects.requireNonNull(command, "command");
+        try (var _ = beginRedirect(flush)) {
+            command.run();
+        }
+    }
 
-	public static void BeginRedirect(RD_Flusher flush) {
-		if (flush == null)
-			return;
+    private static synchronized Redirect beginRedirect(Consumer<String> flush) {
+        Objects.requireNonNull(flush, "flush");
+        if (redirect != null) {
+            throw new IllegalStateException("Output redirection is already active");
+        }
+        redirect = new Redirect(flush);
+        return redirect;
+    }
 
-		rd_buffer.setLength(0);
-		rd_flusher = flush;
-	}
+    private static final class Redirect implements AutoCloseable {
+        // Latin-1 uses at most one byte per UTF-16 unit, including replacement characters.
+        // The existing limit leaves room for the connectionless header and "print\n".
+        private static final int LIMIT = Defines.SV_OUTPUTBUF_LENGTH - 1;
 
-	public static void EndRedirect() {
-		rd_flusher.rd_flush(rd_buffer);
-		rd_buffer.setLength(0);
-		rd_flusher = null;
-	}
+        private final Thread owner = Thread.currentThread();
+        private final Consumer<String> sink;
+        private final StringBuilder buffer = new StringBuilder(LIMIT);
+        private boolean flushing;
+        private boolean sentChunk;
+
+        private Redirect(Consumer<String> sink) {
+            this.sink = sink;
+        }
+
+        private void append(String text) {
+            int offset = 0;
+            while (offset < text.length()) {
+                if (buffer.length() == LIMIT) {
+                    flush();
+                }
+                int count = Math.min(LIMIT - buffer.length(), text.length() - offset);
+                buffer.append(text, offset, offset + count);
+                offset += count;
+            }
+        }
+
+        private void flush() {
+            String chunk = buffer.toString();
+            buffer.setLength(0);
+            sentChunk = true;
+            flushing = true;
+            try {
+                sink.accept(chunk);
+            } finally {
+                flushing = false;
+            }
+        }
+
+        @Override
+        public void close() {
+            try {
+                // Preserve the empty reply for commands that produce no output.
+                if (!sentChunk || !buffer.isEmpty()) {
+                    flush();
+                }
+            } finally {
+                redirect = null;
+            }
+        }
+    }
 
 	// Detect recursion during shutdown
 	private static boolean recursive= false;
@@ -423,16 +474,11 @@ public final class Com
     }
 
     private static void printToConsole(ConsoleLevel level, String msg) {
-		if (rd_flusher != null)
-		{
-			if ((msg.length() + rd_buffer.length()) > (rd_buffersize - 1))
-			{
-				rd_flusher.rd_flush(rd_buffer);
-				rd_buffer.setLength(0);
-			}
-			rd_buffer.append(msg);
-			return;
-		}
+        Redirect capture = redirect;
+        if (capture != null && capture.owner == Thread.currentThread() && !capture.flushing) {
+            capture.append(msg);
+            return;
+        }
 
         if (consoleSink != null) {
             consoleSink.print(level, msg);
