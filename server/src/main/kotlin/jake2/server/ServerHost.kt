@@ -468,6 +468,7 @@ class ServerHost @JvmOverloads constructor(
     sealed interface OperationResult {
         data object Completed : OperationResult
         data class Rejected(val reason: String) : OperationResult
+        // todo: consider using exception instead of a subclass
         data class Failed(val reason: String, val cause: Exception) : OperationResult
     }
 
@@ -493,8 +494,8 @@ class ServerHost @JvmOverloads constructor(
 
         val prepared = try {
             SavePreflight(EngineWriteRoot.path()).inspect(saveGame)
-        } catch (e: Exception) {
-            return OperationResult.Rejected(e.message ?: "Invalid save")
+        } catch (failure: Exception) {
+            return OperationResult.Rejected(failure.toString())
         }
         val savedMaxClients = prepared.maxClients
         if (games.keys.any { it != "default" } && clients.size != savedMaxClients) {
@@ -514,7 +515,7 @@ class ServerHost @JvmOverloads constructor(
             OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            OperationResult.Failed(failure.message ?: "Save restoration failed", failure)
+            OperationResult.Failed(failure.toString(), failure)
         }
     }
 
@@ -575,7 +576,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             }
             parsed
         } catch (failure: Exception) {
-            return OperationResult.Rejected(failure.message ?: "Invalid map request")
+            return OperationResult.Rejected(failure.toString())
         }
 
         // Archival restores temporarily hidden player entities in finally. A write failure here
@@ -585,9 +586,9 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
                 games["default"]?.takeIf { it.state == ServerStates.SS_GAME }?.archiveLevelForTransition()
             } catch (failure: GameFailure) {
                 handleGameFailure(failure)
-                return OperationResult.Failed(failure.message ?: "Game failed during archival", failure)
+                return OperationResult.Failed(failure.toString(), failure)
             } catch (failure: Exception) {
-                return OperationResult.Rejected("Could not archive current level: ${failure.message}")
+                return OperationResult.Rejected("Could not archive current level: $failure")
             }
         }
 
@@ -600,7 +601,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            OperationResult.Failed(failure.message ?: "Map transition failed", failure)
+            OperationResult.Failed(failure.toString(), failure)
         }
     }
 
@@ -614,6 +615,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         return target
     }
 
+    // todo: consider removing this in favour of handling the result where it appears
     private fun reportTransition(operation: String, result: OperationResult) {
         when (result) {
             OperationResult.Completed -> Unit
@@ -758,9 +760,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             OperationResult.Completed
         } catch (failure: GameFailure) {
             handleGameFailure(failure)
-            OperationResult.Failed(failure.message ?: "Game failed while saving", failure)
+            OperationResult.Failed(failure.toString(), failure)
         } catch (failure: Exception) {
-            OperationResult.Failed(failure.message ?: "Save failed", failure)
+            OperationResult.Failed(failure.toString(), failure)
         }
     }
 
@@ -1503,7 +1505,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val target = try {
             if (nextMap.isEmpty()) null else prepareMapTarget(nextMap)
         } catch (failure: Exception) {
-            return OperationResult.Rejected(failure.message ?: "Invalid change map target")
+            return OperationResult.Rejected(failure.toString())
         }
         return try {
             val routedClients = clients.filter { it.gameName == previous.name }
@@ -1525,7 +1527,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            OperationResult.Failed(failure.message ?: "changing map failed", failure)
+            OperationResult.Failed(failure.toString(), failure)
         }
     }
 
