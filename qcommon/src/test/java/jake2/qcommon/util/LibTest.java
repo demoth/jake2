@@ -39,6 +39,11 @@ public class LibTest {
     }
 
     @Test
+    public void formattedVectorKeepsColumnWidthsAndPrecision() {
+        Assertions.assertEquals("   -1.25     0.00    12.50", Lib.vtofsbeaty(new float[]{-1.25f, 0f, 12.5f}));
+    }
+
+    @Test
     public void testDecodeNormal() {
         Assertions.assertEquals("hello, world", Lib.decodeBackslash("hello, world"));
     }

@@ -29,7 +29,6 @@ import jake2.qcommon.filesystem.qfiles;
 import jake2.qcommon.vfs.EngineVfs;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
-import jake2.qcommon.util.Vargs;
 import jake2.qcommon.util.Vec3Cache;
 
 import java.io.IOException;
@@ -253,7 +252,7 @@ public class CM {
      * Loads in the map and all submodels.
      */
     public cmodel_t CM_LoadMap(String name, boolean clientload, int[] checksum) {
-        Com.DPrintf("CM_LoadMap(" + name + ")...\n");
+        Com.Debug("CM_LoadMap(" + name + ")...");
 
         map_noareas = Cvar.getInstance().find("map_noareas", Boolean.class);
 
@@ -297,7 +296,7 @@ public class CM {
 
     /** Loads Submodels. */
     public void CMod_LoadSubmodels(BspLump l) {
-        Com.DPrintf("CMod_LoadSubmodels()\n");
+        Com.Debug("CMod_LoadSubmodels()");
         qfiles.dmodel_t in;
         cmodel_t out;
         int i, j, count;
@@ -312,12 +311,9 @@ public class CM {
         if (count > Defines.MAX_MAP_MODELS)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many models");
 
-        Com.DPrintf(" numcmodels=" + count + "\n");
+        Com.Debug(" numcmodels=" + count);
         numcmodels = count;
 
-        if (debugloadmap) {
-            Com.DPrintf("submodles(headnode, <origin>, <mins>, <maxs>)\n");
-        }
         for (i = 0; i < count; i++) {
             in = new qfiles.dmodel_t(ByteBuffer.wrap(cmod_base, i
                     * qfiles.dmodel_t.SIZE + l.offset, qfiles.dmodel_t.SIZE));
@@ -329,22 +325,12 @@ public class CM {
                 out.origin[j] = in.origin[j];
             }
             out.headnode = in.headnode;
-            if (debugloadmap) {
-                Com.DPrintf(
-                	"|%6i|%8.2f|%8.2f|%8.2f|  %8.2f|%8.2f|%8.2f|   %8.2f|%8.2f|%8.2f|\n",
-                        new Vargs().add(out.headnode)
-                        .add(out.origin[0]).add(out.origin[1]).add(out.origin[2])
-                        .add(out.mins[0]).add(out.mins[1]).add(out.mins[2])
-                        .add(out.maxs[0]).add(out.maxs[1]).add(out.maxs[2]));
-            }
         }
     }
 
-    boolean debugloadmap = false;
-
     /** Loads surfaces. */
     public void CMod_LoadSurfaces(BspLump l) {
-        Com.DPrintf("CMod_LoadSurfaces()\n");
+        Com.Debug("CMod_LoadSurfaces()");
         texinfo_t in;
         mapsurface_t out;
         int i, count;
@@ -359,9 +345,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many surfaces");
 
         numtexinfo = count;
-        Com.DPrintf(" numtexinfo=" + count + "\n");
-        if (debugloadmap)
-            Com.DPrintf("surfaces:\n");
+        Com.Debug(" numtexinfo=" + count);
 
         for (i = 0; i < count; i++) {
             out = map_surfaces[i] = new mapsurface_t();
@@ -372,19 +356,12 @@ public class CM {
             out.rname = in.texture;
             out.c.flags = in.flags;
             out.c.value = in.value;
-
-            if (debugloadmap) {
-                Com.DPrintf("|%20s|%20s|%6i|%6i|\n", new Vargs()
-                        .add(out.c.name).add(out.rname).add(out.c.value).add(
-                                out.c.flags));
-            }
-
         }
     }
 
     /** Loads nodes. */
     public void CMod_LoadNodes(BspLump l) {
-        Com.DPrintf("CMod_LoadNodes()\n");
+        Com.Debug("CMod_LoadNodes()");
         qfiles.dnode_t in;
         int child;
         cnode_t out;
@@ -401,11 +378,8 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many nodes");
 
         numnodes = count;
-        Com.DPrintf(" numnodes=" + count + "\n");
+        Com.Debug(" numnodes=" + count);
 
-        if (debugloadmap) {
-            Com.DPrintf("nodes(planenum, child[0], child[1])\n");
-        }
 
         for (i = 0; i < count; i++) {
             in = new qfiles.dnode_t(ByteBuffer.wrap(cmod_base,
@@ -417,16 +391,12 @@ public class CM {
                 child = in.children[j];
                 out.children[j] = child;
             }
-            if (debugloadmap) {
-                Com.DPrintf("|%6i| %6i| %6i|\n", new Vargs().add(in.planenum)
-                        .add(out.children[0]).add(out.children[1]));
-            }
         }
     }
 
     /** Loads brushes.*/
     public void CMod_LoadBrushes(BspLump l) {
-        Com.DPrintf("CMod_LoadBrushes()\n");
+        Com.Debug("CMod_LoadBrushes()");
         qfiles.dbrush_t in;
         cbrush_t out;
         int i, count;
@@ -440,10 +410,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many brushes");
 
         numbrushes = count;
-        Com.DPrintf(" numbrushes=" + count + "\n");
-        if (debugloadmap) {
-            Com.DPrintf("brushes:(firstbrushside, numsides, contents)\n");
-        }
+        Com.Debug(" numbrushes=" + count);
         for (i = 0; i < count; i++) {
             in = new qfiles.dbrush_t(ByteBuffer.wrap(cmod_base, i
                     * qfiles.dbrush_t.SIZE + l.offset, qfiles.dbrush_t.SIZE));
@@ -451,18 +418,12 @@ public class CM {
             out.firstbrushside = in.firstside;
             out.numsides = in.numsides;
             out.contents = in.contents;
-
-            if (debugloadmap) {
-                Com.DPrintf("| %6i| %6i| %8X|\n", new Vargs().add(
-                	out.firstbrushside).add(out.numsides).add(
-                        out.contents));
-            }
         }
     }
 
     /** Loads leafs.   */
     public void CMod_LoadLeafs(BspLump l) {
-        Com.DPrintf("CMod_LoadLeafs()\n");
+        Com.Debug("CMod_LoadLeafs()");
         int i;
         cleaf_t out;
         qfiles.dleaf_t in;
@@ -480,12 +441,10 @@ public class CM {
         if (count > Defines.MAX_MAP_PLANES)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
-        Com.DPrintf(" numleafes=" + count + "\n");
+        Com.Debug(" numleafes=" + count);
 
         numleafs = count;
         numclusters = 0;
-        if (debugloadmap)
-            Com.DPrintf("cleaf-list:(contents, cluster, area, firstleafbrush, numleafbrushes)\n");
         for (i = 0; i < count; i++) {
             in = new qfiles.dleaf_t(cmod_base, i * qfiles.dleaf_t.SIZE
                     + l.offset, qfiles.dleaf_t.SIZE);
@@ -500,16 +459,9 @@ public class CM {
 
             if (out.cluster >= numclusters)
                 numclusters = out.cluster + 1;
-
-            if (debugloadmap) {
-                Com.DPrintf("|%8x|%6i|%6i|%6i|\n", new Vargs()
-                        .add(out.contents).add(out.cluster).add(out.area).add(
-                                out.firstleafbrush).add(out.numleafbrushes));
-            }
-
         }
 
-        Com.DPrintf(" numclusters=" + numclusters + "\n");
+        Com.Debug(" numclusters=" + numclusters);
 
         if (map_leafs[0].contents != Defines.CONTENTS_SOLID)
             throw failureFactory.apply(Defines.ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
@@ -530,7 +482,7 @@ public class CM {
 
     /** Loads planes. */
     public void CMod_LoadPlanes(BspLump l) {
-        Com.DPrintf("CMod_LoadPlanes()\n");
+        Com.Debug("CMod_LoadPlanes()");
         int i, j;
         cplane_t out;
         qfiles.dplane_t in;
@@ -549,13 +501,9 @@ public class CM {
         if (count > Defines.MAX_MAP_PLANES)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
-        Com.DPrintf(" numplanes=" + count + "\n");
+        Com.Debug(" numplanes=" + count);
 
         numplanes = count;
-        if (debugloadmap) {
-            Com
-                    .DPrintf("cplanes(normal[0],normal[1],normal[2], dist, type, signbits)\n");
-        }
 
         for (i = 0; i < count; i++) {
             in = new qfiles.dplane_t(ByteBuffer.wrap(cmod_base, i
@@ -575,25 +523,19 @@ public class CM {
             out.type = (byte) in.type;
             out.signbits = (byte) bits;
 
-            if (debugloadmap) {
-                Com.DPrintf("|%6.2f|%6.2f|%6.2f| %10.2f|%3i| %1i|\n",
-                        new Vargs().add(out.normal[0]).add(out.normal[1]).add(
-                                out.normal[2]).add(out.dist).add(out.type).add(
-                                out.signbits));
-            }
         }
     }
 
     /** Loads leaf brushes. */
     public void CMod_LoadLeafBrushes(BspLump l) {
-        Com.DPrintf("CMod_LoadLeafBrushes()\n");
+        Com.Debug("CMod_LoadLeafBrushes()");
 
         if ((l.length % 2) != 0)
             throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         int count = l.length / 2;
 
-        Com.DPrintf(" numbrushes=" + count + "\n");
+        Com.Debug(" numbrushes=" + count);
 
         if (count < 1)
             throw failureFactory.apply(Defines.ERR_DROP, "Map with no planes");
@@ -608,21 +550,15 @@ public class CM {
         ByteBuffer bb = ByteBuffer.wrap(cmod_base, l.offset, count * 2).order(
                 ByteOrder.LITTLE_ENDIAN);
 
-        if (debugloadmap) {
-            Com.DPrintf("map_brushes:\n");
-        }
 
         for (int i = 0; i < count; i++) {
             out[i] = bb.getShort();
-            if (debugloadmap) {
-                Com.DPrintf("|%6i|%6i|\n", new Vargs().add(i).add(out[i]));
-            }
         }
     }
 
     /** Loads brush sides. */
     public void CMod_LoadBrushSides(BspLump l) {
-        Com.DPrintf("CMod_LoadBrushSides()\n");
+        Com.Debug("CMod_LoadBrushSides()");
         int i, j;
         cbrushside_t out;
         qfiles.dbrushside_t in;
@@ -639,11 +575,8 @@ public class CM {
 
         numbrushsides = count;
 
-        Com.DPrintf(" numbrushsides=" + count + "\n");
+        Com.Debug(" numbrushsides=" + count);
 
-        if (debugloadmap) {
-            Com.DPrintf("brushside(planenum, surfacenum):\n");
-        }
         for (i = 0; i < count; i++) {
 
             in = new qfiles.dbrushside_t(ByteBuffer.wrap(cmod_base, i
@@ -666,16 +599,12 @@ public class CM {
                 out.surface = new mapsurface_t(); // just for safety
             else
                 out.surface = map_surfaces[j];
-
-            if (debugloadmap) {
-                Com.DPrintf("| %6i| %6i|\n", new Vargs().add(num).add(j));
-            }
         }
     }
 
     /** Loads areas. */
     public void CMod_LoadAreas(BspLump l) {
-        Com.DPrintf("CMod_LoadAreas()\n");
+        Com.Debug("CMod_LoadAreas()");
         int i;
         carea_t out;
         qfiles.darea_t in;
@@ -689,12 +618,9 @@ public class CM {
         if (count > Defines.MAX_MAP_AREAS)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many areas");
 
-        Com.DPrintf(" numareas=" + count + "\n");
+        Com.Debug(" numareas=" + count);
         numareas = count;
 
-        if (debugloadmap) {
-            Com.DPrintf("areas(numportals, firstportal)\n");
-        }
 
         for (i = 0; i < count; i++) {
 
@@ -706,16 +632,12 @@ public class CM {
             out.firstareaportal = in.firstareaportal;
             out.floodvalid = 0;
             out.floodnum = 0;
-            if (debugloadmap) {
-                Com.DPrintf("| %6i| %6i|\n", new Vargs()
-                        .add(out.numareaportals).add(out.firstareaportal));
-            }
         }
     }
 
     /** Loads area portals. */
     public void CMod_LoadAreaPortals(BspLump l) {
-        Com.DPrintf("CMod_LoadAreaPortals()\n");
+        Com.Debug("CMod_LoadAreaPortals()");
         int i;
         qfiles.dareaportal_t out;
         qfiles.dareaportal_t in;
@@ -729,10 +651,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many areas");
 
         numareaportals = count;
-        Com.DPrintf(" numareaportals=" + count + "\n");
-        if (debugloadmap) {
-            Com.DPrintf("areaportals(portalnum, otherarea)\n");
-        }
+        Com.Debug(" numareaportals=" + count);
         for (i = 0; i < count; i++) {
             in = new qfiles.dareaportal_t(ByteBuffer.wrap(cmod_base, i
                     * qfiles.dareaportal_t.SIZE + l.offset,
@@ -742,21 +661,16 @@ public class CM {
 
             out.portalnum = in.portalnum;
             out.otherarea = in.otherarea;
-
-            if (debugloadmap) {
-                Com.DPrintf("|%6i|%6i|\n", new Vargs().add(out.portalnum).add(
-                        out.otherarea));
-            }
         }
     }
 
     /** Loads visibility data. */
     public void CMod_LoadVisibility(BspLump l) {
-        Com.DPrintf("CMod_LoadVisibility()\n");
+        Com.Debug("CMod_LoadVisibility()");
 
         numvisibility = l.length;
 
-        Com.DPrintf(" numvisibility=" + numvisibility + "\n");
+        Com.Debug(" numvisibility=" + numvisibility);
 
         if (l.length > Defines.MAX_MAP_VISIBILITY)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too large visibility lump");
@@ -817,7 +731,7 @@ public class CM {
 
     /** Loads entity strings. */
     public void CMod_LoadEntityString(BspLump l) {
-        Com.DPrintf("CMod_LoadEntityString()\n");
+        Com.Debug("CMod_LoadEntityString()");
 
         numentitychars = l.length;
 
@@ -825,7 +739,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too large entity lump");
 
         map_entitystring = Lib.CtoJava(cmod_base, l.offset, l.length).trim();
-        Com.dprintln("entitystring=" + map_entitystring.length() + 
+        Com.Debug("entitystring=" + map_entitystring.length() +
                 " bytes, [" + map_entitystring.substring(0, Math.min (
                         map_entitystring.length(), 15)) + "...]" );
     }
@@ -1025,7 +939,7 @@ public class CM {
         while (true) {
             if (nodenum < 0) {
                 if (leaf_count >= leaf_maxcount) {
-                    Com.DPrintf("CM_BoxLeafnums_r: overflow\n");
+                    Com.Debug("CM_BoxLeafnums_r: overflow");
                     return;
                 }
                 leaf_list[leaf_count++] = -1 - nodenum;
@@ -1625,14 +1539,14 @@ public class CM {
         }
 
         if (offset < 0 || offset >= numvisibility || offset >= in.length) {
-            Com.DPrintf("warning: Vis offset out of bounds (" + offset + ")\n");
+            Com.Debug("warning: Vis offset out of bounds (" + offset + ")");
             Arrays.fill(out, 0, row, (byte) 0xFF);
             return;
         }
 
         while (outp < row) {
             if (inp >= numvisibility || inp >= in.length) {
-                Com.DPrintf("warning: Vis decompression read overrun\n");
+                Com.Debug("warning: Vis decompression read overrun");
                 Arrays.fill(out, outp, row, (byte) 0xFF);
                 return;
             }
@@ -1644,21 +1558,21 @@ public class CM {
             }
 
             if (inp >= numvisibility || inp >= in.length) {
-                Com.DPrintf("warning: Vis decompression truncated RLE sequence\n");
+                Com.Debug("warning: Vis decompression truncated RLE sequence");
                 Arrays.fill(out, outp, row, (byte) 0xFF);
                 return;
             }
 
             int c = in[inp++] & 0xFF;
             if (c == 0) {
-                Com.DPrintf("warning: Vis decompression invalid zero run length\n");
+                Com.Debug("warning: Vis decompression invalid zero run length");
                 Arrays.fill(out, outp, row, (byte) 0xFF);
                 return;
             }
 
             if (outp + c > row) {
                 c = row - (outp);
-                Com.DPrintf("warning: Vis decompression overrun\n");
+                Com.Debug("warning: Vis decompression overrun");
             }
             while (c != 0) {
                 out[outp++] = 0;
@@ -1700,7 +1614,7 @@ public class CM {
      */
 
     public void FloodArea_r(carea_t area, int floodnum) {
-        //Com.Printf("FloodArea_r(" + floodnum + ")...\n");
+        //Com.Print("FloodArea_r(" + floodnum + ")...");
         int i;
         qfiles.dareaportal_t p;
 
@@ -1724,7 +1638,7 @@ public class CM {
      * FloodAreaConnections.
      */
     public void FloodAreaConnections() {
-        Com.DPrintf("FloodAreaConnections...\n");
+        Com.Debug("FloodAreaConnections...");
 
         int i;
         carea_t area;
@@ -1815,7 +1729,7 @@ public class CM {
                 else
                     os.writeInt(0);
         } catch (Exception e) {
-            Com.Printf("ERROR:" + e);
+            Com.Print("ERROR:" + e);
             e.printStackTrace();
         }
     }

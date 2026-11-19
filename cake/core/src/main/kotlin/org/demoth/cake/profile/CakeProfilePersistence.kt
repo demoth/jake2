@@ -48,7 +48,7 @@ class CakeProfilePersistence(
             val configText = profileConfigStore.readConfig(profileId) ?: return
             Cbuf.AddAndExecuteScript(configText)
             Cvar.getInstance().updateLatchedVars()
-            Com.Printf("Loaded Cake profile config for '$profileId'\n")
+            Com.Info("Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
             Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
         }
@@ -68,7 +68,7 @@ class CakeProfilePersistence(
     fun saveConfigOrThrow() {
         val profileId = currentConfigProfileId() ?: error("No active profile")
         val path = profileConfigStore.writeConfig(profileId, clientBindings.listBindings())
-        Com.Printf("Saved Cake profile config: $path\n")
+        Com.Info("Saved Cake profile config: $path")
     }
 
     fun loadHistory(): List<String> {

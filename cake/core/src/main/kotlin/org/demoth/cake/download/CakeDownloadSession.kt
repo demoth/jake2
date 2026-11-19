@@ -74,10 +74,10 @@ class CakeDownloadSession(
         val offset = downloadTransfer.begin(request)
         lastDownloadProgressPercent = -1
         if (offset > 0L) {
-            Com.Printf("Resuming ${request.logicalPath}\n")
+            Com.Info("Resuming ${request.logicalPath}")
             sendReliable("${StringCmdMessage.DOWNLOAD} ${request.logicalPath} $offset")
         } else {
-            Com.Printf("Downloading ${request.logicalPath}\n")
+            Com.Info("Downloading ${request.logicalPath}")
             sendReliable("${StringCmdMessage.DOWNLOAD} ${request.logicalPath}")
         }
         return true
@@ -97,7 +97,7 @@ class CakeDownloadSession(
 
             is CakeDownloadTransferResult.Completed -> {
                 maybeLogDownloadProgress(result.request.logicalPath, 100)
-                Com.Printf("Downloaded ${result.request.logicalPath}\n")
+                Com.Info("Downloaded ${result.request.logicalPath}")
                 if (!startQueuedDownloadIfIdle()) {
                     pendingPrecacheSpawnCount?.let { spawnCount ->
                         return Result.RetryPrecache(spawnCount)
@@ -119,7 +119,7 @@ class CakeDownloadSession(
         }
         val crossedBucket = lastDownloadProgressPercent < 0 || percent / 5 > lastDownloadProgressPercent / 5
         if (crossedBucket || percent == 100) {
-            Com.Printf("Downloading ${logicalPath}... ${percent}%\n")
+            Com.Info("Downloading ${logicalPath}... ${percent}%")
         }
         lastDownloadProgressPercent = percent
     }

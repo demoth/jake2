@@ -1,5 +1,6 @@
 package jake2.game.func
 
+import jake2.qcommon.Com
 import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.game.GameUtil
@@ -34,7 +35,7 @@ fun funcTimer(self: GameEntity, game: GameExportsImpl) {
 
     if (self.random >= self.wait) {
         self.random = self.wait - Defines.FRAMETIME
-        game.gameImports.dprintf("func_timer at ${Lib.vtos(self.s.origin)} has random >= wait\n")
+        Com.Warn("func_timer at ${Lib.vtos(self.s.origin)} has random >= wait")
     }
 
     if (self.hasSpawnFlag(TIMER_START_ON)) {

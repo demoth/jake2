@@ -1,5 +1,6 @@
 package jake2.game
 
+import jake2.qcommon.Com
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.game.components.Earthquake
@@ -52,7 +53,7 @@ private const val LOOPED_OFF = 2
 private const val RELIABLE = 4
 fun targetSpeaker(self: GameEntity, game: GameExportsImpl) {
     if (self.st.noise == null) {
-        game.gameImports.dprintf("target_speaker with no noise set at ${Lib.vtos(self.s.origin)}\n")
+        Com.Warn("target_speaker with no noise set at ${Lib.vtos(self.s.origin)}")
         return
     }
     val noise: String = if (self.st.noise.contains(".wav")) self.st.noise else "${self.st.noise}.wav"
@@ -311,7 +312,7 @@ private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, g
  */
 fun targetEarthquake(self: GameEntity, game: GameExportsImpl) {
     if (self.targetname == null)
-        game.gameImports.dprintf("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}\n")
+        Com.Warn("untargeted ${self.classname} at ${Lib.vtos(self.s.origin)}")
 
     self.addComponent(Earthquake(
         game.gameImports.soundindex("world/quake.wav"),
@@ -377,7 +378,7 @@ fun targetHelp(self: GameEntity, game: GameExportsImpl) {
     if (game.skipForDeathmatch(self)) return
 
     if (self.message == null) {
-        game.gameImports.dprintf("${self.classname} with no message at ${Lib.vtos(self.s.origin)}\n")
+        Com.Warn("${self.classname} with no message at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
@@ -411,13 +412,13 @@ fun targetLightramp(self: GameEntity, game: GameExportsImpl) {
         || self.message[1] !in 'a'..'z'
         || self.message[0] == self.message[1]
     ) {
-        game.gameImports.dprintf("target_lightramp has bad ramp (${self.message}) at ${Lib.vtos(self.s.origin)}\n")
+        Com.Warn("target_lightramp has bad ramp (${self.message}) at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
 
     if (self.target == null) {
-        game.gameImports.dprintf("${self.classname} with no target at ${Lib.vtos(self.s.origin)}\n")
+        Com.Warn("${self.classname} with no target at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
@@ -465,13 +466,13 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
             if ("light" == entity.classname) {
                 lightRamp.targetLightStyle = entity.style
             } else {
-                game.gameImports.dprintf(self.classname + " at "+ Lib.vtos(self.s.origin))
-                game.gameImports.dprintf(("target " + self.target + " ("+ entity.classname + " at " + Lib.vtos(entity.s.origin)+ ") is not a light\n"))
+                Com.Warn("${self.classname} at ${Lib.vtos(self.s.origin)}: target ${self.target} " +
+                    "(${entity.classname} at ${Lib.vtos(entity.s.origin)}) is not a light")
             }
         }
         // couldn't find a target
         if (lightRamp.targetLightStyle == -1) {
-            game.gameImports.dprintf((self.classname + " target " + self.target + " not found at " + Lib.vtos(self.s.origin) + "\n"))
+            Com.Warn((self.classname + " target " + self.target + " not found at " + Lib.vtos(self.s.origin) + "\n"))
             game.freeEntity(self)
             return@registerUse
         }
@@ -536,7 +537,7 @@ private val targetStringUse = registerUse("target_string_use") { self, _, _, _ -
  */
 fun targetChangelevel(self: GameEntity, game: GameExportsImpl) {
     if (self.map == null) {
-        game.gameImports.dprintf("target_changelevel with no map at " + Lib.vtos(self.s.origin) + "\n")
+        Com.Warn("target_changelevel with no map at " + Lib.vtos(self.s.origin))
         game.freeEntity(self)
         return
     }
@@ -693,7 +694,7 @@ private val laserInit = registerThink("target_laser_start") { self, game ->
             if (target != null) {
                 self.enemy = target.o
             } else {
-                game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)}: ${self.target} is a bad target\n")
+                Com.Warn("${self.classname} at ${Lib.vtos(self.s.origin)}: ${self.target} is a bad target")
                 // fixme: free such entity?
             }
         } else {

@@ -68,7 +68,7 @@ object CakeStartupBootstrap {
             // TODO: cleanup: avoid "after restart" messages for saved video settings applied before window creation.
             Cbuf.AddAndExecuteScript(configText)
             Cvar.getInstance().updateLatchedVars()
-            Com.Printf("Loaded Cake profile config for '$profileId'\n")
+            Com.Info("Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
             Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
         }

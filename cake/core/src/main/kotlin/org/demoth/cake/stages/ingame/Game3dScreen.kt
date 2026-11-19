@@ -503,7 +503,8 @@ class Game3dScreen(
     }
 
     private fun logBatchDiagnostics(frameDiagnostics: WorldPresentationRenderer.WorldFrameDiagnostics) {
-        if (!RenderTuningCvars.bspBatchDebugEnabled()) {
+        val enabled = RenderTuningCvars.bspBatchDebugEnabled()
+        if (!enabled) {
             lastBatchDebugLogTimeMs = Int.MIN_VALUE
             return
         }
@@ -516,7 +517,7 @@ class Game3dScreen(
         val opaqueWorldStats = worldBatchRenderer?.lastOpaqueStats
         val translucentWorldStats = worldBatchRenderer?.lastTranslucentStats
         val particleStats = effectsSystem.debugParticleRenderStats()
-        Com.Printf(
+        Com.Debug(
             "bsp_batch_debug t=${frameDiagnostics.currentTimeMs} " +
                 "worldOpaque(vis=${opaqueWorldStats?.visibleSurfaceCount ?: 0},grp=${opaqueWorldStats?.groupedSurfaceCount ?: 0},dc=${opaqueWorldStats?.drawCalls ?: 0}) " +
                 "worldTrans(vis=${translucentWorldStats?.visibleSurfaceCount ?: 0},grp=${translucentWorldStats?.groupedSurfaceCount ?: 0},dc=${translucentWorldStats?.drawCalls ?: 0}) " +
@@ -524,7 +525,8 @@ class Game3dScreen(
                 "sprites(vis=${frameDiagnostics.visibleSprites},opq=${frameDiagnostics.renderedOpaqueSprites},trans=${frameDiagnostics.renderedTranslucentSprites}) " +
                 "beams(vis=${frameDiagnostics.visibleBeams},draw=${frameDiagnostics.renderedBeams}) " +
                 "particles(live=${effectsSystem.debugLiveParticleCount()},sub=${particleStats.submittedParticles},dc=${particleStats.drawCalls}) " +
-                "effects(active=${effectsSystem.debugActiveEffectCount()})\n"
+                "effects(active=${effectsSystem.debugActiveEffectCount()})",
+            enabled,
         )
     }
 
@@ -1175,13 +1177,13 @@ class Game3dScreen(
 
     override fun processPrintMessage(msg: PrintMessage) {
         // Legacy behavior echoes server print messages to the console too.
-        Com.Printf(msg.text)
+        Com.Print(msg.text, false)
         hud?.showPrintMessage(msg.level, msg.text)
     }
 
     override fun processPrintCenterMessage(msg: PrintCenterMessage) {
         // Legacy behavior echoes center-print text to the console too.
-        Com.Printf("${msg.text}\n")
+        Com.Print(msg.text)
         hud?.showCenterPrint(msg.text)
     }
 

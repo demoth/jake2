@@ -46,7 +46,7 @@ public final class EngineWriteRoot {
         try {
             Files.createDirectories(path);
         } catch (Exception e) {
-            Com.Printf("can't create path \"" + path + "\"\n");
+            Com.Error("can't create path \"" + path + "\"");
         }
     }
 }

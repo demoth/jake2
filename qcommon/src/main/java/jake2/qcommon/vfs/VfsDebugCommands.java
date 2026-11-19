@@ -58,27 +58,27 @@ public final class VfsDebugCommands {
 
     private static void printResolvedFiles(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         List<String> files = provider.resolvedFiles();
         if (files.isEmpty()) {
-            Com.Printf("No VFS files indexed.\n");
+            Com.Print("No VFS files indexed.");
             return;
         }
         for (String file : files) {
-            Com.Printf(file + "\n");
+            Com.Print(file);
         }
-        Com.Printf("Total resolved files: " + files.size() + "\n");
+        Com.Print("Total resolved files: " + files.size());
     }
 
     private static void findResolvedFiles(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
-            Com.Printf("Usage: fs_find <regex>\n");
+            Com.Print("Usage: fs_find <regex>");
             return;
         }
 
@@ -87,7 +87,7 @@ public final class VfsDebugCommands {
         try {
             pattern = Pattern.compile(regex);
         } catch (PatternSyntaxException e) {
-            Com.Printf("Invalid regex for fs_find: " + e.getDescription() + "\n");
+            Com.Warn("Invalid regex for fs_find: " + e.getDescription());
             return;
         }
 
@@ -95,96 +95,96 @@ public final class VfsDebugCommands {
                 .filter(file -> pattern.matcher(file).find())
                 .toList();
         if (matches.isEmpty()) {
-            Com.Printf("No VFS files matched regex: " + regex + "\n");
+            Com.Print("No VFS files matched regex: " + regex);
             return;
         }
 
         for (String match : matches) {
-            Com.Printf(match + "\n");
+            Com.Print(match);
         }
-        Com.Printf("Total matched files: " + matches.size() + "\n");
+        Com.Print("Total matched files: " + matches.size());
     }
 
     private static void printMounts(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         List<String> mounts = provider.mounts();
         if (mounts.isEmpty()) {
-            Com.Printf("No VFS mounts available.\n");
+            Com.Print("No VFS mounts available.");
             return;
         }
         for (String mount : mounts) {
-            Com.Printf(mount + "\n");
+            Com.Print(mount);
         }
-        Com.Printf("Total mounts: " + mounts.size() + "\n");
+        Com.Print("Total mounts: " + mounts.size());
     }
 
     private static void printOverrides(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         List<String> overrides = provider.overrides();
         if (overrides.isEmpty()) {
-            Com.Printf("No VFS overrides detected.\n");
+            Com.Print("No VFS overrides detected.");
             return;
         }
         for (String line : overrides) {
-            Com.Printf(line + "\n");
+            Com.Print(line);
         }
-        Com.Printf("Total overridden paths: " + overrides.size() + "\n");
+        Com.Print("Total overridden paths: " + overrides.size());
     }
 
     private static void mountPackage(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
-            Com.Printf("Usage: fs_mount <packagePath>\n");
+            Com.Print("Usage: fs_mount <packagePath>");
             return;
         }
         String packagePath = args.get(1);
         VfsResult<String> result = provider.mountPackage(packagePath);
         if (!result.success()) {
-            Com.Printf("fs_mount failed: " + result.error() + "\n");
+            Com.Warn("fs_mount failed: " + result.error());
             return;
         }
-        Com.Printf("Mounted package: " + packagePath + " (id=" + result.value() + ")\n");
+        Com.Print("Mounted package: " + packagePath + " (id=" + result.value() + ")");
     }
 
     private static void unmountPackage(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
-            Com.Printf("Usage: fs_unmount <mountId>\n");
+            Com.Print("Usage: fs_unmount <mountId>");
             return;
         }
         String mountId = args.get(1);
         VfsResult<Void> result = provider.unmountPackage(mountId);
         if (!result.success()) {
-            Com.Printf("fs_unmount failed: " + result.error() + "\n");
+            Com.Warn("fs_unmount failed: " + result.error());
             return;
         }
-        Com.Printf("Unmounted package id=" + mountId + "\n");
+        Com.Print("Unmounted package id=" + mountId);
     }
 
     private static void rebuild(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Printf("VFS debug provider is not initialized.\n");
+            Com.Print("VFS debug provider is not initialized.");
             return;
         }
         RebuildScope scope = parseScope(args);
         if (scope == null) {
-            Com.Printf("Usage: fs_rebuild [full|mod|base|pack]\n");
+            Com.Print("Usage: fs_rebuild [full|mod|base|pack]");
             return;
         }
         provider.rebuildIndex(scope);
-        Com.Printf("VFS rebuild completed for scope " + scope + "\n");
+        Com.Print("VFS rebuild completed for scope " + scope);
     }
 
     private static RebuildScope parseScope(List<String> args) {

@@ -49,6 +49,8 @@ output is excluded from focus traversal.
 - `Com.Print`: gameplay and requested command output.
 - `Com.Info`: sparse lifecycle and significant system-state messages.
 - `Com.Debug(message)`: diagnostics emitted only when developer mode is enabled.
+  Feature diagnostics can use `Com.Debug(message, enabled)` with their own
+  switch, such as `r_bsp_batch_debug`, `showtrace`, or `sv_print_network`.
 - `Com.Warn`: recoverable/unexpected conditions and useful anticipated failure feedback.
 - `Com.Error(message)`: report an operation failure without throwing or initiating recovery.
   The reporting API takes a message. `Com.Error(code, ...)` still performs
@@ -60,11 +62,11 @@ Existing LF, CRLF, or CR endings and
 intentional blank lines are preserved. Warn no longer inserts a textual `Warn:`
 prefix or duplicates an existing final newline; its severity is carried separately.
 
-Deprecated `Printf`/`Println` retain their boundaries and INFO level during caller
-migration. Deprecated `DPrintf`/`dprintln` retain their boundaries and developer gate, but now
-carry DEBUG. Legacy `Error(code, ...)` overloads are also deprecated; migrate their
-recovery into the failure handler rather than simply replacing the call. Redirects still capture plain display text before
-the sink and stdout; redirect lifecycle fixes and the logback backend are deferred.
+Legacy `Error(code, message)` is deprecated. Move recovery into the failure handler
+when migrating a caller. Remote command capture sends plain text to the requester
+before the console sink and stdout, and the client prints each chunk verbatim.
+Gameplay echoes use PRINT locally. The network print priority continues to control
+player delivery and HUD presentation.
 
 ## History and Presentation
 

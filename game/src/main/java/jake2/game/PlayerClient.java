@@ -1034,7 +1034,7 @@ public class PlayerClient {
         ClientUserinfoChanged(ent, userinfo, gameExports);
 
         if (gameExports.game.maxclients > 1)
-            gameExports.gameImports.dprintf(client.pers.netname + " connected\n");
+            Com.Info(client.pers.netname + " connected");
 
         ent.svflags = 0; // make sure we start with known default
         client.pers.connected = true;

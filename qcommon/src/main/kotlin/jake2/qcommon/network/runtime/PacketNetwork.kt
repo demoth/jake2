@@ -22,7 +22,7 @@ class PacketNetwork @JvmOverloads constructor(
     private val transport: NetworkTransport,
     private val role: NetworkRole,
     private val settings: NetworkSettings,
-    private val log: (String) -> Unit = { Com.Printf(it) },
+    private val log: ((String) -> Unit)? = null,
 ) : AutoCloseable {
     companion object {
         /** Maximum datagrams consumed per receive pass, including malformed and dropped traffic. */
@@ -75,7 +75,7 @@ class PacketNetwork @JvmOverloads constructor(
             transport.replaceUdp(endpoint)
             true
         } catch (error: IOException) {
-            log("$label UDP bind error: $error\n")
+            logFailure("$label UDP bind error: $error\n")
             false
         }
     }
@@ -89,14 +89,22 @@ class PacketNetwork @JvmOverloads constructor(
     fun poll(budget: Int = DEFAULT_POLL_BUDGET, consume: (NetworkPacket) -> Unit): Int =
         transport.poll(budget) { received -> decode(received)?.let(consume) }
 
+    private fun logDiagnostic(message: String) {
+        log?.invoke(message) ?: Com.Debug(message, true)
+    }
+
+    private fun logFailure(message: String) {
+        log?.invoke(message) ?: Com.Warn(message)
+    }
+
     private fun decode(received: ReceiveResult): NetworkPacket? {
-        if (received is ReceiveResult.Failed) log("$label receive error: ${received.cause}\n")
+        if (received is ReceiveResult.Failed) logFailure("$label receive error: ${received.cause}\n")
         if (received !is ReceiveResult.Received) return null
         val datagram = received.datagram
         val decoded = PacketCodec.decode(datagram.payload, direction)
         if (decoded is PacketDecodeResult.Rejected) {
             if (settings.logDrops)
-                log("$label dropped packet from ${datagram.source}: ${decoded.reason}\n")
+                logDiagnostic("$label dropped packet from ${datagram.source}: ${decoded.reason}\n")
             return null
         }
         val packet = NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
@@ -105,7 +113,7 @@ class PacketNetwork @JvmOverloads constructor(
             val line = packet.connectionlessMessage
             val command = if (role == NetworkRole.SERVER) Cmd.TokenizeString(line, false).firstOrNull() else null
             val loggedLine = if (command == ConnectionlessCommand.rcon.name) command else line
-            log("Network: Received from $peer connectionless: $loggedLine\n")
+            logDiagnostic("Network: Received from $peer connectionless: $loggedLine\n")
         }
         return packet
     }
@@ -116,7 +124,7 @@ class PacketNetwork @JvmOverloads constructor(
         require(text.size <= Defines.MAX_MSGLEN - 4)
         val bytes = ByteBuffer.allocate(text.size + 4).order(ByteOrder.LITTLE_ENDIAN).putInt(-1).put(text).array()
         val result = transport.send(to, PacketBytes.copyOf(bytes))
-        if (result is SendResult.Failed) log("$label send error: ${result.cause}\n")
+        if (result is SendResult.Failed) logFailure("$label send error: ${result.cause}\n")
     }
 
     /** Session boundary: keep the local endpoint and final messages queued for its peer. */

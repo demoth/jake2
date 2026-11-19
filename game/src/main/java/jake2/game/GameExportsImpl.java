@@ -179,7 +179,7 @@ public class GameExportsImpl implements GameExports {
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
         this.gameImports = imports;
-        gameImports.dprintf("==== InitGame ====\n");
+        Com.Info("==== InitGame ====");
 
         // Register callbacks before reading a save, including those first used during simulation.
         for (String className : preloadclasslist) {
@@ -205,7 +205,7 @@ public class GameExportsImpl implements GameExports {
         // Client slots and the body queue must fit even with a reduced entity budget.
         int minimumEntities = gameCvars.maxclients.getTypedValue() + GameDefines.BODY_QUEUE_SIZE + 1;
         if (gameCvars.maxentities.getTypedValue() < minimumEntities) {
-            gameImports.dprintf("Increasing maxentities to " + minimumEntities + " for client and body slots\n");
+            Com.Info("Increasing maxentities to " + minimumEntities + " for client and body slots");
             gameCvars.maxentities.forceSet(minimumEntities);
         }
         CreateEdicts(gameCvars.maxentities.getTypedValue());
@@ -585,7 +585,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
         }
-        gameImports.dprintf("using:" + itemName + "\n");
+        Com.Debug("using:" + itemName);
         it.use.use(ent, it, this);
     }
 
@@ -1063,7 +1063,7 @@ public class GameExportsImpl implements GameExports {
      * Exits a level.
      */
     private void exitLevel() {
-        Com.Printf("exiting to " + level.changemap + "\n");
+        Com.Info("exiting to " + level.changemap);
         gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
 
         // todo: remove as not necessary, new game instance will be created anyway

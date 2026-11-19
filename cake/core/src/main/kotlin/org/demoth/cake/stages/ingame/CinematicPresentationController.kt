@@ -337,7 +337,8 @@ class CinematicPresentationController(
     }
 
     private fun logDiagnostics(currentTimeMs: Int) {
-        if (!RenderTuningCvars.bspBatchDebugEnabled()) {
+        val enabled = RenderTuningCvars.bspBatchDebugEnabled()
+        if (!enabled) {
             lastDebugLogTimeMs = Int.MIN_VALUE
             return
         }
@@ -354,9 +355,10 @@ class CinematicPresentationController(
             staticImage != null -> "image"
             else -> "none"
         }
-        Com.Printf(
+        Com.Debug(
             "cinematic_debug t=$currentTimeMs media=$mediaKind decoded=${decoder?.decodedFrameCount ?: 0} " +
-                "target=$targetFrame auto=$autoAdvancePending skip=$skipSent audio=${audioDevice != null}\n"
+                "target=$targetFrame auto=$autoAdvancePending skip=$skipSent audio=${audioDevice != null}",
+            enabled,
         )
     }
 

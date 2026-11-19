@@ -156,12 +156,10 @@ public final class Sys extends Defines {
             // the converted pattern
             String regexpr = sb.toString();
 
-            //Com.DPrintf("pattern: " + pattern + " regexpr: " + regexpr +
-            // '\n');
             try {
                 Pattern.compile(regexpr);
             } catch (PatternSyntaxException e) {
-                Com.Printf("invalid file pattern ( *.* is used instead )\n");
+                Com.Warn("invalid file pattern ( *.* is used instead )");
                 return ".*"; // the default
             }
             return regexpr;

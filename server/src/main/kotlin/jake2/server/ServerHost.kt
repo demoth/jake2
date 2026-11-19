@@ -263,22 +263,22 @@ class ServerHost @JvmOverloads constructor(
         commands.add("listmaps") {
             val bytes = EngineVfs.loadBytes("maps.lst")
             if (bytes == null) {
-                Com.Printf("Could not read maps.lst\n")
+                Com.Print("Could not read maps.lst")
                 return@add
             }
             for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
-                Com.Printf(Defines.PRINT_ALL, line.trim { it <= ' ' } + "\n")
+                Com.Print(line.trim { it <= ' ' })
             }
         }
         commands.add("jvm_memory") {
             val runtime = Runtime.getRuntime()
-            Com.Printf("vm memory:" + (runtime.totalMemory() - runtime.freeMemory()) + "\n")
+            Com.Print("vm memory:" + (runtime.totalMemory() - runtime.freeMemory()))
         }
         commands.add("games") {
             for (game in games.values) {
-                Com.Printf(game.name + " - " + game.mapcmd + "\n")
+                Com.Print(game.name + " - " + game.mapcmd)
             }
-            Com.Printf("Total " + games.size + " games\n")
+            Com.Print("Total " + games.size + " games")
         }
         commands.add("spamgames") { args ->
             val total = args[1].toInt()
@@ -309,7 +309,7 @@ class ServerHost @JvmOverloads constructor(
         try {
             if (games.isNotEmpty()) {
                 if (clients.isNotEmpty()) sendFinalMessage(finalmsg, reconnect)
-                Com.Printf("==== ShutdownGame ====\n")
+                Com.Info("==== ShutdownGame ====")
             }
         } finally {
             games.clear()
@@ -346,7 +346,7 @@ class ServerHost @JvmOverloads constructor(
                     sendFinalMessage(reason, false, listOf(client))
                 } catch (failure: Exception) {
                     // A failed final packet must not prevent other clients from being released.
-                    Com.Printf("Could not notify client of Game ${game.name} shutdown: $failure\n")
+                    Com.Warn("Could not notify client of Game ${game.name} shutdown: $failure")
                 }
             }
         } finally {
@@ -408,7 +408,7 @@ class ServerHost @JvmOverloads constructor(
         cvars.updateLatchedVars()
 
         if (coop.typedValue && deathmatch.typedValue) {
-            Com.Printf("Deathmatch and Coop both set, disabling Coop\n")
+            Com.Warn("Deathmatch and Coop both set, disabling Coop")
             coop.forceSet(false)
         }
 
@@ -442,7 +442,7 @@ class ServerHost @JvmOverloads constructor(
     fun getClientsForInstance(gameName: String?): MutableList<ClientNetworkInfo?> {
         if (!games.containsKey(gameName)) {
             // happens during the game instance creation, while the instance has random name
-            Com.Printf("Game $gameName is not found!\n")
+            Com.Warn("Game $gameName is not found!")
         }
         // nullify unrelated clients
         return clients.map { client ->
@@ -475,10 +475,10 @@ class ServerHost @JvmOverloads constructor(
     /** Console adapter; applications can inspect the same operation's typed result. */
     fun loadGame(args: List<String>) {
         if (args.size != 2) {
-            Com.Printf("USAGE: load <directory>\n")
+            Com.Print("USAGE: load <directory>")
             return
         }
-        Com.Printf("Loading game...\n")
+        Com.Print("Loading game...")
         reportTransition("load", loadGame(args[1]))
     }
 
@@ -550,7 +550,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 */
     fun gameMap(args: List<String>) {
         if (args.size < 2) {
-            Com.Printf("USAGE: gamemap <map> [client]\n")
+            Com.Print("USAGE: gamemap <map> [client]")
             return
         }
         val clientIndex = if (args.size > 2 && args[2].isNotBlank()) args[2].toIntOrNull() else 0
@@ -619,7 +619,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
     private fun reportTransition(operation: String, result: OperationResult) {
         when (result) {
             OperationResult.Completed -> Unit
-            is OperationResult.Rejected -> Com.Printf("$operation rejected: ${result.reason}\n")
+            is OperationResult.Rejected -> Com.Print("$operation rejected: ${result.reason}")
             is OperationResult.Failed -> Com.Error("$operation failed: ${result.reason}")
         }
     }
@@ -701,7 +701,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         // set serverinfo variable
         Cvar.getInstance().find<String>("mapname").forceSet(gameImports.mapName)
-        Com.Println("mapname: " + gameImports.mapName)
+        Com.Info("mapname: " + gameImports.mapName)
 
         if (changeMapInfo.state == ServerStates.SS_GAME) Cbuf.CopyToDefer()
 
@@ -725,7 +725,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 */
     fun map(args: List<String>) {
         if (args.size != 2) {
-            Com.Printf("usage: map <map_name>\n")
+            Com.Print("usage: map <map_name>")
             return
         }
         reportTransition("map", map(args[1]))
@@ -734,14 +734,14 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     /** Console syntax stays here; Game owns save eligibility and serialization. */
     private fun saveGame(args: List<String>) {
         if (args.size != 2) {
-            Com.Printf("USAGE: save <directory>\n")
+            Com.Print("USAGE: save <directory>")
             return
         }
-        Com.Printf("Saving game...\n")
+        Com.Print("Saving game...")
         when (val result = saveGame(args[1])) {
-            OperationResult.Completed -> Com.Printf("Done.\n")
-            is OperationResult.Rejected -> Com.Printf("Save rejected: ${result.reason}\n")
-            is OperationResult.Failed -> Com.Printf("Save failed: ${result.reason}\n")
+            OperationResult.Completed -> Com.Print("Done.")
+            is OperationResult.Rejected -> Com.Print("Save rejected: ${result.reason}")
+            is OperationResult.Failed -> Com.Error("Save failed: ${result.reason}")
         }
     }
 
@@ -800,7 +800,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // Do not let an enclosing Game boundary retry or swallow failed recovery.
             throw IllegalStateException("Could not recover Game ${failure.game.name}", failure)
         }
-        Com.Printf(failure.stackTraceToString() + "\n")
+        Com.Error(failure.stackTraceToString())
     }
 
     private fun updateFrame(msec: Long) {
@@ -975,7 +975,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     /** Validate a direct connect request, including its remote-address challenge, before admission. */
     private fun connectClient(args: List<String>, adr: NetworkAddress) {
-        Com.DPrintf("SVC_DirectConnect ()\n")
+        Com.Debug("SVC_DirectConnect ()")
 
         val version = if (args.size >= 2) Lib.atoi(args[1]) else 0
 
@@ -983,7 +983,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             network.sendConnectionless(adr, ConnectionlessCommand.print,
                 "\nServer is version " + Globals.VERSION + "\n"
             )
-            Com.DPrintf("    rejected connect from version $version\n")
+            Com.Debug("    rejected connect from version $version")
             return
         }
 
@@ -1007,13 +1007,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         when (val admission = connections.selectSlot(clients, adr, qport, realtime, reconnectLimit.typedValue * 1000)) {
-            ServerConnections.Admission.TooSoon -> Com.DPrintf("$adr:reconnect rejected : too soon\n")
+            ServerConnections.Admission.TooSoon -> Com.Debug("$adr:reconnect rejected : too soon")
             ServerConnections.Admission.Full -> {
                 network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
-                Com.DPrintf("Rejected a connection.\n")
+                Com.Debug("Rejected a connection.")
             }
             is ServerConnections.Admission.Slot -> {
-                if (admission.reconnect) Com.Printf("$adr:reconnect\n")
+                if (admission.reconnect) Com.Info("$adr:reconnect")
                 initializeClientConnection(admission.index, challenge, userinfo, adr, qport)
             }
         }
@@ -1051,7 +1051,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     "\nConnection refused.\n"
                 )
             }
-            Com.DPrintf("Game rejected a connection.\n")
+            Com.Debug("Game rejected a connection.")
             return
         }
 
@@ -1067,7 +1067,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         client.lastmessage = realtime // don't timeout
         client.lastconnect = realtime
-        Com.DPrintf("new client added.\n")
+        Com.Debug("new client added.")
     }
 
     /**
@@ -1079,7 +1079,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
-            Com.Printf("empty connectionless packet: $messageLine")
+            Com.Warn("empty connectionless packet: $messageLine")
             return
         }
 
@@ -1091,7 +1091,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 network.sendConnectionless(from, ConnectionlessCommand.ack, "")
 
             ConnectionlessCommand.ack ->                 //SVC_Ack
-                Com.Printf("Ping acknowledge from $from\n")
+                Com.Debug("Ping acknowledge from $from")
 
             ConnectionlessCommand.status ->                 // SVC_Status, Responds with all the info that qplug or qspy can see
                 network.sendConnectionless(from,
@@ -1117,7 +1117,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             ConnectionlessCommand.connect -> connectClient(args, from)
             ConnectionlessCommand.rcon -> executeRemoteCommand(args, from)
-            else -> Com.Printf("Unknown ClientConnectionlessCommand: $c\n")
+            else -> Com.Warn("Unknown ClientConnectionlessCommand: $c")
         }
     }
 
@@ -1160,19 +1160,20 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             val routed = connections.route(networkPacket, clients) ?: return@poll
-            if (routed.portChanged) Com.Printf("SV_ReadPackets: fixing up a translated port\n")
+            if (routed.portChanged) Com.Debug("SV_ReadPackets: fixing up a translated port")
             val client = routed.client
             if (client.state != ClientStates.CS_ZOMBIE) {
                 client.lastmessage = realtime
                 val body = networkPacket.parseBodyFromClient(client.netchan.incomingSequence)
                 when (body) {
                     is MessageDecodeResult.Rejected -> {
-                        Com.Printf("Bad client payload at ${body.offset}: ${body.detail}\n")
+                        Com.Warn("Bad client payload at ${body.offset}: ${body.detail}")
                         dropClient(client)
                     }
                     is MessageDecodeResult.Decoded -> {
-                        if (network.logMessages) body.messages.forEach { message ->
-                            if (message !is MoveMessage) Com.Printf("Network: Received client msg: $message\n")
+                        val logMessages = network.logMessages
+                        if (logMessages) body.messages.forEach { message ->
+                            if (message !is MoveMessage) Com.Debug("Network: Received client msg: $message", logMessages)
                         }
                         handleClientMessages(client, body.messages)
                     }
@@ -1229,7 +1230,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
                 // if the checksum fails, ignore the rest of the packet
                 if (!msg.checksumValid) {
-                    Com.Printf("Invalid crc\n")
+                    Com.Warn("Invalid crc")
                     return
                 }
 
@@ -1238,7 +1239,6 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     if (droppedPackets < 20) {
                         //if (droppedPackets > 2)
 
-                        //	Com.Printf ("drop %i\n", droppedPackets);
 
                         while (droppedPackets > 2) {
                             processClientMove(cl, cl.lastcmd)
@@ -1255,7 +1255,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 // Retain the immutable command state; game callbacks receive separate mutable copies.
                 msg.newCmd.copyTo(cl.lastcmd)
             } else {
-                Com.Printf("SV_ReadClientMessage: unknown command: " + msg.type + "\n")
+                Com.Warn("SV_ReadClientMessage: unknown command: " + msg.type)
                 dropClient(cl)
                 return // Never execute the remainder of a rejected packet.
             }
@@ -1268,7 +1268,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         cl.commandMsec -= cmd.msec.toInt() and 0xFF
 
         if (cl.commandMsec < 0 && enforceMoveTime.typedValue) {
-            Com.DPrintf("commandMsec underflow from " + cl.name + "\n")
+            Com.Debug("commandMsec underflow from " + cl.name)
             return
         }
 
@@ -1304,7 +1304,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     fun executeClientCommand(cl: ClientNetworkInfo, command: String?) {
-        Com.dprintln("SV_ExecuteUserCommand:$command")
+        Com.Debug("SV_ExecuteUserCommand:$command")
 
         val args = Cmd.TokenizeString(command, true)
         if (args.isEmpty()) return
@@ -1330,10 +1330,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * ================
      */
     private fun sendInitialGameData(gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        Com.DPrintf("New() from " + client.name + "\n")
+        Com.Debug("New() from " + client.name)
 
         if (client.state != ClientStates.CS_CONNECTED) {
-            Com.Printf("New not valid -- already spawned\n")
+            Com.Warn("New not valid -- already spawned")
             return
         }
 
@@ -1388,17 +1388,17 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         gameImports: GameImportsImpl,
         client: ClientNetworkInfo
     ) {
-        Com.DPrintf("Configstrings() from " + client.name + "\n")
+        Com.Debug("Configstrings() from " + client.name)
 
         if (client.state != ClientStates.CS_CONNECTED) {
-            Com.Printf("configstrings not valid -- already spawned\n")
+            Com.Warn("configstrings not valid -- already spawned")
             return
         }
 
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Printf("SV_Configstrings_f from different level\n")
+            Com.Warn("SV_Configstrings_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1427,17 +1427,17 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        Com.DPrintf("Baselines() from " + client.name + "\n")
+        Com.Debug("Baselines() from " + client.name)
 
         if (client.state != ClientStates.CS_CONNECTED) {
-            Com.Printf("baselines not valid -- already spawned\n")
+            Com.Warn("baselines not valid -- already spawned")
             return
         }
 
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Printf("SV_Baselines_f from different level\n")
+            Com.Warn("SV_Baselines_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1470,12 +1470,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        Com.DPrintf("Begin() from " + client.name + "\n")
+        Com.Debug("Begin() from " + client.name)
 
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Printf("SV_Begin_f from different level\n")
+            Com.Warn("SV_Begin_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1540,11 +1540,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun finishCinematic(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.DPrintf("Nextserver() from wrong level, from " + client.name + "\n")
+            Com.Debug("Nextserver() from wrong level, from " + client.name)
             return  // leftover from last server
         }
 
-        Com.DPrintf("Nextserver() from " + client.name + "\n")
+        Com.Debug("Nextserver() from " + client.name)
         val nextMap = gameImports.takeNextMap() ?: return
         pendingMapTransitions[gameImports] = nextMap
     }
@@ -1627,7 +1627,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // special check for maps, if it came from a pak file, don't allow download ZOID
         if (name.startsWith("maps/") && EngineVfs.isFromPack(name)) {
-            Com.DPrintf("Couldn't download " + name + " to " + client.name + "\n")
+            Com.Debug("Couldn't download " + name + " to " + client.name)
             if (client.download != null) {
                 client.download = null
             }
@@ -1638,7 +1638,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         sendNextDownloadChunk(client)
-        Com.DPrintf("Downloading " + name + " to " + client.name + "\n")
+        Com.Debug("Downloading " + name + " to " + client.name)
     }
 
     // endregion
@@ -1687,7 +1687,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // echo to console
 
         if (Globals.dedicated.typedValue) {
-            Com.Printf(message)
+            Com.Print(message.orEmpty(), false)
         }
 
         for (cl in getClientsForInstance(gameName)) {
@@ -1779,7 +1779,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     private fun kickClient(args: List<String>) {
         if (args.size != 2) {
-            Com.Printf("Usage: kick <userid>\n")
+            Com.Print("Usage: kick <userid>")
             return
         }
         val client = findClient(args) ?: return
@@ -1794,39 +1794,36 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun printStatus() {
         // todo: check
         if (games.isEmpty()) {
-            Com.Printf("No server running.\n")
+            Com.Print("No server running.")
             return
         }
-        for (game in games.values) Com.Printf("game " + game.name + " : " + game.mapName + "\n")
+        for (game in games.values) Com.Print("game " + game.name + " : " + game.mapName)
 
-        Com.Printf("num score ping name            lastmsg address               qport \n")
-        Com.Printf("--- ----- ---- --------------- ------- --------------------- ------\n")
+        Com.Print("num score ping name            lastmsg address               qport ")
+        Com.Print("--- ----- ---- --------------- ------- --------------------- ------")
 
         for (i in clients.indices) {
             val cl = clients[i]
             if (ClientStates.CS_FREE == cl.state) continue
 
-            Com.Printf(i.toString().padStart(3) + " ")
-            Com.Printf(cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS].toString().padStart(5) + " ")
-
-            when (cl.state) {
-                ClientStates.CS_CONNECTED -> Com.Printf("CNCT ")
-                ClientStates.CS_ZOMBIE -> Com.Printf("ZMBI ")
-                else -> {
-                    val ping = if (cl.ping < 9999) cl.ping else 9999
-                    Com.Printf(ping.toString().padStart(4) + " ")
-                }
+            val frags = cl.edict.getClient().getPlayerState().stats[Defines.STAT_FRAGS]
+            val ping = when (cl.state) {
+                ClientStates.CS_CONNECTED -> "CNCT"
+                ClientStates.CS_ZOMBIE -> "ZMBI"
+                else -> cl.ping.coerceAtMost(9999).toString().padStart(4)
             }
-
-            Com.Printf(cl.name.padEnd(16))
             val lastMessageAge = realtime - cl.lastmessage
-            Com.Printf(lastMessageAge.toString().padStart(7) + " ")
-            Com.Printf(cl.netchan.remoteAddress.toString().padEnd(22))
-            Com.Printf(cl.netchan.qport.toString().padStart(5))
-
-            Com.Printf("\n")
+            Com.Print(buildString {
+                append(i.toString().padStart(3)).append(' ')
+                append(frags.toString().padStart(5)).append(' ')
+                append(ping).append(' ')
+                append(cl.name.padEnd(16))
+                append(lastMessageAge.toString().padStart(7)).append(' ')
+                append(cl.netchan.remoteAddress.toString().padEnd(22))
+                append(cl.netchan.qport.toString().padStart(5))
+            })
         }
-        Com.Printf("\n")
+        Com.Print("\n")
     }
 
     private fun say(args: List<String>) {
@@ -1849,19 +1846,19 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     private fun printServerInfo() {
-        Com.Printf("Server info settings:\n")
+        Com.Print("Server info settings:")
         Info.Print(games["default"]?.serverInfo() ?: Cvar.getInstance().Serverinfo())
     }
 
     private fun dumpUser(args: List<String>) {
         if (args.size != 2) {
-            Com.Printf("Usage: info <userid>\n")
+            Com.Print("Usage: info <userid>")
             return
         }
         val client = findClient(args) ?: return
 
-        Com.Printf("userinfo\n")
-        Com.Printf("--------\n")
+        Com.Print("userinfo")
+        Com.Print("--------")
         Info.Print(client.userinfo)
     }
 
@@ -1878,13 +1875,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (idOrName.isNotEmpty() && idOrName[0] >= '0' && idOrName[0] <= '9') {
             val id = Lib.atoi(idOrName)
             if (id < 0 || id >= clients.size) {
-                Com.Printf("Bad client slot: $id\n")
+                Com.Print("Bad client slot: $id")
                 return null
             }
 
             val result = clients[id]
             if (ClientStates.CS_FREE == result.state) {
-                Com.Printf("Client $id is not active\n")
+                Com.Print("Client $id is not active")
                 return null
             }
             return result
@@ -1898,7 +1895,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
         }
 
-        Com.Printf("Userid $idOrName is not on the server\n")
+        Com.Print("Userid $idOrName is not on the server")
         return null
     }
 

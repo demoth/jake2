@@ -27,8 +27,6 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.sys.Sys;
-import jake2.qcommon.util.PrintfFormat;
-import jake2.qcommon.util.Vargs;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -80,7 +78,12 @@ public final class Com
 
     /** Developer diagnostics. Class attribution is deferred until a simpler API is chosen. */
     public static void Debug(String message) {
-        if (isDeveloperEnabled()) {
+        Debug(message, isDeveloperEnabled());
+    }
+
+    /** Emit diagnostics controlled by the caller's own setting. */
+    public static void Debug(String message, boolean enabled) {
+        if (enabled) {
             emit(ConsoleLevel.DEBUG, message, true);
         }
     }
@@ -97,21 +100,6 @@ public final class Com
         printToConsole(level, message);
     }
     
-    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void Printf(int print_level, String fmt) {
-		Printf(print_level, fmt, null);
-	}
-
-    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void Printf(int print_level, String fmt, Vargs vargs) {
-		if (print_level == Defines.PRINT_ALL)
-			Printf(fmt, vargs);
-		else
-			DPrintf(fmt, vargs);
-	}
-
     /**
      * Render control bytes in a log-friendly form so protocol/debug output remains readable.
      */
@@ -225,171 +213,9 @@ public final class Com
 
 	private static String msg= "";
 
-	// helper class to replace the pointer-pointer
-	@Deprecated
-	public static class ParseHelp
-	{
-		public ParseHelp(String in)
-		{
-			if (in == null)
-			{
-				data= null;
-				length = 0;
-			}
-			else
-			{
-				data= in.toCharArray();
-				length = data.length;
-			}
-			index= 0;
-		}
-
-		public ParseHelp(String in, int offset)
-		{
-			data = in.toCharArray();
-			index = offset;
-			length = data.length;
-		}
-
-		char getchar()
-		{
-		    if (index < length) {
-		        return data[index];
-		    }
-		    return 0;			
-		}
-
-		public char nextchar()
-		{
-			// faster than if
-		    index++;
-		    if (index < length) {
-		        return data[index];
-		    }
-		    return 0;
-		}
-		
-		char prevchar() {
-			if (index > 0) 
-			{
-				index--;
-				return data[index];
-			}
-			return 0;					
-		}
-
-		public boolean isEof()
-		{
-			return index >= length;
-		}
-
-		public int index;
-		public char data[];
-		private int length;
-
-		char skipwhites()
-		{
-			char c = 0;
-			while ( index < length && ((c= data[index]) <= ' ') && c != 0)
-				index++;
-			return c;
-		}
-
-		public char skipwhitestoeol()
-		{
-			char c = 0;
-			while ( index < length &&((c= data[index]) <= ' ') && c != '\n' && c != 0)
-				index++;
-			return c;
-		}
-
-		char skiptoeol()
-		{
-			char c = 0;
-			while ( index < length &&(c= data[index]) != '\n' && c != 0)
-				index++;
-			return c;
-		}
-	}
-
-	private static char com_token[]= new char[Defines.MAX_TOKEN_CHARS];
-
-	// See GameSpanw.ED_ParseEdict() to see how to use it now.
-	@Deprecated
-	public static String Parse(ParseHelp hlp) {
-		int c;
-		int len = 0;
-
-		if (hlp.data == null) {
-			return "";
-		}
-
-		while (true) {
-			//	   skip whitespace
-			hlp.skipwhites();
-			if (hlp.isEof()) {
-			    hlp.data = null;
-			    return "";
-			}
-
-			//	   skip // comments
-			if (hlp.getchar() == '/') {
-				if (hlp.nextchar() == '/') {
-					hlp.skiptoeol();
-					// goto skip whitespace
-					continue;
-				} else {
-					hlp.prevchar();
-					break;
-				}
-			} else
-				break;
-		}
-
-		//	   handle quoted strings specially
-		if (hlp.getchar() == '\"') {
-			hlp.nextchar();
-			while (true) {
-				c = hlp.getchar();
-				hlp.nextchar();
-				if (c == '\"' || c == 0) {
-					return new String(com_token, 0, len);
-				}
-				if (len < Defines.MAX_TOKEN_CHARS) {
-					com_token[len] = (char) c;
-					len++;
-				}
-			}
-		}
-
-		//	   parse a regular word
-		c = hlp.getchar();
-		do {
-			if (len < Defines.MAX_TOKEN_CHARS) {
-				com_token[len] = (char) c;
-				len++;
-			}
-			c = hlp.nextchar();
-		} while (c > 32);
-
-		if (len == Defines.MAX_TOKEN_CHARS) {
-			Com.Printf("Token exceeded " + Defines.MAX_TOKEN_CHARS + " chars, discarded.\n");
-			len = 0;
-		}
-
-		return new String(com_token, 0, len);
-	}
-
     /** @deprecated Legacy recovery API; migrate recovery to the failure handler and report with Error(String). */
     @Deprecated
-	public static void Error(int code, String fmt) throws longjmpException
-	{
-		Error(code, fmt, null);
-	}
-
-    /** @deprecated Legacy recovery API; migrate recovery to the failure handler and report with Error(String). */
-    @Deprecated
-	public static void Error(int code, String fmt, Vargs vargs) throws longjmpException
+	public static void Error(int code, String message) throws longjmpException
 	{
 		if (recursive)
 		{
@@ -397,7 +223,7 @@ public final class Com
 		}
 		recursive= true;
 
-		msg= sprintf(fmt, vargs);
+		msg= message;
 
 		if (code == Defines.ERR_DISCONNECT)
 		{
@@ -423,45 +249,6 @@ public final class Com
 
 		Sys.Error(msg);
 	}
-
-    /** @deprecated Use Debug according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void DPrintf(String fmt)
-	{
-		DPrintf(fmt, null);
-	}
-	
-    /** @deprecated Use Debug according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void dprintln(String fmt)
-	{
-		DPrintf(fmt + "\n", null);
-	}
-
-    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void Printf(String fmt)
-	{
-		Printf(fmt, null);
-	}
-
-    /** @deprecated Use Debug according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void DPrintf(String fmt, Vargs vargs)
-	{
-		if (!isDeveloperEnabled())
-			return; // don't confuse non-developers with techie stuff...
-        // Legacy fragments retain their boundaries until callers migrate to Debug.
-        printToConsole(ConsoleLevel.DEBUG, sprintf(fmt, vargs));
-	}
-
-    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void Printf(String fmt, Vargs vargs)
-	{
-		String msg= sprintf(fmt, vargs);
-        printToConsole(ConsoleLevel.INFO, msg);
-    }
 
     public static void SetConsoleSink(ConsoleSink sink) {
         consoleSink = sink;
@@ -489,22 +276,6 @@ public final class Com
 		// also echo to debugging console
 		// todo: use proper logging
 		System.out.print(msg);
-	}
-
-    /** @deprecated Use Print/Info according to message purpose; preserve intentional fragments explicitly. */
-    @Deprecated
-	public static void Println(String fmt)
-	{
-		Printf(fmt + "\n");
-	}
-
-	@Deprecated
-	public static String sprintf(String fmt, Vargs vargs) {
-		if (vargs == null || vargs.size() == 0) {
-			return fmt;
-		} else {
-			return new PrintfFormat(fmt).sprintf(vargs.toArray());
-		}
 	}
 
 	public static String StripExtension(String string) {

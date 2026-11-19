@@ -1,9 +1,10 @@
 package jake2.qcommon;
 
-import jake2.qcommon.util.Vargs;
 
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
+
+import java.util.Locale;
 
 import static jake2.qcommon.Defines.*;
 
@@ -40,8 +41,9 @@ public class MainCommon {
     }
 
     public static void debugLogTraces() {
-        if (Globals.showtrace.getTypedValue()) {
-            Com.Printf("%4i traces  %4i points\n", new Vargs(2).add(Globals.c_traces).add(Globals.c_pointcontents));
+        boolean enabled = Globals.showtrace.getTypedValue();
+        if (enabled) {
+            Com.Debug(String.format(Locale.ROOT, "%4d traces  %4d points", Globals.c_traces, Globals.c_pointcontents), enabled);
             Globals.c_traces= 0;
             Globals.c_brush_traces= 0;
             Globals.c_pointcontents= 0;

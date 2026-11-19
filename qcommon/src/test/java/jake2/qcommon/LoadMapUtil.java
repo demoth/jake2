@@ -27,7 +27,7 @@ import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 
 public class LoadMapUtil {
 	public static void main(String[] args) {
-		Com.DPrintf("hello!\n");
+		Com.Debug("hello!");
 
 		MainCommon.registerCvars(false);
 		EngineFilesystemLifecycle.init();

@@ -3,7 +3,6 @@ package jake2.qcommon;
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
-import jake2.qcommon.util.Vargs;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,8 +99,14 @@ class ComMessagingTest {
 
     private void assertDebugDisabled() {
         Com.Debug("hidden");
-        // Invalid legacy format proves formatting is skipped too.
-        Com.DPrintf("%invalid", new Vargs().add(1));
+    }
+
+    @Test
+    void featureDebugUsesItsOwnSetting() {
+        Com.Debug("feature disabled", false);
+        Globals.developer.forceSet(false);
+        Com.Debug("feature enabled", true);
+        assertEquals(List.of(new Message(Com.ConsoleLevel.DEBUG, "feature enabled\n")), messages);
     }
 
     @Test
@@ -196,13 +201,8 @@ class ComMessagingTest {
     }
 
     @Test
-    void legacyPrintFragmentsRemainRawAndDebugRetainsItsLevel() {
-        Com.Printf("column ");
-        Com.Printf("%i", new Vargs().add(7));
-        Com.DPrintf("debug fragment");
-        Com.dprintln("debug line");
-        assertEquals("column 7debug fragmentdebug line\n", stdout.toString(StandardCharsets.UTF_8));
-        assertEquals(Com.ConsoleLevel.INFO, messages.get(0).level());
-        assertEquals(Com.ConsoleLevel.DEBUG, messages.get(2).level());
+    void printTreatsPercentCharactersAsLiteralText() {
+        Com.Print("Loading 100% (%i, %s)");
+        assertEquals(List.of(new Message(Com.ConsoleLevel.PRINT, "Loading 100% (%i, %s)\n")), messages);
     }
 }

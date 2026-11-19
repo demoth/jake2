@@ -12,8 +12,6 @@ public interface GameImports {
     // special messages
     void bprintf(int printlevel, String s);
 
-    void dprintf(String s);
-
     void cprintf(ServerEntity ent, int printlevel, String s);
 
     void centerprintf(ServerEntity ent, String s);

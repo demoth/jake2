@@ -203,7 +203,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         if (isDeathmatch() && isCoop()) {
-            Com.Printf("Deathmatch and Coop both set, disabling Coop for this Game\n");
+            Com.Warn("Deathmatch and Coop both set, disabling Coop for this Game");
             coop.forceSet(false);
         }
 
@@ -332,7 +332,7 @@ public class GameImportsImpl implements GameImports {
     void SV_Read_Latched_Vars() {
         try {
 
-            Com.DPrintf("SV_ReadServerFile()\n");
+            Com.Debug("SV_ReadServerFile()");
             ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             ServerSaveJsonStore.ServerLatchedCvarsSnapshot snapshot = store.readLatchedCvars("current");
 
@@ -341,7 +341,7 @@ public class GameImportsImpl implements GameImports {
             for (ServerSaveJsonStore.LatchedCvarSnapshot cvar : snapshot.cvars()) {
                 String name = cvar.name();
                 String value = cvar.value();
-                Com.DPrintf("Set " + name + " = " + value + "\n");
+                Com.Debug("Set " + name + " = " + value);
                 var result = writeRegistry(name).forceSetResult(name, value);
                 if (!result.getAccepted()) throw new IllegalArgumentException(result.getDiagnostic());
             }
@@ -354,11 +354,6 @@ public class GameImportsImpl implements GameImports {
     @Override
     public void bprintf(int printlevel, String s) {
         serverMain.broadcastPrint(printlevel, s, name);
-    }
-
-    @Override
-    public void dprintf(String s) {
-        Com.Printf(s);
     }
 
     @Override
@@ -375,7 +370,7 @@ public class GameImportsImpl implements GameImports {
         if (ent != null)
             serverMain.getClients().get(n - 1).queuePrint(printlevel, s);
         else
-            Com.Printf(s);
+            Com.Print(s, false);
     }
 
     @Override
@@ -526,7 +521,7 @@ public class GameImportsImpl implements GameImports {
     public void setmodel(ServerEntity ent, String name) {
 
         if (name == null) {
-            Com.DPrintf( "Error: GameImportsImpl.setmodel: name is null");
+            Com.Debug( "Error: GameImportsImpl.setmodel: name is null");
             return;
         }
 
@@ -704,7 +699,7 @@ public class GameImportsImpl implements GameImports {
                 if (ent.areanum != 0 && ent.areanum != area) {
                     if (ent.areanum2 != 0 && ent.areanum2 != area
                             && state == ServerStates.SS_LOADING)
-                        Com.DPrintf("Object touching 3 areas at "
+                        Com.Debug("Object touching 3 areas at "
                                 + ent.absmin[0] + " " + ent.absmin[1] + " "
                                 + ent.absmin[2] + "\n");
                     ent.areanum2 = area;
@@ -976,7 +971,7 @@ public class GameImportsImpl implements GameImports {
                     || check.absmax[2] < this.areaMins[2])
                 continue; // not touching
             if (this.areaCount == this.areaMaxCount) {
-                Com.Printf("BoxEdicts: MAXCOUNT\n");
+                Com.Warn("BoxEdicts: MAXCOUNT");
                 return;
             }
             this.areaEntities[this.areaCount] = check;
@@ -1138,7 +1133,7 @@ public class GameImportsImpl implements GameImports {
 
     /** Restore this game's configstrings, portals and gameplay state from the current save. */
     void readLevelFile() {
-        Com.DPrintf("SV_ReadLevelFile()\n");
+        Com.Debug("SV_ReadLevelFile()");
 
         try {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
@@ -1177,7 +1172,7 @@ public class GameImportsImpl implements GameImports {
 
     void SV_WriteLevelFile() {
 
-        Com.DPrintf("SV_WriteLevelFile()\n");
+        Com.Debug("SV_WriteLevelFile()");
 
         try {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
@@ -1203,7 +1198,7 @@ public class GameImportsImpl implements GameImports {
      */
     void SV_WriteServerFile(boolean autosave) {
 
-        Com.DPrintf("SV_WriteServerFile(autosave:" + autosave + ")\n");
+        Com.Debug("SV_WriteServerFile(autosave:" + autosave + ")");
 
         try {
             ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
@@ -1627,7 +1622,7 @@ public class GameImportsImpl implements GameImports {
             int ix = nextClientEntity % clientEntityStates.length;
             entity_state_t state = clientEntityStates[ix];
             if (ent.s.index != e) {
-                Com.DPrintf("FIXING ENT.S.NUMBER!!!\n");
+                Com.Debug("FIXING ENT.S.NUMBER!!!");
                 ent.s.index = e;
             }
 

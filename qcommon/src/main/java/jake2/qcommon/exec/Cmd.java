@@ -36,54 +36,50 @@ import java.util.*;
 /**
  * Cmd
  */
-@SuppressWarnings("deprecation")
 public final class Cmd {
 
     private final static Command List_f = (List<String> args) -> {
 
         for (cmd_function_t cmd : Cmd.cmd_functions.values()) {
             if (cmd.description != null && !cmd.description.isBlank()) {
-                Com.Printf(cmd.name + " - " + cmd.description + '\n');
+                Com.Print(cmd.name + " - " + cmd.description + '\n');
             } else {
-                Com.Printf(cmd.name + '\n');
+                Com.Print(cmd.name + '\n');
             }
         }
 
-        Com.Printf(Cmd.cmd_functions.size() + " commands\n");
+        Com.Print(Cmd.cmd_functions.size() + " commands");
     };
 
     private final static Command Exec_f = (List<String> args) -> {
         if (args.size() != 2) {
-            Com.Printf("exec <filename> : execute a script file\n");
+            Com.Print("exec <filename> : execute a script file");
             return;
         }
 
         byte[] f = EngineVfs.loadBytes(args.get(1));
         if (f == null) {
-            Com.Printf("couldn't exec " + args.get(1) + "\n");
+            Com.Warn("couldn't exec " + args.get(1));
             return;
         }
-        Com.Printf("execing " + args.get(1) + "\n");
+        Com.Print("execing " + args.get(1));
         Cbuf.InsertText(new String(f, StandardCharsets.UTF_8));
 
     };
 
     private final static Command Echo_f = (List<String> args) -> {
         if (args.size() < 2) {
-            Com.Printf("usage: echo expression");
+            Com.Print("usage: echo expression");
             return;
         }
-        for (int i = 1; i < args.size(); i++) {
-            Com.Printf(args.get(i) + " ");
-        }
-        Com.Printf("'\n");
+        Com.Print(String.join(" ", args.subList(1, args.size())) + " '");
     };
 
     private final static Command Alias_f = (List<String> args) -> {
         if (args.size() == 1) {
-            Com.Printf("Current alias commands:\n");
+            Com.Print("Current alias commands:");
             for (cmdalias_t alias : Cmd.cmd_alias.values()) {
-                Com.Printf(alias.getName() + " : " + alias.getValue() + "\n");
+                Com.Print(alias.getName() + " : " + alias.getValue());
             }
             return;
         }
@@ -92,7 +88,7 @@ public final class Cmd {
         String aliasName = args.get(1).trim();
 
         if (aliasName.length() > Defines.MAX_ALIAS_NAME) {
-            Com.Printf("Alias name is too long\n");
+            Com.Warn("Alias name is too long");
             return;
         }
 
@@ -147,7 +143,7 @@ public final class Cmd {
         boolean inquote = false;
 
         if (text.length() >= Defines.MAX_STRING_CHARS) {
-            Com.Printf("Line exceeded " + Defines.MAX_STRING_CHARS
+            Com.Warn("Line exceeded " + Defines.MAX_STRING_CHARS
                     + " chars, discarded.\n");
             return null;
         }
@@ -169,26 +165,26 @@ public final class Cmd {
             }
 
             // scan out the complete macro, without $
-            String token = Com.Parse(new Com.ParseHelp(text, i + 1));
+            String token = new CommandTokenReader(text, i + 1).readToken();
 
             i += token.length();
             token = Cvar.getInstance().getRawString(token);
             result.append(token);
 
             if (result.length() >= Defines.MAX_STRING_CHARS) {
-                Com.Printf("Expanded line exceeded " + Defines.MAX_STRING_CHARS
+                Com.Warn("Expanded line exceeded " + Defines.MAX_STRING_CHARS
                         + " chars, discarded.\n");
                 return null;
             }
 
             if (++expanded == 100) {
-                Com.Printf("Macro expansion loop, discarded.\n");
+                Com.Warn("Macro expansion loop, discarded.");
                 return null;
             }
         }
 
         if (inquote) {
-            Com.Printf("Line has unmatched quote, discarded.\n");
+            Com.Warn("Line has unmatched quote, discarded.");
             return null;
         }
 
@@ -211,22 +207,21 @@ public final class Cmd {
         if (text == null || text.isEmpty())
             return result;
 
-        Com.ParseHelp ph = new Com.ParseHelp(text);
+        CommandTokenReader reader = new CommandTokenReader(text);
 
         while (true) {
 
             // skip whitespace up to a \n
-            char c = ph.skipwhitestoeol();
+            char c = reader.skipWhitespaceToEndOfLine();
 
             if (c == '\n') { // a newline separates commands in the buffer
-                c = ph.nextchar();
                 break;
             }
 
             if (c == 0)
                 return result;
 
-            String word = Com.Parse(ph);
+            String word = reader.readToken();
 
             result.add(word);
 
@@ -249,13 +244,13 @@ public final class Cmd {
     public static void AddCommand(String cmd_name, boolean replace, String description, Command function) {
         // fail if the command is a variable name
         if (Cvar.getInstance().isRegistered(cmd_name)) {
-            Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined as a var\n");
+            Com.Warn("Cmd_AddCommand: " + cmd_name + " already defined as a var");
             return;
         }
 
         // fail if the command already exists
         if (!replace && cmd_functions.containsKey(cmd_name)) {
-            Com.Printf("Cmd_AddCommand: " + cmd_name + " already defined\n");
+            Com.Warn("Cmd_AddCommand: " + cmd_name + " already defined");
             return;
         }
 
@@ -276,9 +271,9 @@ public final class Cmd {
      */
     public static void RemoveCommand(String cmd_name) {
         if (!cmd_functions.containsKey(cmd_name)) {
-            Com.Printf("RemoveCommand: " + cmd_name + " does not exist\n");
+            Com.Warn("RemoveCommand: " + cmd_name + " does not exist");
         } else {
-            Com.Printf("RemoveCommand: " + cmd_name + " removed\n");
+            Com.Debug("RemoveCommand: " + cmd_name + " removed");
             cmd_functions.remove(cmd_name);
         }
     }
@@ -307,7 +302,7 @@ public final class Cmd {
      * FIXME: lookupnoadd the token to speed search? 
      */
     public static void ExecuteString(String text) {
-        Com.DPrintf("Executing command: " + text + "\n");
+        Com.Debug("Executing command: " + text);
 
         if (text.trim().startsWith("//"))
             return;
@@ -329,7 +324,7 @@ public final class Cmd {
         for (cmdalias_t alias : cmd_alias.values()) {
             if (args.get(0).equalsIgnoreCase(alias.getName())) {
                 if (++Globals.alias_count == ALIAS_LOOP_COUNT) {
-                    Com.Printf("ALIAS_LOOP_COUNT\n");
+                    Com.Warn("ALIAS_LOOP_COUNT");
                     return;
                 }
                 Cbuf.InsertText(alias.getValue());
@@ -344,7 +339,7 @@ public final class Cmd {
         // send it as a server command if we are connected
         // fixme: do not send if we are the server
         if (text.startsWith("cmd")) {
-            Com.Printf("did not execute " + text + "\n");
+            Com.Warn("did not execute " + text);
         } else {
             Cmd.ExecuteString("cmd " + text);
         }

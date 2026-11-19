@@ -989,7 +989,7 @@ final class SV {
 
         //FIXME: how did we get here with no enemy
         if (enemy == null) {
-            gameExports.gameImports.dprintf("SV_NewChaseDir without enemy!\n");
+            Com.Warn("SV_NewChaseDir without enemy!");
             return;
         }
         olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);

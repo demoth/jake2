@@ -1,5 +1,6 @@
 package jake2.game.func
 
+import jake2.qcommon.Com
 import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
@@ -29,13 +30,13 @@ private const val MULTI_USE = 8
 
 fun funcClock(self: GameEntity, game: GameExportsImpl) {
     if (self.target == null) {
-        game.gameImports.dprintf("${self.classname} with no target at ${Lib.vtos(self.s.origin)}\n")
+        Com.Warn("${self.classname} with no target at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
 
     if (self.hasSpawnFlag(TIMER_DOWN) && self.count == 0) {
-        game.gameImports.dprintf("${self.classname} with no count at ${Lib.vtos(self.s.origin)}")
+        Com.Warn("${self.classname} with no count at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }

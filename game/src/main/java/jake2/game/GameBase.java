@@ -26,6 +26,7 @@
 
 package jake2.game;
 
+import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.ServerEntity;
 import jake2.qcommon.cplane_t;
@@ -87,7 +88,7 @@ public class GameBase {
         for (; from.i < gameExports.num_edicts; from.i++) {
             from.o = gameExports.g_edicts[from.i];
             if (from.o.classname == null) {
-                gameExports.gameImports.dprintf("edict with classname = null" + from.o.index);
+                Com.Warn("edict with classname = null" + from.o.index);
             }
 
             if (!from.o.inuse)
@@ -157,7 +158,7 @@ public class GameBase {
         GameEntity[] choice = new GameEntity[MAXCHOICES];
 
         if (targetname == null) {
-            gameExports.gameImports.dprintf("G_PickTarget called with null targetname\n");
+            Com.Warn("G_PickTarget called with null targetname");
             return null;
         }
 
@@ -170,7 +171,7 @@ public class GameBase {
         }
 
         if (num_choices == 0) {
-            gameExports.gameImports.dprintf("G_PickTarget: target " + targetname + " not found\n");
+            Com.Warn("G_PickTarget: target " + targetname + " not found");
             return null;
         }
 

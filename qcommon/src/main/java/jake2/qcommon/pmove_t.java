@@ -443,7 +443,7 @@ public class pmove_t {
             }
         }
 
-        Com.DPrintf("Bad InitialSnapPosition\n");
+        Com.Debug("Bad InitialSnapPosition");
     }
 
     /**

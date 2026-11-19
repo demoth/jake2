@@ -133,11 +133,10 @@ public class GameSpawn {
             gameExports.level.pic_health = gameExports.gameImports.imageindex("i_health");
             gameExports.gameImports.imageindex("help");
             gameExports.gameImports.imageindex("field_3");
-            if ("".equals(ent.st.gravity))
+            if (ent.st.gravity.isBlank()) {
                 gameExports.gameCvars.sv_gravity.set(gameExports.gameCvars.sv_gravity.getDefaultValue());
-            else {
-                var result = gameExports.gameCvars.sv_gravity.setText(ent.st.gravity);
-                if (result.getDiagnostic() != null) gameExports.gameImports.dprintf(result.getDiagnostic() + "\n");
+            } else {
+                gameExports.gameCvars.sv_gravity.setText(ent.st.gravity);
             }
 
             // standing in lava / slime
@@ -570,63 +569,9 @@ public class GameSpawn {
     private static void ED_ParseField(String key, String value, GameEntity ent, GameExportsImpl gameExports) {
         if (!ent.st.set(key, value))
             if (!ent.setField(key, value))
-                gameExports.gameImports.dprintf("??? The key [" + key + "] is not a field\n");
+                Com.Warn("??? The key [" + key + "] is not a field");
 
     }
-
-    /**
-     * ED_ParseEdict
-     * <p>
-     * Parses an edict out of the given string, returning the new position ed
-     * should be a properly initialized empty edict.
-     */
-    @Deprecated
-    private static void ED_ParseEdict(Com.ParseHelp ph, GameEntity ent, GameExportsImpl gameExports) {
-
-        String keyname;
-        String com_token;
-        boolean init = false;
-
-        while (true) {
-
-            // parse key
-            com_token = Com.Parse(ph);
-            if (com_token.equals("}"))
-                break;
-
-            if (ph.isEof())
-                gameExports.gameImports.error("ED_ParseEntity: EOF without closing brace");
-
-            keyname = com_token;
-
-            // parse value
-            com_token = Com.Parse(ph);
-
-            if (ph.isEof())
-                gameExports.gameImports.error("ED_ParseEntity: EOF without closing brace");
-
-            if (com_token.equals("}"))
-                gameExports.gameImports.error("ED_ParseEntity: closing brace without data");
-
-            init = true;
-            // keynames with a leading underscore are used for utility comments,
-            // and are immediately discarded by quake
-            if (keyname.charAt(0) == '_')
-                continue;
-
-            ED_ParseField(keyname.toLowerCase(), com_token, ent, gameExports);
-
-        }
-
-        if (!init) {
-            G_ClearEdict(ent, gameExports);
-        }
-    }
-
-    private static void G_ClearEdict(ServerEntity ent, GameExportsImpl gameExports) {
-        gameExports.g_edicts[ent.index] = new GameEntity(ent.index);
-    }
-
 
     /**
      * G_FindTeams
@@ -728,7 +673,7 @@ public class GameSpawn {
                         | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
             if (spawned) {
-                gameExports.gameImports.dprintf("spawning ent[" + ent.index + "], classname=" +
+                Com.Debug("spawning ent[" + ent.index + "], classname=" +
                         ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags) + "\n");
                 ED_CallSpawn(ent, gameExports);
             } else {
@@ -736,7 +681,7 @@ public class GameSpawn {
             }
         });
 
-        gameExports.gameImports.dprintf("player skill level:" + skill + "\n");
+        Com.Info("player skill level:" + skill);
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
     }
@@ -747,7 +692,7 @@ public class GameSpawn {
     public static void ED_CallSpawn(GameEntity ent, GameExportsImpl gameExports) {
 
         if (null == ent.classname) {
-            gameExports.gameImports.dprintf("ED_CallSpawn: null classname\n");
+            Com.Warn("ED_CallSpawn: null classname");
             return;
         }
 
@@ -766,7 +711,7 @@ public class GameSpawn {
             spawn.spawn(ent, gameExports);
             ent.st = null;
         } else {
-            gameExports.gameImports.dprintf(ent.classname + " doesn't have a spawn function\n");
+            Com.Warn(ent.classname + " doesn't have a spawn function");
         }
     }
 
@@ -784,7 +729,7 @@ public class GameSpawn {
         if (args.size() >= 2)
             className = args.get(1);
         else {
-            gameExports.gameImports.dprintf("usage: spawn <classname>\n");
+            Com.Print("usage: spawn <classname>");
             return;
         }
 
@@ -794,7 +739,7 @@ public class GameSpawn {
             return;
         }
 
-        gameExports.gameImports.dprintf("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles) + "\n");
+        Com.Print("Spawning " + className + " at " + Lib.vtofs(creator.s.origin) + ", " + Lib.vtofs(creator.s.angles));
 
         var spawn = spawns.get(className);
         GameItem gitem_t = GameItems.FindItemByClassname(className, gameExports);
@@ -810,7 +755,7 @@ public class GameSpawn {
             else
                 GameItems.SpawnItem(newThing, gitem_t, gameExports);
 
-            gameExports.gameImports.dprintf("Spawned!\n");
+            Com.Print("Spawned!");
         }
     }
 

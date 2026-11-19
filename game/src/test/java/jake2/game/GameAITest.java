@@ -159,11 +159,6 @@ public class GameAITest {
         }
 
         @Override
-        public void dprintf(String s) {
-            // Do nothing for tests
-        }
-
-        @Override
         public void bprintf(int printlevel, String s) {
             // Do nothing for tests
         }

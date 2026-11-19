@@ -1365,8 +1365,7 @@ public class M_Actor {
                     .G_PickTarget(self.target, gameExports);
             if ((null == self.movetarget)
                     || (!"target_actor".equals(self.movetarget.classname))) {
-                gameExports.gameImports
-                        .dprintf(self.classname + " has bad target "
+                Com.Warn(self.classname + " has bad target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin) + "\n");
                 self.target = null;
@@ -1526,14 +1525,14 @@ public class M_Actor {
         }
 
         if (self.targetname != null) {
-            gameExports.gameImports.dprintf("untargeted " + self.classname + " at "
+            Com.Warn("untargeted " + self.classname + " at "
                     + Lib.vtos(self.s.origin) + "\n");
             gameExports.freeEntity(self);
             return;
         }
 
         if (self.target != null) {
-            gameExports.gameImports.dprintf(self.classname + " with no target at "
+            Com.Warn(self.classname + " with no target at "
                     + Lib.vtos(self.s.origin) + "\n");
             gameExports.freeEntity(self);
             return;
@@ -1575,7 +1574,7 @@ public class M_Actor {
 
     public static void SP_target_actor(GameEntity self, GameExportsImpl gameExports) {
         if (self.targetname != null)
-            gameExports.gameImports.dprintf(self.classname + " with no targetname at "
+            Com.Warn(self.classname + " with no targetname at "
                     + Lib.vtos(self.s.origin) + " \n");
 
         self.solid = Defines.SOLID_TRIGGER;

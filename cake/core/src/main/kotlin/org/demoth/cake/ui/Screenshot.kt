@@ -14,7 +14,7 @@ fun writeScreenshot(file: FileHandle) {
     val pixmap = Pixmap.createFromFrameBuffer(0, 0, Gdx.graphics.backBufferWidth, Gdx.graphics.backBufferHeight)
     try {
         PixmapIO.writePNG(file, pixmap, -1, true)
-        Com.Println("Screenshot saved: ${file.file().absolutePath}")
+        Com.Print("Screenshot saved: ${file.file().absolutePath}")
     } finally {
         pixmap.dispose()
     }

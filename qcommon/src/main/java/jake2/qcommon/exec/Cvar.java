@@ -79,7 +79,7 @@ public class Cvar {
         Cmd.AddCommand("set", (List<String> args) -> {
             int flags;
             if (args.size() != 3 && args.size() != 4) {
-                Com.Printf("usage: set <variable> <value> [u / s]\n");
+                Com.Print("usage: set <variable> <value> [u / s]");
                 return;
             }
 
@@ -89,7 +89,7 @@ public class Cvar {
                 else if (args.get(3).equals("s"))
                     flags = CVAR_SERVERINFO;
                 else {
-                    Com.Printf("flags can only be 'u' or 's'\n");
+                    Com.Print("flags can only be 'u' or 's'");
                     return;
                 }
                 report(Cvar.getInstance().setWithSuggestedFlags(args.get(1), args.get(2), flags));
@@ -99,27 +99,14 @@ public class Cvar {
         });
         Cmd.AddCommand("cvarlist", (List<String> args) -> {
             for (cvar_t<?> var : Cvar.getInstance().cvarMap.values()) {
-                if ((var.flags & CVAR_ARCHIVE) != 0)
-                    Com.Printf("*");
-                else
-                    Com.Printf(" ");
-                if ((var.flags & CVAR_USERINFO) != 0)
-                    Com.Printf("U");
-                else
-                    Com.Printf(" ");
-                if ((var.flags & CVAR_SERVERINFO) != 0)
-                    Com.Printf("S");
-                else
-                    Com.Printf(" ");
-                if ((var.flags & CVAR_NOSET) != 0)
-                    Com.Printf("-");
-                else if ((var.flags & CVAR_LATCH) != 0)
-                    Com.Printf("L");
-                else
-                    Com.Printf(" ");
-                Com.Printf(" " + var.name + " \"" + var.getRawString() + "\"\n");
+                char archive = (var.flags & CVAR_ARCHIVE) != 0 ? '*' : ' ';
+                char user = (var.flags & CVAR_USERINFO) != 0 ? 'U' : ' ';
+                char server = (var.flags & CVAR_SERVERINFO) != 0 ? 'S' : ' ';
+                char write = (var.flags & CVAR_NOSET) != 0 ? '-'
+                        : (var.flags & CVAR_LATCH) != 0 ? 'L' : ' ';
+                Com.Print("" + archive + user + server + write + " " + var.name + " \"" + var.getRawString() + "\"");
             }
-            Com.Printf(Cvar.getInstance().cvarMap.size() + " cvars\n");
+            Com.Print(Cvar.getInstance().cvarMap.size() + " cvars");
         });
     }
 
@@ -272,7 +259,7 @@ public class Cvar {
 
         // perform a variable print or set
         if (args.size() == 1) {
-            Com.Printf("\"" + v.name + "\" is \"" + v.getRawString() + "\"\n");
+            Com.Print("\"" + v.name + "\" is \"" + v.getRawString() + "\"");
             return true;
         }
 
@@ -358,7 +345,7 @@ public class Cvar {
                 try {
                     f.write(buffer.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 } catch (IOException e) {
-                    Com.Printf("Could not write cvar " + var + " to " + path);
+                    Com.Error("Could not write cvar " + var + " to " + path);
                 }
             }
         }
@@ -493,7 +480,7 @@ public class Cvar {
 
     /** Prints command feedback from validation and latch results. */
     private static void report(CvarSetResult result) {
-        if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
+        if (result.getDiagnostic() != null) Com.Print(result.getDiagnostic());
     }
 
     /** Clears entries and aliases for tests; discard acquired entries and their consumers before reuse. */

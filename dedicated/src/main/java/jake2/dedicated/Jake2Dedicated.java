@@ -77,7 +77,7 @@ public class Jake2Dedicated {
                 Cbuf.AddText("dedicated_start\n");
                 Cbuf.Execute();
             }
-            Com.Printf("====== Quake2 Initialized ======\n\n");
+            Com.Info("====== Quake2 Initialized ======\n\n");
             runLoop(host);
         }
     }
@@ -102,7 +102,7 @@ public class Jake2Dedicated {
                     if (!Thread.currentThread().isInterrupted()) host.update(adjustedTime);
 
                 } catch (longjmpException e) {
-                    Com.DPrintf("longjmp exception:" + e);
+                    Com.Debug("longjmp exception:" + e);
                 }
             }
             oldtime = newtime;

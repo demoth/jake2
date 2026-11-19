@@ -718,13 +718,13 @@ class ClientEntityManager : Disposable {
         } else {
             deltaFrame = frames[currentFrame.deltaframe and Defines.UPDATE_MASK]
             if (!deltaFrame.valid) { // should never happen
-                Com.Printf("asdfasdfasdfDelta from invalid frame (not supposed to happen!).\n")
+                Com.Warn("Delta from invalid frame (not supposed to happen!).")
             }
             if (deltaFrame.serverframe != currentFrame.deltaframe) {
                 // The frame that the server did the delta from is too old, so we can't reconstruct it properly.
-                Com.Printf("Delta frame too old.\n")
+                Com.Warn("Delta frame too old.")
             } else if (parse_entities - deltaFrame.parse_entities > Defines.MAX_PARSE_ENTITIES - 128) {
-                Com.Printf("Delta parse_entities too old.\n")
+                Com.Warn("Delta parse_entities too old.")
             } else {
                 currentFrame.valid = true  // valid delta parse
             }

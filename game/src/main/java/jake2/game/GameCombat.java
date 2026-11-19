@@ -23,6 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import jake2.qcommon.Com;
 import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.qcommon.Defines;
@@ -106,7 +107,7 @@ public class GameCombat {
      */
     private static void Killed(GameEntity targ, GameEntity inflictor,
                                GameEntity attacker, int damage, float[] point, GameExportsImpl gameExports) {
-        gameExports.gameImports.dprintf("Killing a " + targ.classname + "\n");
+        Com.Debug("Killing a " + targ.classname);
         if (targ.health < -999)
             targ.health = -999;
     

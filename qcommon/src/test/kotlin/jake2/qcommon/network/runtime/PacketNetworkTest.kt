@@ -1,5 +1,6 @@
 package jake2.qcommon.network.runtime
 
+import jake2.qcommon.Com
 import jake2.qcommon.network.CvarNetworkSettings
 import jake2.qcommon.Defines
 import jake2.qcommon.exec.Cvar
@@ -100,14 +101,19 @@ class PacketNetworkTest {
             val settings = object : NetworkSettings by CvarNetworkSettings(Cvar.getInstance()) {
                 override val logMessages = true
             }
-            val log = mutableListOf<String>()
-            PacketNetwork(transport, NetworkRole.SERVER, settings) { log.add(it) }.use { server ->
-                val line = "  \"rcon\" test-password status"
-                val packet = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + line.toByteArray(Charsets.ISO_8859_1))
-                link.second.send(link.first.localAddress, packet)
-
-                assertEquals(line, server.receive()!!.connectionlessMessage)
-                assertEquals(listOf("Network: Received from client connectionless: rcon\n"), log)
+            val log = mutableListOf<Pair<Com.ConsoleLevel, String>>()
+            val sink = Com.ConsoleSink { level, message -> log.add(level to message) }
+            Com.SetConsoleSink(sink)
+            try {
+                PacketNetwork(transport, NetworkRole.SERVER, settings).use { server ->
+                    val line = "  \"rcon\" test-password status"
+                    val packet = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + line.toByteArray(Charsets.ISO_8859_1))
+                    link.second.send(link.first.localAddress, packet)
+                    assertEquals(line, server.receive()!!.connectionlessMessage)
+                    assertEquals(listOf(Com.ConsoleLevel.DEBUG to "Network: Received from client connectionless: rcon\n"), log)
+                }
+            } finally {
+                Com.ClearConsoleSink(sink)
             }
         }
     }
