@@ -51,7 +51,7 @@ output is excluded from focus traversal.
 - `Com.Debug(message)`: diagnostics emitted only when developer mode is enabled.
 - `Com.Warn`: recoverable/unexpected conditions and useful anticipated failure feedback.
 - `Com.Error(message)`: report an operation failure without throwing or initiating recovery.
-  Cause/stack-trace reporting is a later slice; `Com.Error(code, ...)` still performs
+  The reporting API takes a message. `Com.Error(code, ...)` still performs
   legacy recovery and must not be confused with the reporting-only overload.
 
 New entry points ensure a terminal newline. Only Print accepts `endLine = false`

@@ -45,7 +45,8 @@ class ServerHost @JvmOverloads constructor(
     // region Host state and command dispatch
 
     private val commands = ServerCommands()
-    private val pendingContinuations = linkedMapOf<GameImportsImpl, String>()
+    // todo: use proper stable immutable game id
+    private val pendingMapTransitions = linkedMapOf<GameImportsImpl, String>()
     val isRunning: Boolean
         get() = games.isNotEmpty()
 
@@ -248,7 +249,7 @@ class ServerHost @JvmOverloads constructor(
             stop("Server was killed.\n", false)
         }
         commands.add("map", Command(::map))
-        commands.add("gamemap", Command(::changeMap))
+        commands.add("gamemap", Command(::gameMap))
         commands.add("load", Command(::loadGame))
         commands.add("sv_shutdown") { args ->
             val reason: String? = if (args.size > 1) {
@@ -282,7 +283,7 @@ class ServerHost @JvmOverloads constructor(
         commands.add("spamgames") { args ->
             val total = args[1].toInt()
             repeat(total) {
-                changeMap(listOf("gamemap", "base1", "1"))
+                gameMap(listOf("gamemap", "base1", "1"))
             }
         }
     }
@@ -312,7 +313,7 @@ class ServerHost @JvmOverloads constructor(
             }
         } finally {
             games.clear()
-            pendingContinuations.clear()
+            pendingMapTransitions.clear()
             clients.clear()
             publishLegacyServerState(ServerStates.SS_DEAD)
             realtime = 0
@@ -357,7 +358,7 @@ class ServerHost @JvmOverloads constructor(
                 client.netchan.clearQueuedReliable()
                 client.unreliable.clear()
             }
-            pendingContinuations.remove(game)
+            pendingMapTransitions.remove(game)
             games.remove(game.name)
         }
     }
@@ -546,7 +547,7 @@ goes to map jail.bsp.
 
 Spins up a new game instance, to be used with either `map` or `join` (TBD)
 */
-    fun changeMap(args: List<String>) {
+    fun gameMap(args: List<String>) {
         if (args.size < 2) {
             Com.Printf("USAGE: gamemap <map> [client]\n")
             return
@@ -617,7 +618,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         when (result) {
             OperationResult.Completed -> Unit
             is OperationResult.Rejected -> Com.Printf("$operation rejected: ${result.reason}\n")
-            is OperationResult.Failed -> Com.Printf("$operation failed: ${result.reason}\n")
+            is OperationResult.Failed -> Com.Error("$operation failed: ${result.reason}")
         }
     }
 
@@ -815,7 +816,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // Finish packet processing before replacing Games referenced by packet handlers.
         readPackets()
-        runPendingContinuations()
+        runPendingMapTransitions()
         if (games.isEmpty()) return
 
         // identify if we need to update the game or it's too early (sleep or skip this update).
@@ -1485,22 +1486,24 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Cbuf.InsertFromDefer()
     }
 
-    private fun runPendingContinuations() {
-        val pending = pendingContinuations.toList()
-        pendingContinuations.clear()
+    private fun runPendingMapTransitions() {
+        val pending = pendingMapTransitions.toList()
+        pendingMapTransitions.clear()
         for ((previous, nextMap) in pending) {
-            if (games[previous.name] !== previous) continue // replaced or stopped before execution
-            val result = continueGame(previous, nextMap)
-            reportTransition("Continuation for ${previous.name}", result)
-            if (result is OperationResult.Failed) break // Recovery invalidated the whole queued batch.
+            if (games[previous.name] !== previous)
+                continue // replaced or stopped before execution
+            val result = gotoNextMap(previous, nextMap)
+            reportTransition("changing map to ${previous.name} failed", result)
+            if (result is OperationResult.Failed)
+                break // Recovery invalidated the whole queued batch.
         }
     }
 
-    private fun continueGame(previous: GameImportsImpl, nextMap: String): OperationResult {
+    private fun gotoNextMap(previous: GameImportsImpl, nextMap: String): OperationResult {
         val target = try {
             if (nextMap.isEmpty()) null else prepareMapTarget(nextMap)
         } catch (failure: Exception) {
-            return OperationResult.Rejected(failure.message ?: "Invalid continuation target")
+            return OperationResult.Rejected(failure.message ?: "Invalid change map target")
         }
         return try {
             val routedClients = clients.filter { it.gameName == previous.name }
@@ -1509,18 +1512,20 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 return OperationResult.Completed
             }
             // Unit changes and autosaves still share the existing persistence workspace.
-            if (target.newUnit) ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
-            val replacement = spawnServerInstance(target, previous, routedClients)
-            replacement.name = previous.name
-            games[replacement.name] = replacement
-            if (!Globals.dedicated.typedValue && !replacement.isDeathmatch) {
-                replacement.SV_WriteServerFile(true)
+            if (target.newUnit)
+                ServerSaveFiles(EngineWriteRoot.path()).wipe("current")
+
+            val newGameInstance = spawnServerInstance(target, previous, routedClients)
+            newGameInstance.name = previous.name
+            games[newGameInstance.name] = newGameInstance
+            if (!Globals.dedicated.typedValue && !newGameInstance.isDeathmatch) {
+                newGameInstance.SV_WriteServerFile(true)
                 ServerSaveFiles(EngineWriteRoot.path()).copy("current", "autosave")
             }
             OperationResult.Completed
         } catch (failure: Exception) {
             recoverFailedTransition(failure)
-            OperationResult.Failed(failure.message ?: "Continuation failed", failure)
+            OperationResult.Failed(failure.message ?: "changing map failed", failure)
         }
     }
 
@@ -1539,7 +1544,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         Com.DPrintf("Nextserver() from " + client.name + "\n")
         val nextMap = gameImports.takeNextMap() ?: return
-        pendingContinuations[gameImports] = nextMap
+        pendingMapTransitions[gameImports] = nextMap
     }
 
     // endregion

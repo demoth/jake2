@@ -136,7 +136,7 @@ class HostSessionPreparationTest {
         assertEquals(1, host.clients.size)
         assertEquals("testbox", host.games.getValue("default").mapName)
         host.stop("test", false)
-        host.changeMap(listOf("gamemap", "testbox2"))
+        host.gameMap(listOf("gamemap", "testbox2"))
         assertEquals(1, host.clients.size)
         assertEquals("testbox2", host.games.getValue("default").mapName)
     }
@@ -145,7 +145,7 @@ class HostSessionPreparationTest {
     fun `gamemap retains client slots while map prepares new slots`() {
         host.map(listOf("map", "testbox"))
         val original = host.clients[0]
-        host.changeMap(listOf("gamemap", "testbox2"))
+        host.gameMap(listOf("gamemap", "testbox2"))
         assertSame(original, host.clients[0])
         host.map(listOf("map", "testbox"))
         assertNotSame(original, host.clients[0])
@@ -264,8 +264,8 @@ class HostSessionPreparationTest {
         if (load) {
             host.loadGame(listOf("load", "slot"))
         } else {
-            host.changeMap(listOf("gamemap", "testbox"))
-            host.changeMap(listOf("gamemap", "testbox2"))
+            host.gameMap(listOf("gamemap", "testbox"))
+            host.gameMap(listOf("gamemap", "testbox2"))
         }
 
         val restored = host.games.getValue("default")
@@ -301,8 +301,8 @@ class HostSessionPreparationTest {
         mover.think.action = jake2.game.adapters.SuperAdapter.think("move_final")
         mover.think.nextTime = gameplay.level.time + Defines.FRAMETIME
         val index = mover.index
-        host.changeMap(listOf("gamemap", "testbox2"))
-        host.changeMap(listOf("gamemap", "testbox"))
+        host.gameMap(listOf("gamemap", "testbox2"))
+        host.gameMap(listOf("gamemap", "testbox"))
         val restored = host.games.getValue("default").gameExports.getEdict(index) as jake2.game.GameEntity
         assertEquals(73, restored.health)
         assertNotNull(restored.components[jake2.game.components.MoveInfo::class.java.name])

@@ -129,7 +129,7 @@ class HostClientAccountingTest {
     fun `targeted map change preserves connection timestamps`() {
         val client = bind(0, first)
         host.update(400)
-        host.changeMap(listOf("gamemap", "testbox2", "1"))
+        host.gameMap(listOf("gamemap", "testbox2", "1"))
         assertNotEquals(first.name, client.gameName)
         assertEquals("testbox2", host.games.getValue(client.gameName).mapName)
         assertSame(second, host.games[second.name])
