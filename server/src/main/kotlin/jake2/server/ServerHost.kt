@@ -1085,13 +1085,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         val c = args[0]
         val cmd = ConnectionlessCommand.fromString(c)
+        Com.Debug("Received connectionless ${cmd.name} from $from")
 
         when (cmd) {
             ConnectionlessCommand.ping ->                 // SVC_Ping, Just responds with an acknowledgement.
                 network.sendConnectionless(from, ConnectionlessCommand.ack, "")
 
-            ConnectionlessCommand.ack ->                 //SVC_Ack
-                Com.Debug("Ping acknowledge from $from")
+            ConnectionlessCommand.ack -> Unit
 
             ConnectionlessCommand.status ->                 // SVC_Status, Responds with all the info that qplug or qspy can see
                 network.sendConnectionless(from,

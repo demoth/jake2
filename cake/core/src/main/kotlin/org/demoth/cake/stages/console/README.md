@@ -48,9 +48,9 @@ output is excluded from focus traversal.
 
 - `Com.Print`: gameplay and requested command output.
 - `Com.Info`: sparse lifecycle and significant system-state messages.
-- `Com.Debug(message)`: occasional developer diagnostics controlled by `developer`.
+- `Com.Debug(message)`: occasional developer diagnostics.
 - `Com.Trace { message }`: high-volume diagnostics such as per-packet or per-frame
-  output.
+  output. The message builder runs only when TRACE is enabled.
 - `Com.Warn`: recoverable/unexpected conditions and useful anticipated failure feedback.
 - `Com.Error(message)`: report an operation failure without throwing or initiating recovery.
   The reporting API takes a message. `Com.Error(code, ...)` still performs
@@ -67,6 +67,14 @@ when migrating a caller. Remote command capture sends plain text to the requeste
 before the console sink and stdout, and the client prints each chunk verbatim.
 Gameplay echoes use PRINT locally. The network print priority continues to control
 player delivery and HUD presentation.
+
+Enter `loglevel` to see the current diagnostic threshold. Valid values are `ERROR`,
+`WARN`, `INFO`, `DEBUG`, and `TRACE`. The default is `INFO`, which includes
+warnings and errors. Use `set loglevel TRACE` to collect high-volume diagnostics
+and `set loglevel INFO` to return to the default. Changes apply to new messages in
+the running process. Gameplay text and command output from `Com.Print` are always
+enabled. The `developer` cvar continues to control developer features such as
+automation.
 
 ## History and Presentation
 

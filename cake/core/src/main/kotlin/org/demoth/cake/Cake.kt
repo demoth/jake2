@@ -691,11 +691,11 @@ class Cake(
             }
             game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
         } catch (error: IOException) {
-            Com.Warn("Demo playback failed: ${error.message}\n")
+            Com.Error("Demo playback failed: ${error.message}\n")
             finishSession("Demo playback failed: ${error.message}")
         } catch (error: RuntimeException) {
             // Asset loading and applying recorded state can also reject structurally valid bodies.
-            Com.Warn("Demo playback failed: ${error.message}\n")
+            Com.Error("Demo playback failed: ${error.message}\n")
             finishSession("Demo playback failed: ${error.message}")
         }
     }
@@ -1404,16 +1404,6 @@ class Cake(
 
                 }
 
-                // delegate all game-related updates to the game screen
-                is FrameHeaderMessage -> {
-                    if (demoPlayback != null) game3dScreen?.setDemoTime(msg.frameNumber * 100 - 100, 0f)
-                    game3dScreen?.processServerFrameHeader(msg)
-                }
-
-                is ConfigStringMessage -> {
-                    game3dScreen?.processConfigStringMessage(msg)
-                }
-
                 is DownloadMessage -> {
                     if (demoPlayback != null) return@forEach
                     if (msg is DownloadMessage.Chunk && msg.data.size > 0) {
@@ -1425,6 +1415,17 @@ class Cake(
                             Cbuf.AddText("${StringCmdMessage.PRECACHE} ${result.spawnCount}\n")
                         CakeDownloadSession.Result.MissingOnServer -> finishSession()
                     }
+                }
+                // delegate all game-related updates to the game screen
+
+                is FrameHeaderMessage -> {
+                    if (demoPlayback != null)
+                        game3dScreen?.setDemoTime(msg.frameNumber * 100 - 100, 0f)
+                    game3dScreen?.processServerFrameHeader(msg)
+                }
+
+                is ConfigStringMessage -> {
+                    game3dScreen?.processConfigStringMessage(msg)
                 }
 
                 is SoundMessage -> {
@@ -1450,7 +1451,8 @@ class Cake(
                 is PacketEntitiesMessage -> {
                     val valid = game3dScreen?.processPacketEntitiesMessage(msg) == true
                     snapshotAccepted = valid
-                    if (demoPlayback != null && !valid) throw IOException("Demo snapshot depends on an unavailable frame")
+                    if (demoPlayback != null && !valid)
+                        throw IOException("Demo snapshot depends on an unavailable frame")
                     if (valid) {
                         if (networkState != ACTIVE) {
                             networkState = ACTIVE
@@ -1569,6 +1571,7 @@ class Cake(
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
         val c = args.firstOrNull() ?: return
         val cmd = ConnectionlessCommand.fromString(c)
+        Com.Debug("Received connectionless ${cmd.name} from ${packet.from}")
         when (cmd) {
             ConnectionlessCommand.challenge -> {
                 handshake.receiveChallenge(packet.from, args.getOrNull(1))

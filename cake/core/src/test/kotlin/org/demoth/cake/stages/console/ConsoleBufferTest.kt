@@ -1,6 +1,9 @@
 package org.demoth.cake.stages.console
 
 import jake2.qcommon.Com
+import jake2.qcommon.Globals
+import jake2.qcommon.MainCommon
+import jake2.qcommon.exec.Cvar
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -26,11 +29,9 @@ class ConsoleBufferTest {
     @Test
     fun javaEntryPointsAcceptKotlinMessages() {
         val output = mutableListOf<ConsoleEntry>()
-        val previousDeveloper = jake2.qcommon.Globals.developer
+        val previousLogLevel = Globals.logLevel
         val sink = Com.ConsoleSink { level, text -> output += ConsoleEntry(level, text) }
-        jake2.qcommon.Globals.developer = jake2.qcommon.exec.Cvar().register(
-            "developer", jake2.qcommon.exec.CvarTypes.BOOLEAN, true,
-        )
+        Globals.logLevel = MainCommon.registerLogLevel(Cvar()).also { it.set(Com.ConsoleLevel.DEBUG) }
         Com.SetConsoleSink(sink)
         try {
             Com.Print("fragment", false)
@@ -44,7 +45,7 @@ class ConsoleBufferTest {
             )
         } finally {
             Com.ClearConsoleSink(sink)
-            jake2.qcommon.Globals.developer = previousDeveloper
+            Globals.logLevel = previousLogLevel
         }
     }
 

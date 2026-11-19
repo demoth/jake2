@@ -8,6 +8,7 @@ import jake2.qcommon.*
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.*
+import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.client.UserCommand
 import jake2.qcommon.network.messages.client.UserInfoMessage
@@ -19,6 +20,27 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 class HostClientAccountingTest {
+    @Test
+    fun `connectionless debug output identifies rcon without logging its arguments`() {
+        val output = mutableListOf<Pair<Com.ConsoleLevel, String>>()
+        val sink = Com.ConsoleSink { level, text -> output.add(level to text) }
+        val logLevel = Globals.logLevel
+        val previousLevel = logLevel.typedValue
+        logLevel.set(Com.ConsoleLevel.DEBUG)
+        Com.SetConsoleSink(sink)
+        try {
+            val from = network.server.localPeer
+            network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " test-password status")
+            host.readPackets()
+
+            assertTrue(output.contains(Com.ConsoleLevel.DEBUG to "Received connectionless rcon from $from\n"))
+            assertTrue(output.none { (_, text) -> "test-password" in text || "status" in text })
+        } finally {
+            Com.ClearConsoleSink(sink)
+            logLevel.set(previousLevel)
+        }
+    }
+
     @Test
     fun `checksum rejection skips trailing commands and callbacks cannot mutate command snapshots`() {
         val client = bind(0, first)

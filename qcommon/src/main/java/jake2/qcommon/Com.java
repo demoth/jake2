@@ -39,12 +39,14 @@ import java.util.function.Supplier;
 public final class Com
 {
     public enum ConsoleLevel {
+        // Always printed, part of the game
         PRINT,
+        // Diagnostics are ordered from least to most verbose.
+        ERROR,
+        WARN,
         INFO,
         DEBUG,
         TRACE,
-        WARN,
-        ERROR
     }
 
     @FunctionalInterface
@@ -80,9 +82,7 @@ public final class Com
 
     /** Developer diagnostics. Class attribution is deferred until a simpler API is chosen. */
     public static void Debug(String message) {
-        if (isDebugEnabled()) {
-            emit(ConsoleLevel.DEBUG, message, true);
-        }
+        emit(ConsoleLevel.DEBUG, message, true);
     }
 
     /** High-volume diagnostics. Build the message only when TRACE is enabled. */
@@ -93,15 +93,22 @@ public final class Com
     }
 
     public static boolean isTraceEnabled() {
-        // TODO: Use the log level switch when it is available.
-        return false;
+        return isEnabled(ConsoleLevel.TRACE);
     }
 
-    public static boolean isDebugEnabled() {
-        return Globals.developer != null && Globals.developer.getTypedValue();
+    private static boolean isEnabled(ConsoleLevel level) {
+        if (level == ConsoleLevel.PRINT) {
+            return true;
+        }
+        var logLevel = Globals.logLevel;
+        ConsoleLevel threshold = logLevel == null ? ConsoleLevel.INFO : logLevel.getTypedValue();
+        return level.compareTo(threshold) <= 0;
     }
 
     private static void emit(ConsoleLevel level, String message, boolean endLine) {
+        if (!isEnabled(level)) {
+            return;
+        }
         // Preserve existing line endings and intentional blank lines, including CR-only input.
         if (endLine && !message.endsWith("\n") && !message.endsWith("\r")) {
             message += "\n";

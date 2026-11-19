@@ -1,11 +1,8 @@
 package jake2.qcommon.network.runtime
 
-import jake2.qcommon.Com
 import jake2.qcommon.network.CvarNetworkSettings
 import jake2.qcommon.Defines
-import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cvar
-import jake2.qcommon.exec.CvarTypes
 import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.transport.*
@@ -92,32 +89,6 @@ class PacketNetworkTest {
                     }
                     assertNull(client.receive())
                 }
-            }
-        }
-    }
-
-    @Test
-    fun `server packet logging omits remote console arguments`() {
-        LoopbackLink().use { link ->
-            val transport = NetworkTransport(link.first, link.second.localAddress)
-            val settings = CvarNetworkSettings(Cvar.getInstance())
-            val log = mutableListOf<Pair<Com.ConsoleLevel, String>>()
-            val sink = Com.ConsoleSink { level, message -> log.add(level to message) }
-            val previousDeveloper = Globals.developer
-            Globals.developer = Cvar().register("developer", CvarTypes.BOOLEAN, true)
-            Com.SetConsoleSink(sink)
-            try {
-                PacketNetwork(transport, NetworkRole.SERVER, settings).use { server ->
-                    val line = "  \"rcon\" test-password status"
-                    val packet = PacketBytes.copyOf(byteArrayOf(-1, -1, -1, -1) + line.toByteArray(Charsets.ISO_8859_1))
-                    link.second.send(link.first.localAddress, packet)
-                    val received = server.receive()!!.connectionlessMessage
-                    assertEquals(line, received)
-                    assertEquals(listOf(Com.ConsoleLevel.DEBUG to "Network: Received from client connectionless: rcon\n"), log)
-                }
-            } finally {
-                Com.ClearConsoleSink(sink)
-                Globals.developer = previousDeveloper
             }
         }
     }

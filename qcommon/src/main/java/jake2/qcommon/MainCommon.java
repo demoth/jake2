@@ -3,7 +3,9 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
+import jake2.qcommon.exec.cvar_t;
 
+import java.util.List;
 import java.util.Locale;
 
 import static jake2.qcommon.Defines.*;
@@ -13,11 +15,16 @@ import static jake2.qcommon.Defines.*;
  */
 @SuppressWarnings("deprecation")
 public class MainCommon {
+    private static final CvarTypes.ChoiceType<Com.ConsoleLevel> LOG_LEVEL_TYPE = new CvarTypes.ChoiceType<>(
+            List.of(Com.ConsoleLevel.ERROR, Com.ConsoleLevel.WARN, Com.ConsoleLevel.INFO,
+                    Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE));
+
     /** Process-wide declarations, before config loading or subsystem construction. */
     public static void registerCvars(boolean dedicatedMode) {
         Cvar cvars = Cvar.getInstance();
+        Globals.logLevel = registerLogLevel(cvars);
         Globals.dedicated = cvars.register("dedicated", CvarTypes.BOOLEAN, dedicatedMode, CVAR_NOSET);
-        Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer diagnostics and automation");
+        Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer features and automation");
         Globals.host_speeds = cvars.register("host_speeds", CvarTypes.BOOLEAN, false, 0, "Legacy frame timing diagnostics; currently unused");
         Globals.fixedtime = cvars.register("fixedtime", new CvarTypes.IntegerType(0, null), 0, 0, "Override frame duration in milliseconds; 0 disables the override");
         Globals.timescale = cvars.register("timescale", new CvarTypes.FloatType(0f, null), 0f, 0, "Multiply elapsed frame time; 0 disables scaling, fixedtime takes precedence");
@@ -28,6 +35,10 @@ public class MainCommon {
         cvars.register("rcon_password", CvarTypes.STRING, "", 0, "Remote console password; empty disables remote console access");
         cvars.register("password", CvarTypes.STRING, "", CVAR_USERINFO | CVAR_ARCHIVE, "Server password");
         registerDownloads(cvars);
+    }
+
+    public static cvar_t<Com.ConsoleLevel> registerLogLevel(Cvar cvars) {
+        return cvars.register("loglevel", LOG_LEVEL_TYPE, Com.ConsoleLevel.INFO, 0, "Diagnostic verbosity: ERROR, WARN, INFO, DEBUG, or TRACE");
     }
 
     /** Shared download policy used by both the client and server. */

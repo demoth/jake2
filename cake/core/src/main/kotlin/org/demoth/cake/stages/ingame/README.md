@@ -102,7 +102,8 @@ input guide.
 ## Rendering Diagnostics
 
 Throttled world, entity, sprite, beam, and particle submission stats use TRACE.
-These logs will be available when the log-level switch is implemented. For world batching and visibility internals, see the
+Run `set loglevel TRACE` to collect them and `set loglevel INFO` when finished.
+For world batching and visibility internals, see the
 [BSP pipeline guide](../../assets/bsp/README.md).
 
 To profile representative maps and views:

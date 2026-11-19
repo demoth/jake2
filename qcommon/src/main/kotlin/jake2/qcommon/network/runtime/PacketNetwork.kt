@@ -2,7 +2,6 @@ package jake2.qcommon.network.runtime
 
 import jake2.qcommon.Com
 import jake2.qcommon.Defines
-import jake2.qcommon.exec.Cmd
 import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.ConnectionChannel
 import jake2.qcommon.network.messages.ConnectionlessCommand
@@ -95,15 +94,7 @@ class PacketNetwork(
             Com.Warn("$label dropped packet from ${datagram.source}: ${decoded.reason}")
             return null
         }
-        val packet = NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
-        if (packet.isConnectionless && Com.isDebugEnabled()) {
-            val peer = if (role == NetworkRole.CLIENT) "server" else "client"
-            val line = packet.connectionlessMessage
-            val command = if (role == NetworkRole.SERVER) Cmd.TokenizeString(line, false).firstOrNull() else null
-            val loggedLine = if (command == ConnectionlessCommand.rcon.name) command else line
-            Com.Debug("Network: Received from $peer connectionless: $loggedLine")
-        }
-        return packet
+        return NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
     }
 
     /** Out-of-band datagram: a -1 sequence marker followed by Latin-1 command/payload bytes. */

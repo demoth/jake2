@@ -1,7 +1,7 @@
 package jake2.qcommon;
 
+import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
-import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +24,13 @@ class ComMessagingTest {
     private final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
     private PrintStream originalStdout;
     private PrintStream capturedStdout;
-    private cvar_t<Boolean> originalDeveloper;
+    private cvar_t<Com.ConsoleLevel> originalLogLevel;
 
     @BeforeEach
     void setUp() {
-        originalDeveloper = Globals.developer;
-        Globals.developer = new Cvar().register("developer", CvarTypes.BOOLEAN, true);
+        originalLogLevel = Globals.logLevel;
+        Globals.logLevel = MainCommon.registerLogLevel(new Cvar());
+        Globals.logLevel.set(Com.ConsoleLevel.DEBUG);
         originalStdout = System.out;
         capturedStdout = new PrintStream(stdout, true, StandardCharsets.UTF_8);
         System.setOut(capturedStdout);
@@ -39,7 +40,7 @@ class ComMessagingTest {
     @AfterEach
     void tearDown() {
         Com.ClearConsoleSink(sink);
-        Globals.developer = originalDeveloper;
+        Globals.logLevel = originalLogLevel;
         System.setOut(originalStdout);
         capturedStdout.close();
     }
@@ -88,17 +89,58 @@ class ComMessagingTest {
     }
 
     @Test
-    void disabledOrUninitializedDeveloperSuppressesDebugOutput() {
-        Globals.developer.forceSet(false);
-        assertDebugDisabled();
-        Globals.developer = null;
-        assertDebugDisabled();
+    void thresholdFiltersDiagnosticsBeforeRoutingAndPrintAlwaysPasses() {
+        for (var threshold : List.of(Com.ConsoleLevel.ERROR, Com.ConsoleLevel.WARN, Com.ConsoleLevel.INFO,
+                Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE)) {
+            Globals.logLevel.set(threshold);
+            var captured = new StringBuilder();
+            Com.RedirectOutput(captured::append, () -> {
+                Com.Error("error");
+                Com.Warn("warn");
+                Com.Info("info");
+                Com.Debug("debug");
+                Com.Trace(() -> {
+                    assertEquals(Com.ConsoleLevel.TRACE, threshold);
+                    return "trace";
+                });
+                Com.Print("output");
+            });
+
+            String expected = switch (threshold) {
+                case ERROR -> "error\n";
+                case WARN -> "error\nwarn\n";
+                case INFO -> "error\nwarn\ninfo\n";
+                case DEBUG -> "error\nwarn\ninfo\ndebug\n";
+                case TRACE -> "error\nwarn\ninfo\ndebug\ntrace\n";
+                case PRINT -> throw new AssertionError("PRINT is not a threshold");
+            };
+            assertEquals(expected + "output\n", captured.toString(), threshold.name());
+        }
         assertTrue(messages.isEmpty());
         assertEquals("", stdout.toString(StandardCharsets.UTF_8));
     }
 
-    private void assertDebugDisabled() {
-        Com.Debug("hidden");
+    @Test
+    void consoleSetChangesLogLevelAndRejectsPrintAsAThreshold() {
+        var level = MainCommon.registerLogLevel(Cvar.getInstance());
+        var previousValue = level.getTypedValue();
+        Globals.logLevel = level;
+        try {
+            Cvar.Init();
+            level.set(Com.ConsoleLevel.ERROR);
+            messages.clear();
+            Cmd.ExecuteString("set loglevel PRINT");
+            assertEquals(Com.ConsoleLevel.ERROR, level.getTypedValue());
+            assertEquals(Com.ConsoleLevel.PRINT, messages.getFirst().level());
+            assertTrue(messages.getFirst().text().contains("Invalid value for loglevel"));
+
+            Cmd.ExecuteString("set loglevel TRACE");
+            assertEquals(Com.ConsoleLevel.TRACE, level.getTypedValue());
+            Com.Trace(() -> "trace enabled");
+            assertEquals(new Message(Com.ConsoleLevel.TRACE, "trace enabled\n"), messages.getLast());
+        } finally {
+            level.set(previousValue);
+        }
     }
 
     @Test
