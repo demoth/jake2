@@ -1,6 +1,7 @@
 package jake2.qcommon.network.runtime
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.NETWORK
 import jake2.qcommon.Defines
 import jake2.qcommon.network.NetworkSettings
 import jake2.qcommon.network.ConnectionChannel
@@ -71,7 +72,7 @@ class PacketNetwork(
             transport.replaceUdp(endpoint)
             true
         } catch (error: IOException) {
-            Com.Error("$label UDP bind error: $error")
+            Com.Error(NETWORK, "$label UDP bind error: $error")
             false
         }
     }
@@ -86,12 +87,12 @@ class PacketNetwork(
         transport.poll(budget) { received -> decode(received)?.let(consume) }
 
     private fun decode(received: ReceiveResult): NetworkPacket? {
-        if (received is ReceiveResult.Failed) Com.Warn("$label receive error: ${received.cause}")
+        if (received is ReceiveResult.Failed) Com.Warn(NETWORK, "$label receive error: ${received.cause}")
         if (received !is ReceiveResult.Received) return null
         val datagram = received.datagram
         val decoded = PacketCodec.decode(datagram.payload, direction)
         if (decoded is PacketDecodeResult.Rejected) {
-            Com.Trace { "$label dropped packet from ${datagram.source}: ${decoded.reason}" }
+            Com.Trace(NETWORK) { "$label dropped packet from ${datagram.source}: ${decoded.reason}" }
             return null
         }
         return NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)
@@ -103,7 +104,7 @@ class PacketNetwork(
         require(text.size <= Defines.MAX_MSGLEN - 4)
         val bytes = ByteBuffer.allocate(text.size + 4).order(ByteOrder.LITTLE_ENDIAN).putInt(-1).put(text).array()
         val result = transport.send(to, PacketBytes.copyOf(bytes))
-        if (result is SendResult.Failed) Com.Warn("$label send error: ${result.cause}")
+        if (result is SendResult.Failed) Com.Warn(NETWORK, "$label send error: ${result.cause}")
     }
 
     /** Session boundary: keep the local endpoint and final messages queued for its peer. */

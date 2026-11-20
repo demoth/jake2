@@ -21,6 +21,7 @@
 // former SV_MAIN
 package jake2.server
 
+import jake2.qcommon.Com.LogSubsystem.NETWORK
 import jake2.qcommon.*
 import jake2.qcommon.exec.*
 import jake2.qcommon.exec.CvarTypes.ChoiceType
@@ -346,7 +347,7 @@ class ServerHost @JvmOverloads constructor(
                     sendFinalMessage(reason, false, listOf(client))
                 } catch (failure: Exception) {
                     // A failed final packet must not prevent other clients from being released.
-                    Com.Warn("Could not notify client of Game ${game.name} shutdown: $failure")
+                    Com.Warn(NETWORK, "Could not notify client of Game ${game.name} shutdown: $failure")
                 }
             }
         } finally {
@@ -975,7 +976,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     /** Validate a direct connect request, including its remote-address challenge, before admission. */
     private fun connectClient(args: List<String>, adr: NetworkAddress) {
-        Com.Debug("SVC_DirectConnect ()")
+        Com.Debug(NETWORK, "SVC_DirectConnect ()")
 
         val version = if (args.size >= 2) Lib.atoi(args[1]) else 0
 
@@ -983,7 +984,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             network.sendConnectionless(adr, ConnectionlessCommand.print,
                 "\nServer is version " + Globals.VERSION + "\n"
             )
-            Com.Debug("    rejected connect from version $version")
+            Com.Debug(NETWORK, "    rejected connect from version $version")
             return
         }
 
@@ -1007,13 +1008,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         when (val admission = connections.selectSlot(clients, adr, qport, realtime, reconnectLimit.typedValue * 1000)) {
-            ServerConnections.Admission.TooSoon -> Com.Debug("$adr:reconnect rejected : too soon")
+            ServerConnections.Admission.TooSoon -> Com.Debug(NETWORK, "$adr:reconnect rejected : too soon")
             ServerConnections.Admission.Full -> {
                 network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
                 Com.Debug("Rejected a connection.")
             }
             is ServerConnections.Admission.Slot -> {
-                if (admission.reconnect) Com.Info("$adr:reconnect")
+                if (admission.reconnect) Com.Info(NETWORK, "$adr:reconnect")
                 initializeClientConnection(admission.index, challenge, userinfo, adr, qport)
             }
         }
@@ -1051,7 +1052,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                     "\nConnection refused.\n"
                 )
             }
-            Com.Debug("Game rejected a connection.")
+            Com.Debug(NETWORK, "Game rejected a connection.")
             return
         }
 
@@ -1079,13 +1080,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
-            Com.Debug("empty connectionless packet: $messageLine")
+            Com.Debug(NETWORK, "empty connectionless packet: $messageLine")
             return
         }
 
         val c = args[0]
         val cmd = ConnectionlessCommand.fromString(c)
-        Com.Trace { "Received connectionless ${cmd.name} from $from" }
+        Com.Trace(NETWORK) { "Received connectionless ${cmd.name} from $from" }
 
         when (cmd) {
             ConnectionlessCommand.ping ->                 // SVC_Ping, Just responds with an acknowledgement.
@@ -1117,7 +1118,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             ConnectionlessCommand.connect -> connectClient(args, from)
             ConnectionlessCommand.rcon -> executeRemoteCommand(args, from)
-            else -> Com.Debug("Unknown ClientConnectionlessCommand: $c")
+            else -> Com.Debug(NETWORK, "Unknown ClientConnectionlessCommand: $c")
         }
     }
 
@@ -1160,18 +1161,18 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
 
             val routed = connections.route(networkPacket, clients) ?: return@poll
-            if (routed.portChanged) Com.Debug("SV_ReadPackets: fixing up a translated port")
+            if (routed.portChanged) Com.Debug(NETWORK, "SV_ReadPackets: fixing up a translated port")
             val client = routed.client
             if (client.state != ClientStates.CS_ZOMBIE) {
                 client.lastmessage = realtime
                 when (val body = networkPacket.parseBodyFromClient(client.netchan.incomingSequence)) {
                     is MessageDecodeResult.Rejected -> {
-                        Com.Warn("Bad client payload at ${body.offset}: ${body.detail}")
+                        Com.Warn(NETWORK, "Bad client payload at ${body.offset}: ${body.detail}")
                         dropClient(client)
                     }
                     is MessageDecodeResult.Decoded -> {
-                        if (Com.isTraceEnabled())
-                            body.messages.forEach { Com.Trace { "Network: Received client msg: $it" } }
+                        if (Com.isTraceEnabled(NETWORK))
+                            body.messages.forEach { Com.Trace(NETWORK) { "Network: Received client msg: $it" } }
                         handleClientMessages(client, body.messages)
                     }
                 }
@@ -1227,7 +1228,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
                 // if the checksum fails, ignore the rest of the packet
                 if (!msg.checksumValid) {
-                    Com.Trace { "Invalid crc" }
+                    Com.Trace(NETWORK) { "Invalid crc" }
                     return
                 }
 
@@ -1252,7 +1253,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 // Retain the immutable command state; game callbacks receive separate mutable copies.
                 msg.newCmd.copyTo(cl.lastcmd)
             } else {
-                Com.Warn("SV_ReadClientMessage: unknown command: " + msg.type)
+                Com.Warn(NETWORK, "SV_ReadClientMessage: unknown command: " + msg.type)
                 dropClient(cl)
                 return // Never execute the remainder of a rejected packet.
             }
@@ -1265,7 +1266,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         cl.commandMsec -= cmd.msec.toInt() and 0xFF
 
         if (cl.commandMsec < 0 && enforceMoveTime.typedValue) {
-            Com.Trace { "commandMsec underflow from ${cl.name}" }
+            Com.Trace(NETWORK) { "commandMsec underflow from ${cl.name}" }
             return
         }
 
@@ -1301,7 +1302,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     fun executeClientCommand(cl: ClientNetworkInfo, command: String?) {
-        Com.Trace { "SV_ExecuteUserCommand:$command" }
+        Com.Trace(NETWORK) { "SV_ExecuteUserCommand:$command" }
 
         val args = Cmd.TokenizeString(command, true)
         if (args.isEmpty()) return
@@ -1327,10 +1328,10 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      * ================
      */
     private fun sendInitialGameData(gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        Com.Debug("New() from " + client.name)
+        Com.Debug(NETWORK, "New() from " + client.name)
 
         if (client.state != ClientStates.CS_CONNECTED) {
-            Com.Warn("New not valid -- already spawned")
+            Com.Warn(NETWORK, "New not valid -- already spawned")
             return
         }
 
@@ -1385,17 +1386,17 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         gameImports: GameImportsImpl,
         client: ClientNetworkInfo
     ) {
-        Com.Debug("Configstrings() from " + client.name)
+        Com.Debug(NETWORK, "Configstrings() from " + client.name)
 
         if (client.state != ClientStates.CS_CONNECTED) {
-            Com.Warn("configstrings not valid -- already spawned")
+            Com.Warn(NETWORK, "configstrings not valid -- already spawned")
             return
         }
 
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Debug("SV_Configstrings_f from different level")
+            Com.Debug(NETWORK, "SV_Configstrings_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1424,17 +1425,17 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     private fun sendBaselines(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        Com.Debug("Baselines() from " + client.name)
+        Com.Debug(NETWORK, "Baselines() from " + client.name)
 
         if (client.state != ClientStates.CS_CONNECTED) {
-            Com.Warn("baselines not valid -- already spawned")
+            Com.Warn(NETWORK, "baselines not valid -- already spawned")
             return
         }
 
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Debug("SV_Baselines_f from different level")
+            Com.Debug(NETWORK, "SV_Baselines_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1467,12 +1468,12 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     }
 
     private fun beginClient(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
-        Com.Debug("Begin() from " + client.name)
+        Com.Debug(NETWORK, "Begin() from " + client.name)
 
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Debug("SV_Begin_f from different level")
+            Com.Debug(NETWORK, "SV_Begin_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1537,11 +1538,11 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     private fun finishCinematic(args: List<String>, gameImports: GameImportsImpl, client: ClientNetworkInfo) {
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Debug("Nextserver() from wrong level, from " + client.name)
+            Com.Debug(NETWORK, "Nextserver() from wrong level, from " + client.name)
             return  // leftover from last server
         }
 
-        Com.Debug("Nextserver() from " + client.name)
+        Com.Debug(NETWORK, "Nextserver() from " + client.name)
         val nextMap = gameImports.takeNextMap() ?: return
         pendingMapTransitions[gameImports] = nextMap
     }
@@ -1624,7 +1625,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // special check for maps, if it came from a pak file, don't allow download ZOID
         if (name.startsWith("maps/") && EngineVfs.isFromPack(name)) {
-            Com.Debug("Couldn't download " + name + " to " + client.name)
+            Com.Debug(NETWORK, "Couldn't download " + name + " to " + client.name)
             if (client.download != null) {
                 client.download = null
             }
@@ -1635,7 +1636,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         }
 
         sendNextDownloadChunk(client)
-        Com.Debug("Downloading " + name + " to " + client.name)
+        Com.Debug(NETWORK, "Downloading " + name + " to " + client.name)
     }
 
     // endregion
@@ -1919,7 +1920,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
     /** Execute a remote command and send its console output back to the requester. */
     private fun executeRemoteCommand(args: List<String>, from: NetworkAddress) {
         val authorized = isRconAuthorized(args)
-        Com.Info(if (authorized) "Rcon from $from" else "Bad rcon from $from")
+        Com.Info(NETWORK, if (authorized) "Rcon from $from" else "Bad rcon from $from")
 
         if (!authorized) {
             network.sendConnectionless(from, ConnectionlessCommand.print, "\nBad rcon_password.\n")

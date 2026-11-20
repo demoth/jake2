@@ -449,3 +449,11 @@ slider-circle
   orig: 24, 24
   offset: 0, 0
   index: -1
+
+gear.png
+size: 16,16
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+console-gear
+  bounds: 0, 0, 16, 16

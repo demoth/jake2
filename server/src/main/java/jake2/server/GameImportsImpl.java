@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.Collection;
 import java.util.List;
 
+import static jake2.qcommon.Com.LogSubsystem.NETWORK;
 import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
 import static jake2.qcommon.Defines.CS_MODELS;
 
@@ -1622,7 +1623,7 @@ public class GameImportsImpl implements GameImports {
             int ix = nextClientEntity % clientEntityStates.length;
             entity_state_t state = clientEntityStates[ix];
             if (ent.s.index != e) {
-                Com.Warn("FIXING ENT.S.NUMBER!!!");
+                Com.Warn(NETWORK, "FIXING ENT.S.NUMBER!!!");
                 ent.s.index = e;
             }
 

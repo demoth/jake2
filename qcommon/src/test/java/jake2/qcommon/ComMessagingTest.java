@@ -162,6 +162,47 @@ class ComMessagingTest {
     }
 
     @Test
+    void consoleNetworkOverrideFiltersIndependentlyUntilCleared() {
+        var previousOverride = Globals.networkLogLevel;
+        var network = MainCommon.registerNetworkLogLevel(Cvar.getInstance());
+        var previousValue = network.getTypedValue();
+        Globals.networkLogLevel = network;
+        var subsystem = Com.LogSubsystem.NETWORK;
+        try {
+            Cvar.Init();
+            Globals.logLevel.set(Com.ConsoleLevel.INFO);
+            messages.clear();
+            Cmd.ExecuteString("set loglevel_network TRACE");
+
+            assertFalse(Com.isTraceEnabled());
+            assertTrue(Com.isTraceEnabled(subsystem));
+            Com.Trace(() -> fail("Global TRACE is disabled"));
+            Com.Trace(subsystem, () -> "packet");
+            assertEquals(List.of(new Message(Com.ConsoleLevel.TRACE, "packet\n")), messages);
+
+            Cmd.ExecuteString("set loglevel_network PRINT");
+            assertEquals("TRACE", network.getTypedValue());
+            Cmd.ExecuteString("set loglevel_network \"\"");
+            assertEquals("", network.getTypedValue());
+            assertFalse(Com.isTraceEnabled(subsystem));
+            Com.Trace(subsystem, () -> fail("Network now follows global INFO"));
+
+            Globals.logLevel.set(Com.ConsoleLevel.TRACE);
+            assertTrue(Com.isTraceEnabled(subsystem));
+            Cmd.ExecuteString("set loglevel_network ERROR");
+            messages.clear();
+            Com.Warn(subsystem, "filtered network warning");
+            Com.Warn("global warning");
+            Com.Print("player message");
+            assertEquals(List.of(new Message(Com.ConsoleLevel.WARN, "global warning\n"),
+                    new Message(Com.ConsoleLevel.PRINT, "player message\n")), messages);
+        } finally {
+            network.set(previousValue);
+            Globals.networkLogLevel = previousOverride;
+        }
+    }
+
+    @Test
     void redirectCapturesNewMessagesWithoutLocalEcho() {
         StringBuilder redirected = new StringBuilder();
         Com.RedirectOutput(redirected::append, () -> {

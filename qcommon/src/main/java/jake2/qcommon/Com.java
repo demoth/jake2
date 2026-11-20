@@ -49,6 +49,10 @@ public final class Com
         TRACE,
     }
 
+    public enum LogSubsystem {
+        NETWORK
+    }
+
     @FunctionalInterface
     public interface ConsoleSink {
         void print(ConsoleLevel level, String message);
@@ -62,53 +66,84 @@ public final class Com
     }
 
     public static void Print(String message, boolean endLine) {
-        emit(ConsoleLevel.PRINT, message, endLine);
+        write(ConsoleLevel.PRINT, message, endLine);
     }
 
     /** Sparse lifecycle and significant system-state messages. */
     public static void Info(String message) {
-        emit(ConsoleLevel.INFO, message, true);
+        Info(null, message);
+    }
+
+    public static void Info(LogSubsystem subsystem, String message) {
+        emit(subsystem, ConsoleLevel.INFO, message);
     }
 
     /** Report a warning without changing control flow. */
     public static void Warn(String message) {
-        emit(ConsoleLevel.WARN, message, true);
+        Warn(null, message);
+    }
+
+    public static void Warn(LogSubsystem subsystem, String message) {
+        emit(subsystem, ConsoleLevel.WARN, message);
     }
 
     /** Report a failure only. Recovery belongs to the caller handling that failure. */
     public static void Error(String message) {
-        emit(ConsoleLevel.ERROR, message, true);
+        Error(null, message);
+    }
+
+    public static void Error(LogSubsystem subsystem, String message) {
+        emit(subsystem, ConsoleLevel.ERROR, message);
     }
 
     /** Developer diagnostics. Class attribution is deferred until a simpler API is chosen. */
     public static void Debug(String message) {
-        emit(ConsoleLevel.DEBUG, message, true);
+        Debug(null, message);
+    }
+
+    public static void Debug(LogSubsystem subsystem, String message) {
+        emit(subsystem, ConsoleLevel.DEBUG, message);
     }
 
     /** High-volume diagnostics. Build the message only when TRACE is enabled. */
     public static void Trace(Supplier<String> message) {
-        if (isTraceEnabled()) {
-            emit(ConsoleLevel.TRACE, message.get(), true);
+        Trace(null, message);
+    }
+
+    public static void Trace(LogSubsystem subsystem, Supplier<String> message) {
+        if (isTraceEnabled(subsystem)) {
+            write(ConsoleLevel.TRACE, message.get(), true);
         }
     }
 
     public static boolean isTraceEnabled() {
-        return isEnabled(ConsoleLevel.TRACE);
+        return isTraceEnabled(null);
     }
 
-    private static boolean isEnabled(ConsoleLevel level) {
-        if (level == ConsoleLevel.PRINT) {
-            return true;
+    public static boolean isTraceEnabled(LogSubsystem subsystem) {
+        return ConsoleLevel.TRACE == threshold(subsystem);
+    }
+
+    private static ConsoleLevel threshold(LogSubsystem subsystem) {
+        var override = switch (subsystem) {
+            case NETWORK -> Globals.networkLogLevel;
+            case null -> null;
+        };
+        if (override != null) {
+            String value = override.getTypedValue();
+            if (!value.isEmpty()) return ConsoleLevel.valueOf(value);
         }
         var logLevel = Globals.logLevel;
-        ConsoleLevel threshold = logLevel == null ? ConsoleLevel.INFO : logLevel.getTypedValue();
-        return level.compareTo(threshold) <= 0;
+        return logLevel == null ? ConsoleLevel.INFO : logLevel.getTypedValue();
     }
 
-    private static void emit(ConsoleLevel level, String message, boolean endLine) {
-        if (!isEnabled(level)) {
-            return;
+    private static void emit(LogSubsystem subsystem, ConsoleLevel level, String message) {
+        if (level.compareTo(threshold(subsystem)) <= 0) {
+            write(level, message, true);
         }
+    }
+
+    private static void write(ConsoleLevel level, String message, boolean endLine) {
         // Preserve existing line endings and intentional blank lines, including CR-only input.
         if (endLine && !message.endsWith("\n") && !message.endsWith("\r")) {
             message += "\n";

@@ -19,6 +19,8 @@ class ConsoleOutputWidget(
     private val infoColor: Color = Color(skin.getColor("font"))
     private val warningColor: Color = Color(skin.getColor("warning"))
     private val errorColor: Color = Color(skin.getColor("error"))
+    private val debugColor: Color = Color(skin.getColor("fontSecondary"))
+    private val traceColor: Color = Color(skin.getColor("message"))
     private val clipBounds = Rectangle()
     private val scissors = Rectangle()
     private val wrappedLines = mutableListOf<WrappedLine>()
@@ -141,8 +143,9 @@ class ConsoleOutputWidget(
     private fun maxTopLine(): Int = (wrappedLines.size - visibleLineCapacity()).coerceAtLeast(0)
 
     private fun colorFor(severity: Com.ConsoleLevel): Color = when (severity) {
-        // TODO: Give DEBUG its muted skin color when console presentation is migrated.
-        Com.ConsoleLevel.INFO, Com.ConsoleLevel.PRINT, Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE -> infoColor
+        Com.ConsoleLevel.INFO, Com.ConsoleLevel.PRINT -> infoColor
+        Com.ConsoleLevel.DEBUG -> debugColor
+        Com.ConsoleLevel.TRACE -> traceColor
         Com.ConsoleLevel.WARN -> warningColor
         Com.ConsoleLevel.ERROR -> errorColor
     }

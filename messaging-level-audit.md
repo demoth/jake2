@@ -26,7 +26,7 @@ Production sites follow the ownership rules below. PRINT keeps its owner for the
 | CLIENT | 98 | `cake/core` client code, including input, audio, asset loading, demos, profiles and local session state. |
 | COMMON | 98 | `qcommon` code outside the specialized packages|
 
-**Proposed filtering behavior.** With global INFO and a NETWORK override of TRACE, client and server packet diagnostics become visible. Collision counts (273), render batch statistics (130), and generic console command execution (295) still use INFO as their threshold. The network trace around a message loop must use the same subsystem on its enablement guard and its lazy emit. Clearing the override restores inheritance from the current global level.
+**NETWORK pilot.** With global INFO and `set loglevel_network TRACE`, client and server packet diagnostics become visible. Collision counts (273), render batch statistics (130), and generic console command execution (295) still use INFO as their threshold. The packet loop guards and their lazy TRACE calls use the same threshold. `set loglevel_network ""` restores the current global level for network diagnostics.
 
 Start with the owning module or package. Classify the wire-message loop in Cake (052) as NETWORK, its render statistics (130) as RENDER, and its missing-texture fallback (083) as CLIENT. The collision-model loader (229) belongs to COMMON.
 

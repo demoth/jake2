@@ -54,6 +54,8 @@ High-volume engine diagnostics use TRACE. The former logging cvars `showtrace`,
 `r_bsp_batch_debug` have been retired. Use the `loglevel` cvar to control
 diagnostic output. Use `set loglevel DEBUG` for DEBUG output previously enabled
 by `developer 1`. Log verbosity defaults to INFO.
+`set loglevel_network TRACE` sets a process-wide network diagnostic override.
+`set loglevel_network ""` restores the global threshold for network diagnostics.
 
 Building requires JDK 25. JVM desktop distributions require Java 25 or newer;
 `jpackage` application images bundle Java and are built for a particular OS and

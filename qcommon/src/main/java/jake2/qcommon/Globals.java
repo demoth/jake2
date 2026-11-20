@@ -63,6 +63,7 @@ public class Globals extends Defines {
 	public static cvar_t<Boolean> dedicated;
 	public static cvar_t<Boolean> developer;
 	public static cvar_t<Com.ConsoleLevel> logLevel;
+	public static cvar_t<String> networkLogLevel;
 	public static cvar_t<Integer> fixedtime;
 	public static cvar_t<Boolean> host_speeds;
 	public static cvar_t<Float> timescale;

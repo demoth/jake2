@@ -34,9 +34,9 @@ The sink carries level and display text. Consecutive same-level appends coalesce
 until a newline or carriage-return boundary. Debug source attribution and class
 prefixes are deferred; no unused source metadata is retained in scrollback.
 
-Command exceptions are caught and displayed in the console. Severity maps to skin
-colours. PRINT and DEBUG currently use the main text color alongside INFO;
-muted DEBUG presentation and visibility controls are deferred to the console slice.
+Command exceptions are caught and displayed in the console. PRINT and INFO use
+the main text color. DEBUG and TRACE use progressively muted skin colors. WARN
+and ERROR use the warning and error colors.
 `clear` clears scrollback. Mouse-wheel scrolling is attached to the output widget;
 scrolling is line-based, without a `ScrollPane`.
 
@@ -78,6 +78,14 @@ the running process. Gameplay text and command output from `Com.Print` are alway
 enabled. The `developer` cvar continues to control developer features such as
 automation.
 
+The gear beside the command input opens the log levels popover. F4 toggles it,
+Tab moves between selectors, and Escape closes it or dismisses an open selector.
+Changing **All** sets `loglevel` and clears the Network override. The **Network**
+row can select a level or follow the global level. `set loglevel_network TRACE`
+collects network diagnostics while other subsystems keep the global threshold.
+`set loglevel_network ""` clears the override. These cvars apply to new messages
+in the process, including an embedded server. Existing scrollback stays visible.
+
 ## History and Presentation
 
 Submitted commands persist to `$HOME/.cake/<profileId>/console-history.txt`, capped
@@ -85,7 +93,6 @@ to the latest 500 entries and restored on subsequent launches. Commands starting
 with a space execute without being recorded. Profile history storage is wired by
 `Cake`.
 
-Output and input panels use the `console-panel` drawable behind their content in
-Scene2D stacks. Children draw in insertion order, so the background must be added
-first. Panel texture, nine-patch split/pad values, and widget padding all contribute
-to the visible spacing.
+The scrollback and input use translucent `console-panel` and `console-input`
+skin drawables. Their text is drawn at full opacity. Panel texture, nine-patch
+split and padding values, and widget padding all contribute to the visible spacing.

@@ -27,6 +27,7 @@ import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.protocol.PacketEnvelope
 import org.demoth.cake.demo.demoLogicalPath
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.NETWORK
 import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
@@ -365,7 +366,7 @@ class Cake(
             Com.Print("Reconnecting..")
 
             if (networkState == CONNECTED) { // set on "changing" command
-                Com.Debug("Sending 'new' to server")
+                Com.Debug(NETWORK, "Sending 'new' to server")
                 netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
 
             } else {
@@ -410,7 +411,7 @@ class Cake(
             }
             val target = network.resolveAddress(server, PORT_SERVER)
             if (target == null) {
-                Com.Warn("Bad server address")
+                Com.Warn(NETWORK, "Bad server address")
                 return@AddCommand
             }
             if (target is NetworkAddress.Local) {
@@ -434,7 +435,7 @@ class Cake(
         Cmd.AddCommand("rcon", "Send a remote console command (requires rcon_password)") { args ->
             val rconPassword = Cvar.getInstance().find<String>("rcon_password").typedValue
             if (rconPassword.isEmpty()) {
-                Com.Warn("You must set 'rcon_password' before\nissuing an rcon command.")
+                Com.Warn(NETWORK, "You must set 'rcon_password' before\nissuing an rcon command.")
                 return@AddCommand
             }
 
@@ -453,11 +454,11 @@ class Cake(
             } else {
                 val rconAddress = Cvar.getInstance().find<String>("rcon_address").typedValue
                 if (rconAddress.isEmpty()) {
-                    Com.Warn("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands")
+                    Com.Warn(NETWORK, "You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands")
                     return@AddCommand
                 }
                 network.resolveAddress(rconAddress, PORT_SERVER) ?: run {
-                    Com.Warn("Bad rcon_address")
+                    Com.Warn(NETWORK, "Bad rcon_address")
                     return@AddCommand
                 }
             }
@@ -524,7 +525,7 @@ class Cake(
         Cmd.AddCommand("cmd", "(internal) Forward a command to the connected server") {
             if (demoPlayback != null) return@AddCommand
             if (networkState != CONNECTED && networkState != ACTIVE) {
-                Com.Warn("Cannot cmd '${it}', not connected")
+                Com.Warn(NETWORK, "Cannot cmd '${it}', not connected")
             } else {
                 if (it.size > 1)
                     netchan.queueReliable(StringCmdMessage(getArguments(it)))
@@ -703,7 +704,7 @@ class Cake(
         if (!handshake.begin(target)) {
             return
         }
-        Com.Info("Connecting to ${if (local) "local server" else target}...")
+        Com.Info(NETWORK, "Connecting to ${if (local) "local server" else target}...")
         networkState = CONNECTING
     }
 
@@ -727,7 +728,7 @@ class Cake(
         try { playback?.close() } catch (error: IOException) {
             Com.Warn("Could not close demo: ${error.message}")
         }
-        Com.Info("Disconnecting from server...")
+        Com.Info(NETWORK, "Disconnecting from server...")
         if (!wasDemo && (networkState == CONNECTED || networkState == ACTIVE)) {
             transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
         }
@@ -1312,7 +1313,7 @@ class Cake(
             // packet from server
             //
             if (networkPacket.from != netchan.remoteAddress) {
-                Com.Debug(networkPacket.from.toString() + ": sequenced packet without connection")
+                Com.Debug(NETWORK, networkPacket.from.toString() + ": sequenced packet without connection")
                 return@poll
             }
 
@@ -1320,8 +1321,8 @@ class Cake(
                 networkDebugSampler.recordInbound(netchan.lastReceivedSize, Globals.curtime)
                 when (val body = networkPacket.parseBodyFromServer()) {
                     is MessageDecodeResult.Decoded -> {
-                        if (Com.isTraceEnabled()) body.messages.forEach { message ->
-                            Com.Trace { "Network: Received server msg: $message" }
+                        if (Com.isTraceEnabled(NETWORK)) body.messages.forEach { message ->
+                            Com.Trace(NETWORK) { "Network: Received server msg: $message" }
                         }
                         val recording = demoRecording
                         val envelope = networkPacket.sequencedEnvelope()
@@ -1330,7 +1331,7 @@ class Cake(
                         }
                     }
                     is MessageDecodeResult.Rejected -> {
-                        Com.Error("Bad server payload at ${body.offset}: ${body.detail}")
+                        Com.Error(NETWORK, "Bad server payload at ${body.offset}: ${body.detail}")
                         finishSession()
                     }
                 }
@@ -1356,7 +1357,7 @@ class Cake(
         messages.forEach { msg ->
             when (msg) {
                 is DisconnectMessage -> {
-                    Com.Info("Server disconnected")
+                    Com.Info(NETWORK, "Server disconnected")
                     onParsed(snapshotAccepted)
                     finishSession()
                     return
@@ -1366,7 +1367,7 @@ class Cake(
                 // sent on server restart
                 is ReconnectMessage -> {
                     if (demoPlayback != null) return@forEach
-                    Com.Info("ReconnectMessage: Reconnecting..")
+                    Com.Info(NETWORK, "ReconnectMessage: Reconnecting..")
                     beginMapTransitionRetainingConfigAssets()
                     networkState = CONNECTING
                     handshake.restart()
@@ -1375,7 +1376,7 @@ class Cake(
                 is StuffTextMessage -> {
                     val filtered = filterServerStuffText(msg.text, demoPlayback = demoPlayback != null)
                     filtered.rejectedCommands.forEach {
-                        Com.Warn("Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")
+                        Com.Warn(NETWORK, "Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")
                     }
                     if (filtered.acceptedCommands.isNotEmpty()) {
                         Cbuf.AddText(filtered.acceptedCommands.joinToString(separator = "\n", postfix = "\n"))
@@ -1569,7 +1570,7 @@ class Cake(
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
         val c = args.firstOrNull() ?: return
         val cmd = ConnectionlessCommand.fromString(c)
-        Com.Trace { "Received connectionless ${cmd.name} from ${packet.from}" }
+        Com.Trace(NETWORK) { "Received connectionless ${cmd.name} from ${packet.from}" }
         when (cmd) {
             ConnectionlessCommand.challenge -> {
                 handshake.receiveChallenge(packet.from, args.getOrNull(1))
@@ -1580,7 +1581,7 @@ class Cake(
                 networkState = CONNECTED
                 netchan.setup(packet.from, network.qport)
                 netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
-                Com.Info("Connected!")
+                Com.Info(NETWORK, "Connected!")
             }
 
             ConnectionlessCommand.print -> {

@@ -23,6 +23,7 @@
 package jake2.qcommon.network
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.NETWORK
 
 import jake2.qcommon.Defines
 import jake2.qcommon.network.messages.NetworkMessage
@@ -111,7 +112,7 @@ class ConnectionChannel(
     fun transmit(unreliable: Collection<NetworkMessage>?): Boolean {
         if (queuedReliableBytes > Defines.MAX_MSGLEN - 16) {
             fatalError = true
-            Com.Error("$destination:Outgoing message overflow")
+            Com.Error(NETWORK, "$destination:Outgoing message overflow")
             return false
         }
         var staged = false
@@ -138,8 +139,8 @@ class ConnectionChannel(
             }
             if (sent) {
                 idleSinceMillis = channel.lastSentMillis
-                if (transmission.unreliableDropped) Com.Debug("Netchan_Transmit: dumped unreliable")
-                Com.Trace { String.format(
+                if (transmission.unreliableDropped) Com.Debug(NETWORK, "Netchan_Transmit: dumped unreliable")
+                Com.Trace(NETWORK) { String.format(
                     "Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d ",
                     if (role == ChannelRole.CLIENT) "client" else "server", transmission.sequence,
                     channel.incomingSequence, if (transmission.containsReliable) 1 else 0, channel.reliableReceivedFlag) }

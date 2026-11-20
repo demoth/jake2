@@ -1,6 +1,7 @@
 package org.demoth.cake.download
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.NETWORK
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.server.DownloadMessage
 
@@ -48,17 +49,17 @@ class CakeDownloadSession(
                     CakeDownloadRejectReason.ALREADY_QUEUED -> true
                     CakeDownloadRejectReason.DOWNLOADS_DISABLED,
                     CakeDownloadRejectReason.CATEGORY_DISABLED -> {
-                        Com.Warn("Autodownload disabled for missing resource '${path}'")
+                        Com.Warn(NETWORK, "Autodownload disabled for missing resource '${path}'")
                         false
                     }
 
                     CakeDownloadRejectReason.INVALID_PATH -> {
-                        Com.Warn("Refusing to autodownload invalid path '${path}'")
+                        Com.Warn(NETWORK, "Refusing to autodownload invalid path '${path}'")
                         false
                     }
 
                     CakeDownloadRejectReason.UNSUPPORTED_CATEGORY -> {
-                        Com.Warn("No Cake autodownload support yet for '${path}'")
+                        Com.Warn(NETWORK, "No Cake autodownload support yet for '${path}'")
                         false
                     }
                 }
@@ -74,10 +75,10 @@ class CakeDownloadSession(
         val offset = downloadTransfer.begin(request)
         lastDownloadProgressPercent = -1
         if (offset > 0L) {
-            Com.Info("Resuming ${request.logicalPath}")
+            Com.Info(NETWORK, "Resuming ${request.logicalPath}")
             sendReliable("${StringCmdMessage.DOWNLOAD} ${request.logicalPath} $offset")
         } else {
-            Com.Info("Downloading ${request.logicalPath}")
+            Com.Info(NETWORK, "Downloading ${request.logicalPath}")
             sendReliable("${StringCmdMessage.DOWNLOAD} ${request.logicalPath}")
         }
         return true
@@ -85,7 +86,7 @@ class CakeDownloadSession(
 
     fun handle(message: DownloadMessage): Result {
         if (downloadTransfer.activeRequest() == null) {
-            Com.Warn("Received download data without an active request")
+            Com.Warn(NETWORK, "Received download data without an active request")
             return Result.Continue
         }
 
@@ -97,7 +98,7 @@ class CakeDownloadSession(
 
             is CakeDownloadTransferResult.Completed -> {
                 maybeLogDownloadProgress(result.request.logicalPath, 100)
-                Com.Info("Downloaded ${result.request.logicalPath}")
+                Com.Info(NETWORK, "Downloaded ${result.request.logicalPath}")
                 if (!startQueuedDownloadIfIdle()) {
                     pendingPrecacheSpawnCount?.let { spawnCount ->
                         return Result.RetryPrecache(spawnCount)
@@ -106,7 +107,7 @@ class CakeDownloadSession(
             }
 
             is CakeDownloadTransferResult.MissingOnServer -> {
-                Com.Error("Server does not have ${result.request.logicalPath}")
+                Com.Error(NETWORK, "Server does not have ${result.request.logicalPath}")
                 return Result.MissingOnServer
             }
         }
@@ -119,7 +120,7 @@ class CakeDownloadSession(
         }
         val crossedBucket = lastDownloadProgressPercent < 0 || percent / 5 > lastDownloadProgressPercent / 5
         if (crossedBucket || percent == 100) {
-            Com.Info("Downloading ${logicalPath}... ${percent}%")
+            Com.Info(NETWORK, "Downloading ${logicalPath}... ${percent}%")
         }
         lastDownloadProgressPercent = percent
     }

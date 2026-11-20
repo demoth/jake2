@@ -7,6 +7,7 @@ import jake2.qcommon.exec.cvar_t;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Stream;
 
 import static jake2.qcommon.Defines.*;
 
@@ -18,11 +19,14 @@ public class MainCommon {
     private static final CvarTypes.ChoiceType<Com.ConsoleLevel> LOG_LEVEL_TYPE = new CvarTypes.ChoiceType<>(
             List.of(Com.ConsoleLevel.ERROR, Com.ConsoleLevel.WARN, Com.ConsoleLevel.INFO,
                     Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE));
+    private static final CvarTypes.ChoiceType<String> NETWORK_LOG_LEVEL_TYPE = new CvarTypes.ChoiceType<>(
+            Stream.concat(Stream.of(""), LOG_LEVEL_TYPE.getChoices().stream().map(Enum::name)).toList());
 
     /** Process-wide declarations, before config loading or subsystem construction. */
     public static void registerCvars(boolean dedicatedMode) {
         Cvar cvars = Cvar.getInstance();
         Globals.logLevel = registerLogLevel(cvars);
+        Globals.networkLogLevel = registerNetworkLogLevel(cvars);
         Globals.dedicated = cvars.register("dedicated", CvarTypes.BOOLEAN, dedicatedMode, CVAR_NOSET);
         Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer features and automation");
         Globals.host_speeds = cvars.register("host_speeds", CvarTypes.BOOLEAN, false, 0, "Legacy frame timing diagnostics; currently unused");
@@ -39,6 +43,11 @@ public class MainCommon {
 
     public static cvar_t<Com.ConsoleLevel> registerLogLevel(Cvar cvars) {
         return cvars.register("loglevel", LOG_LEVEL_TYPE, Com.ConsoleLevel.INFO, 0, "Diagnostic verbosity: ERROR, WARN, INFO, DEBUG, or TRACE");
+    }
+
+    public static cvar_t<String> registerNetworkLogLevel(Cvar cvars) {
+        return cvars.register("loglevel_network", NETWORK_LOG_LEVEL_TYPE, "", 0,
+                "Network diagnostic verbosity. Empty follows loglevel.");
     }
 
     /** Shared download policy used by both the client and server. */
