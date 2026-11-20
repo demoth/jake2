@@ -219,7 +219,7 @@ public class Lib {
 			return new RandomAccessFile(name, mode);
 		}
 		catch (Exception e) {
-			Com.Debug("Could not open file:" + name);
+			Com.Error("Could not open " + name + ": " + e);
 			return null;
 		}
 	}

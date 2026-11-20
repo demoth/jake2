@@ -70,7 +70,7 @@ object CakeStartupBootstrap {
             Cvar.getInstance().updateLatchedVars()
             Com.Info("Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
-            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
+            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}")
         }
     }
 
@@ -78,7 +78,7 @@ object CakeStartupBootstrap {
         val persistedProfile = try {
             gameProfileStore.readSelected()
         } catch (e: Exception) {
-            Com.Warn("Failed to read persisted Cake game profile: ${e.message}\n")
+            Com.Warn("Failed to read persisted Cake game profile: ${e.message}")
             null
         }
         if (persistedProfile != null) {
@@ -87,14 +87,14 @@ object CakeStartupBootstrap {
 
         val fallbackProfile = autodetectedStartupProfile(autodetectBasedir())
         if (fallbackProfile == null) {
-            Com.Warn("No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.\n")
+            Com.Warn("No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.")
             return null
         }
         if (!Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return fallbackProfile
         return try {
             gameProfileStore.bootstrapDefault(fallbackProfile)
         } catch (e: Exception) {
-            Com.Warn("Failed to bootstrap default Cake profile: ${e.message}\n")
+            Com.Warn("Failed to bootstrap default Cake profile: ${e.message}")
             fallbackProfile
         }
     }

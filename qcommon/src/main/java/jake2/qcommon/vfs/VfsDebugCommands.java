@@ -58,7 +58,7 @@ public final class VfsDebugCommands {
 
     private static void printResolvedFiles(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         List<String> files = provider.resolvedFiles();
@@ -74,7 +74,7 @@ public final class VfsDebugCommands {
 
     private static void findResolvedFiles(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
@@ -107,7 +107,7 @@ public final class VfsDebugCommands {
 
     private static void printMounts(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         List<String> mounts = provider.mounts();
@@ -123,7 +123,7 @@ public final class VfsDebugCommands {
 
     private static void printOverrides(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         List<String> overrides = provider.overrides();
@@ -139,7 +139,7 @@ public final class VfsDebugCommands {
 
     private static void mountPackage(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
@@ -157,7 +157,7 @@ public final class VfsDebugCommands {
 
     private static void unmountPackage(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
@@ -175,7 +175,7 @@ public final class VfsDebugCommands {
 
     private static void rebuild(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Print("VFS debug provider is not initialized.");
+            Com.Warn("VFS debug provider is not initialized.");
             return;
         }
         RebuildScope scope = parseScope(args);

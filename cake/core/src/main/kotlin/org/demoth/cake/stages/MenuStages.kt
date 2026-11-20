@@ -134,7 +134,7 @@ class MenuStages(
         try {
             contentBrowserStage.show(listContentEntries(), profileId, message)
         } catch (error: Exception) {
-            Com.Warn("Could not list profile content: ${error.message}")
+            Com.Error("Could not list profile content: ${error.message}")
             contentBrowserStage.show(emptyList(), profileId, "Could not list profile content.")
         }
     }

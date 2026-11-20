@@ -234,20 +234,20 @@ public final class EngineFilesystemLifecycle {
         }
 
         if (!EngineVfs.isInitialized()) {
-            Com.Print("VFS is not initialized.");
+            Com.Warn("VFS is not initialized.");
             return;
         }
 
         syncVfsCaseSensitivity();
         List<String> matches = EngineVfs.debugFilesMatching(wildcard);
-        Com.Print("Directory of " + wildcard + '\n');
+        Com.Print("Directory of " + wildcard);
         for (String match : matches) {
-            Com.Print("  " + match + '\n');
+            Com.Print("  " + match);
         }
         if (matches.isEmpty()) {
             Com.Print("  <no matches>");
         }
-        Com.Print("\n");
+        Com.Print("");
     }
 
     private static void printPackFiles(List<String> args) {
@@ -257,7 +257,7 @@ public final class EngineFilesystemLifecycle {
         }
 
         if (!EngineVfs.isInitialized()) {
-            Com.Print("VFS is not initialized.");
+            Com.Warn("VFS is not initialized.");
             return;
         }
 
@@ -265,7 +265,7 @@ public final class EngineFilesystemLifecycle {
         String packName = args.get(1);
         VfsResult<List<String>> result = EngineVfs.debugFilesInPack(packName);
         if (!result.success()) {
-            Com.Print(result.error());
+            Com.Warn(result.error());
             return;
         }
 
@@ -282,7 +282,7 @@ public final class EngineFilesystemLifecycle {
 
     private static void printPath() {
         if (!EngineVfs.isInitialized()) {
-            Com.Print("VFS is not initialized.");
+            Com.Warn("VFS is not initialized.");
             return;
         }
 

@@ -296,7 +296,7 @@ public class CM {
 
     /** Loads Submodels. */
     public void CMod_LoadSubmodels(BspLump l) {
-        Com.Debug("CMod_LoadSubmodels()");
+        Com.Trace(() -> "CMod_LoadSubmodels()");
         qfiles.dmodel_t in;
         cmodel_t out;
         int i, j, count;
@@ -311,7 +311,7 @@ public class CM {
         if (count > Defines.MAX_MAP_MODELS)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many models");
 
-        Com.Debug(" numcmodels=" + count);
+        Com.Trace(() -> " numcmodels=" + count);
         numcmodels = count;
 
         for (i = 0; i < count; i++) {
@@ -330,7 +330,7 @@ public class CM {
 
     /** Loads surfaces. */
     public void CMod_LoadSurfaces(BspLump l) {
-        Com.Debug("CMod_LoadSurfaces()");
+        Com.Trace(() -> "CMod_LoadSurfaces()");
         texinfo_t in;
         mapsurface_t out;
         int i, count;
@@ -345,7 +345,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many surfaces");
 
         numtexinfo = count;
-        Com.Debug(" numtexinfo=" + count);
+        Com.Trace(() -> " numtexinfo=" + count);
 
         for (i = 0; i < count; i++) {
             out = map_surfaces[i] = new mapsurface_t();
@@ -361,7 +361,7 @@ public class CM {
 
     /** Loads nodes. */
     public void CMod_LoadNodes(BspLump l) {
-        Com.Debug("CMod_LoadNodes()");
+        Com.Trace(() -> "CMod_LoadNodes()");
         qfiles.dnode_t in;
         int child;
         cnode_t out;
@@ -378,7 +378,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many nodes");
 
         numnodes = count;
-        Com.Debug(" numnodes=" + count);
+        Com.Trace(() -> " numnodes=" + count);
 
 
         for (i = 0; i < count; i++) {
@@ -396,7 +396,7 @@ public class CM {
 
     /** Loads brushes.*/
     public void CMod_LoadBrushes(BspLump l) {
-        Com.Debug("CMod_LoadBrushes()");
+        Com.Trace(() -> "CMod_LoadBrushes()");
         qfiles.dbrush_t in;
         cbrush_t out;
         int i, count;
@@ -410,7 +410,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many brushes");
 
         numbrushes = count;
-        Com.Debug(" numbrushes=" + count);
+        Com.Trace(() -> " numbrushes=" + count);
         for (i = 0; i < count; i++) {
             in = new qfiles.dbrush_t(ByteBuffer.wrap(cmod_base, i
                     * qfiles.dbrush_t.SIZE + l.offset, qfiles.dbrush_t.SIZE));
@@ -423,7 +423,7 @@ public class CM {
 
     /** Loads leafs.   */
     public void CMod_LoadLeafs(BspLump l) {
-        Com.Debug("CMod_LoadLeafs()");
+        Com.Trace(() -> "CMod_LoadLeafs()");
         int i;
         cleaf_t out;
         qfiles.dleaf_t in;
@@ -441,7 +441,7 @@ public class CM {
         if (count > Defines.MAX_MAP_PLANES)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
-        Com.Debug(" numleafes=" + count);
+        Com.Trace(() -> " numleafes=" + count);
 
         numleafs = count;
         numclusters = 0;
@@ -461,7 +461,7 @@ public class CM {
                 numclusters = out.cluster + 1;
         }
 
-        Com.Debug(" numclusters=" + numclusters);
+        Com.Trace(() -> " numclusters=" + numclusters);
 
         if (map_leafs[0].contents != Defines.CONTENTS_SOLID)
             throw failureFactory.apply(Defines.ERR_DROP, "Map leaf 0 is not CONTENTS_SOLID");
@@ -482,7 +482,7 @@ public class CM {
 
     /** Loads planes. */
     public void CMod_LoadPlanes(BspLump l) {
-        Com.Debug("CMod_LoadPlanes()");
+        Com.Trace(() -> "CMod_LoadPlanes()");
         int i, j;
         cplane_t out;
         qfiles.dplane_t in;
@@ -501,7 +501,7 @@ public class CM {
         if (count > Defines.MAX_MAP_PLANES)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many planes");
 
-        Com.Debug(" numplanes=" + count);
+        Com.Trace(() -> " numplanes=" + count);
 
         numplanes = count;
 
@@ -528,14 +528,14 @@ public class CM {
 
     /** Loads leaf brushes. */
     public void CMod_LoadLeafBrushes(BspLump l) {
-        Com.Debug("CMod_LoadLeafBrushes()");
+        Com.Trace(() -> "CMod_LoadLeafBrushes()");
 
         if ((l.length % 2) != 0)
             throw failureFactory.apply(Defines.ERR_DROP, "MOD_LoadBmodel: funny lump size");
 
         int count = l.length / 2;
 
-        Com.Debug(" numbrushes=" + count);
+        Com.Trace(() -> " numbrushes=" + count);
 
         if (count < 1)
             throw failureFactory.apply(Defines.ERR_DROP, "Map with no planes");
@@ -558,7 +558,7 @@ public class CM {
 
     /** Loads brush sides. */
     public void CMod_LoadBrushSides(BspLump l) {
-        Com.Debug("CMod_LoadBrushSides()");
+        Com.Trace(() -> "CMod_LoadBrushSides()");
         int i, j;
         cbrushside_t out;
         qfiles.dbrushside_t in;
@@ -575,7 +575,7 @@ public class CM {
 
         numbrushsides = count;
 
-        Com.Debug(" numbrushsides=" + count);
+        Com.Trace(() -> " numbrushsides=" + count);
 
         for (i = 0; i < count; i++) {
 
@@ -604,7 +604,7 @@ public class CM {
 
     /** Loads areas. */
     public void CMod_LoadAreas(BspLump l) {
-        Com.Debug("CMod_LoadAreas()");
+        Com.Trace(() -> "CMod_LoadAreas()");
         int i;
         carea_t out;
         qfiles.darea_t in;
@@ -618,7 +618,7 @@ public class CM {
         if (count > Defines.MAX_MAP_AREAS)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many areas");
 
-        Com.Debug(" numareas=" + count);
+        Com.Trace(() -> " numareas=" + count);
         numareas = count;
 
 
@@ -637,7 +637,7 @@ public class CM {
 
     /** Loads area portals. */
     public void CMod_LoadAreaPortals(BspLump l) {
-        Com.Debug("CMod_LoadAreaPortals()");
+        Com.Trace(() -> "CMod_LoadAreaPortals()");
         int i;
         qfiles.dareaportal_t out;
         qfiles.dareaportal_t in;
@@ -651,7 +651,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too many areas");
 
         numareaportals = count;
-        Com.Debug(" numareaportals=" + count);
+        Com.Trace(() -> " numareaportals=" + count);
         for (i = 0; i < count; i++) {
             in = new qfiles.dareaportal_t(ByteBuffer.wrap(cmod_base, i
                     * qfiles.dareaportal_t.SIZE + l.offset,
@@ -666,11 +666,11 @@ public class CM {
 
     /** Loads visibility data. */
     public void CMod_LoadVisibility(BspLump l) {
-        Com.Debug("CMod_LoadVisibility()");
+        Com.Trace(() -> "CMod_LoadVisibility()");
 
         numvisibility = l.length;
 
-        Com.Debug(" numvisibility=" + numvisibility);
+        Com.Trace(() -> " numvisibility=" + numvisibility);
 
         if (l.length > Defines.MAX_MAP_VISIBILITY)
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too large visibility lump");
@@ -731,7 +731,7 @@ public class CM {
 
     /** Loads entity strings. */
     public void CMod_LoadEntityString(BspLump l) {
-        Com.Debug("CMod_LoadEntityString()");
+        Com.Trace(() -> "CMod_LoadEntityString()");
 
         numentitychars = l.length;
 
@@ -739,7 +739,7 @@ public class CM {
             throw failureFactory.apply(Defines.ERR_DROP, "Map has too large entity lump");
 
         map_entitystring = Lib.CtoJava(cmod_base, l.offset, l.length).trim();
-        Com.Debug("entitystring=" + map_entitystring.length() +
+        Com.Trace(() -> "entitystring=" + map_entitystring.length() +
                 " bytes, [" + map_entitystring.substring(0, Math.min (
                         map_entitystring.length(), 15)) + "...]" );
     }
@@ -1729,7 +1729,7 @@ public class CM {
                 else
                     os.writeInt(0);
         } catch (Exception e) {
-            Com.Print("ERROR:" + e);
+            Com.Error("Could not write portal state: " + e);
             e.printStackTrace();
         }
     }

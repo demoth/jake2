@@ -159,9 +159,9 @@ public class Monster {
         if (self.st != null && self.st.item != null && self.st.item.length() > 0) {
             self.item = GameItems.FindItemByClassname(self.st.item, gameExports);
             if (self.item == null)
-                Com.Debug("monster_start:" + self.classname + " at "
+                Com.Warn("monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
-                        + self.st.item + "\n");
+                        + self.st.item);
         }
 
         // randomize what frame they start on
@@ -199,7 +199,7 @@ public class Monster {
             if (notcombat && self.combattarget != null)
                 Com.Warn(self.classname + " at "
                         + Lib.vtos(self.s.origin)
-                        + " has target with mixed types\n");
+                        + " has target with mixed types");
             if (fixup)
                 self.target = null;
         }
@@ -228,7 +228,7 @@ public class Monster {
             if (null == self.movetarget) {
                 Com.Warn(self.classname + " can't find target "
                                 + self.target + " at "
-                                + Lib.vtos(self.s.origin) + "\n");
+                                + Lib.vtos(self.s.origin));
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
                 self.monsterinfo.stand.think(self, gameExports);

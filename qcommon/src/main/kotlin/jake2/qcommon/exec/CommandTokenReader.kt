@@ -55,7 +55,7 @@ internal class CommandTokenReader @JvmOverloads constructor(private val text: St
             index++
         }
         if (index - start >= Defines.MAX_TOKEN_CHARS) {
-            Com.Print("Token exceeded ${Defines.MAX_TOKEN_CHARS} chars, discarded.")
+            Com.Warn("Token exceeded ${Defines.MAX_TOKEN_CHARS} chars, discarded.")
             return ""
         }
         return text.substring(start, index)

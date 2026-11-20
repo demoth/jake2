@@ -111,7 +111,7 @@ class ConnectionChannel(
     fun transmit(unreliable: Collection<NetworkMessage>?): Boolean {
         if (queuedReliableBytes > Defines.MAX_MSGLEN - 16) {
             fatalError = true
-            Com.Warn("$destination:Outgoing message overflow")
+            Com.Error("$destination:Outgoing message overflow")
             return false
         }
         var staged = false
@@ -138,9 +138,9 @@ class ConnectionChannel(
             }
             if (sent) {
                 idleSinceMillis = channel.lastSentMillis
-                if (transmission.unreliableDropped) Com.Warn("Netchan_Transmit: dumped unreliable")
+                if (transmission.unreliableDropped) Com.Debug("Netchan_Transmit: dumped unreliable")
                 Com.Trace { String.format(
-                    "Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d \n",
+                    "Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d ",
                     if (role == ChannelRole.CLIENT) "client" else "server", transmission.sequence,
                     channel.incomingSequence, if (transmission.containsReliable) 1 else 0, channel.reliableReceivedFlag) }
             }

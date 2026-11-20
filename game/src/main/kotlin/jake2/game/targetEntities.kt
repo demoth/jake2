@@ -472,7 +472,7 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
         }
         // couldn't find a target
         if (lightRamp.targetLightStyle == -1) {
-            Com.Warn((self.classname + " target " + self.target + " not found at " + Lib.vtos(self.s.origin) + "\n"))
+            Com.Warn(self.classname + " target " + self.target + " not found at " + Lib.vtos(self.s.origin))
             game.freeEntity(self)
             return@registerUse
         }

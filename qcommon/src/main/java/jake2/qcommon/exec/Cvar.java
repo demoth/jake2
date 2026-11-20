@@ -89,7 +89,7 @@ public class Cvar {
                 else if (args.get(3).equals("s"))
                     flags = CVAR_SERVERINFO;
                 else {
-                    Com.Print("flags can only be 'u' or 's'");
+                    Com.Warn("flags can only be 'u' or 's'");
                     return;
                 }
                 reportQueued(Cvar.getInstance().setWithSuggestedFlags(args.get(1), args.get(2), flags));
@@ -155,7 +155,7 @@ public class Cvar {
     /** Unknown-type registered lookup. Early inputs are not entries; missing names warn and return null. */
     public @Nullable cvar_t<?> find(String name) {
         cvar_t<?> var = lookup(name);
-        if (var == null) Com.Warn("Cvar '" + name + "' is not registered\n");
+        if (var == null) Com.Warn("Cvar '" + name + "' is not registered");
         return var;
     }
 
@@ -165,10 +165,10 @@ public class Cvar {
         if (var != null) return var.getRawString();
         EarlyCvarValue early = earlyValues.get(resolveCanonicalName(name));
         if (early != null) {
-            Com.Warn("Reading early value for '" + name + "' before cvar registration\n");
+            Com.Debug("Reading early value for '" + name + "' before cvar registration");
             return early.getText();
         }
-        Com.Warn("Cvar '" + name + "' is not registered\n");
+        Com.Warn("Cvar '" + name + "' is not registered");
         return "";
     }
 
@@ -178,7 +178,7 @@ public class Cvar {
         EarlyCvarValue previous = earlyValues.remove(name);
         earlyValues.put(name, new EarlyCvarValue(text, suggestedFlags != null ? suggestedFlags
                 : previous == null ? null : previous.getSuggestedFlags()));
-        Com.Warn("Cvar '" + name + "' is not registered; storing early input\n");
+        Com.Debug("Cvar '" + name + "' is not registered; storing early input");
         return new CvarSetResult(CvarSetResult.Status.QUEUED, "Awaiting registration of " + name);
     }
 
@@ -221,7 +221,7 @@ public class Cvar {
         boolean usedEarly = earlyValues.containsKey(trimmedAlias);
         cvarAliases.put(trimmedAlias, resolvedCanonicalName);
         if (usedEarly) {
-            Com.Warn("Alias '" + trimmedAlias + "' was used before alias registration\n");
+            Com.Debug("Alias '" + trimmedAlias + "' was used before alias registration");
             Map<String, EarlyCvarValue> routed = new LinkedHashMap<>();
             for (Map.Entry<String, EarlyCvarValue> entry : earlyValues.entrySet()) {
                 String name = resolveCanonicalName(entry.getKey());
@@ -239,7 +239,7 @@ public class Cvar {
                     validateSuggestedFlags(input, target.flags);
                     reportQueued(setResult(resolvedCanonicalName, input.getText()));
                 } catch (IllegalArgumentException e) {
-                    Com.Warn("Rejected early alias input for '" + trimmedAlias + "': " + e.getMessage() + "\n");
+                    Com.Warn("Rejected early alias input for '" + trimmedAlias + "': " + e.getMessage());
                 }
             }
         }
@@ -434,7 +434,7 @@ public class Cvar {
                 validateSuggestedFlags(early, flags);
                 active = var.normalize(early.getText());
             } catch (IllegalArgumentException e) {
-                Com.Warn("Rejected early input for '" + name + "'; using default: " + e.getMessage() + "\n");
+                Com.Warn("Rejected early input for '" + name + "'; using default: " + e.getMessage());
             }
         }
         var.commitActive(active);

@@ -521,7 +521,7 @@ public class GameImportsImpl implements GameImports {
     public void setmodel(ServerEntity ent, String name) {
 
         if (name == null) {
-            Com.Debug( "Error: GameImportsImpl.setmodel: name is null");
+            Com.Warn("GameImportsImpl.setmodel: name is null");
             return;
         }
 
@@ -701,7 +701,7 @@ public class GameImportsImpl implements GameImports {
                             && state == ServerStates.SS_LOADING)
                         Com.Debug("Object touching 3 areas at "
                                 + ent.absmin[0] + " " + ent.absmin[1] + " "
-                                + ent.absmin[2] + "\n");
+                                + ent.absmin[2]);
                     ent.areanum2 = area;
                 } else
                     ent.areanum = area;
@@ -1622,7 +1622,7 @@ public class GameImportsImpl implements GameImports {
             int ix = nextClientEntity % clientEntityStates.length;
             entity_state_t state = clientEntityStates[ix];
             if (ent.s.index != e) {
-                Com.Debug("FIXING ENT.S.NUMBER!!!");
+                Com.Warn("FIXING ENT.S.NUMBER!!!");
                 ent.s.index = e;
             }
 

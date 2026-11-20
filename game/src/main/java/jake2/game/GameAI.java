@@ -287,7 +287,7 @@ public class GameAI {
                 if (self.groundentity != null)
                     if (!M.M_walkmove(self, 0, 0, gameExports))
                         Com.Warn(self.classname + " in solid at "
-                                + Lib.vtos(self.s.origin) + "\n");
+                                + Lib.vtos(self.s.origin));
             }
 
             if (0 == self.yaw_speed)
@@ -312,7 +312,7 @@ public class GameAI {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (!M.M_walkmove(self, 0, 0, gameExports))
                 Com.Warn(self.classname + " in solid at "
-                        + Lib.vtos(self.s.origin) + "\n");
+                        + Lib.vtos(self.s.origin));
 
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;

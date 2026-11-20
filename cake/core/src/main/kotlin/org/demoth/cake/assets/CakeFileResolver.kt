@@ -174,7 +174,7 @@ class CakeFileResolver(
             if (exact.exists()) return exact
             val caseInsensitive = findCaseInsensitive(root, normalized)
             if (caseInsensitive != null && caseInsensitive.exists()) {
-                Com.Warn("Resource $fileName was found with different case")
+                Com.Debug("Resource $fileName was found with different case")
                 return caseInsensitive
             }
         }

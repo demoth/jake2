@@ -760,7 +760,7 @@ public class GameItems {
                     Defines.MASK_SOLID);
             if (tr.startsolid) {
                 Com.Warn("droptofloor: " + ent.classname
-                        + " startsolid at " + Lib.vtos(ent.s.origin) + "\n");
+                        + " startsolid at " + Lib.vtos(ent.s.origin));
                 gameExports.freeEntity(ent);
                 return true;
             }
@@ -1153,7 +1153,7 @@ public class GameItems {
                 ent.spawnflags = 0;
                 Com.Warn("" + ent.classname + " at "
                         + Lib.vtos(ent.s.origin)
-                        + " has invalid spawnflags set\n");
+                        + " has invalid spawnflags set");
             }
         }
     

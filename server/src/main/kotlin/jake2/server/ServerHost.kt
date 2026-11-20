@@ -263,7 +263,7 @@ class ServerHost @JvmOverloads constructor(
         commands.add("listmaps") {
             val bytes = EngineVfs.loadBytes("maps.lst")
             if (bytes == null) {
-                Com.Print("Could not read maps.lst")
+                Com.Error("Could not read maps.lst")
                 return@add
             }
             for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
@@ -619,7 +619,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
     private fun reportTransition(operation: String, result: OperationResult) {
         when (result) {
             OperationResult.Completed -> Unit
-            is OperationResult.Rejected -> Com.Print("$operation rejected: ${result.reason}")
+            is OperationResult.Rejected -> Com.Warn("$operation rejected: ${result.reason}")
             is OperationResult.Failed -> Com.Error("$operation failed: ${result.reason}")
         }
     }
@@ -740,7 +740,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Com.Print("Saving game...")
         when (val result = saveGame(args[1])) {
             OperationResult.Completed -> Com.Print("Done.")
-            is OperationResult.Rejected -> Com.Print("Save rejected: ${result.reason}")
+            is OperationResult.Rejected -> Com.Warn("Save rejected: ${result.reason}")
             is OperationResult.Failed -> Com.Error("Save failed: ${result.reason}")
         }
     }
@@ -1079,13 +1079,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val args = Cmd.TokenizeString(messageLine, false)
 
         if (args.isEmpty()) {
-            Com.Warn("empty connectionless packet: $messageLine")
+            Com.Debug("empty connectionless packet: $messageLine")
             return
         }
 
         val c = args[0]
         val cmd = ConnectionlessCommand.fromString(c)
-        Com.Debug("Received connectionless ${cmd.name} from $from")
+        Com.Trace { "Received connectionless ${cmd.name} from $from" }
 
         when (cmd) {
             ConnectionlessCommand.ping ->                 // SVC_Ping, Just responds with an acknowledgement.
@@ -1117,7 +1117,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
             ConnectionlessCommand.connect -> connectClient(args, from)
             ConnectionlessCommand.rcon -> executeRemoteCommand(args, from)
-            else -> Com.Warn("Unknown ClientConnectionlessCommand: $c")
+            else -> Com.Debug("Unknown ClientConnectionlessCommand: $c")
         }
     }
 
@@ -1227,7 +1227,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
                 // if the checksum fails, ignore the rest of the packet
                 if (!msg.checksumValid) {
-                    Com.Warn("Invalid crc")
+                    Com.Debug("Invalid crc")
                     return
                 }
 
@@ -1395,7 +1395,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Warn("SV_Configstrings_f from different level")
+            Com.Debug("SV_Configstrings_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1434,7 +1434,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Warn("SV_Baselines_f from different level")
+            Com.Debug("SV_Baselines_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1472,7 +1472,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // handle the case of a level changing while a client was connecting
         val spawnCount = if (args.size >= 2) Lib.atoi(args[1]) else 0
         if (spawnCount != gameImports.spawncount) {
-            Com.Warn("SV_Begin_f from different level")
+            Com.Debug("SV_Begin_f from different level")
             sendInitialGameData(gameImports, client)
             return
         }
@@ -1820,7 +1820,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
                 append(cl.netchan.qport.toString().padStart(5))
             })
         }
-        Com.Print("\n")
+        Com.Print("")
     }
 
     private fun say(args: List<String>) {
@@ -1872,13 +1872,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (idOrName.isNotEmpty() && idOrName[0] >= '0' && idOrName[0] <= '9') {
             val id = Lib.atoi(idOrName)
             if (id < 0 || id >= clients.size) {
-                Com.Print("Bad client slot: $id")
+                Com.Warn("Bad client slot: $id")
                 return null
             }
 
             val result = clients[id]
             if (ClientStates.CS_FREE == result.state) {
-                Com.Print("Client $id is not active")
+                Com.Warn("Client $id is not active")
                 return null
             }
             return result
@@ -1892,7 +1892,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
         }
 
-        Com.Print("Userid $idOrName is not on the server")
+        Com.Warn("Userid $idOrName is not on the server")
         return null
     }
 

@@ -271,7 +271,7 @@ class EmbeddedCakeHost(
             try {
                 SavePreviewStore(profileRoot(checkNotNull(activeProfile))).write(destination, previewPng)
             } catch (failure: Exception) {
-                Com.Warn("Saved checkpoint, but preview failed: ${failure.message}\n")
+                Com.Warn("Saved checkpoint, but preview failed: ${failure.message}")
                 return result.copy(warning = "Preview could not be saved.")
             }
         }

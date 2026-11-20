@@ -100,7 +100,7 @@ class WalLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
         parameter: Parameters?
     ): Texture {
         val texture = if (file == null || !file.exists()) {
-            Com.Warn("Missing texture '$fileName'; using engine checkerboard.\n")
+            Com.Warn("Missing texture '$fileName'; using engine checkerboard.")
             createMissingTexture()
         } else {
             val wal = WAL(file.readBytes())
@@ -172,7 +172,7 @@ class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
         parameter: Parameters?
     ): Texture {
         val texture = if (file == null || !file.exists()) {
-            Com.Warn("Missing texture '$fileName'; using engine checkerboard.\n")
+            Com.Warn("Missing texture '$fileName'; using engine checkerboard.")
             createMissingTexture()
         } else {
             Texture(CakeTextureData(fromPCX(PCX(file.readBytes()), parameter?.externalPalette)))

@@ -56,7 +56,9 @@ output is excluded from focus traversal.
   The reporting API takes a message. `Com.Error(code, ...)` still performs
   legacy recovery and must not be confused with the reporting-only overload.
 
-New entry points ensure a terminal newline. Only Print accepts `endLine = false`
+For an ordinary line, write `Com.Warn("Missing texture")`. Com supplies the final
+newline. Keep explicit newlines for multiline text and intentional blank lines.
+Only Print accepts `endLine = false`
 for fragments (`Com.Print("fragment", false)` in Java or Kotlin).
 Existing LF, CRLF, or CR endings and
 intentional blank lines are preserved. Warn no longer inserts a textual `Warn:`

@@ -45,7 +45,7 @@ fun loadHostMaps(profile: CakeGameProfile?): List<HostMap> {
                     ?.get("message")?.replace(Regex("\\s+"), " ")?.trim()?.takeIf(String::isNotEmpty)
             }
         } catch (error: Exception) {
-            Com.Warn("Cannot read map title for '$path': ${error.message}\n")
+            Com.Warn("Cannot read map title for '$path': ${error.message}")
             null
         }
         HostMap(name, title)

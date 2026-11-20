@@ -21,19 +21,19 @@ import java.nio.file.Path
 
 class HostClientAccountingTest {
     @Test
-    fun `connectionless debug output identifies rcon without logging its arguments`() {
+    fun `connectionless trace output identifies rcon without logging its arguments`() {
         val output = mutableListOf<Pair<Com.ConsoleLevel, String>>()
         val sink = Com.ConsoleSink { level, text -> output.add(level to text) }
         val logLevel = Globals.logLevel
         val previousLevel = logLevel.typedValue
-        logLevel.set(Com.ConsoleLevel.DEBUG)
+        logLevel.set(Com.ConsoleLevel.TRACE)
         Com.SetConsoleSink(sink)
         try {
             val from = network.server.localPeer
             network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " test-password status")
             host.readPackets()
 
-            assertTrue(output.contains(Com.ConsoleLevel.DEBUG to "Received connectionless rcon from $from\n"))
+            assertTrue(output.contains(Com.ConsoleLevel.TRACE to "Received connectionless rcon from $from\n"))
             assertTrue(output.none { (_, text) -> "test-password" in text || "status" in text })
         } finally {
             Com.ClearConsoleSink(sink)

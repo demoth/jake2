@@ -453,7 +453,7 @@ public class GameUtil {
             GameAI.HuntTarget(self, gameExports);
             Com.Warn("" + self.classname + "at "
                     + Lib.vtos(self.s.origin) + ", combattarget "
-                    + self.combattarget + " not found\n");
+                    + self.combattarget + " not found");
             return;
         }
 

@@ -37,7 +37,7 @@ internal class SceneFrameBuffer private constructor(
             val maxSamples = if (Gdx.graphics.isGL31Available) integer(GL30.GL_MAX_SAMPLES) else 0
             val samples = requestedSamples.coerceAtMost(maxSamples).coerceAtLeast(0)
             if (samples != requestedSamples) {
-                Com.Warn("Scene MSAA requested $requestedSamples samples; maximum supported here is $maxSamples\n")
+                Com.Warn("Scene MSAA requested $requestedSamples samples; maximum supported here is $maxSamples")
             }
             // Prefer keeping requested precision while reducing MSAA, then fall back to depth24/16.
             val candidates = listOf(requestedDepth to samples, requestedDepth to 0, 24 to 0, 16 to 0).distinct()
@@ -68,14 +68,14 @@ internal class SceneFrameBuffer private constructor(
                     } else 0
                     val result = SceneFrameBuffer(resolved, multisampled, actualDepth, actualSamples)
                     if (actualDepth != requestedDepth || actualSamples != requestedSamples) {
-                        Com.Warn("Scene buffer: ${result.description} (requested depth=$requestedDepth samples=$requestedSamples)\n")
+                        Com.Warn("Scene buffer: ${result.description} (requested depth=$requestedDepth samples=$requestedSamples)")
                     }
                     return result
                 } catch (failure: Exception) {
                     multisampled?.dispose()
                     resolved?.dispose()
                     lastFailure = failure
-                    Com.Warn("Scene buffer depth=$depth samples=$count unavailable: ${failure.message}\n")
+                    Com.Debug("Scene buffer depth=$depth samples=$count unavailable: ${failure.message}")
                 }
             }
             throw IllegalStateException("No supported scene framebuffer configuration", lastFailure)

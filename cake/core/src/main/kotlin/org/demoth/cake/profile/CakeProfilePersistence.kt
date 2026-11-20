@@ -50,7 +50,7 @@ class CakeProfilePersistence(
             Cvar.getInstance().updateLatchedVars()
             Com.Info("Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
-            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
+            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}")
         }
     }
 
@@ -60,7 +60,7 @@ class CakeProfilePersistence(
         try {
             saveConfigOrThrow()
         } catch (e: Exception) {
-            Com.Warn("Failed to save Cake profile config for '$profileId': ${e.message}\n")
+            Com.Error("Failed to save Cake profile config for '$profileId': ${e.message}")
         }
     }
 
@@ -76,7 +76,7 @@ class CakeProfilePersistence(
         return try {
             consoleHistoryStore.readHistory(profileId)
         } catch (e: Exception) {
-            Com.Warn("Failed to load console history for '$profileId': ${e.message}\n")
+            Com.Warn("Failed to load console history for '$profileId': ${e.message}")
             emptyList()
         }
     }
@@ -87,7 +87,7 @@ class CakeProfilePersistence(
         try {
             consoleHistoryStore.writeHistory(profileId, commands)
         } catch (e: Exception) {
-            Com.Warn("Failed to save console history for '$profileId': ${e.message}\n")
+            Com.Warn("Failed to save console history for '$profileId': ${e.message}")
         }
     }
 }

@@ -48,17 +48,17 @@ class CakeDownloadSession(
                     CakeDownloadRejectReason.ALREADY_QUEUED -> true
                     CakeDownloadRejectReason.DOWNLOADS_DISABLED,
                     CakeDownloadRejectReason.CATEGORY_DISABLED -> {
-                        Com.Warn("Autodownload disabled for missing resource '${path}'\n")
+                        Com.Warn("Autodownload disabled for missing resource '${path}'")
                         false
                     }
 
                     CakeDownloadRejectReason.INVALID_PATH -> {
-                        Com.Warn("Refusing to autodownload invalid path '${path}'\n")
+                        Com.Warn("Refusing to autodownload invalid path '${path}'")
                         false
                     }
 
                     CakeDownloadRejectReason.UNSUPPORTED_CATEGORY -> {
-                        Com.Warn("No Cake autodownload support yet for '${path}'\n")
+                        Com.Warn("No Cake autodownload support yet for '${path}'")
                         false
                     }
                 }
@@ -85,7 +85,7 @@ class CakeDownloadSession(
 
     fun handle(message: DownloadMessage): Result {
         if (downloadTransfer.activeRequest() == null) {
-            Com.Warn("Received download data without an active request\n")
+            Com.Warn("Received download data without an active request")
             return Result.Continue
         }
 
@@ -106,7 +106,7 @@ class CakeDownloadSession(
             }
 
             is CakeDownloadTransferResult.MissingOnServer -> {
-                Com.Warn("Server does not have ${result.request.logicalPath}\n")
+                Com.Error("Server does not have ${result.request.logicalPath}")
                 return Result.MissingOnServer
             }
         }

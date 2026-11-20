@@ -673,8 +673,8 @@ public class GameSpawn {
                         | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
             if (spawned) {
-                Com.Debug("spawning ent[" + ent.index + "], classname=" +
-                        ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags) + "\n");
+                Com.Trace(() -> "spawning ent[" + ent.index + "], classname=" +
+                        ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
                 ED_CallSpawn(ent, gameExports);
             } else {
                 gameExports.freeEntity(ent);

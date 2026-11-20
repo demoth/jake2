@@ -42,9 +42,9 @@ public final class Cmd {
 
         for (cmd_function_t cmd : Cmd.cmd_functions.values()) {
             if (cmd.description != null && !cmd.description.isBlank()) {
-                Com.Print(cmd.name + " - " + cmd.description + '\n');
+                Com.Print(cmd.name + " - " + cmd.description);
             } else {
-                Com.Print(cmd.name + '\n');
+                Com.Print(cmd.name);
             }
         }
 
@@ -144,7 +144,7 @@ public final class Cmd {
 
         if (text.length() >= Defines.MAX_STRING_CHARS) {
             Com.Warn("Line exceeded " + Defines.MAX_STRING_CHARS
-                    + " chars, discarded.\n");
+                    + " chars, discarded.");
             return null;
         }
 
@@ -173,7 +173,7 @@ public final class Cmd {
 
             if (result.length() >= Defines.MAX_STRING_CHARS) {
                 Com.Warn("Expanded line exceeded " + Defines.MAX_STRING_CHARS
-                        + " chars, discarded.\n");
+                        + " chars, discarded.");
                 return null;
             }
 

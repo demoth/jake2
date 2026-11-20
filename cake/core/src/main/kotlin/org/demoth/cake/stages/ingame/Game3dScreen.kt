@@ -306,7 +306,7 @@ class Game3dScreen(
                 flip(false, true)
             }
         } catch (e: Exception) {
-            Com.Warn("Failed to initialize scene framebuffer, falling back to direct render: ${e.message}\n")
+            Com.Warn("Failed to initialize scene framebuffer, falling back to direct render: ${e.message}")
             sceneFrameBuffer = null
             sceneFrameRegion = null
         }
