@@ -2,6 +2,7 @@ package org.demoth.cake.fullgame
 
 import jake2.qcommon.Defines
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.SERVER
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
@@ -271,7 +272,7 @@ class EmbeddedCakeHost(
             try {
                 SavePreviewStore(profileRoot(checkNotNull(activeProfile))).write(destination, previewPng)
             } catch (failure: Exception) {
-                Com.Warn("Saved checkpoint, but preview failed: ${failure.message}")
+                Com.Warn(SERVER, "Saved checkpoint, but preview failed: ${failure.message}")
                 return result.copy(warning = "Preview could not be saved.")
             }
         }

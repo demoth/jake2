@@ -29,6 +29,7 @@ import jake2.game.items.GameItem;
 import jake2.game.items.GameItems;
 import jake2.game.monsters.*;
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.qcommon.Defines;
 import jake2.qcommon.EntityParserKt;
 import jake2.qcommon.ServerEntity;
@@ -569,7 +570,7 @@ public class GameSpawn {
     private static void ED_ParseField(String key, String value, GameEntity ent, GameExportsImpl gameExports) {
         if (!ent.st.set(key, value))
             if (!ent.setField(key, value))
-                Com.Warn("??? The key [" + key + "] is not a field");
+                Com.Warn(GAME, "??? The key [" + key + "] is not a field");
 
     }
 
@@ -673,7 +674,7 @@ public class GameSpawn {
                         | GameDefines.SPAWNFLAG_NOT_DEATHMATCH);
             }
             if (spawned) {
-                Com.Trace(() -> "spawning ent[" + ent.index + "], classname=" +
+                Com.Trace(GAME, () -> "spawning ent[" + ent.index + "], classname=" +
                         ent.classname + ", flags= " + Integer.toHexString(ent.spawnflags));
                 ED_CallSpawn(ent, gameExports);
             } else {
@@ -681,7 +682,7 @@ public class GameSpawn {
             }
         });
 
-        Com.Info("player skill level:" + skill);
+        Com.Info(GAME, "player skill level:" + skill);
         G_FindTeams(gameExports);
         gameExports.playerTrail.Init();
     }
@@ -692,7 +693,7 @@ public class GameSpawn {
     public static void ED_CallSpawn(GameEntity ent, GameExportsImpl gameExports) {
 
         if (null == ent.classname) {
-            Com.Warn("ED_CallSpawn: null classname");
+            Com.Warn(GAME, "ED_CallSpawn: null classname");
             return;
         }
 
@@ -711,7 +712,7 @@ public class GameSpawn {
             spawn.spawn(ent, gameExports);
             ent.st = null;
         } else {
-            Com.Warn(ent.classname + " doesn't have a spawn function");
+            Com.Warn(GAME, ent.classname + " doesn't have a spawn function");
         }
     }
 

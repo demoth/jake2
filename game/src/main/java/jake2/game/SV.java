@@ -30,6 +30,7 @@ import jake2.qcommon.exec.cvar_t;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 
 /**
  * SV
@@ -989,7 +990,7 @@ final class SV {
 
         //FIXME: how did we get here with no enemy
         if (enemy == null) {
-            Com.Warn("SV_NewChaseDir without enemy!");
+            Com.Warn(GAME, "SV_NewChaseDir without enemy!");
             return;
         }
         olddir = Math3D.anglemod((int) (actor.ideal_yaw / 45) * 45);

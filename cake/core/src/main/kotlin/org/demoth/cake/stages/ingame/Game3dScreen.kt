@@ -27,6 +27,8 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.CM
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
+import jake2.qcommon.Com.LogSubsystem.RENDER
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cvar
@@ -306,7 +308,7 @@ class Game3dScreen(
                 flip(false, true)
             }
         } catch (e: Exception) {
-            Com.Warn("Failed to initialize scene framebuffer, falling back to direct render: ${e.message}")
+            Com.Warn(RENDER, "Failed to initialize scene framebuffer, falling back to direct render: ${e.message}")
             sceneFrameBuffer = null
             sceneFrameRegion = null
         }
@@ -503,7 +505,7 @@ class Game3dScreen(
     }
 
     private fun logBatchDiagnostics(frameDiagnostics: WorldPresentationRenderer.WorldFrameDiagnostics) {
-        if (!Com.isTraceEnabled()) {
+        if (!Com.isTraceEnabled(RENDER)) {
             lastBatchDebugLogTimeMs = Int.MIN_VALUE
             return
         }
@@ -516,7 +518,7 @@ class Game3dScreen(
         val opaqueWorldStats = worldBatchRenderer?.lastOpaqueStats
         val translucentWorldStats = worldBatchRenderer?.lastTranslucentStats
         val particleStats = effectsSystem.debugParticleRenderStats()
-        Com.Trace {
+        Com.Trace(RENDER) {
             "bsp_batch_debug t=${frameDiagnostics.currentTimeMs} " +
                 "worldOpaque(vis=${opaqueWorldStats?.visibleSurfaceCount ?: 0},grp=${opaqueWorldStats?.groupedSurfaceCount ?: 0},dc=${opaqueWorldStats?.drawCalls ?: 0}) " +
                 "worldTrans(vis=${translucentWorldStats?.visibleSurfaceCount ?: 0},grp=${translucentWorldStats?.groupedSurfaceCount ?: 0},dc=${translucentWorldStats?.drawCalls ?: 0}) " +
@@ -769,7 +771,7 @@ class Game3dScreen(
      */
     fun precache() {
         if (precached) {
-            Com.Warn("precache called for an already-precached Game3dScreen")
+            Com.Warn(CLIENT, "precache called for an already-precached Game3dScreen")
             return
         }
         prediction.reset()

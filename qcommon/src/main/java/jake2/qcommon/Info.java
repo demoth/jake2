@@ -26,6 +26,7 @@ package jake2.qcommon;
 
 import java.util.Set;
 import java.util.StringTokenizer;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 
 public class Info {
 
@@ -40,7 +41,7 @@ public class Info {
             String key1 = tk.nextToken();
 
             if (!tk.hasMoreTokens()) {
-                Com.Warn("MISSING VALUE for key: " + key1 +""); // fixme: returns the input string when required key is not found
+                Com.Warn(COMMON, "MISSING VALUE for key: " + key1 +""); // fixme: returns the input string when required key is not found
                 return s;
             }
             String value1 = tk.nextToken();
@@ -61,30 +62,30 @@ public class Info {
             return info;
 
         if (key.indexOf('\\') != -1 || value.indexOf('\\') != -1) {
-            Com.Warn("Can't use keys or values with a \\");
+            Com.Warn(COMMON, "Can't use keys or values with a \\");
             return info;
         }
 
         if (key.indexOf(';') != -1) {
-            Com.Warn("Can't use keys or values with a semicolon");
+            Com.Warn(COMMON, "Can't use keys or values with a semicolon");
             return info;
         }
 
         if (key.indexOf('"') != -1 || value.indexOf('"') != -1) {
-            Com.Warn("Can't use keys or values with a \"");
+            Com.Warn(COMMON, "Can't use keys or values with a \"");
             return info;
         }
 
         if (key.length() > Defines.MAX_INFO_KEY - 1
                 || value.length() > Defines.MAX_INFO_KEY - 1) {
-            Com.Warn("Keys and values must be < 64 characters.");
+            Com.Warn(COMMON, "Keys and values must be < 64 characters.");
             return info;
         }
 
         StringBuilder sb = new StringBuilder(Info_RemoveKey(info, key));
 
         if (sb.length() + 2 + key.length() + value.length() > Defines.MAX_INFO_STRING) {
-            Com.Warn("Info string length exceeded");
+            Com.Warn(COMMON, "Info string length exceeded");
             return info;
         }
 
@@ -101,7 +102,7 @@ public class Info {
         StringBuffer sb = new StringBuffer(512);
 
         if (key.indexOf('\\') != -1) {
-            Com.Warn("Can't use a key with a \\");
+            Com.Warn(COMMON, "Can't use a key with a \\");
             return s;
         }
 
@@ -111,7 +112,7 @@ public class Info {
             String key1 = tk.nextToken();
 
             if (!tk.hasMoreTokens()) {
-                Com.Warn("cannot remove key: MISSING VALUE for key: " + key1 +"");
+                Com.Warn(COMMON, "cannot remove key: MISSING VALUE for key: " + key1 +"");
                 return s;
             }
             String value1 = tk.nextToken();
@@ -144,7 +145,7 @@ public class Info {
             String key1 = tk.nextToken();
 
             if (!tk.hasMoreTokens()) {
-                Com.Warn("cannot print: MISSING VALUE for key: " + key1 +"");
+                Com.Warn(COMMON, "cannot print: MISSING VALUE for key: " + key1 +"");
                 return;
             }
 

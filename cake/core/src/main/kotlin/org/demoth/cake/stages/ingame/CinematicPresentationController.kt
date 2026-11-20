@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
+import jake2.qcommon.Com.LogSubsystem.RENDER
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import ktx.graphics.use
 import org.demoth.cake.config.GameConfiguration
@@ -57,7 +59,7 @@ class CinematicPresentationController(
         } catch (error: Exception) {
             releaseMedia()
             autoAdvancePending = true
-            Com.Error("Cinematic stream failed: ${error.message}")
+            Com.Error(CLIENT, "Cinematic stream failed: ${error.message}")
         }
         renderStaticImage(spriteBatch, screenWidth, screenHeight)
     }
@@ -105,7 +107,7 @@ class CinematicPresentationController(
         }
         val imagePath = resolvePicturePath(cinematicName)
         if (assetManager.fileHandleResolver.tryResolveRaw(imagePath) == null) {
-            Com.Error("Cinematic image not found: $imagePath")
+            Com.Error(CLIENT, "Cinematic image not found: $imagePath")
             return
         }
         staticImage = gameConfig.acquireAsset<Texture>(imagePath)
@@ -115,7 +117,7 @@ class CinematicPresentationController(
         val streamPath = resolveStreamPath(cinematicName)
         val streamHandle = assetManager.fileHandleResolver.tryResolveRaw(streamPath)
         if (streamHandle == null || !streamHandle.exists()) {
-            Com.Error("Cinematic stream not found: $streamPath")
+            Com.Error(CLIENT, "Cinematic stream not found: $streamPath")
             autoAdvancePending = true
             return
         }
@@ -153,7 +155,7 @@ class CinematicPresentationController(
             )
         } catch (ex: Exception) {
             releaseMedia()
-            Com.Error("Failed to open cinematic stream $streamPath: ${ex.message}")
+            Com.Error(CLIENT, "Failed to open cinematic stream $streamPath: ${ex.message}")
             autoAdvancePending = true
         }
     }
@@ -223,7 +225,7 @@ class CinematicPresentationController(
         palette: IntArray,
     ): Boolean {
         if (indexedFrame.size < width * height) {
-            Com.Error("Cinematic frame is truncated (${indexedFrame.size} < ${width * height})")
+            Com.Error(RENDER, "Cinematic frame is truncated (${indexedFrame.size} < ${width * height})")
             return false
         }
         val pixmap = ensureFramePixmap(width, height)
@@ -287,7 +289,7 @@ class CinematicPresentationController(
             }
 
             else -> {
-                Com.Warn("Unsupported cinematic audio sample width: $sampleWidth")
+                Com.Warn(CLIENT, "Unsupported cinematic audio sample width: $sampleWidth")
             }
         }
     }
@@ -299,7 +301,7 @@ class CinematicPresentationController(
             return
         }
         if (decoder.sampleChannels !in 1..2) {
-            Com.Warn("Unsupported cinematic audio channels: ${decoder.sampleChannels}")
+            Com.Warn(CLIENT, "Unsupported cinematic audio channels: ${decoder.sampleChannels}")
             return
         }
         audioDevice = Gdx.audio.newAudioDevice(decoder.sampleRate, decoder.sampleChannels == 1)

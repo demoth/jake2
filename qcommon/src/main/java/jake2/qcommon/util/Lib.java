@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon.util;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 
@@ -193,7 +194,7 @@ public class Lib {
 	/** Logs a vector when developer diagnostics are enabled. */
 	public static void printv(String in, float arr[]) {
 		for (int n = 0; n < arr.length; n++) {
-			Com.Debug(in + "[" + n + "]: " + arr[n]);
+			Com.Debug(COMMON, in + "[" + n + "]: " + arr[n]);
 		}
 	}
 	
@@ -219,7 +220,7 @@ public class Lib {
 			return new RandomAccessFile(name, mode);
 		}
 		catch (Exception e) {
-			Com.Error("Could not open " + name + ": " + e);
+			Com.Error(COMMON, "Could not open " + name + ": " + e);
 			return null;
 		}
 	}

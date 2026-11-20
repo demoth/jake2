@@ -1,6 +1,7 @@
 package jake2.game
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
@@ -48,7 +49,7 @@ fun triggerOnce(self: GameEntity, game: GameExportsImpl) {
         self.setSpawnFlag(TRIGGERED)
         val v = floatArrayOf(0f, 0f, 0f)
         Math3D.VectorMA(self.mins, 0.5f, self.size, v)
-        Com.Debug("fixed TRIGGERED flag on ${self.classname} at ${Lib.vtos(v)}")
+        Com.Debug(GAME, "fixed TRIGGERED flag on ${self.classname} at ${Lib.vtos(v)}")
     }
     self.wait = -1f
     triggerMultiple(self, game)
@@ -219,18 +220,18 @@ private val triggerRelayUse = registerUse("trigger_relay_use") { self: GameEntit
  */
 fun triggerKey(self: GameEntity, game: GameExportsImpl) {
     if (self.st.item == null) {
-        Com.Warn("no key item for trigger_key at ${Lib.vtos(self.s.origin)}")
+        Com.Warn(GAME, "no key item for trigger_key at ${Lib.vtos(self.s.origin)}")
         return
     }
     self.item = GameItems.FindItemByClassname(self.st.item, game)
 
     if (self.item == null) {
-        Com.Warn("item ${self.st.item} not found for trigger_key at ${Lib.vtos(self.s.origin)}")
+        Com.Warn(GAME, "item ${self.st.item} not found for trigger_key at ${Lib.vtos(self.s.origin)}")
         return
     }
 
     if (self.target == null) {
-        Com.Warn("${self.classname} at ${Lib.vtos(self.s.origin)} has no target")
+        Com.Warn(GAME, "${self.classname} at ${Lib.vtos(self.s.origin)} has no target")
         return
     }
 
@@ -351,7 +352,7 @@ private val triggerPushTouch = registerTouch("trigger_push_touch") { self, other
  */
 fun triggerGravity(self: GameEntity, game: GameExportsImpl) {
     if (self.st.gravity == null) {
-        Com.Warn("trigger_gravity without gravity set at ${Lib.vtos(self.s.origin)}")
+        Com.Warn(GAME, "trigger_gravity without gravity set at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }

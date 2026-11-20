@@ -50,7 +50,13 @@ public final class Com
     }
 
     public enum LogSubsystem {
-        NETWORK
+        CLIENT,
+        COMMON,
+        FILESYSTEM,
+        GAME,
+        NETWORK,
+        RENDER,
+        SERVER
     }
 
     @FunctionalInterface
@@ -125,10 +131,7 @@ public final class Com
     }
 
     private static ConsoleLevel threshold(LogSubsystem subsystem) {
-        var override = switch (subsystem) {
-            case NETWORK -> Globals.networkLogLevel;
-            case null -> null;
-        };
+        var override = subsystem == null ? null : Globals.logLevelOverrides.get(subsystem);
         if (override != null) {
             String value = override.getTypedValue();
             if (!value.isEmpty()) return ConsoleLevel.valueOf(value);

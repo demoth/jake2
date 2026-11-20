@@ -27,6 +27,7 @@ package jake2.qcommon.sys;
 
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 
@@ -159,7 +160,7 @@ public final class Sys extends Defines {
             try {
                 Pattern.compile(regexpr);
             } catch (PatternSyntaxException e) {
-                Com.Warn("invalid file pattern ( *.* is used instead )");
+                Com.Warn(COMMON, "invalid file pattern ( *.* is used instead )");
                 return ".*"; // the default
             }
             return regexpr;

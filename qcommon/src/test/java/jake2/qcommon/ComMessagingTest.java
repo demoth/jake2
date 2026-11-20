@@ -13,6 +13,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -162,11 +163,12 @@ class ComMessagingTest {
     }
 
     @Test
-    void consoleNetworkOverrideFiltersIndependentlyUntilCleared() {
-        var previousOverride = Globals.networkLogLevel;
-        var network = MainCommon.registerNetworkLogLevel(Cvar.getInstance());
+    void consoleSubsystemOverridesFilterIndependentlyUntilCleared() {
+        var previousOverrides = Globals.logLevelOverrides;
+        var overrides = MainCommon.registerLogLevelOverrides(Cvar.getInstance());
+        var network = overrides.get(Com.LogSubsystem.NETWORK);
         var previousValue = network.getTypedValue();
-        Globals.networkLogLevel = network;
+        Globals.logLevelOverrides = overrides;
         var subsystem = Com.LogSubsystem.NETWORK;
         try {
             Cvar.Init();
@@ -187,6 +189,22 @@ class ComMessagingTest {
             assertFalse(Com.isTraceEnabled(subsystem));
             Com.Trace(subsystem, () -> fail("Network now follows global INFO"));
 
+            for (var selected : Com.LogSubsystem.values()) {
+                var override = overrides.get(selected);
+                var previous = override.getTypedValue();
+                try {
+                    assertEquals("loglevel_" + selected.name().toLowerCase(Locale.ROOT), override.name);
+                    Cmd.ExecuteString("set " + override.name + " TRACE");
+                    for (var candidate : Com.LogSubsystem.values()) {
+                        assertEquals(candidate == selected, Com.isTraceEnabled(candidate), candidate.name());
+                    }
+                    Cmd.ExecuteString("set " + override.name + " \"\"");
+                    assertFalse(Com.isTraceEnabled(selected));
+                } finally {
+                    override.set(previous);
+                }
+            }
+
             Globals.logLevel.set(Com.ConsoleLevel.TRACE);
             assertTrue(Com.isTraceEnabled(subsystem));
             Cmd.ExecuteString("set loglevel_network ERROR");
@@ -198,7 +216,7 @@ class ComMessagingTest {
                     new Message(Com.ConsoleLevel.PRINT, "player message\n")), messages);
         } finally {
             network.set(previousValue);
-            Globals.networkLogLevel = previousOverride;
+            Globals.logLevelOverrides = previousOverrides;
         }
     }
 

@@ -1,6 +1,7 @@
 package jake2.game.func
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.GameBase
 import jake2.game.GameCombat
 import jake2.game.GameDefines
@@ -68,7 +69,7 @@ fun funcTrain(self: GameEntity, game: GameExportsImpl) {
         self.think.nextTime = game.level.time + Defines.FRAMETIME
         self.think.action = trainFindTarget
     } else {
-        Com.Warn("func_train without a target at ${Lib.vtos(self.absmin)}")
+        Com.Warn(GAME, "func_train without a target at ${Lib.vtos(self.absmin)}")
     }
 }
 
@@ -119,12 +120,12 @@ private val trainUse = registerUse("train_use") { self, other, activator, game -
 
 private val trainFindTarget = registerThink("func_train_find") { self, game ->
     if (self.target == null) {
-        Com.Warn("train_find: no target")
+        Com.Warn(GAME, "train_find: no target")
         return@registerThink true
     }
     val ent = GameBase.G_PickTarget(self.target, game)
     if (ent == null) {
-        Com.Warn("train_find: target ${self.target} not found")
+        Com.Warn(GAME, "train_find: target ${self.target} not found")
         return@registerThink true
     }
     self.target = ent.target
@@ -161,7 +162,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
         }
         ent = GameBase.G_PickTarget(self.target, game)
         if (ent == null) {
-            Com.Warn("train_next: bad target " + self.target)
+            Com.Warn(GAME, "train_next: bad target " + self.target)
             return@registerThink true
         }
         self.target = ent.target
@@ -169,7 +170,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
         // check for a teleport path_corner
         if (ent.hasSpawnFlag(TRAIN_START_ON)) {
             if (!first) {
-                Com.Warn("connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin))
+                Com.Warn(GAME, "connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin))
                 return@registerThink true
             }
             first = false
@@ -277,16 +278,16 @@ fun triggerElevator(self: GameEntity, game: GameExportsImpl) {
 
 private val triggerElevatorCheckTargets = registerThink("trigger_elevator_init") { self, game ->
     if (self.target == null) {
-        Com.Warn("trigger_elevator has no target")
+        Com.Warn(GAME, "trigger_elevator has no target")
         return@registerThink true
     }
     self.movetarget = GameBase.G_PickTarget(self.target, game)
     if (self.movetarget == null) {
-        Com.Warn("trigger_elevator unable to find target ${self.target}")
+        Com.Warn(GAME, "trigger_elevator unable to find target ${self.target}")
         return@registerThink true
     }
     if ("func_train" != self.movetarget.classname) {
-        Com.Warn("trigger_elevator target ${self.target} is not a train")
+        Com.Warn(GAME, "trigger_elevator target ${self.target} is not a train")
         return@registerThink true
     }
 
@@ -302,13 +303,13 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
     }
 
     if (other?.pathtarget == null) {
-        Com.Warn("elevator used with no pathtarget")
+        Com.Warn(GAME, "elevator used with no pathtarget")
         return@registerUse
     }
 
     val target = GameBase.G_PickTarget(other.pathtarget, game)
     if (target == null) {
-        Com.Warn("elevator used with bad pathtarget: ${other.pathtarget}")
+        Com.Warn(GAME, "elevator used with bad pathtarget: ${other.pathtarget}")
         return@registerUse
     }
 
@@ -332,7 +333,7 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
  */
 fun miscFlyingShip(self: GameEntity, game: GameExportsImpl, model: String) {
     if (self.target == null) {
-        Com.Warn("${self.classname} without a target at ${Lib.vtos(self.absmin)}")
+        Com.Warn(GAME, "${self.classname} without a target at ${Lib.vtos(self.absmin)}")
         game.freeEntity(self)
         return
     }

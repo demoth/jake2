@@ -1,6 +1,7 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.FILESYSTEM;
 import jake2.qcommon.exec.Cmd;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public final class VfsDebugCommands {
 
     private static void printResolvedFiles(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         List<String> files = provider.resolvedFiles();
@@ -74,7 +75,7 @@ public final class VfsDebugCommands {
 
     private static void findResolvedFiles(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
@@ -87,7 +88,7 @@ public final class VfsDebugCommands {
         try {
             pattern = Pattern.compile(regex);
         } catch (PatternSyntaxException e) {
-            Com.Warn("Invalid regex for fs_find: " + e.getDescription());
+            Com.Warn(FILESYSTEM, "Invalid regex for fs_find: " + e.getDescription());
             return;
         }
 
@@ -107,7 +108,7 @@ public final class VfsDebugCommands {
 
     private static void printMounts(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         List<String> mounts = provider.mounts();
@@ -123,7 +124,7 @@ public final class VfsDebugCommands {
 
     private static void printOverrides(Provider provider) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         List<String> overrides = provider.overrides();
@@ -139,7 +140,7 @@ public final class VfsDebugCommands {
 
     private static void mountPackage(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
@@ -149,7 +150,7 @@ public final class VfsDebugCommands {
         String packagePath = args.get(1);
         VfsResult<String> result = provider.mountPackage(packagePath);
         if (!result.success()) {
-            Com.Warn("fs_mount failed: " + result.error());
+            Com.Warn(FILESYSTEM, "fs_mount failed: " + result.error());
             return;
         }
         Com.Print("Mounted package: " + packagePath + " (id=" + result.value() + ")");
@@ -157,7 +158,7 @@ public final class VfsDebugCommands {
 
     private static void unmountPackage(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         if (args.size() < 2) {
@@ -167,7 +168,7 @@ public final class VfsDebugCommands {
         String mountId = args.get(1);
         VfsResult<Void> result = provider.unmountPackage(mountId);
         if (!result.success()) {
-            Com.Warn("fs_unmount failed: " + result.error());
+            Com.Warn(FILESYSTEM, "fs_unmount failed: " + result.error());
             return;
         }
         Com.Print("Unmounted package id=" + mountId);
@@ -175,7 +176,7 @@ public final class VfsDebugCommands {
 
     private static void rebuild(Provider provider, List<String> args) {
         if (!provider.isInitialized()) {
-            Com.Warn("VFS debug provider is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS debug provider is not initialized.");
             return;
         }
         RebuildScope scope = parseScope(args);

@@ -34,6 +34,7 @@ import jake2.qcommon.network.messages.server.PointDirectionTEMessage;
 import jake2.qcommon.trace_t;
 import jake2.qcommon.util.Math3D;
 
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import static jake2.game.GameDefines.FL_NOTARGET;
 
 public class GameCombat {
@@ -107,7 +108,7 @@ public class GameCombat {
      */
     private static void Killed(GameEntity targ, GameEntity inflictor,
                                GameEntity attacker, int damage, float[] point, GameExportsImpl gameExports) {
-        Com.Debug("Killing a " + targ.classname);
+        Com.Debug(GAME, "Killing a " + targ.classname);
         if (targ.health < -999)
             targ.health = -999;
     

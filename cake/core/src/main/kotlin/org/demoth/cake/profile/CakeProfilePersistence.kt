@@ -1,6 +1,7 @@
 package org.demoth.cake.profile
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
@@ -48,9 +49,9 @@ class CakeProfilePersistence(
             val configText = profileConfigStore.readConfig(profileId) ?: return
             Cbuf.AddAndExecuteScript(configText)
             Cvar.getInstance().updateLatchedVars()
-            Com.Info("Loaded Cake profile config for '$profileId'")
+            Com.Info(CLIENT, "Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
-            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}")
+            Com.Warn(CLIENT, "Failed to load Cake profile config for '$profileId': ${e.message}")
         }
     }
 
@@ -60,7 +61,7 @@ class CakeProfilePersistence(
         try {
             saveConfigOrThrow()
         } catch (e: Exception) {
-            Com.Error("Failed to save Cake profile config for '$profileId': ${e.message}")
+            Com.Error(CLIENT, "Failed to save Cake profile config for '$profileId': ${e.message}")
         }
     }
 
@@ -68,7 +69,7 @@ class CakeProfilePersistence(
     fun saveConfigOrThrow() {
         val profileId = currentConfigProfileId() ?: error("No active profile")
         val path = profileConfigStore.writeConfig(profileId, clientBindings.listBindings())
-        Com.Info("Saved Cake profile config: $path")
+        Com.Info(CLIENT, "Saved Cake profile config: $path")
     }
 
     fun loadHistory(): List<String> {
@@ -76,7 +77,7 @@ class CakeProfilePersistence(
         return try {
             consoleHistoryStore.readHistory(profileId)
         } catch (e: Exception) {
-            Com.Warn("Failed to load console history for '$profileId': ${e.message}")
+            Com.Warn(CLIENT, "Failed to load console history for '$profileId': ${e.message}")
             emptyList()
         }
     }
@@ -87,7 +88,7 @@ class CakeProfilePersistence(
         try {
             consoleHistoryStore.writeHistory(profileId, commands)
         } catch (e: Exception) {
-            Com.Warn("Failed to save console history for '$profileId': ${e.message}")
+            Com.Warn(CLIENT, "Failed to save console history for '$profileId': ${e.message}")
         }
     }
 }

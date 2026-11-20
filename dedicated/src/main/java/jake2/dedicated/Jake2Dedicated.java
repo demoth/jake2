@@ -18,6 +18,7 @@ import jake2.qcommon.network.transport.LocalSide;
 import java.util.Arrays;
 import java.util.List;
 
+import static jake2.qcommon.Com.LogSubsystem.SERVER;
 import static jake2.qcommon.MainCommon.adjustTime;
 import static jake2.qcommon.MainCommon.logCollisionTraceCounts;
 
@@ -77,7 +78,7 @@ public class Jake2Dedicated {
                 Cbuf.AddText("dedicated_start\n");
                 Cbuf.Execute();
             }
-            Com.Info("====== Quake2 Initialized ======\n\n");
+            Com.Info(SERVER, "====== Quake2 Initialized ======\n\n");
             runLoop(host);
         }
     }
@@ -102,7 +103,7 @@ public class Jake2Dedicated {
                     if (!Thread.currentThread().isInterrupted()) host.update(adjustedTime);
 
                 } catch (longjmpException e) {
-                    Com.Debug("longjmp exception:" + e);
+                    Com.Debug(SERVER, "longjmp exception:" + e);
                 }
             }
             oldtime = newtime;

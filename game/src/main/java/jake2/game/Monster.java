@@ -23,6 +23,7 @@
 package jake2.game;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.game.items.GameItems;
@@ -159,7 +160,7 @@ public class Monster {
         if (self.st != null && self.st.item != null && self.st.item.length() > 0) {
             self.item = GameItems.FindItemByClassname(self.st.item, gameExports);
             if (self.item == null)
-                Com.Warn("monster_start:" + self.classname + " at "
+                Com.Warn(GAME, "monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
                         + self.st.item);
         }
@@ -197,7 +198,7 @@ public class Monster {
                 }
             }
             if (notcombat && self.combattarget != null)
-                Com.Warn(self.classname + " at "
+                Com.Warn(GAME, self.classname + " at "
                         + Lib.vtos(self.s.origin)
                         + " has target with mixed types");
             if (fixup)
@@ -213,7 +214,7 @@ public class Monster {
                 GameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
-                    Com.Warn(self.classname + " at "
+                    Com.Warn(GAME, self.classname + " at "
                             + Lib.vtos(self.s.origin)
                             + " has bad combattarget " + self.combattarget
                             + " : " + target.classname + " at "
@@ -226,7 +227,7 @@ public class Monster {
             self.goalentity = self.movetarget = GameBase
                     .G_PickTarget(self.target, gameExports);
             if (null == self.movetarget) {
-                Com.Warn(self.classname + " can't find target "
+                Com.Warn(GAME, self.classname + " can't find target "
                                 + self.target + " at "
                                 + Lib.vtos(self.s.origin));
                 self.target = null;

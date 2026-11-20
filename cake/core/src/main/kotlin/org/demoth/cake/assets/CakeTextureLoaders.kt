@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.TextureData
 import com.badlogic.gdx.graphics.TextureData.TextureDataType
 import com.badlogic.gdx.utils.Array
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.filesystem.PCX
 import jake2.qcommon.filesystem.WAL
 
@@ -100,7 +101,7 @@ class WalLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
         parameter: Parameters?
     ): Texture {
         val texture = if (file == null || !file.exists()) {
-            Com.Warn("Missing texture '$fileName'; using engine checkerboard.")
+            Com.Warn(CLIENT, "Missing texture '$fileName'; using engine checkerboard.")
             createMissingTexture()
         } else {
             val wal = WAL(file.readBytes())
@@ -172,7 +173,7 @@ class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
         parameter: Parameters?
     ): Texture {
         val texture = if (file == null || !file.exists()) {
-            Com.Warn("Missing texture '$fileName'; using engine checkerboard.")
+            Com.Warn(CLIENT, "Missing texture '$fileName'; using engine checkerboard.")
             createMissingTexture()
         } else {
             Texture(CakeTextureData(fromPCX(PCX(file.readBytes()), parameter?.externalPalette)))

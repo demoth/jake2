@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.Collection;
 import java.util.List;
 
+import static jake2.qcommon.Com.LogSubsystem.SERVER;
 import static jake2.qcommon.Com.LogSubsystem.NETWORK;
 import static jake2.qcommon.Defines.CS_MAPCHECKSUM;
 import static jake2.qcommon.Defines.CS_MODELS;
@@ -204,7 +205,7 @@ public class GameImportsImpl implements GameImports {
         }
 
         if (isDeathmatch() && isCoop()) {
-            Com.Warn("Deathmatch and Coop both set, disabling Coop for this Game");
+            Com.Warn(SERVER, "Deathmatch and Coop both set, disabling Coop for this Game");
             coop.forceSet(false);
         }
 
@@ -333,7 +334,7 @@ public class GameImportsImpl implements GameImports {
     void SV_Read_Latched_Vars() {
         try {
 
-            Com.Debug("SV_ReadServerFile()");
+            Com.Debug(SERVER, "SV_ReadServerFile()");
             ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());
             ServerSaveJsonStore.ServerLatchedCvarsSnapshot snapshot = store.readLatchedCvars("current");
 
@@ -342,7 +343,7 @@ public class GameImportsImpl implements GameImports {
             for (ServerSaveJsonStore.LatchedCvarSnapshot cvar : snapshot.cvars()) {
                 String name = cvar.name();
                 String value = cvar.value();
-                Com.Debug("Set " + name + " = " + value);
+                Com.Debug(SERVER, "Set " + name + " = " + value);
                 var result = writeRegistry(name).forceSetResult(name, value);
                 if (!result.getAccepted()) throw new IllegalArgumentException(result.getDiagnostic());
             }
@@ -522,7 +523,7 @@ public class GameImportsImpl implements GameImports {
     public void setmodel(ServerEntity ent, String name) {
 
         if (name == null) {
-            Com.Warn("GameImportsImpl.setmodel: name is null");
+            Com.Warn(SERVER, "GameImportsImpl.setmodel: name is null");
             return;
         }
 
@@ -700,7 +701,7 @@ public class GameImportsImpl implements GameImports {
                 if (ent.areanum != 0 && ent.areanum != area) {
                     if (ent.areanum2 != 0 && ent.areanum2 != area
                             && state == ServerStates.SS_LOADING)
-                        Com.Debug("Object touching 3 areas at "
+                        Com.Debug(SERVER, "Object touching 3 areas at "
                                 + ent.absmin[0] + " " + ent.absmin[1] + " "
                                 + ent.absmin[2]);
                     ent.areanum2 = area;
@@ -972,7 +973,7 @@ public class GameImportsImpl implements GameImports {
                     || check.absmax[2] < this.areaMins[2])
                 continue; // not touching
             if (this.areaCount == this.areaMaxCount) {
-                Com.Warn("BoxEdicts: MAXCOUNT");
+                Com.Warn(SERVER, "BoxEdicts: MAXCOUNT");
                 return;
             }
             this.areaEntities[this.areaCount] = check;
@@ -1134,7 +1135,7 @@ public class GameImportsImpl implements GameImports {
 
     /** Restore this game's configstrings, portals and gameplay state from the current save. */
     void readLevelFile() {
-        Com.Debug("SV_ReadLevelFile()");
+        Com.Debug(SERVER, "SV_ReadLevelFile()");
 
         try {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
@@ -1173,7 +1174,7 @@ public class GameImportsImpl implements GameImports {
 
     void SV_WriteLevelFile() {
 
-        Com.Debug("SV_WriteLevelFile()");
+        Com.Debug(SERVER, "SV_WriteLevelFile()");
 
         try {
             ServerLevelJsonStore store = ServerLevelJsonStore.forWriteDir(EngineWriteRoot.pathString());
@@ -1199,7 +1200,7 @@ public class GameImportsImpl implements GameImports {
      */
     void SV_WriteServerFile(boolean autosave) {
 
-        Com.Debug("SV_WriteServerFile(autosave:" + autosave + ")");
+        Com.Debug(SERVER, "SV_WriteServerFile(autosave:" + autosave + ")");
 
         try {
             ServerSaveJsonStore store = ServerSaveJsonStore.forWriteDir(EngineWriteRoot.pathString());

@@ -26,6 +26,7 @@
 package jake2.qcommon.exec;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.vfs.EngineVfs;
@@ -59,7 +60,7 @@ public final class Cmd {
 
         byte[] f = EngineVfs.loadBytes(args.get(1));
         if (f == null) {
-            Com.Warn("couldn't exec " + args.get(1));
+            Com.Warn(COMMON, "couldn't exec " + args.get(1));
             return;
         }
         Com.Print("execing " + args.get(1));
@@ -88,7 +89,7 @@ public final class Cmd {
         String aliasName = args.get(1).trim();
 
         if (aliasName.length() > Defines.MAX_ALIAS_NAME) {
-            Com.Warn("Alias name is too long");
+            Com.Warn(COMMON, "Alias name is too long");
             return;
         }
 
@@ -143,7 +144,7 @@ public final class Cmd {
         boolean inquote = false;
 
         if (text.length() >= Defines.MAX_STRING_CHARS) {
-            Com.Warn("Line exceeded " + Defines.MAX_STRING_CHARS
+            Com.Warn(COMMON, "Line exceeded " + Defines.MAX_STRING_CHARS
                     + " chars, discarded.");
             return null;
         }
@@ -172,19 +173,19 @@ public final class Cmd {
             result.append(token);
 
             if (result.length() >= Defines.MAX_STRING_CHARS) {
-                Com.Warn("Expanded line exceeded " + Defines.MAX_STRING_CHARS
+                Com.Warn(COMMON, "Expanded line exceeded " + Defines.MAX_STRING_CHARS
                         + " chars, discarded.");
                 return null;
             }
 
             if (++expanded == 100) {
-                Com.Warn("Macro expansion loop, discarded.");
+                Com.Warn(COMMON, "Macro expansion loop, discarded.");
                 return null;
             }
         }
 
         if (inquote) {
-            Com.Warn("Line has unmatched quote, discarded.");
+            Com.Warn(COMMON, "Line has unmatched quote, discarded.");
             return null;
         }
 
@@ -244,13 +245,13 @@ public final class Cmd {
     public static void AddCommand(String cmd_name, boolean replace, String description, Command function) {
         // fail if the command is a variable name
         if (Cvar.getInstance().isRegistered(cmd_name)) {
-            Com.Warn("Cmd_AddCommand: " + cmd_name + " already defined as a var");
+            Com.Warn(COMMON, "Cmd_AddCommand: " + cmd_name + " already defined as a var");
             return;
         }
 
         // fail if the command already exists
         if (!replace && cmd_functions.containsKey(cmd_name)) {
-            Com.Warn("Cmd_AddCommand: " + cmd_name + " already defined");
+            Com.Warn(COMMON, "Cmd_AddCommand: " + cmd_name + " already defined");
             return;
         }
 
@@ -271,9 +272,9 @@ public final class Cmd {
      */
     public static void RemoveCommand(String cmd_name) {
         if (!cmd_functions.containsKey(cmd_name)) {
-            Com.Warn("RemoveCommand: " + cmd_name + " does not exist");
+            Com.Warn(COMMON, "RemoveCommand: " + cmd_name + " does not exist");
         } else {
-            Com.Debug("RemoveCommand: " + cmd_name + " removed");
+            Com.Debug(COMMON, "RemoveCommand: " + cmd_name + " removed");
             cmd_functions.remove(cmd_name);
         }
     }
@@ -311,7 +312,7 @@ public final class Cmd {
         if (args.size() == 0)
             return; // no tokens
 
-        Com.Trace(() -> "Executing command: " + args.getFirst());
+        Com.Trace(COMMON, () -> "Executing command: " + args.getFirst());
 
         // check functions
         cmd_function_t cmd = cmd_functions.get(args.get(0));
@@ -324,7 +325,7 @@ public final class Cmd {
         for (cmdalias_t alias : cmd_alias.values()) {
             if (args.get(0).equalsIgnoreCase(alias.getName())) {
                 if (++Globals.alias_count == ALIAS_LOOP_COUNT) {
-                    Com.Warn("ALIAS_LOOP_COUNT");
+                    Com.Warn(COMMON, "ALIAS_LOOP_COUNT");
                     return;
                 }
                 Cbuf.InsertText(alias.getValue());
@@ -339,7 +340,7 @@ public final class Cmd {
         // send it as a server command if we are connected
         // fixme: do not send if we are the server
         if (text.startsWith("cmd")) {
-            Com.Warn("did not execute " + text);
+            Com.Warn(COMMON, "did not execute " + text);
         } else {
             Cmd.ExecuteString("cmd " + text);
         }

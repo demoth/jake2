@@ -7,10 +7,12 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import jake2.qcommon.Com.ConsoleLevel
+import jake2.qcommon.Com.LogSubsystem
 import jake2.qcommon.Globals
 import jake2.qcommon.MainCommon
 import ktx.scene2d.Scene2DSkin
@@ -31,7 +33,7 @@ class ConsoleLogSettingsGlTest {
         }, Lwjgl3ApplicationConfiguration().apply {
             setInitialVisible(false)
             disableAudio(true)
-            setWindowedMode(640, 480)
+            setWindowedMode(640, 360)
         })
         failure?.let { throw it }
     }
@@ -39,15 +41,16 @@ class ConsoleLogSettingsGlTest {
     private fun verifyControls() {
         MainCommon.registerCvars(false)
         val global = Globals.logLevel
-        val network = Globals.networkLogLevel
+        val overrides = Globals.logLevelOverrides
+        val network = overrides.getValue(LogSubsystem.NETWORK)
         val previousGlobal = global.typedValue
-        val previousNetwork = network.typedValue
+        val previousOverrides = overrides.mapValues { (_, cvar) -> cvar.typedValue }
         val skin = Skin(Gdx.files.internal("../../assets/ui/uiskin.json"))
         Scene2DSkin.defaultSkin = skin
         val stage = ConsoleStage(ScreenViewport())
         try {
             global.set(ConsoleLevel.INFO)
-            network.set("TRACE")
+            overrides.values.forEach { it.set("TRACE") }
             stage.focus()
             stage.consoleInput.text = "echo unfinished"
             stage.draw()
@@ -62,7 +65,7 @@ class ConsoleLogSettingsGlTest {
             assertSame(all, stage.keyboardFocus)
 
             all.selection.choose("INFO")
-            assertEquals("", network.typedValue)
+            assertTrue(overrides.values.all { it.typedValue.isEmpty() })
             assertEquals(ConsoleLevel.INFO, global.typedValue)
             network.set("DEBUG")
             stage.act(0f)
@@ -73,17 +76,19 @@ class ConsoleLogSettingsGlTest {
             assertSame(stage.consoleInput, stage.keyboardFocus)
             assertEquals("echo unfinished", stage.consoleInput.text)
             assertTrue(stage.keyDown(Input.Keys.F4))
-            assertTrue(stage.keyDown(Input.Keys.TAB))
-            assertSame(networkBox, stage.keyboardFocus)
+            repeat(LogSubsystem.entries.size) { assertTrue(stage.keyDown(Input.Keys.TAB)) }
+            val serverBox = stage.root.findActor<SelectBox<String>>("console.logLevel.server")
+            assertSame(serverBox, stage.keyboardFocus)
+            assertTrue((stage.scrollFocus as ScrollPane).scrollY > 0f)
             assertTrue(stage.keyDown(Input.Keys.ENTER))
-            assertTrue(networkBox.list.isTouchable)
+            assertTrue(serverBox.list.isTouchable)
             assertTrue(stage.keyDown(Input.Keys.ESCAPE))
-            assertFalse(networkBox.list.isTouchable)
+            assertFalse(serverBox.list.isTouchable)
         } finally {
             stage.dispose()
             skin.dispose()
             global.set(previousGlobal)
-            network.set(previousNetwork)
+            previousOverrides.forEach { (subsystem, value) -> overrides.getValue(subsystem).set(value) }
         }
     }
 }

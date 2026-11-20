@@ -27,6 +27,9 @@ import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.protocol.PacketEnvelope
 import org.demoth.cake.demo.demoLogicalPath
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
+import jake2.qcommon.Com.LogSubsystem.RENDER
+import jake2.qcommon.Com.LogSubsystem.SERVER
 import jake2.qcommon.Com.LogSubsystem.NETWORK
 import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
@@ -355,7 +358,7 @@ class Cake(
             handshake.pause()
             // todo: indicate somehow about the map changing (loading screen or spinner)
             // SCR.BeginLoadingPlaque();
-            Com.Info("\nChanging map...")
+            Com.Info(CLIENT, "\nChanging map...")
 
             beginMapTransitionRetainingConfigAssets()
         }
@@ -376,7 +379,7 @@ class Cake(
                 }
                 val local = target is NetworkAddress.Local
                 if (local && host.state != HostState.RUNNING) {
-                    Com.Warn("No local server is running.")
+                    Com.Warn(CLIENT, "No local server is running.")
                     return@AddCommand
                 }
                 resetClientConnection()
@@ -390,7 +393,7 @@ class Cake(
         }
         Cmd.AddCommand("stop", "Finish the current client demo recording") {
             if (demoRecording == null) {
-                Com.Warn("Not recording a demo")
+                Com.Warn(CLIENT, "Not recording a demo")
             } else if (stopRecording()) {
                 Com.Print("Stopped demo recording")
             }
@@ -423,7 +426,7 @@ class Cake(
             }
             if (target is NetworkAddress.Local) {
                 if (host.state != HostState.RUNNING) {
-                    Com.Warn("No local server is running. Use map to start a local game or connect to a UDP address.")
+                    Com.Warn(CLIENT, "No local server is running. Use map to start a local game or connect to a UDP address.")
                     return@AddCommand
                 }
                 resetClientConnection()
@@ -537,21 +540,21 @@ class Cake(
                 if (it.size > 1)
                     netchan.queueReliable(StringCmdMessage(getArguments(it)))
                 else
-                    Com.Warn("Empty cmd") // todo: warning
+                    Com.Warn(CLIENT, "Empty cmd") // todo: warning
             }
         }
 
         Cmd.AddCommand("precache", "(internal) Finish client precache for the active map") {
             if (networkState == ACTIVE) {
                 // tothink: do we ignore it or restart the map?
-                Com.Warn("precache - during the game!") // todo: warning
+                Com.Warn(CLIENT, "precache - during the game!") // todo: warning
                 return@AddCommand
             }
             val precache_spawncount = it.getOrNull(1)?.toIntOrNull() ?: if (demoPlayback != null) 0 else return@AddCommand
 
             val activeScreen = game3dScreen
             if (activeScreen == null) {
-                Com.Warn("precache called without an active game screen")
+                Com.Warn(CLIENT, "precache called without an active game screen")
                 return@AddCommand
             }
             try {
@@ -584,20 +587,20 @@ class Cake(
         val result = host.start(request)
         when (result) {
             HostStartResult.Started -> {
-                Com.Info("Local server started: ${request.map}")
+                Com.Info(SERVER, "Local server started: ${request.map}")
             }
-            is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}")
+            is HostStartResult.Rejected -> Com.Warn(SERVER, "Could not start local server: ${result.reason}")
         }
         return result
     }
 
     private fun startRecording(name: String) {
         if (demoRecording != null) {
-            Com.Warn("Already recording a demo")
+            Com.Warn(CLIENT, "Already recording a demo")
             return
         }
         if (demoPlayback != null || networkState != ACTIVE || game3dScreen == null) {
-            Com.Warn("Recording requires an active live game")
+            Com.Warn(CLIENT, "Recording requires an active live game")
             return
         }
         try {
@@ -607,7 +610,7 @@ class Cake(
             }
             Com.Print("Recording to ${output.path}; waiting for a full snapshot")
         } catch (error: Exception) {
-            Com.Error("Could not start recording: ${error.message}")
+            Com.Error(CLIENT, "Could not start recording: ${error.message}")
         }
     }
 
@@ -618,7 +621,7 @@ class Cake(
             recording.close()
             true
         } catch (error: Exception) {
-            Com.Error("Could not finish recording: ${error.message}")
+            Com.Error(CLIENT, "Could not finish recording: ${error.message}")
             false
         }
     }
@@ -633,20 +636,20 @@ class Cake(
             try { recording.close() } catch (closing: Exception) {
                 if (closing !== error) error.addSuppressed(closing)
             }
-            Com.Error("Demo recording failed: ${error.message}")
+            Com.Error(CLIENT, "Demo recording failed: ${error.message}")
         }
     }
 
     private fun startDemo(name: String) {
         val path = demoLogicalPath(name)
         if (path == null) {
-            Com.Warn("Invalid demo path: $name")
+            Com.Warn(CLIENT, "Invalid demo path: $name")
             return
         }
         val input = try {
             demoFiles.open(name)
         } catch (error: Exception) {
-            Com.Error("${error.message}")
+            Com.Error(CLIENT, "${error.message}")
             return
         }
         beginDemo(input, path)
@@ -659,7 +662,7 @@ class Cake(
             demoFiles.open(entry)
         } catch (error: Exception) {
             val message = "Could not open demo: ${error.message}"
-            Com.Error(message)
+            Com.Error(CLIENT, message)
             menuStages.showContentBrowser(message)
             return
         }
@@ -693,17 +696,17 @@ class Cake(
             }
             if (demoPlayback !== playback) return
             if (!running) {
-                Com.Info("Demo completed")
+                Com.Info(CLIENT, "Demo completed")
                 finishSession()
                 return
             }
             game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
         } catch (error: IOException) {
-            Com.Error("Demo playback failed: ${error.message}")
+            Com.Error(CLIENT, "Demo playback failed: ${error.message}")
             finishSession("Demo playback failed: ${error.message}")
         } catch (error: RuntimeException) {
             // Asset loading and applying recorded state can also reject structurally valid bodies.
-            Com.Error("Demo playback failed: ${error.message}")
+            Com.Error(CLIENT, "Demo playback failed: ${error.message}")
             finishSession("Demo playback failed: ${error.message}")
         }
     }
@@ -727,14 +730,14 @@ class Cake(
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
     private fun resetClientConnection() {
-        if (stopRecording()) Com.Info("Stopped demo recording")
+        if (stopRecording()) Com.Info(CLIENT, "Stopped demo recording")
         val playback = demoPlayback
         demoBrowserReturn = null
         val wasDemo = playback != null
         demoPlayback = null
         demoPaused = false
         try { playback?.close() } catch (error: IOException) {
-            Com.Warn("Could not close demo: ${error.message}")
+            Com.Warn(CLIENT, "Could not close demo: ${error.message}")
         }
         Com.Info(NETWORK, "Disconnecting from server...")
         if (!wasDemo && (networkState == CONNECTED || networkState == ACTIVE)) {
@@ -759,7 +762,7 @@ class Cake(
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
-        Com.Error("${error.message}")
+        Com.Error(CLIENT, "${error.message}")
         finishSession()
     }
 
@@ -813,7 +816,7 @@ class Cake(
             profileBackgroundTexture = assetManager.get(PROFILE_BACKGROUND_PATH, Texture::class.java)
         } catch (error: RuntimeException) {
             clearProfileBackground()
-            Com.Warn("Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${error.message}")
+            Com.Warn(CLIENT, "Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${error.message}")
         }
     }
 
@@ -993,7 +996,7 @@ class Cake(
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
                 val startingFromMenu = awaitingNewGame
-                Com.Error("Local server stopped: ${error.message}")
+                Com.Error(SERVER, "Local server stopped: ${error.message}")
                 finishSession()
                 if (startingFromMenu) {
                     menuEventBus.postIntent(MenuIntent.HostingFailed(error.message ?: "New Game failed"))
@@ -1392,7 +1395,7 @@ class Cake(
                 }
 
                 is ServerDataMessage -> {
-                    Com.Info("joining ${msg.levelString}")
+                    Com.Info(CLIENT, "joining ${msg.levelString}")
 
                     // new game is starting
                     Cbuf.Execute()
@@ -1463,7 +1466,7 @@ class Cake(
                     if (valid) {
                         if (networkState != ACTIVE) {
                             networkState = ACTIVE
-                            Com.Info("Game started!")
+                            Com.Info(CLIENT, "Game started!")
 
                             // todo: check the rest of the player view related code from jake2.client.CL_ents#parsePacketEntities
                         }
@@ -1612,7 +1615,7 @@ class Cake(
                 ?: error("Failed to resolve screenshot write path")
             writeScreenshot(Gdx.files.absolute(screenshotPath))
         } catch (e: Exception) {
-            Com.Error("Failed to save screenshot: ${e.message}")
+            Com.Error(RENDER, "Failed to save screenshot: ${e.message}")
         }
     }
 
@@ -1626,7 +1629,7 @@ class Cake(
         return try {
             gameProfileStore.readConfig()?.profiles?.firstOrNull { it.id == normalizedId }
         } catch (e: Exception) {
-            Com.Warn("Failed to load profile '$profileId': ${e.message}")
+            Com.Warn(CLIENT, "Failed to load profile '$profileId': ${e.message}")
             null
         }
     }
@@ -1634,7 +1637,7 @@ class Cake(
     private fun listProfileIdsForMenu(): List<String> = try {
         gameProfileStore.readConfig()?.profiles?.map { it.id }.orEmpty()
     } catch (e: Exception) {
-        Com.Warn("Failed to list Cake profiles: ${e.message}")
+        Com.Warn(CLIENT, "Failed to list Cake profiles: ${e.message}")
         emptyList()
     }
 
@@ -1690,14 +1693,14 @@ class Cake(
     // when switching profiles, we expect no active game, therefore, no loaded game resources
     private fun applySelectedProfileForMenu(profileId: String): String {
         if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching requires disconnecting and stopping the local server.")
+            Com.Warn(CLIENT, "Profile switching requires disconnecting and stopping the local server.")
             return "Disconnect first to switch profiles"
         }
         val selected = try {
             val config = gameProfileStore.readConfig() ?: return "No profiles config found"
             config.profiles.firstOrNull { it.id == profileId } ?: return "Unknown profile '$profileId'"
         } catch (e: Exception) {
-            Com.Error("Failed to load profiles config: ${e.message}")
+            Com.Error(CLIENT, "Failed to load profiles config: ${e.message}")
             return "Failed to load profiles config: ${e.message}"
         }
 
@@ -1705,10 +1708,10 @@ class Cake(
             activateGameProfile(selected) {
                 gameProfileStore.selectProfile(profileId)
             }
-            Com.Info("Active profile switched to '$profileId'")
+            Com.Info(CLIENT, "Active profile switched to '$profileId'")
             "Applied profile '$profileId'"
         } catch (e: Exception) {
-            Com.Error("Failed to switch profile '$profileId': ${e.message}")
+            Com.Error(CLIENT, "Failed to switch profile '$profileId': ${e.message}")
             "Failed to switch profile '$profileId': ${e.message}"
         }
     }
@@ -1788,7 +1791,7 @@ class Cake(
 
     private fun setActiveGameProfile(args: List<String>) {
         if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching requires disconnecting and stopping the local server.")
+            Com.Warn(CLIENT, "Profile switching requires disconnecting and stopping the local server.")
             return
         }
         if (args.size < 3) {
@@ -1808,7 +1811,7 @@ class Cake(
             }
             Com.Print("Cake profile saved: $path")
         } catch (e: Exception) {
-            Com.Error("Failed to save Cake profile: ${e.message}")
+            Com.Error(CLIENT, "Failed to save Cake profile: ${e.message}")
         }
     }
 
@@ -1887,7 +1890,7 @@ class Cake(
                     game3dScreen?.canRenderPresentationFrame() == true) game3dScreen?.captureScenePixmap() else null
                 image?.let { try { encodeSavePreview(it) } finally { it.dispose() } }
             } catch (failure: Exception) {
-                Com.Warn("Could not capture save preview: ${failure.message}")
+                Com.Warn(RENDER, "Could not capture save preview: ${failure.message}")
                 null
             }
             val result = finishSaveOperation(host.saveGame(slot, overwrite, preview))

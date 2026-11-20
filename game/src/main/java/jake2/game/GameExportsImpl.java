@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import static jake2.game.GameBase.G_Find;
 import static jake2.game.GameBase.findByClassName;
 import static jake2.game.GameWeapon.buildEntityInfo;
@@ -179,7 +180,7 @@ public class GameExportsImpl implements GameExports {
     // Previously was game_exports_t.Init()
     public GameExportsImpl(GameImports imports) {
         this.gameImports = imports;
-        Com.Info("==== InitGame ====");
+        Com.Info(GAME, "==== InitGame ====");
 
         // Register callbacks before reading a save, including those first used during simulation.
         for (String className : preloadclasslist) {
@@ -205,7 +206,7 @@ public class GameExportsImpl implements GameExports {
         // Client slots and the body queue must fit even with a reduced entity budget.
         int minimumEntities = gameCvars.maxclients.getTypedValue() + GameDefines.BODY_QUEUE_SIZE + 1;
         if (gameCvars.maxentities.getTypedValue() < minimumEntities) {
-            Com.Info("Increasing maxentities to " + minimumEntities + " for client and body slots");
+            Com.Info(GAME, "Increasing maxentities to " + minimumEntities + " for client and body slots");
             gameCvars.maxentities.forceSet(minimumEntities);
         }
         CreateEdicts(gameCvars.maxentities.getTypedValue());
@@ -585,7 +586,7 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, PRINT_HIGH, "Out of item: " + itemName + "\n");
             return;
         }
-        Com.Debug("using:" + itemName);
+        Com.Debug(GAME, "using:" + itemName);
         it.use.use(ent, it, this);
     }
 
@@ -1063,7 +1064,7 @@ public class GameExportsImpl implements GameExports {
      * Exits a level.
      */
     private void exitLevel() {
-        Com.Info("exiting to " + level.changemap);
+        Com.Info(GAME, "exiting to " + level.changemap);
         gameImports.AddCommandString("gamemap \"" + level.changemap + "\"\n");
 
         // todo: remove as not necessary, new game instance will be created anyway

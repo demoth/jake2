@@ -5,10 +5,13 @@ import jake2.qcommon.exec.Cvar;
 import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Stream;
 
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import static jake2.qcommon.Defines.*;
 
 /**
@@ -19,14 +22,14 @@ public class MainCommon {
     private static final CvarTypes.ChoiceType<Com.ConsoleLevel> LOG_LEVEL_TYPE = new CvarTypes.ChoiceType<>(
             List.of(Com.ConsoleLevel.ERROR, Com.ConsoleLevel.WARN, Com.ConsoleLevel.INFO,
                     Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE));
-    private static final CvarTypes.ChoiceType<String> NETWORK_LOG_LEVEL_TYPE = new CvarTypes.ChoiceType<>(
+    private static final CvarTypes.ChoiceType<String> LOG_LEVEL_OVERRIDE_TYPE = new CvarTypes.ChoiceType<>(
             Stream.concat(Stream.of(""), LOG_LEVEL_TYPE.getChoices().stream().map(Enum::name)).toList());
 
     /** Process-wide declarations, before config loading or subsystem construction. */
     public static void registerCvars(boolean dedicatedMode) {
         Cvar cvars = Cvar.getInstance();
         Globals.logLevel = registerLogLevel(cvars);
-        Globals.networkLogLevel = registerNetworkLogLevel(cvars);
+        Globals.logLevelOverrides = registerLogLevelOverrides(cvars);
         Globals.dedicated = cvars.register("dedicated", CvarTypes.BOOLEAN, dedicatedMode, CVAR_NOSET);
         Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer features and automation");
         Globals.host_speeds = cvars.register("host_speeds", CvarTypes.BOOLEAN, false, 0, "Legacy frame timing diagnostics; currently unused");
@@ -45,9 +48,14 @@ public class MainCommon {
         return cvars.register("loglevel", LOG_LEVEL_TYPE, Com.ConsoleLevel.INFO, 0, "Diagnostic verbosity: ERROR, WARN, INFO, DEBUG, or TRACE");
     }
 
-    public static cvar_t<String> registerNetworkLogLevel(Cvar cvars) {
-        return cvars.register("loglevel_network", NETWORK_LOG_LEVEL_TYPE, "", 0,
-                "Network diagnostic verbosity. Empty follows loglevel.");
+    public static Map<Com.LogSubsystem, cvar_t<String>> registerLogLevelOverrides(Cvar cvars) {
+        var overrides = new EnumMap<Com.LogSubsystem, cvar_t<String>>(Com.LogSubsystem.class);
+        for (var subsystem : Com.LogSubsystem.values()) {
+            String name = subsystem.name().toLowerCase(Locale.ROOT);
+            overrides.put(subsystem, cvars.register("loglevel_" + name, LOG_LEVEL_OVERRIDE_TYPE, "", 0,
+                    "Diagnostic verbosity for " + name + ". Empty follows loglevel."));
+        }
+        return Map.copyOf(overrides);
     }
 
     /** Shared download policy used by both the client and server. */
@@ -60,7 +68,7 @@ public class MainCommon {
     }
 
     public static void logCollisionTraceCounts() {
-        Com.Trace(() -> String.format(Locale.ROOT, "%4d traces  %4d points  %4d brush tests",
+        Com.Trace(COMMON, () -> String.format(Locale.ROOT, "%4d traces  %4d points  %4d brush tests",
                 Globals.c_traces, Globals.c_pointcontents, Globals.c_brush_traces));
         Globals.c_traces = 0;
         Globals.c_brush_traces = 0;

@@ -2,6 +2,7 @@ package org.demoth.cake.input
 
 import com.badlogic.gdx.Input
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 
@@ -350,7 +351,7 @@ class ClientBindings(
             val keyName = args[1]
             val keyCode = parseKeyName(keyName)
             if (keyCode == null) {
-                Com.Warn("\"$keyName\" isn't a valid key")
+                Com.Warn(CLIENT, "\"$keyName\" isn't a valid key")
                 return@AddCommand
             }
 
@@ -376,7 +377,7 @@ class ClientBindings(
 
             val keyCode = parseKeyName(args[1])
             if (keyCode == null) {
-                Com.Warn("\"${args[1]}\" isn't a valid key")
+                Com.Warn(CLIENT, "\"${args[1]}\" isn't a valid key")
                 return@AddCommand
             }
 

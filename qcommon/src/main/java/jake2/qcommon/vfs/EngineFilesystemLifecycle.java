@@ -1,6 +1,7 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.FILESYSTEM;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
@@ -125,7 +126,7 @@ public final class EngineFilesystemLifecycle {
 
     public static void setGameDir(String gameName) {
         if (gameName.contains("..") || gameName.contains("/") || gameName.contains("\\") || gameName.contains(":")) {
-            Com.Warn("Gamedir should be a single filename, not a path");
+            Com.Warn(FILESYSTEM, "Gamedir should be a single filename, not a path");
             return;
         }
 
@@ -234,7 +235,7 @@ public final class EngineFilesystemLifecycle {
         }
 
         if (!EngineVfs.isInitialized()) {
-            Com.Warn("VFS is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS is not initialized.");
             return;
         }
 
@@ -257,7 +258,7 @@ public final class EngineFilesystemLifecycle {
         }
 
         if (!EngineVfs.isInitialized()) {
-            Com.Warn("VFS is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS is not initialized.");
             return;
         }
 
@@ -265,7 +266,7 @@ public final class EngineFilesystemLifecycle {
         String packName = args.get(1);
         VfsResult<List<String>> result = EngineVfs.debugFilesInPack(packName);
         if (!result.success()) {
-            Com.Warn(result.error());
+            Com.Warn(FILESYSTEM, result.error());
             return;
         }
 
@@ -282,7 +283,7 @@ public final class EngineFilesystemLifecycle {
 
     private static void printPath() {
         if (!EngineVfs.isInitialized()) {
-            Com.Warn("VFS is not initialized.");
+            Com.Warn(FILESYSTEM, "VFS is not initialized.");
             return;
         }
 

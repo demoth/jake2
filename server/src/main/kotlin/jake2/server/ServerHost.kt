@@ -36,6 +36,7 @@ import jake2.qcommon.vfs.EngineVfs
 import jake2.qcommon.vfs.EngineWriteRoot
 import jake2.server.save.ServerSaveFiles
 import jake2.server.save.ServerSaveJsonStore
+import jake2.qcommon.Com.LogSubsystem.SERVER
 
 /** Owns client connections, Game routing, protocol and commands for one server Host. */
 class ServerHost @JvmOverloads constructor(
@@ -264,7 +265,7 @@ class ServerHost @JvmOverloads constructor(
         commands.add("listmaps") {
             val bytes = EngineVfs.loadBytes("maps.lst")
             if (bytes == null) {
-                Com.Error("Could not read maps.lst")
+                Com.Error(SERVER, "Could not read maps.lst")
                 return@add
             }
             for (line in String(bytes).split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
@@ -310,7 +311,7 @@ class ServerHost @JvmOverloads constructor(
         try {
             if (games.isNotEmpty()) {
                 if (clients.isNotEmpty()) sendFinalMessage(finalmsg, reconnect)
-                Com.Info("==== ShutdownGame ====")
+                Com.Info(SERVER, "==== ShutdownGame ====")
             }
         } finally {
             games.clear()
@@ -409,7 +410,7 @@ class ServerHost @JvmOverloads constructor(
         cvars.updateLatchedVars()
 
         if (coop.typedValue && deathmatch.typedValue) {
-            Com.Warn("Deathmatch and Coop both set, disabling Coop")
+            Com.Warn(SERVER, "Deathmatch and Coop both set, disabling Coop")
             coop.forceSet(false)
         }
 
@@ -443,7 +444,7 @@ class ServerHost @JvmOverloads constructor(
     fun getClientsForInstance(gameName: String?): MutableList<ClientNetworkInfo?> {
         if (!games.containsKey(gameName)) {
             // happens during the game instance creation, while the instance has random name
-            Com.Warn("Game $gameName is not found!")
+            Com.Warn(SERVER, "Game $gameName is not found!")
         }
         // nullify unrelated clients
         return clients.map { client ->
@@ -620,8 +621,8 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
     private fun reportTransition(operation: String, result: OperationResult) {
         when (result) {
             OperationResult.Completed -> Unit
-            is OperationResult.Rejected -> Com.Warn("$operation rejected: ${result.reason}")
-            is OperationResult.Failed -> Com.Error("$operation failed: ${result.reason}")
+            is OperationResult.Rejected -> Com.Warn(SERVER, "$operation rejected: ${result.reason}")
+            is OperationResult.Failed -> Com.Error(SERVER, "$operation failed: ${result.reason}")
         }
     }
 
@@ -702,7 +703,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
 
         // set serverinfo variable
         Cvar.getInstance().find<String>("mapname").forceSet(gameImports.mapName)
-        Com.Info("mapname: " + gameImports.mapName)
+        Com.Info(SERVER, "mapname: " + gameImports.mapName)
 
         if (changeMapInfo.state == ServerStates.SS_GAME) Cbuf.CopyToDefer()
 
@@ -741,8 +742,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         Com.Print("Saving game...")
         when (val result = saveGame(args[1])) {
             OperationResult.Completed -> Com.Print("Done.")
-            is OperationResult.Rejected -> Com.Warn("Save rejected: ${result.reason}")
-            is OperationResult.Failed -> Com.Error("Save failed: ${result.reason}")
+            is OperationResult.Rejected -> Com.Warn(SERVER, "Save rejected: ${result.reason}")
+            is OperationResult.Failed -> Com.Error(SERVER, "Save failed: ${result.reason}")
         }
     }
 
@@ -801,7 +802,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             // Do not let an enclosing Game boundary retry or swallow failed recovery.
             throw IllegalStateException("Could not recover Game ${failure.game.name}", failure)
         }
-        Com.Error(failure.stackTraceToString())
+        Com.Error(SERVER, failure.stackTraceToString())
     }
 
     private fun updateFrame(msec: Long) {
@@ -1011,7 +1012,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             ServerConnections.Admission.TooSoon -> Com.Debug(NETWORK, "$adr:reconnect rejected : too soon")
             ServerConnections.Admission.Full -> {
                 network.sendConnectionless(adr, ConnectionlessCommand.print, "\nServer is full.\n")
-                Com.Debug("Rejected a connection.")
+                Com.Debug(SERVER, "Rejected a connection.")
             }
             is ServerConnections.Admission.Slot -> {
                 if (admission.reconnect) Com.Info(NETWORK, "$adr:reconnect")
@@ -1068,7 +1069,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         client.lastmessage = realtime // don't timeout
         client.lastconnect = realtime
-        Com.Debug("new client added.")
+        Com.Debug(SERVER, "new client added.")
     }
 
     /**
@@ -1873,13 +1874,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (idOrName.isNotEmpty() && idOrName[0] >= '0' && idOrName[0] <= '9') {
             val id = Lib.atoi(idOrName)
             if (id < 0 || id >= clients.size) {
-                Com.Warn("Bad client slot: $id")
+                Com.Warn(SERVER, "Bad client slot: $id")
                 return null
             }
 
             val result = clients[id]
             if (ClientStates.CS_FREE == result.state) {
-                Com.Warn("Client $id is not active")
+                Com.Warn(SERVER, "Client $id is not active")
                 return null
             }
             return result
@@ -1893,7 +1894,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             }
         }
 
-        Com.Warn("Userid $idOrName is not on the server")
+        Com.Warn(SERVER, "Userid $idOrName is not on the server")
         return null
     }
 

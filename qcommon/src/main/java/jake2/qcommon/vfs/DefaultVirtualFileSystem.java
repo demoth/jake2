@@ -1,6 +1,7 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.FILESYSTEM;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -503,7 +504,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                         indexedCount[0]++;
                         layerMap.putIfAbsent(normalized, vfsEntry);
                     } catch (IOException e) {
-                        Com.Warn("Failed to index file: " + normalized + ", " + e.getMessage());
+                        Com.Warn(FILESYSTEM, "Failed to index file: " + normalized + ", " + e.getMessage());
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -511,12 +512,12 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 @NotNull
                 @Override
                 public FileVisitResult visitFileFailed(@NotNull Path file, @NotNull IOException exc) {
-                    Com.Warn("Failed to visit file: " + file + ", " + exc.getMessage());
+                    Com.Warn(FILESYSTEM, "Failed to visit file: " + file + ", " + exc.getMessage());
                     return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException | SecurityException e) {
-            Com.Warn("Failed to index mount: " + mount.layer + ", " + e.getMessage());
+            Com.Warn(FILESYSTEM, "Failed to index mount: " + mount.layer + ", " + e.getMessage());
         }
         mount.indexedFileCount = indexedCount[0];
     }

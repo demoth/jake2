@@ -6,6 +6,7 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.vfs.VfsEntry
 import org.demoth.cake.demo.DemoMetadata
 import ktx.assets.TextAssetLoader
@@ -134,7 +135,7 @@ class MenuStages(
         try {
             contentBrowserStage.show(listContentEntries(), profileId, message)
         } catch (error: Exception) {
-            Com.Error("Could not list profile content: ${error.message}")
+            Com.Error(CLIENT, "Could not list profile content: ${error.message}")
             contentBrowserStage.show(emptyList(), profileId, "Could not list profile content.")
         }
     }

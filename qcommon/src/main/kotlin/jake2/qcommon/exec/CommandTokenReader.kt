@@ -20,6 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon.exec
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.COMMON
 import jake2.qcommon.Defines
 
 /** Reads Quake command tokens from a cursor shared by tokenization and macro expansion. */
@@ -55,7 +56,7 @@ internal class CommandTokenReader @JvmOverloads constructor(private val text: St
             index++
         }
         if (index - start >= Defines.MAX_TOKEN_CHARS) {
-            Com.Warn("Token exceeded ${Defines.MAX_TOKEN_CHARS} chars, discarded.")
+            Com.Warn(COMMON, "Token exceeded ${Defines.MAX_TOKEN_CHARS} chars, discarded.")
             return ""
         }
         return text.substring(start, index)

@@ -2,6 +2,7 @@ package org.demoth.cake
 
 import jake2.qcommon.MainCommon
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 import jake2.qcommon.exec.Cvar
@@ -68,9 +69,9 @@ object CakeStartupBootstrap {
             // TODO: cleanup: avoid "after restart" messages for saved video settings applied before window creation.
             Cbuf.AddAndExecuteScript(configText)
             Cvar.getInstance().updateLatchedVars()
-            Com.Info("Loaded Cake profile config for '$profileId'")
+            Com.Info(CLIENT, "Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
-            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}")
+            Com.Warn(CLIENT, "Failed to load Cake profile config for '$profileId': ${e.message}")
         }
     }
 
@@ -78,7 +79,7 @@ object CakeStartupBootstrap {
         val persistedProfile = try {
             gameProfileStore.readSelected()
         } catch (e: Exception) {
-            Com.Warn("Failed to read persisted Cake game profile: ${e.message}")
+            Com.Warn(CLIENT, "Failed to read persisted Cake game profile: ${e.message}")
             null
         }
         if (persistedProfile != null) {
@@ -87,14 +88,14 @@ object CakeStartupBootstrap {
 
         val fallbackProfile = autodetectedStartupProfile(autodetectBasedir())
         if (fallbackProfile == null) {
-            Com.Warn("No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.")
+            Com.Warn(CLIENT, "No Cake profile is configured and Quake2 basedir autodetect failed. Open the profile editor to configure one.")
             return null
         }
         if (!Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return fallbackProfile
         return try {
             gameProfileStore.bootstrapDefault(fallbackProfile)
         } catch (e: Exception) {
-            Com.Warn("Failed to bootstrap default Cake profile: ${e.message}")
+            Com.Warn(CLIENT, "Failed to bootstrap default Cake profile: ${e.message}")
             fallbackProfile
         }
     }

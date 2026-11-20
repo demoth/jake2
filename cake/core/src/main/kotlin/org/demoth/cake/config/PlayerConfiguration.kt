@@ -5,6 +5,7 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g3d.Model
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines.CS_MODELS
 import jake2.qcommon.Defines.CS_PLAYERSKINS
 import jake2.qcommon.Defines.CS_SOUNDS
@@ -438,7 +439,7 @@ class PlayerConfiguration(
             return value
         }
         if (value != GameConfiguration.UNKNOWN_PLAYER_INDEX) {
-            Com.Warn("Ignoring invalid playerIndex=$value, using UNKNOWN_PLAYER_INDEX")
+            Com.Warn(CLIENT, "Ignoring invalid playerIndex=$value, using UNKNOWN_PLAYER_INDEX")
         }
         return GameConfiguration.UNKNOWN_PLAYER_INDEX
     }

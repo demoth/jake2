@@ -80,11 +80,14 @@ automation.
 
 The gear beside the command input opens the log levels popover. F4 toggles it,
 Tab moves between selectors, and Escape closes it or dismisses an open selector.
-Changing **All** sets `loglevel` and clears the Network override. The **Network**
-row can select a level or follow the global level. `set loglevel_network TRACE`
-collects network diagnostics while other subsystems keep the global threshold.
-`set loglevel_network ""` clears the override. These cvars apply to new messages
-in the process, including an embedded server. Existing scrollback stays visible.
+Changing **All** sets `loglevel` and clears every subsystem override. Each
+subsystem can select a level or follow the global level. For example,
+`set loglevel_network TRACE` enables network traces independently, and
+`set loglevel_network ""` restores the global level for Network. The other
+override cvars use the same convention with `client`, `common`, `filesystem`,
+`game`, `render`, and `server` in place of `network`. These cvars apply to new
+messages in the process, including an embedded server. Existing scrollback
+stays visible.
 
 ## History and Presentation
 
