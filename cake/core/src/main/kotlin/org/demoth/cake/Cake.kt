@@ -363,14 +363,17 @@ class Cake(
         // Important: like a svc_reconnect but more lightweight
         Cmd.AddCommand("reconnect", "Reconnect to the current server") {
             if (demoPlayback != null) return@AddCommand
-            Com.Print("Reconnecting..")
 
             if (networkState == CONNECTED) { // set on "changing" command
                 Com.Debug(NETWORK, "Sending 'new' to server")
                 netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
+                Com.Info(NETWORK, "Reconnecting to the current server...")
 
             } else {
-                val target = handshake.lastTarget ?: return@AddCommand
+                val target = handshake.lastTarget ?: run {
+                    Com.Warn(NETWORK, "No server to reconnect to.")
+                    return@AddCommand
+                }
                 val local = target is NetworkAddress.Local
                 if (local && host.state != HostState.RUNNING) {
                     Com.Warn("No local server is running.")
@@ -386,7 +389,11 @@ class Cake(
             if (args.size != 2) Com.Print("usage: record <name>") else startRecording(args[1])
         }
         Cmd.AddCommand("stop", "Finish the current client demo recording") {
-            if (demoRecording == null) Com.Warn("Not recording a demo") else stopRecording()
+            if (demoRecording == null) {
+                Com.Warn("Not recording a demo")
+            } else if (stopRecording()) {
+                Com.Print("Stopped demo recording")
+            }
         }
 
         Cmd.AddCommand("demomap", "Play a protocol-26/32/34 demo: demomap <name or demos/path.dm2>") { args ->
@@ -604,14 +611,15 @@ class Cake(
         }
     }
 
-    private fun stopRecording() {
-        val recording = demoRecording ?: return
+    private fun stopRecording(): Boolean {
+        val recording = demoRecording ?: return false
         demoRecording = null
-        try {
+        return try {
             recording.close()
-            Com.Info("Stopped demo recording")
+            true
         } catch (error: Exception) {
             Com.Error("Could not finish recording: ${error.message}")
+            false
         }
     }
 
@@ -719,7 +727,7 @@ class Cake(
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
     private fun resetClientConnection() {
-        stopRecording()
+        if (stopRecording()) Com.Info("Stopped demo recording")
         val playback = demoPlayback
         demoBrowserReturn = null
         val wasDemo = playback != null

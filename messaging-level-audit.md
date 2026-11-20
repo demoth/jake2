@@ -34,14 +34,14 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 
 | Batch | Sites | Fits | Applied | Discuss | Observe | Recovery | Fixture |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| [Cake client orchestration](#cake-client-orchestration) | 72 | 45 | 23 | 3 | 1 | 0 | 0 |
+| [Cake client orchestration](#cake-client-orchestration) | 72 | 45 | 25 | 1 | 1 | 0 | 0 |
 | [Cake subsystems and embedded host](#cake-subsystems-and-embedded-host) | 74 | 54 | 12 | 1 | 7 | 0 | 0 |
 | [Game logic and entities](#game-logic-and-entities) | 71 | 64 | 2 | 0 | 5 | 0 | 0 |
 | [Commands, cvars and filesystem](#commands-cvars-and-filesystem) | 99 | 77 | 16 | 2 | 2 | 2 | 0 |
 | [Collision, network and common utilities](#collision-network-and-common-utilities) | 55 | 13 | 30 | 0 | 6 | 6 | 0 |
 | [Server and dedicated host](#server-and-dedicated-host) | 82 | 64 | 15 | 2 | 1 | 0 | 0 |
 | [Test fixtures](#test-fixtures) | 43 | 0 | 0 | 0 | 0 | 0 | 43 |
-| Total | 496 | 317 | 98 | 8 | 22 | 8 | 43 |
+| Total | 496 | 317 | 100 | 6 | 22 | 8 | 43 |
 
 ## Cake client orchestration
 
@@ -70,8 +70,8 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 068 | [Cake.kt L1702](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1702) | `"Failed to switch profile '$profileId': ${e.message}"` | CLIENT | WARN | ERROR | Applied | The requested profile change or save failed and returns failure. | Applied |
 | 071 | [Cake.kt L1800](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1800) | `"Cake profile saved: $path"` | CLIENT | INFO | PRINT | Applied | The profile command returns the destination of the saved configuration. | Applied |
 | 072 | [Cake.kt L1802](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1802) | `"Failed to save Cake profile: ${e.message}"` | CLIENT | WARN | ERROR | Applied | The requested profile change or save failed and returns failure. | Applied |
-| 004 | [Cake.kt L365](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L365) | `"Reconnecting.."` | NETWORK | PRINT | PRINT / INFO | Discuss | Reconnect is both a public command and a server hint. This line runs before checking the target or starting the connection. | Pending |
-| 034 | [Cake.kt L611](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L611) | `"Stopped demo recording"` | CLIENT | INFO | PRINT / INFO | Discuss | Explicit stop needs a command outcome. Disconnect also calls this helper and can use lifecycle output. | Pending |
+| 004 | [Cake.kt L370](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L370) | `"Reconnecting to the current server..."` | NETWORK | PRINT | INFO / WARN | Applied | The shared command announces a queued reconnect at INFO. The fresh connection path reports its own progress. A missing target reports WARN. | Applied |
+| 034 | [Cake.kt L395](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L395) | `"Stopped demo recording"` | CLIENT | INFO | PRINT / INFO | Applied | The explicit command confirms a successful close with PRINT. An automatic close during client reset uses INFO. | Applied |
 | 073 | [Cake.kt L1850](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1850) | `"$message"` | CLIENT | PRINT | INFO / ERROR | Discuss | The helper returns one string for both a successful package change and a failed change with rollback. Preserve the outcome before selecting the level. | Pending |
 | 056 | [Cake.kt L1378](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1378) | `"Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'"` | NETWORK | WARN | WARN / DEBUG | Observe | Rejected server-supplied command. Check whether the same rejection recurs during ordinary play. | Pending |
 | 005 | [Cake.kt L368](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L368) | `"Sending 'new' to server"` | NETWORK | DEBUG | DEBUG | Fits | Internal handshake detail while reconnecting. | — |
