@@ -79,6 +79,7 @@ Decision during implementation:
 
 - [x] Use the `loglevel` cvar for ERROR, WARN, INFO, DEBUG, and TRACE with INFO as the default.
 - [x] Apply the threshold to new diagnostic messages before routing. Keep PRINT always on.
+- [ ] Review which command failures should use PRINT at every verbosity level, including over rcon. Operators can raise verbosity to see filtered replies in the meantime.
 - [x] Keep developer features such as automation independent of log verbosity.
 - [ ] Render Warn yellow, Error red, Debug and Trace muted/readable, and Info/Print in the main text color.
 - [ ] Connect a level control in the console view to the existing cvar.

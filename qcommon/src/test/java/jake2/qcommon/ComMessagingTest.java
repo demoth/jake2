@@ -2,6 +2,7 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.exec.Cvar;
+import jake2.qcommon.exec.CvarTypes;
 import jake2.qcommon.exec.cvar_t;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,17 +122,34 @@ class ComMessagingTest {
     }
 
     @Test
+    void directCvarWritesReportRejectionsOnceAndPreserveTheValue() {
+        var cvars = new Cvar();
+        var variable = cvars.register("volume", new CvarTypes.IntegerType(0, 10), 5);
+
+        var text = variable.setText("invalid");
+        var nativeValue = variable.set(11);
+
+        assertFalse(text.getAccepted());
+        assertFalse(nativeValue.getAccepted());
+        assertEquals(5, variable.getTypedValue());
+        assertEquals(List.of(
+                new Message(Com.ConsoleLevel.WARN, text.getDiagnostic() + "\n"),
+                new Message(Com.ConsoleLevel.WARN, nativeValue.getDiagnostic() + "\n")), messages);
+    }
+
+    @Test
     void consoleSetChangesLogLevelAndRejectsPrintAsAThreshold() {
         var level = MainCommon.registerLogLevel(Cvar.getInstance());
         var previousValue = level.getTypedValue();
         Globals.logLevel = level;
         try {
             Cvar.Init();
-            level.set(Com.ConsoleLevel.ERROR);
+            level.set(Com.ConsoleLevel.WARN);
             messages.clear();
             Cmd.ExecuteString("set loglevel PRINT");
-            assertEquals(Com.ConsoleLevel.ERROR, level.getTypedValue());
-            assertEquals(Com.ConsoleLevel.PRINT, messages.getFirst().level());
+            assertEquals(Com.ConsoleLevel.WARN, level.getTypedValue());
+            assertEquals(1, messages.size());
+            assertEquals(Com.ConsoleLevel.WARN, messages.getFirst().level());
             assertTrue(messages.getFirst().text().contains("Invalid value for loglevel"));
 
             Cmd.ExecuteString("set loglevel TRACE");

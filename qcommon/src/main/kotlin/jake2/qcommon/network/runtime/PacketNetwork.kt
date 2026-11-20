@@ -91,7 +91,7 @@ class PacketNetwork(
         val datagram = received.datagram
         val decoded = PacketCodec.decode(datagram.payload, direction)
         if (decoded is PacketDecodeResult.Rejected) {
-            Com.Warn("$label dropped packet from ${datagram.source}: ${decoded.reason}")
+            Com.Debug("$label dropped packet from ${datagram.source}: ${decoded.reason}")
             return null
         }
         return NetworkPacket.fromEnvelope(datagram.source, (decoded as PacketDecodeResult.Decoded).envelope)

@@ -92,9 +92,9 @@ public class Cvar {
                     Com.Print("flags can only be 'u' or 's'");
                     return;
                 }
-                report(Cvar.getInstance().setWithSuggestedFlags(args.get(1), args.get(2), flags));
+                reportQueued(Cvar.getInstance().setWithSuggestedFlags(args.get(1), args.get(2), flags));
             } else
-                report(Cvar.getInstance().setResult(args.get(1), args.get(2)));
+                reportQueued(Cvar.getInstance().setResult(args.get(1), args.get(2)));
 
         });
         Cmd.AddCommand("cvarlist", (List<String> args) -> {
@@ -174,7 +174,7 @@ public class Cvar {
 
     /** Stages input until an owner supplies its type/default/flags; latest text wins. */
     private CvarSetResult stageEarly(String name, String text, Integer suggestedFlags) {
-        if (text == null) return rejected("Missing value for " + name);
+        if (text == null) return rejectWrite("Missing value for " + name);
         EarlyCvarValue previous = earlyValues.remove(name);
         earlyValues.put(name, new EarlyCvarValue(text, suggestedFlags != null ? suggestedFlags
                 : previous == null ? null : previous.getSuggestedFlags()));
@@ -187,7 +187,7 @@ public class Cvar {
         cvar_t<?> var = lookup(name);
         if (var == null) return stageEarly(resolveCanonicalName(name), text, suggestedFlags);
         if ((var.flags & suggestedFlags) != suggestedFlags)
-            return rejected("Suggested flags conflict with owning declaration for " + name);
+            return rejectWrite("Suggested flags conflict with owning declaration for " + name);
         return var.setText(text);
     }
 
@@ -237,7 +237,7 @@ public class Cvar {
                 EarlyCvarValue input = earlyValues.remove(resolvedCanonicalName);
                 try {
                     validateSuggestedFlags(input, target.flags);
-                    report(setResult(resolvedCanonicalName, input.getText()));
+                    reportQueued(setResult(resolvedCanonicalName, input.getText()));
                 } catch (IllegalArgumentException e) {
                     Com.Warn("Rejected early alias input for '" + trimmedAlias + "': " + e.getMessage() + "\n");
                 }
@@ -263,7 +263,7 @@ public class Cvar {
             return true;
         }
 
-        report(v.setText(args.get(1)));
+        reportQueued(v.setText(args.get(1)));
         return true;
     }
 
@@ -308,7 +308,7 @@ public class Cvar {
      */
     public void updateLatchedVars() {
         for (cvar_t<?> var : cvarMap.values()) {
-            if (var.getPendingValue() != null) report(var.applyPending());
+            if (var.getPendingValue() != null) var.applyPending();
         }
     }
 
@@ -458,8 +458,8 @@ public class Cvar {
     public CvarSetResult setResult(String name, String value) { return setResult(name, value, false); }
     /** Runtime-checked native writes for heterogeneous editors whose entries have unknown generic types. */
     public CvarSetResult setNativeResult(String name, Object value) {
-        cvar_t<?> var = find(name);
-        if (var == null) return rejected("Unknown cvar: " + name);
+        cvar_t<?> var = lookup(name);
+        if (var == null) return rejectWrite("Unknown cvar: " + name);
         return var.setNative(value, false);
     }
 
@@ -473,14 +473,15 @@ public class Cvar {
         return var.setText(value, force);
     }
 
-    /** Keeps rejection feedback consistent across write paths. */
-    private static CvarSetResult rejected(String diagnostic) {
+    /** Reports a rejected write while keeping the reason available to callers. */
+    static CvarSetResult rejectWrite(String diagnostic) {
+        Com.Warn(diagnostic);
         return new CvarSetResult(CvarSetResult.Status.REJECTED, diagnostic);
     }
 
-    /** Prints command feedback from validation and latch results. */
-    private static void report(CvarSetResult result) {
-        if (result.getDiagnostic() != null) Com.Print(result.getDiagnostic());
+    /** A console caller gets feedback when an accepted change is deferred. */
+    private static void reportQueued(CvarSetResult result) {
+        if (result.getStatus() == CvarSetResult.Status.QUEUED) Com.Print(result.getDiagnostic());
     }
 
     /** Clears entries and aliases for tests; discard acquired entries and their consumers before reuse. */

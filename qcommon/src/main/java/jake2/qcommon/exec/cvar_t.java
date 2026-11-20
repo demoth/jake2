@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static jake2.qcommon.Defines.*;
+import static jake2.qcommon.exec.Cvar.rejectWrite;
 
 /** One typed variable with immutable declaration metadata and validated active/pending values. */
 // TODO: cleanup: rename cvar_t to Cvar when the registry is renamed to CvarRegistry.
@@ -80,19 +81,15 @@ public final class cvar_t<T> {
         return value.indexOf('\\') >= 0 || value.indexOf(';') >= 0 || value.indexOf('"') >= 0;
     }
 
-    private static CvarSetResult rejected(String diagnostic) {
-        return new CvarSetResult(CvarSetResult.Status.REJECTED, diagnostic);
-    }
-
     @SuppressWarnings("unchecked")
     CvarSetResult setNative(Object value, boolean force) {
         if (value == null || nativeClass(value) != nativeClass(defaultValue))
-            return rejected("Wrong native value type for " + name);
+            return rejectWrite("Wrong native value type for " + name);
         CvarType.Resolved<?> resolved;
         try {
             resolved = normalizeResolved(((CvarType<Object>) type).validate(value));
         } catch (IllegalArgumentException e) {
-            return rejected("Invalid value for " + name + ": " + e.getMessage());
+            return rejectWrite("Invalid value for " + name + ": " + e.getMessage());
         }
         return commitWrite(resolved, force);
     }
@@ -123,14 +120,14 @@ public final class cvar_t<T> {
         try {
             resolved = normalize(text);
         } catch (IllegalArgumentException e) {
-            return rejected("Invalid value for " + name + ": " + e.getMessage());
+            return rejectWrite("Invalid value for " + name + ": " + e.getMessage());
         }
         return commitWrite(resolved, force);
     }
 
     private CvarSetResult commitWrite(CvarType.Resolved<?> resolved, boolean force) {
         String token = resolved.getToken();
-        if (!force && (flags & CVAR_NOSET) != 0) return rejected(name + " is write protected");
+        if (!force && (flags & CVAR_NOSET) != 0) return rejectWrite(name + " is write protected");
         if (!force && (flags & CVAR_LATCH) != 0 && (Globals.server_state != ServerStates.SS_DEAD || requiresAppRestart())) {
             if (token.equals(getRawPendingString())) return new CvarSetResult(CvarSetResult.Status.UNCHANGED, null);
             if (token.equals(getRawString())) {
