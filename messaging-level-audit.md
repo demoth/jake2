@@ -10,7 +10,7 @@ Each production batch has an assessment and a proposed disposition. **Fits** rec
 
 ## Level criteria
 
-PRINT carries gameplay text, requested data, usage, and successful command outcomes, including output paths. INFO announces sparse lifecycle events. WARN covers rejected input, unmet prerequisites, or recovery with a fallback. ERROR explains why the operation failed, even when the engine keeps running. DEBUG is occasional developer detail, including individual rejected packets. TRACE is repeatable high-volume detail with lazy message construction. Rcon uses the configured threshold. Assessments use source and caller inspection. Observe rows identify where runtime measurements would affect the recommendation. See the [engine messaging contract](cake/core/src/main/kotlin/org/demoth/cake/stages/console/README.md#engine-messaging-contract).
+PRINT carries gameplay text, requested data, usage, and successful command outcomes, including output paths. INFO announces sparse lifecycle events. WARN covers rejected input, unmet prerequisites, or recovery with a fallback. ERROR explains why the operation failed, even when the engine keeps running. DEBUG is occasional developer detail. TRACE is repeatable high-volume detail with lazy message construction, including datagram decode rejections and movement checksum failures. Rcon uses the configured threshold. Assessments use source and caller inspection. Observe rows identify where runtime measurements would affect the recommendation. See the [engine messaging contract](cake/core/src/main/kotlin/org/demoth/cake/stages/console/README.md#engine-messaging-contract).
 
 ## Subsystem ownership
 
@@ -38,10 +38,10 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | [Cake subsystems and embedded host](#cake-subsystems-and-embedded-host) | 74 | 54 | 12 | 1 | 7 | 0 | 0 |
 | [Game logic and entities](#game-logic-and-entities) | 71 | 64 | 2 | 0 | 5 | 0 | 0 |
 | [Commands, cvars and filesystem](#commands-cvars-and-filesystem) | 99 | 77 | 16 | 2 | 2 | 2 | 0 |
-| [Collision, network and common utilities](#collision-network-and-common-utilities) | 55 | 14 | 29 | 0 | 6 | 6 | 0 |
+| [Collision, network and common utilities](#collision-network-and-common-utilities) | 55 | 13 | 30 | 0 | 6 | 6 | 0 |
 | [Server and dedicated host](#server-and-dedicated-host) | 82 | 64 | 15 | 2 | 1 | 0 | 0 |
 | [Test fixtures](#test-fixtures) | 43 | 0 | 0 | 0 | 0 | 0 | 43 |
-| Total | 496 | 318 | 97 | 8 | 22 | 8 | 43 |
+| Total | 496 | 317 | 98 | 8 | 22 | 8 | 43 |
 
 ## Cake client orchestration
 
@@ -430,7 +430,7 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 376 | [ConnectionChannel.kt L142](qcommon/src/main/kotlin/jake2/qcommon/network/ConnectionChannel.kt#L142) | `String.format` | NETWORK | TRACE | TRACE | Fits | Repeatable per-command, packet, frame, or render instrumentation uses a lazy message builder. | — |
 | 377 | [PacketNetwork.kt L74](qcommon/src/main/kotlin/jake2/qcommon/network/runtime/PacketNetwork.kt#L74) | `"$label UDP bind error: $error"` | NETWORK | ERROR | ERROR | Fits | Binding the UDP endpoint failed and configure returns false. | — |
 | 378 | [PacketNetwork.kt L89](qcommon/src/main/kotlin/jake2/qcommon/network/runtime/PacketNetwork.kt#L89) | `"$label receive error: ${received.cause}"` | NETWORK | WARN | WARN | Fits | Rejected input or a recoverable condition. | — |
-| 379 | [PacketNetwork.kt L94](qcommon/src/main/kotlin/jake2/qcommon/network/runtime/PacketNetwork.kt#L94) | `"$label dropped packet from ${datagram.source}: ${decoded.reason}"` | NETWORK | DEBUG | DEBUG | Fits | One rejected datagram. Operator can enable packet-drop diagnostics. | — |
+| 379 | [PacketNetwork.kt L94](qcommon/src/main/kotlin/jake2/qcommon/network/runtime/PacketNetwork.kt#L94) | `"$label dropped packet from ${datagram.source}: ${decoded.reason}"` | NETWORK | DEBUG | TRACE | Applied | Emits once per rejected datagram and can repeat throughout a polling pass. | Applied |
 | 380 | [PacketNetwork.kt L106](qcommon/src/main/kotlin/jake2/qcommon/network/runtime/PacketNetwork.kt#L106) | `"$label send error: ${result.cause}"` | NETWORK | WARN | WARN | Fits | Rejected input or a recoverable condition. | — |
 | 227 | [CM.java L78](qcommon/src/main/java/jake2/qcommon/CM.java#L78) | `severity, message` | COMMON | ERROR | ERROR | Recovery | Two-argument overload controls recovery. Preserve the unwind or shutdown behavior. | — |
 | 313 | [qfiles.java L160](qcommon/src/main/java/jake2/qcommon/filesystem/qfiles.java#L160) | `Defines.ERR_DROP, name + "has wrong version number " + version + ", expected: " + SPR…` | COMMON | ERROR | ERROR | Recovery | Two-argument overload controls recovery. Preserve the unwind or shutdown behavior. | — |
@@ -451,7 +451,7 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 457 | [ServerHost.kt L1082](server/src/main/kotlin/jake2/server/ServerHost.kt#L1082) | `"empty connectionless packet: $messageLine"` | NETWORK | WARN | DEBUG | Applied | Unrecognized or empty connectionless request is discarded. | Applied |
 | 458 | [ServerHost.kt L1088](server/src/main/kotlin/jake2/server/ServerHost.kt#L1088) | `"Received connectionless ${cmd.name} from $from"` | NETWORK | DEBUG | TRACE | Applied | Logs each connectionless packet, including routine requests. | Applied |
 | 459 | [ServerHost.kt L1120](server/src/main/kotlin/jake2/server/ServerHost.kt#L1120) | `"Unknown ClientConnectionlessCommand: $c"` | NETWORK | WARN | DEBUG | Applied | Unrecognized or empty connectionless request is discarded. | Applied |
-| 463 | [ServerHost.kt L1230](server/src/main/kotlin/jake2/server/ServerHost.kt#L1230) | `"Invalid crc"` | NETWORK | WARN | DEBUG | Applied | An individual datagram or move is discarded while the connection remains usable. | Applied |
+| 463 | [ServerHost.kt L1230](server/src/main/kotlin/jake2/server/ServerHost.kt#L1230) | `"Invalid crc"` | NETWORK | WARN | TRACE | Applied | Can repeat on consecutive move packets while the connection remains usable. | Applied |
 | 471 | [ServerHost.kt L1398](server/src/main/kotlin/jake2/server/ServerHost.kt#L1398) | `"SV_Configstrings_f from different level"` | NETWORK | WARN | DEBUG | Applied | Stale spawn count restarts the handshake during a level transition. | Applied |
 | 474 | [ServerHost.kt L1437](server/src/main/kotlin/jake2/server/ServerHost.kt#L1437) | `"SV_Baselines_f from different level"` | NETWORK | WARN | DEBUG | Applied | Stale spawn count restarts the handshake during a level transition. | Applied |
 | 476 | [ServerHost.kt L1475](server/src/main/kotlin/jake2/server/ServerHost.kt#L1475) | `"SV_Begin_f from different level"` | NETWORK | WARN | DEBUG | Applied | Stale spawn count restarts the handshake during a level transition. | Applied |

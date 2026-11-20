@@ -1227,7 +1227,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
                 // if the checksum fails, ignore the rest of the packet
                 if (!msg.checksumValid) {
-                    Com.Debug("Invalid crc")
+                    Com.Trace { "Invalid crc" }
                     return
                 }
 
