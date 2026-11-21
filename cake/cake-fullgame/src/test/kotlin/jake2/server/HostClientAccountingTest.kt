@@ -21,7 +21,7 @@ import java.nio.file.Path
 
 class HostClientAccountingTest {
     @Test
-    fun `connectionless trace output identifies rcon without logging its arguments`() {
+    fun `rcon reports accepted and rejected requests without logging their arguments`() {
         val output = mutableListOf<Pair<Com.ConsoleLevel, String>>()
         val sink = Com.ConsoleSink { level, text -> output.add(level to text) }
         val logLevel = Globals.logLevel
@@ -30,11 +30,19 @@ class HostClientAccountingTest {
         Com.SetConsoleSink(sink)
         try {
             val from = network.server.localPeer
-            network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " test-password status")
+            cvars.find<String>("rcon_password").set("configured-password")
+            network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " wrong-password status")
             host.readPackets()
 
+            assertTrue(output.contains(Com.ConsoleLevel.WARN to "Bad rcon from $from\n"))
+            assertFalse(output.any { (level, _) -> level == Com.ConsoleLevel.INFO })
+
+            network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " configured-password status")
+            host.readPackets()
+
+            assertTrue(output.contains(Com.ConsoleLevel.INFO to "Rcon from $from\n"))
             assertTrue(output.contains(Com.ConsoleLevel.TRACE to "Received connectionless rcon from $from\n"))
-            assertTrue(output.none { (_, text) -> "test-password" in text || "status" in text })
+            assertTrue(output.none { (_, text) -> "wrong-password" in text || "configured-password" in text || "status" in text })
         } finally {
             Com.ClearConsoleSink(sink)
             logLevel.set(previousLevel)

@@ -1920,14 +1920,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
     /** Execute a remote command and send its console output back to the requester. */
     private fun executeRemoteCommand(args: List<String>, from: NetworkAddress) {
-        val authorized = isRconAuthorized(args)
-        Com.Info(NETWORK, if (authorized) "Rcon from $from" else "Bad rcon from $from")
-
-        if (!authorized) {
+        if (!isRconAuthorized(args)) {
+            Com.Warn(NETWORK, "Bad rcon from $from")
             network.sendConnectionless(from, ConnectionlessCommand.print, "\nBad rcon_password.\n")
             return
         }
 
+        Com.Info(NETWORK, "Rcon from $from")
         Com.RedirectOutput({ chunk ->
             network.sendConnectionless(from, ConnectionlessCommand.print, "\n$chunk")
         }) {

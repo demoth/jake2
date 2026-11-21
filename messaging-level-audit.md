@@ -37,11 +37,11 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | [Cake client orchestration](#cake-client-orchestration) | 72 | 45 | 26 | 0 | 1 | 0 | 0 |
 | [Cake subsystems and embedded host](#cake-subsystems-and-embedded-host) | 74 | 54 | 13 | 0 | 7 | 0 | 0 |
 | [Game logic and entities](#game-logic-and-entities) | 71 | 64 | 2 | 0 | 5 | 0 | 0 |
-| [Commands, cvars and filesystem](#commands-cvars-and-filesystem) | 99 | 77 | 16 | 2 | 2 | 2 | 0 |
+| [Commands, cvars and filesystem](#commands-cvars-and-filesystem) | 99 | 79 | 16 | 0 | 2 | 2 | 0 |
 | [Collision, network and common utilities](#collision-network-and-common-utilities) | 55 | 13 | 30 | 0 | 6 | 6 | 0 |
-| [Server and dedicated host](#server-and-dedicated-host) | 82 | 64 | 15 | 2 | 1 | 0 | 0 |
+| [Server and dedicated host](#server-and-dedicated-host) | 82 | 65 | 16 | 0 | 1 | 0 | 0 |
 | [Test fixtures](#test-fixtures) | 43 | 0 | 0 | 0 | 0 | 0 | 43 |
-| Total | 496 | 317 | 102 | 4 | 22 | 8 | 43 |
+| Total | 496 | 320 | 103 | 0 | 22 | 8 | 43 |
 
 ## Cake client orchestration
 
@@ -295,8 +295,8 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 366 | [VfsDebugCommands.java L160](qcommon/src/main/java/jake2/qcommon/vfs/VfsDebugCommands.java#L160) | `"VFS debug provider is not initialized."` | FILESYSTEM | PRINT | WARN | Applied | The filesystem prerequisite is missing and the command returns immediately. | Applied |
 | 370 | [VfsDebugCommands.java L178](qcommon/src/main/java/jake2/qcommon/vfs/VfsDebugCommands.java#L178) | `"VFS debug provider is not initialized."` | FILESYSTEM | PRINT | WARN | Applied | The filesystem prerequisite is missing and the command returns immediately. | Applied |
 | 373 | [CommandTokenReader.kt L58](qcommon/src/main/kotlin/jake2/qcommon/exec/CommandTokenReader.kt#L58) | `"Token exceeded ${Defines.MAX_TOKEN_CHARS} chars, discarded."` | COMMON | PRINT | WARN | Applied | Invalid flag or oversized token is rejected by the parser. | Applied |
-| 278 | [Cmd.java L62](qcommon/src/main/java/jake2/qcommon/exec/Cmd.java#L62) | `"couldn't exec " + args.get(1` | COMMON | WARN | WARN / ERROR | Discuss | The loader returns null for an unavailable script. A missing optional startup script and a failed explicit exec have different purposes. | Pending |
-| 364 | [VfsDebugCommands.java L152](qcommon/src/main/java/jake2/qcommon/vfs/VfsDebugCommands.java#L152) | `"fs_mount failed: " + result.error(` | FILESYSTEM | WARN | WARN / ERROR | Discuss | Provider combines invalid requests and package mount failures in one result. Distinguish reasons before changing this site. | Pending |
+| 278 | [Cmd.java L63](qcommon/src/main/java/jake2/qcommon/exec/Cmd.java#L63) | `"couldn't exec " + args.get(1` | COMMON | WARN | WARN | Fits | Startup and interactive execution share the same command and load result. One warning covers both. | Declined |
+| 364 | [VfsDebugCommands.java L153](qcommon/src/main/java/jake2/qcommon/vfs/VfsDebugCommands.java#L153) | `"fs_mount failed: " + result.error(` | FILESYSTEM | WARN | WARN | Fits | The provider supplies a failure reason but has no typed distinction between rejection and mount failure. One warning carries that reason. | Declined |
 | 302 | [Cvar.java L158](qcommon/src/main/java/jake2/qcommon/exec/Cvar.java#L158) | `"Cvar '" + name + "' is not registered"` | COMMON | WARN | WARN / DEBUG | Observe | Measure missing lookups during normal startup. Intentional probes should use a quiet lookup; unexpected missing declarations warrant a warning. | Pending |
 | 304 | [Cvar.java L171](qcommon/src/main/java/jake2/qcommon/exec/Cvar.java#L171) | `"Cvar '" + name + "' is not registered"` | COMMON | WARN | WARN / DEBUG | Observe | Measure missing lookups during normal startup. Intentional probes should use a quiet lookup; unexpected missing declarations warrant a warning. | Pending |
 | 263 | [Info.java L43](qcommon/src/main/java/jake2/qcommon/Info.java#L43) | `"MISSING VALUE for key: " + key1 +""` | COMMON | WARN | WARN | Fits | Info-string validation detects malformed or unsupported input. | — |
@@ -458,8 +458,8 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 493 | [ServerHost.kt L1875](server/src/main/kotlin/jake2/server/ServerHost.kt#L1875) | `"Bad client slot: $id"` | SERVER | PRINT | WARN | Applied | Rejected command precondition or invalid client selection. | Applied |
 | 494 | [ServerHost.kt L1881](server/src/main/kotlin/jake2/server/ServerHost.kt#L1881) | `"Client $id is not active"` | SERVER | PRINT | WARN | Applied | Rejected command precondition or invalid client selection. | Applied |
 | 495 | [ServerHost.kt L1895](server/src/main/kotlin/jake2/server/ServerHost.kt#L1895) | `"Userid $idOrName is not on the server"` | SERVER | PRINT | WARN | Applied | Rejected command precondition or invalid client selection. | Applied |
-| 436 | [ServerHost.kt L445](server/src/main/kotlin/jake2/server/ServerHost.kt#L445) | `"Game $gameName is not found!"` | SERVER | WARN | DEBUG / WARN | Discuss | The source documents a normal creation-time lookup miss. Distinguish that case from an unexpectedly missing game. | Pending |
-| 496 | [ServerHost.kt L1922](server/src/main/kotlin/jake2/server/ServerHost.kt#L1922) | `if (authorized) "Rcon from $from"` | NETWORK | INFO | INFO / WARN | Discuss | Authorized request and bad credentials share one call. Review accepted and rejected request frequency separately. | Pending |
+| 436 | [ServerHost.kt L447](server/src/main/kotlin/jake2/server/ServerHost.kt#L447) | `"Game $gameName is not found!"` | SERVER | WARN | WARN | Fits | The lookup also serves running games. Its arguments and result cannot distinguish a normal creation-time miss from an unexpected miss. | Declined |
+| 496 | [ServerHost.kt L1924](server/src/main/kotlin/jake2/server/ServerHost.kt#L1924) | `"Bad rcon from $from"` | NETWORK | INFO | INFO / WARN | Applied | Use WARN in the existing rejection branch and INFO for accepted requests. Log the sender and omit credentials and command arguments. | Applied |
 | 423 | [GameImportsImpl.java L974](server/src/main/java/jake2/server/GameImportsImpl.java#L974) | `"BoxEdicts: MAXCOUNT"` | SERVER | WARN | WARN / DEBUG | Observe | Check repetition during a session with the affected asset, entity, or snapshot before tuning the warning. | Pending |
 | 153 | [Jake2Dedicated.java L80](dedicated/src/main/java/jake2/dedicated/Jake2Dedicated.java#L80) | `"====== Quake2 Initialized ======\n\n"` | SERVER | INFO | INFO | Fits | Dedicated server completed initialization. | — |
 | 154 | [Jake2Dedicated.java L105](dedicated/src/main/java/jake2/dedicated/Jake2Dedicated.java#L105) | `"longjmp exception:" + e` | SERVER | DEBUG | DEBUG | Fits | The legacy error path already reported the failure before the dedicated loop caught the unwind. | — |
