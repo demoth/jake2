@@ -85,7 +85,7 @@ public final class Com
     }
 
     private static ConsoleSink consoleSink;
-    private static final boolean COLOR_STDOUT = supportsTerminalColor();
+    private static final boolean COLOR_STDOUT_SUPPORTED = supportsTerminalColor();
 
     /** User-facing gameplay and command output. */
     public static void Print(String message) {
@@ -348,7 +348,6 @@ public final class Com
 		    Cmd.ExecuteFunction("console_print", msg);
         }
 
-		// TODO: Revisit the logging backend when file logging or configurable formatting is needed.
 		printToStdout(level, msg);
 	}
 
@@ -359,8 +358,9 @@ public final class Com
                 && !term.equalsIgnoreCase("dumb");
     }
 
+    // TODO: Revisit the logging backend when file logging or configurable formatting is needed.
     private static void printToStdout(ConsoleLevel level, String message) {
-        if (!COLOR_STDOUT) {
+        if (!COLOR_STDOUT_SUPPORTED || (Globals.colorTerminal != null && !Globals.colorTerminal.getTypedValue())) {
             System.out.print(message);
             return;
         }

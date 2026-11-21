@@ -40,6 +40,18 @@ class CommonCvarsTest {
     }
 
     @Test
+    void colorTerminalIsAnArchivedRuntimeBoolean() {
+        var colorTerminal = cvars.find("colorterminal", Boolean.class);
+        assertSame(Globals.colorTerminal, colorTerminal);
+        assertTrue(colorTerminal.getTypedValue());
+        assertTrue((colorTerminal.flags & Defines.CVAR_ARCHIVE) != 0);
+        assertTrue(cvars.setResult("colorterminal", "0").getAccepted());
+        assertFalse(colorTerminal.getTypedValue());
+        assertTrue(cvars.setResult("colorterminal", "1").getAccepted());
+        assertTrue(colorTerminal.getTypedValue());
+    }
+
+    @Test
     void protectedNetworkDeclarationsConsumeStartupConfig() {
         Cvar.Init();
         Cbuf.AddText("set ip 127.0.0.1\nset port 28000\nset clientport -1\nset qport 65535\n");

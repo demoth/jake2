@@ -29,6 +29,7 @@ public class MainCommon {
         Cvar cvars = Cvar.getInstance();
         Globals.logLevel = registerLogLevel(cvars);
         Globals.logLevelOverrides = registerLogLevelOverrides(cvars);
+        Globals.colorTerminal = cvars.register("colorterminal", CvarTypes.BOOLEAN, true, CVAR_ARCHIVE, "Use severity colors on interactive stdout");
         Globals.dedicated = cvars.register("dedicated", CvarTypes.BOOLEAN, dedicatedMode, CVAR_NOSET);
         Globals.developer = cvars.register("developer", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE, "Enable developer features and automation");
         Globals.host_speeds = cvars.register("host_speeds", CvarTypes.BOOLEAN, false, 0, "Legacy frame timing diagnostics; currently unused");

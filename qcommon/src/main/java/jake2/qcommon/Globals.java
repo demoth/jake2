@@ -63,6 +63,7 @@ public class Globals extends Defines {
 
 	public static cvar_t<Boolean> dedicated;
 	public static cvar_t<Boolean> developer;
+	public static cvar_t<Boolean> colorTerminal;
 	public static cvar_t<Com.ConsoleLevel> logLevel;
 	public static Map<Com.LogSubsystem, cvar_t<Com.LogLevelOverride>> logLevelOverrides = Map.of();
 	public static cvar_t<Integer> fixedtime;
