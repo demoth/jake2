@@ -80,7 +80,7 @@ automation.
 
 The gear beside the command input opens the log levels popover. F4 toggles it,
 Tab moves between selectors, and Escape closes it or dismisses an open selector.
-Changing **All** sets `loglevel` and resets every subsystem override to `GLOBAL`. Each
+Changing **Global** sets `loglevel` and resets every subsystem override to `GLOBAL`. Each
 subsystem can select a level or follow the global level. For example,
 `set loglevel_network TRACE` enables network traces independently, and
 `set loglevel_network GLOBAL` restores the global level for Network. The other

@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
+import jake2.qcommon.Com.ConsoleLevel
 import jake2.qcommon.Com.LogLevelOverride
 import jake2.qcommon.Com.LogLevelOverride.GLOBAL
 import jake2.qcommon.Com.LogSubsystem
@@ -42,27 +43,20 @@ internal class ConsoleLogSettings(
         setProgrammaticChangeEvents(false)
     }
 
-    private val all = object : SelectBox<String>(skin) {
-        override fun toString(item: String): String = item.ifEmpty { "Set all to..." }
-    }.apply {
-        name = "console.logLevel.all"
-        setItems("", *globalLevel.type.choices.map { it.name }.toTypedArray())
+    private val globalSelector = SelectBox<ConsoleLevel>(skin).apply {
+        name = "console.logLevel.global"
+        setItems(*globalLevel.type.choices.toTypedArray())
         selection.setProgrammaticChangeEvents(false)
         onChange {
-            if (selected.isNotEmpty()) {
-                globalLevel.setText(selected)
-                overrides.values.forEach { it.set(GLOBAL) }
-            }
+            globalLevel.set(selected)
+            overrides.values.forEach { it.set(GLOBAL) }
             refresh()
         }
     }
 
     private val subsystemSelectors = LogSubsystem.entries.associateWith { subsystem ->
         val level = overrides.getValue(subsystem)
-        object : SelectBox<LogLevelOverride>(skin) {
-            override fun toString(item: LogLevelOverride): String =
-                if (item == GLOBAL) "Use global (${globalLevel.typedValue})" else item.name
-        }.apply {
+        SelectBox<LogLevelOverride>(skin).apply {
             name = "console.logLevel.${subsystem.name.lowercase()}"
             setItems(*level.type.choices.toTypedArray())
             selection.setProgrammaticChangeEvents(false)
@@ -72,15 +66,17 @@ internal class ConsoleLogSettings(
             }
         }
     }
-    private val selectors = listOf(all) + subsystemSelectors.values
+    private val selectors = listOf(globalSelector) + subsystemSelectors.values
 
     private val rows = Table(skin).apply {
         defaults().pad(4f)
-        add(Label("All", skin)).left()
-        add(all).growX()
+        add(Label("Global", skin)).left()
+        add(globalSelector).growX()
         subsystemSelectors.forEach { (subsystem, selector) ->
             row()
-            add(Label(subsystem.name.lowercase().replaceFirstChar { it.titlecase() }, skin)).left()
+            val label = if (subsystem == LogSubsystem.FILESYSTEM) "FileSystem"
+                else subsystem.name.lowercase().replaceFirstChar { it.titlecase() }
+            add(Label(label, skin)).left()
             add(selector).growX()
         }
     }
@@ -117,7 +113,7 @@ internal class ConsoleLogSettings(
                         focusSelector(selectors[Math.floorMod(next, selectors.size)])
                     }
                     keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE -> consume(event) {
-                        val box = selectors.firstOrNull { it === stage.keyboardFocus } ?: all
+                        val box = selectors.firstOrNull { it === stage.keyboardFocus } ?: globalSelector
                         box.showScrollPane()
                     }
                     else -> false
@@ -149,13 +145,13 @@ internal class ConsoleLogSettings(
             stage.addActor(panel)
             positionPanel()
             stage.scrollFocus = scroller
-            focusSelector(all)
+            focusSelector(globalSelector)
         }
         button.isChecked = false
     }
 
     private fun refresh() {
-        all.selected = if (overrides.values.all { it.typedValue == GLOBAL }) globalLevel.rawString else ""
+        globalSelector.selected = globalLevel.typedValue
         subsystemSelectors.forEach { (subsystem, selector) -> selector.selected = overrides.getValue(subsystem).typedValue }
     }
 

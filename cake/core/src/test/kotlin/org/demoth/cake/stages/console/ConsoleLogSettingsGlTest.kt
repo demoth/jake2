@@ -50,7 +50,7 @@ class ConsoleLogSettingsGlTest {
         Scene2DSkin.defaultSkin = skin
         val stage = ConsoleStage(ScreenViewport())
         try {
-            global.set(ConsoleLevel.INFO)
+            global.set(ConsoleLevel.ERROR)
             overrides.values.forEach { it.set(LogLevelOverride.TRACE) }
             stage.focus()
             stage.consoleInput.text = "echo unfinished"
@@ -60,14 +60,16 @@ class ConsoleLogSettingsGlTest {
             val click = stage.stageToScreenCoordinates(gear.localToStageCoordinates(Vector2(gear.width / 2, gear.height / 2)))
             stage.touchDown(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
             stage.touchUp(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
-            val all = stage.root.findActor<SelectBox<String>>("console.logLevel.all")
+            val globalBox = stage.root.findActor<SelectBox<ConsoleLevel>>("console.logLevel.global")
             val networkBox = stage.root.findActor<SelectBox<LogLevelOverride>>("console.logLevel.network")
             assertEquals(LogLevelOverride.TRACE, networkBox.selected)
-            assertSame(all, stage.keyboardFocus)
+            assertEquals(ConsoleLevel.ERROR, globalBox.selected)
+            assertSame(globalBox, stage.keyboardFocus)
 
-            all.selection.choose("INFO")
+            globalBox.selection.choose(ConsoleLevel.INFO)
             assertTrue(overrides.values.all { it.typedValue == LogLevelOverride.GLOBAL })
             assertEquals(ConsoleLevel.INFO, global.typedValue)
+            assertEquals(LogLevelOverride.GLOBAL, networkBox.selected)
             network.set(LogLevelOverride.DEBUG)
             stage.act(0f)
             assertEquals(LogLevelOverride.DEBUG, networkBox.selected)
