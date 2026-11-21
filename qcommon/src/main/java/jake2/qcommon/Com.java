@@ -49,6 +49,21 @@ public final class Com
         TRACE,
     }
 
+    public enum LogLevelOverride {
+        GLOBAL(null),
+        ERROR(ConsoleLevel.ERROR),
+        WARN(ConsoleLevel.WARN),
+        INFO(ConsoleLevel.INFO),
+        DEBUG(ConsoleLevel.DEBUG),
+        TRACE(ConsoleLevel.TRACE);
+
+        private final ConsoleLevel level;
+
+        LogLevelOverride(ConsoleLevel level) {
+            this.level = level;
+        }
+    }
+
     public enum LogSubsystem {
         CLIENT,
         COMMON,
@@ -133,8 +148,8 @@ public final class Com
     private static ConsoleLevel threshold(LogSubsystem subsystem) {
         var override = subsystem == null ? null : Globals.logLevelOverrides.get(subsystem);
         if (override != null) {
-            String value = override.getTypedValue();
-            if (!value.isEmpty()) return ConsoleLevel.valueOf(value);
+            ConsoleLevel level = override.getTypedValue().level;
+            if (level != null) return level;
         }
         var logLevel = Globals.logLevel;
         return logLevel == null ? ConsoleLevel.INFO : logLevel.getTypedValue();

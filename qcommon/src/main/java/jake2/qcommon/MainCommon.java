@@ -9,7 +9,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import static jake2.qcommon.Defines.*;
@@ -22,8 +21,8 @@ public class MainCommon {
     private static final CvarTypes.ChoiceType<Com.ConsoleLevel> LOG_LEVEL_TYPE = new CvarTypes.ChoiceType<>(
             List.of(Com.ConsoleLevel.ERROR, Com.ConsoleLevel.WARN, Com.ConsoleLevel.INFO,
                     Com.ConsoleLevel.DEBUG, Com.ConsoleLevel.TRACE));
-    private static final CvarTypes.ChoiceType<String> LOG_LEVEL_OVERRIDE_TYPE = new CvarTypes.ChoiceType<>(
-            Stream.concat(Stream.of(""), LOG_LEVEL_TYPE.getChoices().stream().map(Enum::name)).toList());
+    private static final CvarTypes.EnumType<Com.LogLevelOverride> LOG_LEVEL_OVERRIDE_TYPE =
+            new CvarTypes.EnumType<>(Com.LogLevelOverride.class);
 
     /** Process-wide declarations, before config loading or subsystem construction. */
     public static void registerCvars(boolean dedicatedMode) {
@@ -48,12 +47,12 @@ public class MainCommon {
         return cvars.register("loglevel", LOG_LEVEL_TYPE, Com.ConsoleLevel.INFO, 0, "Diagnostic verbosity: ERROR, WARN, INFO, DEBUG, or TRACE");
     }
 
-    public static Map<Com.LogSubsystem, cvar_t<String>> registerLogLevelOverrides(Cvar cvars) {
-        var overrides = new EnumMap<Com.LogSubsystem, cvar_t<String>>(Com.LogSubsystem.class);
+    public static Map<Com.LogSubsystem, cvar_t<Com.LogLevelOverride>> registerLogLevelOverrides(Cvar cvars) {
+        var overrides = new EnumMap<Com.LogSubsystem, cvar_t<Com.LogLevelOverride>>(Com.LogSubsystem.class);
         for (var subsystem : Com.LogSubsystem.values()) {
             String name = subsystem.name().toLowerCase(Locale.ROOT);
-            overrides.put(subsystem, cvars.register("loglevel_" + name, LOG_LEVEL_OVERRIDE_TYPE, "", 0,
-                    "Diagnostic verbosity for " + name + ". Empty follows loglevel."));
+            overrides.put(subsystem, cvars.register("loglevel_" + name, LOG_LEVEL_OVERRIDE_TYPE, Com.LogLevelOverride.GLOBAL, 0,
+                    "Diagnostic verbosity for " + name + ". GLOBAL follows loglevel."));
         }
         return Map.copyOf(overrides);
     }

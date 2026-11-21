@@ -15,10 +15,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
+import jake2.qcommon.Com.LogLevelOverride
+import jake2.qcommon.Com.LogLevelOverride.GLOBAL
 import jake2.qcommon.Com.LogSubsystem
 import jake2.qcommon.Globals
 
-/** A live view of the process log cvars. Empty subsystem choices follow the global threshold. */
+/** A live view of the process log cvars. GLOBAL follows the current global threshold. */
 internal class ConsoleLogSettings(
     private val stage: Stage,
     skin: Skin,
@@ -49,7 +51,7 @@ internal class ConsoleLogSettings(
         onChange {
             if (selected.isNotEmpty()) {
                 globalLevel.setText(selected)
-                overrides.values.forEach { it.set("") }
+                overrides.values.forEach { it.set(GLOBAL) }
             }
             refresh()
         }
@@ -57,8 +59,9 @@ internal class ConsoleLogSettings(
 
     private val subsystemSelectors = LogSubsystem.entries.associateWith { subsystem ->
         val level = overrides.getValue(subsystem)
-        object : SelectBox<String>(skin) {
-            override fun toString(item: String): String = item.ifEmpty { "Use global (${globalLevel.typedValue})" }
+        object : SelectBox<LogLevelOverride>(skin) {
+            override fun toString(item: LogLevelOverride): String =
+                if (item == GLOBAL) "Use global (${globalLevel.typedValue})" else item.name
         }.apply {
             name = "console.logLevel.${subsystem.name.lowercase()}"
             setItems(*level.type.choices.toTypedArray())
@@ -152,11 +155,11 @@ internal class ConsoleLogSettings(
     }
 
     private fun refresh() {
-        all.selected = if (overrides.values.all { it.typedValue.isEmpty() }) globalLevel.rawString else ""
+        all.selected = if (overrides.values.all { it.typedValue == GLOBAL }) globalLevel.rawString else ""
         subsystemSelectors.forEach { (subsystem, selector) -> selector.selected = overrides.getValue(subsystem).typedValue }
     }
 
-    private fun focusSelector(selector: SelectBox<String>) {
+    private fun focusSelector(selector: SelectBox<*>) {
         stage.keyboardFocus = selector
         panel.validate()
         scroller.validate()

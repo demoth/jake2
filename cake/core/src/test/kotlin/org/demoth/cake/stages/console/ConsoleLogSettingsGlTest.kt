@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import jake2.qcommon.Com.ConsoleLevel
+import jake2.qcommon.Com.LogLevelOverride
 import jake2.qcommon.Com.LogSubsystem
 import jake2.qcommon.Globals
 import jake2.qcommon.MainCommon
@@ -50,7 +51,7 @@ class ConsoleLogSettingsGlTest {
         val stage = ConsoleStage(ScreenViewport())
         try {
             global.set(ConsoleLevel.INFO)
-            overrides.values.forEach { it.set("TRACE") }
+            overrides.values.forEach { it.set(LogLevelOverride.TRACE) }
             stage.focus()
             stage.consoleInput.text = "echo unfinished"
             stage.draw()
@@ -60,16 +61,16 @@ class ConsoleLogSettingsGlTest {
             stage.touchDown(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
             stage.touchUp(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
             val all = stage.root.findActor<SelectBox<String>>("console.logLevel.all")
-            val networkBox = stage.root.findActor<SelectBox<String>>("console.logLevel.network")
-            assertEquals("TRACE", networkBox.selected)
+            val networkBox = stage.root.findActor<SelectBox<LogLevelOverride>>("console.logLevel.network")
+            assertEquals(LogLevelOverride.TRACE, networkBox.selected)
             assertSame(all, stage.keyboardFocus)
 
             all.selection.choose("INFO")
-            assertTrue(overrides.values.all { it.typedValue.isEmpty() })
+            assertTrue(overrides.values.all { it.typedValue == LogLevelOverride.GLOBAL })
             assertEquals(ConsoleLevel.INFO, global.typedValue)
-            network.set("DEBUG")
+            network.set(LogLevelOverride.DEBUG)
             stage.act(0f)
-            assertEquals("DEBUG", networkBox.selected)
+            assertEquals(LogLevelOverride.DEBUG, networkBox.selected)
 
             assertTrue(stage.keyDown(Input.Keys.ESCAPE))
             assertNull(stage.root.findActor<Actor>("console.logLevels"))
@@ -77,7 +78,7 @@ class ConsoleLogSettingsGlTest {
             assertEquals("echo unfinished", stage.consoleInput.text)
             assertTrue(stage.keyDown(Input.Keys.F4))
             repeat(LogSubsystem.entries.size) { assertTrue(stage.keyDown(Input.Keys.TAB)) }
-            val serverBox = stage.root.findActor<SelectBox<String>>("console.logLevel.server")
+            val serverBox = stage.root.findActor<SelectBox<LogLevelOverride>>("console.logLevel.server")
             assertSame(serverBox, stage.keyboardFocus)
             assertTrue((stage.scrollFocus as ScrollPane).scrollY > 0f)
             assertTrue(stage.keyDown(Input.Keys.ENTER))

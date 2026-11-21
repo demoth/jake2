@@ -64,7 +64,7 @@ public class Globals extends Defines {
 	public static cvar_t<Boolean> dedicated;
 	public static cvar_t<Boolean> developer;
 	public static cvar_t<Com.ConsoleLevel> logLevel;
-	public static Map<Com.LogSubsystem, cvar_t<String>> logLevelOverrides = Map.of();
+	public static Map<Com.LogSubsystem, cvar_t<Com.LogLevelOverride>> logLevelOverrides = Map.of();
 	public static cvar_t<Integer> fixedtime;
 	public static cvar_t<Boolean> host_speeds;
 	public static cvar_t<Float> timescale;

@@ -55,7 +55,7 @@ High-volume engine diagnostics use TRACE. The former logging cvars `showtrace`,
 diagnostic output. Use `set loglevel DEBUG` for DEBUG output previously enabled
 by `developer 1`. Log verbosity defaults to INFO.
 Use `set loglevel_network TRACE` for a process-wide network diagnostic override,
-and `set loglevel_network ""` to restore the global threshold for Network. Client,
+and `set loglevel_network GLOBAL` to restore the global threshold for Network. Client,
 Common, Filesystem, Game, Render, and Server support the same override convention.
 
 Building requires JDK 25. JVM desktop distributions require Java 25 or newer;

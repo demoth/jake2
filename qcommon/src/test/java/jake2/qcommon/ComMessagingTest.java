@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
+import static jake2.qcommon.Com.LogLevelOverride.GLOBAL;
+import static jake2.qcommon.Com.LogLevelOverride.TRACE;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ComMessagingTest {
@@ -183,9 +185,12 @@ class ComMessagingTest {
             assertEquals(List.of(new Message(Com.ConsoleLevel.TRACE, "packet\n")), messages);
 
             Cmd.ExecuteString("set loglevel_network PRINT");
-            assertEquals("TRACE", network.getTypedValue());
+            assertEquals(TRACE, network.getTypedValue());
             Cmd.ExecuteString("set loglevel_network \"\"");
-            assertEquals("", network.getTypedValue());
+            assertEquals(TRACE, network.getTypedValue());
+            Cmd.ExecuteString("set loglevel_network GLOBAL");
+            assertEquals(GLOBAL, network.getTypedValue());
+            assertEquals("GLOBAL", network.getRawString());
             assertFalse(Com.isTraceEnabled(subsystem));
             Com.Trace(subsystem, () -> fail("Network now follows global INFO"));
 
@@ -194,11 +199,12 @@ class ComMessagingTest {
                 var previous = override.getTypedValue();
                 try {
                     assertEquals("loglevel_" + selected.name().toLowerCase(Locale.ROOT), override.name);
+                    assertEquals(GLOBAL, override.getDefaultValue());
                     Cmd.ExecuteString("set " + override.name + " TRACE");
                     for (var candidate : Com.LogSubsystem.values()) {
                         assertEquals(candidate == selected, Com.isTraceEnabled(candidate), candidate.name());
                     }
-                    Cmd.ExecuteString("set " + override.name + " \"\"");
+                    Cmd.ExecuteString("set " + override.name + " GLOBAL");
                     assertFalse(Com.isTraceEnabled(selected));
                 } finally {
                     override.set(previous);
