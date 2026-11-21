@@ -86,8 +86,8 @@ subsystem can select a level or follow the global level. For example,
 `set loglevel_network GLOBAL` restores the global level for Network. The other
 override cvars use the same convention with `client`, `common`, `filesystem`,
 `game`, `render`, and `server` in place of `network`. These cvars apply to new
-messages in the process, including an embedded server. Existing scrollback
-stays visible.
+messages in the process, including an embedded server. Row labels use the
+scrollback color for their effective level. Existing scrollback stays visible.
 
 ## History and Presentation
 

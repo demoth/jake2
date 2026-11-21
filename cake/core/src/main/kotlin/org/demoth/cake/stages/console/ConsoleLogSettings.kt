@@ -68,15 +68,25 @@ internal class ConsoleLogSettings(
     }
     private val selectors = listOf(globalSelector) + subsystemSelectors.values
 
+    private val severityColors = ConsoleSeverityColors(skin)
+    private val rowLabelStyle = Label.LabelStyle(skin.get(Label.LabelStyle::class.java)).apply {
+        // The actor tint supplies the exact console severity color.
+        fontColor = null
+    }
+    private val globalLabel = Label("Global", rowLabelStyle).apply { name = "${globalSelector.name}.label" }
+    private val subsystemLabels = subsystemSelectors.mapValues { (subsystem, selector) ->
+        val text = if (subsystem == LogSubsystem.FILESYSTEM) "FileSystem"
+            else subsystem.name.lowercase().replaceFirstChar { it.titlecase() }
+        Label(text, rowLabelStyle).apply { name = "${selector.name}.label" }
+    }
+
     private val rows = Table(skin).apply {
         defaults().pad(4f)
-        add(Label("Global", skin)).left()
+        add(globalLabel).left()
         add(globalSelector).growX()
         subsystemSelectors.forEach { (subsystem, selector) ->
             row()
-            val label = if (subsystem == LogSubsystem.FILESYSTEM) "FileSystem"
-                else subsystem.name.lowercase().replaceFirstChar { it.titlecase() }
-            add(Label(label, skin)).left()
+            add(subsystemLabels.getValue(subsystem)).left()
             add(selector).growX()
         }
     }
@@ -151,8 +161,14 @@ internal class ConsoleLogSettings(
     }
 
     private fun refresh() {
-        globalSelector.selected = globalLevel.typedValue
-        subsystemSelectors.forEach { (subsystem, selector) -> selector.selected = overrides.getValue(subsystem).typedValue }
+        val global = globalLevel.typedValue
+        globalSelector.selected = global
+        globalLabel.color.set(severityColors[global])
+        subsystemSelectors.forEach { (subsystem, selector) ->
+            val value = overrides.getValue(subsystem).typedValue
+            selector.selected = value
+            subsystemLabels.getValue(subsystem).color.set(severityColors[value.explicitLevel ?: global])
+        }
     }
 
     private fun focusSelector(selector: SelectBox<*>) {

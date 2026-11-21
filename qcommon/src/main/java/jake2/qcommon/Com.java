@@ -27,6 +27,7 @@ package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.sys.Sys;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -61,6 +62,10 @@ public final class Com
 
         LogLevelOverride(ConsoleLevel level) {
             this.level = level;
+        }
+
+        public @Nullable ConsoleLevel getExplicitLevel() {
+            return level;
         }
     }
 
@@ -148,7 +153,7 @@ public final class Com
     private static ConsoleLevel threshold(LogSubsystem subsystem) {
         var override = subsystem == null ? null : Globals.logLevelOverrides.get(subsystem);
         if (override != null) {
-            ConsoleLevel level = override.getTypedValue().level;
+            ConsoleLevel level = override.getTypedValue().getExplicitLevel();
             if (level != null) return level;
         }
         var logLevel = Globals.logLevel;

@@ -7,6 +7,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
+import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -62,17 +63,26 @@ class ConsoleLogSettingsGlTest {
             stage.touchUp(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
             val globalBox = stage.root.findActor<SelectBox<ConsoleLevel>>("console.logLevel.global")
             val networkBox = stage.root.findActor<SelectBox<LogLevelOverride>>("console.logLevel.network")
+            val globalLabel = stage.root.findActor<Label>("console.logLevel.global.label")
+            val networkLabel = stage.root.findActor<Label>("console.logLevel.network.label")
             assertEquals(LogLevelOverride.TRACE, networkBox.selected)
             assertEquals(ConsoleLevel.ERROR, globalBox.selected)
+            assertEquals(skin.getColor("error"), globalLabel.color)
+            assertEquals(skin.getColor("message"), networkLabel.color)
             assertSame(globalBox, stage.keyboardFocus)
 
             globalBox.selection.choose(ConsoleLevel.INFO)
             assertTrue(overrides.values.all { it.typedValue == LogLevelOverride.GLOBAL })
             assertEquals(ConsoleLevel.INFO, global.typedValue)
             assertEquals(LogLevelOverride.GLOBAL, networkBox.selected)
+            assertEquals(skin.getColor("font"), networkLabel.color)
             network.set(LogLevelOverride.DEBUG)
+            global.set(ConsoleLevel.WARN)
             stage.act(0f)
             assertEquals(LogLevelOverride.DEBUG, networkBox.selected)
+            assertEquals(skin.getColor("fontSecondary"), networkLabel.color)
+            assertEquals(skin.getColor("warning"), globalLabel.color)
+            assertEquals(skin.getColor("warning"), stage.root.findActor<Label>("console.logLevel.client.label").color)
 
             assertTrue(stage.keyDown(Input.Keys.ESCAPE))
             assertNull(stage.root.findActor<Actor>("console.logLevels"))
