@@ -89,6 +89,10 @@ override cvars use the same convention with `client`, `common`, `filesystem`,
 messages in the process, including an embedded server. Row labels use the
 scrollback color for their effective level. Existing scrollback stays visible.
 
+Stdout uses ANSI severity colors when Java detects an interactive terminal and
+`TERM` names a terminal other than `dumb`. Pipe and file output use plain text,
+as do Cake scrollback and rcon reply payloads.
+
 ## History and Presentation
 
 Submitted commands persist to `$HOME/.cake/<profileId>/console-history.txt`, capped

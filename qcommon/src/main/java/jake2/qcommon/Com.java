@@ -85,6 +85,7 @@ public final class Com
     }
 
     private static ConsoleSink consoleSink;
+    private static final boolean COLOR_STDOUT = supportsTerminalColor();
 
     /** User-facing gameplay and command output. */
     public static void Print(String message) {
@@ -347,10 +348,32 @@ public final class Com
 		    Cmd.ExecuteFunction("console_print", msg);
         }
 
-		// also echo to debugging console
-		// todo: use proper logging
-		System.out.print(msg);
+		// TODO: Revisit the logging backend when file logging or configurable formatting is needed.
+		printToStdout(level, msg);
 	}
+
+    private static boolean supportsTerminalColor() {
+        var console = System.console();
+        String term = System.getenv("TERM");
+        return console != null && console.isTerminal() && term != null && !term.isBlank()
+                && !term.equalsIgnoreCase("dumb");
+    }
+
+    private static void printToStdout(ConsoleLevel level, String message) {
+        if (!COLOR_STDOUT) {
+            System.out.print(message);
+            return;
+        }
+
+        String color = switch (level) {
+            case ERROR -> "\u001b[31m";
+            case WARN -> "\u001b[33m";
+            case DEBUG -> "\u001b[90m";
+            case TRACE -> "\u001b[2m";
+            case INFO, PRINT -> "";
+        };
+        System.out.print(color.isEmpty() ? message : color + message + "\u001b[0m");
+    }
 
 	public static String StripExtension(String string) {
 		int i = string.lastIndexOf('.');

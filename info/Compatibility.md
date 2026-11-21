@@ -57,6 +57,8 @@ by `developer 1`. Log verbosity defaults to INFO.
 Use `set loglevel_network TRACE` for a process-wide network diagnostic override,
 and `set loglevel_network GLOBAL` to restore the global threshold for Network. Client,
 Common, Filesystem, Game, Render, and Server support the same override convention.
+Interactive stdout uses ANSI severity colors when Java detects a terminal and
+`TERM` is set to a value other than `dumb`. Pipes and files receive plain text.
 
 Building requires JDK 25. JVM desktop distributions require Java 25 or newer;
 `jpackage` application images bundle Java and are built for a particular OS and
