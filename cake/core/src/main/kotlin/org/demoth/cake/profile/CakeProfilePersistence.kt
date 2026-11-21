@@ -58,18 +58,20 @@ class CakeProfilePersistence(
     fun saveConfig(explicit: Boolean = false) {
         if (!explicit && !Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return
         val profileId = currentConfigProfileId() ?: return
-        try {
+        val path = try {
             saveConfigOrThrow()
         } catch (e: Exception) {
             Com.Error(CLIENT, "Failed to save Cake profile config for '$profileId': ${e.message}")
+            return
         }
+        if (explicit) Com.Print("Saved Cake profile config: $path")
+        else Com.Debug(CLIENT, "Saved Cake profile config: $path")
     }
 
-    /** Explicit menu edits must report persistence failures instead of claiming success. */
-    fun saveConfigOrThrow() {
+    /** Save as part of an operation whose caller handles persistence failures. */
+    fun saveConfigOrThrow(): String {
         val profileId = currentConfigProfileId() ?: error("No active profile")
-        val path = profileConfigStore.writeConfig(profileId, clientBindings.listBindings())
-        Com.Info(CLIENT, "Saved Cake profile config: $path")
+        return profileConfigStore.writeConfig(profileId, clientBindings.listBindings())
     }
 
     fun loadHistory(): List<String> {

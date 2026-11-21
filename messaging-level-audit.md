@@ -34,14 +34,14 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 
 | Batch | Sites | Fits | Applied | Discuss | Observe | Recovery | Fixture |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| [Cake client orchestration](#cake-client-orchestration) | 72 | 45 | 25 | 1 | 1 | 0 | 0 |
-| [Cake subsystems and embedded host](#cake-subsystems-and-embedded-host) | 74 | 54 | 12 | 1 | 7 | 0 | 0 |
+| [Cake client orchestration](#cake-client-orchestration) | 72 | 45 | 26 | 0 | 1 | 0 | 0 |
+| [Cake subsystems and embedded host](#cake-subsystems-and-embedded-host) | 74 | 54 | 13 | 0 | 7 | 0 | 0 |
 | [Game logic and entities](#game-logic-and-entities) | 71 | 64 | 2 | 0 | 5 | 0 | 0 |
 | [Commands, cvars and filesystem](#commands-cvars-and-filesystem) | 99 | 77 | 16 | 2 | 2 | 2 | 0 |
 | [Collision, network and common utilities](#collision-network-and-common-utilities) | 55 | 13 | 30 | 0 | 6 | 6 | 0 |
 | [Server and dedicated host](#server-and-dedicated-host) | 82 | 64 | 15 | 2 | 1 | 0 | 0 |
 | [Test fixtures](#test-fixtures) | 43 | 0 | 0 | 0 | 0 | 0 | 43 |
-| Total | 496 | 317 | 100 | 6 | 22 | 8 | 43 |
+| Total | 496 | 317 | 102 | 4 | 22 | 8 | 43 |
 
 ## Cake client orchestration
 
@@ -72,7 +72,7 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 072 | [Cake.kt L1802](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1802) | `"Failed to save Cake profile: ${e.message}"` | CLIENT | WARN | ERROR | Applied | The requested profile change or save failed and returns failure. | Applied |
 | 004 | [Cake.kt L370](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L370) | `"Reconnecting to the current server..."` | NETWORK | PRINT | INFO / WARN | Applied | The shared command announces a queued reconnect at INFO. The fresh connection path reports its own progress. A missing target reports WARN. | Applied |
 | 034 | [Cake.kt L395](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L395) | `"Stopped demo recording"` | CLIENT | INFO | PRINT / INFO | Applied | The explicit command confirms a successful close with PRINT. An automatic close during client reset uses INFO. | Applied |
-| 073 | [Cake.kt L1850](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1850) | `"$message"` | CLIENT | PRINT | INFO / ERROR | Discuss | The helper returns one string for both a successful package change and a failed change with rollback. Preserve the outcome before selecting the level. | Pending |
+| 073 | [Cake.kt L1857](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1857) | `message` | CLIENT | PRINT | INFO / ERROR | Applied | The automatic package-change path logs success at INFO and failure at ERROR. Menu actions return their status to the menu. | Applied |
 | 056 | [Cake.kt L1378](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L1378) | `"Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'"` | NETWORK | WARN | WARN / DEBUG | Observe | Rejected server-supplied command. Check whether the same rejection recurs during ordinary play. | Pending |
 | 005 | [Cake.kt L368](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L368) | `"Sending 'new' to server"` | NETWORK | DEBUG | DEBUG | Fits | Internal handshake detail while reconnecting. | — |
 | 006 | [Cake.kt L375](cake/core/src/main/kotlin/org/demoth/cake/Cake.kt#L375) | `"No local server is running."` | CLIENT | WARN | WARN | Fits | Rejected input or a recoverable condition. | — |
@@ -137,7 +137,7 @@ Start with the owning module or package. Classify the wire-message loop in Cake 
 | 122 | [CinematicPresentationController.kt L156](cake/core/src/main/kotlin/org/demoth/cake/stages/ingame/CinematicPresentationController.kt#L156) | `"Failed to open cinematic stream $streamPath: ${ex.message}"` | CLIENT | WARN | ERROR | Applied | Writing the configuration or playing the requested cinematic failed. | Applied |
 | 123 | [CinematicPresentationController.kt L226](cake/core/src/main/kotlin/org/demoth/cake/stages/ingame/CinematicPresentationController.kt#L226) | `"Cinematic frame is truncated (${indexedFrame.size} < ${width * height})"` | RENDER | WARN | ERROR | Applied | The selected cinematic image, stream, or frame cannot be presented. Returning or advancing the session skips that media. | Applied |
 | 140 | [SceneFrameBuffer.kt L78](cake/core/src/main/kotlin/org/demoth/cake/stages/ingame/SceneFrameBuffer.kt#L78) | `"Scene buffer depth=$depth samples=$count unavailable: ${failure.message}"` | RENDER | WARN | DEBUG | Applied | One candidate framebuffer configuration failed. Further formats are tried and the result is reported separately. | Applied |
-| 115 | [CakeProfilePersistence.kt L71](cake/core/src/main/kotlin/org/demoth/cake/profile/CakeProfilePersistence.kt#L71) | `"Saved Cake profile config: $path"` | CLIENT | INFO | PRINT / DEBUG | Discuss | Shared persistence helper handles explicit and automatic saves. Confirm the explicit save at its command boundary. | Pending |
+| 115 | [CakeProfilePersistence.kt L67](cake/core/src/main/kotlin/org/demoth/cake/profile/CakeProfilePersistence.kt#L67) | `"Saved Cake profile config: $path"` | CLIENT | INFO | PRINT / DEBUG | Applied | The explicit writeconfig reply uses PRINT and automatic save feedback uses DEBUG. Transactional saves report through their caller. | Applied |
 | 117 | [CakeProfilePersistence.kt L90](cake/core/src/main/kotlin/org/demoth/cake/profile/CakeProfilePersistence.kt#L90) | `"Failed to save console history for '$profileId': ${e.message}"` | CLIENT | WARN | WARN / ERROR | Observe | An automatic history write failed. Repeated command autosaves could issue one message per submission; measure during persistent storage failure. | Pending |
 | 126 | [ClientEntityManager.kt L721](cake/core/src/main/kotlin/org/demoth/cake/stages/ingame/ClientEntityManager.kt#L721) | `"Delta from invalid frame (not supposed to happen!)."` | NETWORK | WARN | WARN / DEBUG | Observe | Check repetition during a session with the affected asset, entity, or snapshot before tuning the warning. | Pending |
 | 127 | [ClientEntityManager.kt L725](cake/core/src/main/kotlin/org/demoth/cake/stages/ingame/ClientEntityManager.kt#L725) | `"Delta frame too old."` | NETWORK | WARN | WARN / DEBUG | Observe | Delta cannot be applied with the available history. Measure how many times this repeats before receiving a valid full snapshot. | Pending |

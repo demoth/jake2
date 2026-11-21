@@ -1821,7 +1821,7 @@ class Cake(
         val previous = activeGameProfile ?: return "Select a profile first."
         val before = fileResolver.packageSelection.automount()
         val after = automount ?: before
-        return try {
+        try {
             var next = previous
             if (archive != null) {
                 require(!before) { "Disable automatic archive loading before using Include or Exclude." }
@@ -1845,21 +1845,24 @@ class Cake(
                     if (explicit || Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue)
                         profilePersistence.saveConfigOrThrow()
                 })
-            if (archive == null) "Automatic archive loading ${if (after) "enabled" else "disabled"}."
-            else "${if (include == true) "Included" else "Excluded"}: $archive"
         } catch (failure: Exception) {
             Cvar.getInstance().find<Boolean>(org.demoth.cake.profile.CakePackageSettings.AUTOMOUNT).forceSet(before)
             val recovery = if (failure.suppressed.isEmpty()) "" else " Recovery also failed; reselect the profile."
-            "Could not change mods: ${failure.message}.$recovery"
+            val message = "Could not change mods: ${failure.message}.$recovery"
+            if (!explicit) Com.Error(CLIENT, message)
+            return message
         }
+        val message = if (archive == null) "Automatic archive loading ${if (after) "enabled" else "disabled"}."
+        else "${if (include == true) "Included" else "Excluded"}: $archive"
+        if (!explicit) Com.Info(CLIENT, message)
+        return message
     }
 
     private fun syncPackageSettings() {
         if (!isProfileSwitchAllowed() || activeGameProfile == null) return
         val automatic = org.demoth.cake.profile.CakePackageSettings.automount()
         if (automatic != fileResolver.packageSelection.automount()) {
-            val message = changeProfileMods(automount = automatic, explicit = false)
-            Com.Print("$message")
+            changeProfileMods(automount = automatic, explicit = false)
             menuEventBus.postIntent(MenuIntent.RefreshMods)
         }
     }
