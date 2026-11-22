@@ -57,9 +57,11 @@ by `developer 1`. Log verbosity defaults to INFO.
 Use `set loglevel_network TRACE` for a process-wide network diagnostic override,
 and `set loglevel_network GLOBAL` to restore the global threshold for Network. Client,
 Common, Filesystem, Game, Render, and Server support the same override convention.
-The Yamagi-compatible `colorterminal` cvar is archived and defaults to `1`.
+The Yamagi-compatible `colorterminal` cvar is an archived boolean and defaults to `true`.
 ANSI severity colors require an interactive terminal and a `TERM` value other
-than `dumb`. Pipes and files receive plain text.
+than `dumb`. Pipes and files receive plain text. Colors were verified on Linux
+with the installed dedicated launcher. Windows, IDE, and native launches remain
+unverified. Gradle may forward stdout through a pipe.
 
 Building requires JDK 25. JVM desktop distributions require Java 25 or newer;
 `jpackage` application images bundle Java and are built for a particular OS and

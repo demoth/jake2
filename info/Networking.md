@@ -61,7 +61,10 @@ remaining reply text; these are not two separately encoded strings.
 
 Remote console output is captured on the command thread and returned as plain
 text in one or more bounded `print` datagrams. Transport diagnostics stay local,
-and request logs omit remote console arguments.
+and request logs omit credentials and command arguments. The localhost dedicated
+server smoke check verified a complete reply across two datagrams and a fresh
+reply after a failed `exec`. Unit tests cover cleanup after command and flush
+exceptions.
 
 Outgoing packets are built as bytes. Sending depends on connection state, rate
 limiting, and keepalive or handshake timing, rather than occurring on every frame

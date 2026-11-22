@@ -1,106 +1,69 @@
 # Developer Console
 
-## Responsibilities
+## Commands and history
 
-The console uses Scene2D for stage layout, skin integration, and single-line input.
-It owns scrollback rendering, completion, command history, and scrolling. Engine
-command semantics remain in `Cbuf`, `Cmd`, and `Cvar`; `Cake` controls console
-visibility and input routing.
-
-- `ConsoleStage` connects the engine console sink, widgets, and command execution.
-- `ConsoleBuffer` stores bounded logical entries with severity, independently of
-  display width and wrapping.
-- `ConsoleOutputWidget` wraps, clips, colours, and draws only visible rows; it owns
-  output scroll position.
-- `ConsoleInputController` handles submission, completion, and history navigation.
-- `ConsoleCommandHistory` stores bounded submitted history and restores the draft
-  input when navigating back from history.
-
-## Output and Commands
-
-```text
-Com.Print / Com.Info / Com.Debug / Com.Warn / Com.Error
-  -> Com.ConsoleSink -> ConsoleStage.appendOutput -> ConsoleBuffer
-  -> ConsoleOutputWidget: wrap and draw visible rows
-
-Input -> ConsoleInputController
-  -> Enter: echo and execute through Cbuf.AddText / Cbuf.Execute
-  -> Tab: command/cvar prefix completion
-  -> Up/Down: command history
-  -> PageUp/PageDown: output scrolling
-```
-
-The sink carries level and display text. Consecutive same-level appends coalesce
-until a newline or carriage-return boundary. Debug source attribution and class
-prefixes are deferred; no unused source metadata is retained in scrollback.
-
-Command exceptions are caught and displayed in the console. PRINT and INFO use
-the main text color. DEBUG and TRACE use progressively muted skin colors. WARN
-and ERROR use the warning and error colors.
-`clear` clears scrollback. Mouse-wheel scrolling is attached to the output widget;
-scrolling is line-based, without a `ScrollPane`.
-
-Completion covers command and cvar names. Multiple matches extend the longest
-common prefix and print the candidate list. Input focus stays on the text field;
-output is excluded from focus traversal.
+- Enter echoes and runs the command.
+- Tab completes command and cvar names. Shared prefixes expand and multiple matches are listed.
+- Up and Down browse history and restore the draft when returning to the newest entry.
+- Page Up, Page Down, and the mouse wheel scroll output. `clear` clears it.
+- Each profile keeps up to 500 history entries in `$HOME/.cake/<profileId>/console-history.txt`. A leading space runs a command without saving it to history.
 
 ## Engine messaging contract
 
-- `Com.Print`: gameplay and requested command output.
-- `Com.Info`: sparse lifecycle and significant system-state messages.
-- `Com.Debug(message)`: occasional developer diagnostics.
-- `Com.Trace { message }`: high-volume diagnostics such as per-packet or per-frame
-  output. The message builder runs only when TRACE is enabled.
-- `Com.Warn`: recoverable/unexpected conditions and useful anticipated failure feedback.
-- `Com.Error(message)`: report an operation failure without throwing or initiating recovery.
-  The reporting API takes a message. `Com.Error(code, ...)` still performs
-  legacy recovery and must not be confused with the reporting-only overload.
+| Function | Level | Description | Cake console style | Stdout color |
+|---|---|---|---|---|
+| `Com.Print` | `PRINT` | Gameplay and command output. Always shown. | Default | Default |
+| `Com.Error(message)` | `ERROR` | Reports an operation failure. The caller handles recovery. | Red | Red |
+| `Com.Warn` | `WARN` | Recoverable problems and rejected requests. | Yellow | Yellow |
+| `Com.Info` | `INFO` | Significant lifecycle events. | Default | Default |
+| `Com.Debug` | `DEBUG` | Occasional developer detail. | Muted | Gray |
+| `Com.Trace { ... }` | `TRACE` | Frequent diagnostics. Builds the message only when enabled. | More muted | Dim default |
 
-For an ordinary line, write `Com.Warn("Missing texture")`. Com supplies the final
-newline. Keep explicit newlines for multiline text and intentional blank lines.
-Only Print accepts `endLine = false`
-for fragments (`Com.Print("fragment", false)` in Java or Kotlin).
-Existing LF, CRLF, or CR endings and
-intentional blank lines are preserved. Warn no longer inserts a textual `Warn:`
-prefix or duplicates an existing final newline; its severity is carried separately.
+Choose the level from context the caller already has. Keep the existing level
+when a finer distinction would add behavior solely for logging. Use single
+quotes around interpolated values in diagnostic prose.
 
-Legacy `Error(code, message)` is deprecated. Move recovery into the failure handler
-when migrating a caller. Remote command capture sends plain text to the requester
-before the console sink and stdout, and the client prints each chunk verbatim.
-Gameplay echoes use PRINT locally. The network print priority continues to control
-player delivery and HUD presentation.
+## Log levels
 
-Enter `loglevel` to see the current diagnostic threshold. Valid values are `ERROR`,
-`WARN`, `INFO`, `DEBUG`, and `TRACE`. The default is `INFO`, which includes
-warnings and errors. Use `set loglevel TRACE` to collect high-volume diagnostics
-and `set loglevel INFO` to return to the default. Changes apply to new messages in
-the running process. Gameplay text and command output from `Com.Print` are always
-enabled. The `developer` cvar continues to control developer features such as
-automation.
+All levels except print are diagnostic log levels.
 
-The gear beside the command input opens the log levels popover. F4 toggles it,
-Tab moves between selectors, and Escape closes it or dismisses an open selector.
-Changing **Global** sets `loglevel` and resets every subsystem override to `GLOBAL`. Each
-subsystem can select a level or follow the global level. For example,
-`set loglevel_network TRACE` enables network traces independently, and
-`set loglevel_network GLOBAL` restores the global level for Network. The other
-override cvars use the same convention with `client`, `common`, `filesystem`,
-`game`, `render`, and `server` in place of `network`. These cvars apply to new
-messages in the process, including an embedded server. Row labels use the
-scrollback color for their effective level. Existing scrollback stays visible.
+- `loglevel` defaults to `INFO`. From least to most verbose, the levels are `ERROR`, `WARN`, `INFO`, `DEBUG`, and `TRACE`.
+- Subsystem overrides use `GLOBAL` to follow `loglevel`.
+- Click the gear to open log settings. Escape dismisses the open selector or the popover.
+- Changing **Global** in the popover sets `loglevel` and resets every subsystem override to `GLOBAL`.
+- Threshold changes apply to new output in the process, including an embedded server. `developer` controls developer features such as automation.
 
-`colorterminal` defaults to `1` and is saved with archived cvars. Use
-`set colorterminal 0` to turn off stdout colors for subsequent messages. ANSI
-colors require an interactive terminal and a `TERM` value other than `dumb`.
-Pipe and file output, Cake scrollback, and rcon replies use plain text.
+## Logging subsystems
 
-## History and Presentation
+Choose the subsystem that owns the operation. For example, Cake's packet handling uses `Network`, its render statistics 
+use `Render`, and its missing-texture fallback uses `Client`.
 
-Submitted commands persist to `$HOME/.cake/<profileId>/console-history.txt`, capped
-to the latest 500 entries and restored on subsequent launches. Commands starting
-with a space execute without being recorded. Profile history storage is wired by
-`Cake`.
+| Subsystem | Cvar | Scope |
+|---|---|---|
+| Client | `loglevel_client` | Cake input, audio, asset loading, demos, profiles, and client session state. |
+| FileSystem | `loglevel_filesystem` | Virtual filesystem lookup, mounts, and package indexing. |
+| Game | `loglevel_game` | Gameplay code in the `game` module. |
+| Network | `loglevel_network` | Transport, packets, handshakes, snapshot deltas, downloads, and rcon across client and server. |
+| Render | `loglevel_render` | Cake rendering, including graphics modes, framebuffers, screenshots, and cinematic frame upload. |
+| Server | `loglevel_server` | Dedicated and embedded hosting, including game instances, map transitions, saves, and client slots. |
+| Common | `loglevel_common` | Shared engine code such as commands, cvars, basically everything that didn't fit into other systems.|
 
-The scrollback and input use translucent `console-panel` and `console-input`
-skin drawables. Their text is drawn at full opacity. Panel texture, nine-patch
-split and padding values, and widget padding all contribute to the visible spacing.
+## Player message priority
+
+`msg` filters server print messages before they reach the HUD and console.
+
+- `0` accepts every print priority.
+- `1` accepts death, critical, and chat messages. This is the default.
+- `2` accepts critical and chat messages.
+- `3` accepts chat only.
+- `4` suppresses all server print priorities.
+
+Center prints use a separate message type and are independent of `msg`.
+
+## Colors
+
+The log settings labels use the Cake console style for each row's effective level.
+
+`colorterminal` is an archived boolean that defaults to `true`. Stdout colors require
+an interactive terminal with a nonempty `TERM` other than `dumb`. Pipes and files
+receive plain text.

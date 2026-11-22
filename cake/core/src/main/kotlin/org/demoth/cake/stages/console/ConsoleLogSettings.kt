@@ -1,6 +1,5 @@
 package org.demoth.cake.stages.console
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
@@ -39,7 +38,7 @@ internal class ConsoleLogSettings(
         imageUp = skin.newDrawable("console-gear", skin.getColor("font"))
     }).apply {
         name = "console.logSettings"
-        addListener(TextTooltip("Log levels (F4)", skin))
+        addListener(TextTooltip("Log levels", skin))
         setProgrammaticChangeEvents(false)
     }
 
@@ -110,22 +109,11 @@ internal class ConsoleLogSettings(
         button.onChange(::toggle)
         stage.addCaptureListener(object : InputListener() {
             override fun keyDown(event: InputEvent, keycode: Int): Boolean {
-                if (keycode == Input.Keys.F4) return consume(event, ::toggle)
                 if (!panel.hasParent()) return false
                 val dropdownOpen = selectors.any { it.list.isTouchable }
                 return when {
                     dropdownOpen -> false // Leave selection and Escape to the open list.
                     keycode == Input.Keys.ESCAPE -> consume(event, ::close)
-                    keycode == Input.Keys.TAB -> consume(event) {
-                        val current = selectors.indexOfFirst { it === stage.keyboardFocus }
-                        val backwards = Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT) || Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)
-                        val next = if (backwards) current - 1 else current + 1
-                        focusSelector(selectors[Math.floorMod(next, selectors.size)])
-                    }
-                    keycode == Input.Keys.ENTER || keycode == Input.Keys.SPACE -> consume(event) {
-                        val box = selectors.firstOrNull { it === stage.keyboardFocus } ?: globalSelector
-                        box.showScrollPane()
-                    }
                     else -> false
                 }
             }

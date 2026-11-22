@@ -45,9 +45,9 @@ class CommonCvarsTest {
         assertSame(Globals.colorTerminal, colorTerminal);
         assertTrue(colorTerminal.getTypedValue());
         assertTrue((colorTerminal.flags & Defines.CVAR_ARCHIVE) != 0);
-        assertTrue(cvars.setResult("colorterminal", "0").getAccepted());
+        assertTrue(cvars.setResult("colorterminal", "false").getAccepted());
         assertFalse(colorTerminal.getTypedValue());
-        assertTrue(cvars.setResult("colorterminal", "1").getAccepted());
+        assertTrue(cvars.setResult("colorterminal", "true").getAccepted());
         assertTrue(colorTerminal.getTypedValue());
     }
 

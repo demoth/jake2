@@ -8,7 +8,6 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Label
-import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.utils.viewport.ScreenViewport
@@ -25,7 +24,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 @EnabledIfEnvironmentVariable(named = "CAKE_VIDEO_GL_TESTS", matches = "1")
 class ConsoleLogSettingsGlTest {
     @Test
-    fun `gear and keyboard open live log controls and closing restores the command draft`() {
+    fun `gear opens log controls and Escape preserves the command draft`() {
         var failure: Throwable? = null
         Lwjgl3Application(object : ApplicationAdapter() {
             override fun create() {
@@ -58,9 +57,13 @@ class ConsoleLogSettingsGlTest {
             stage.draw()
 
             val gear = stage.root.findActor<Actor>("console.logSettings")
-            val click = stage.stageToScreenCoordinates(gear.localToStageCoordinates(Vector2(gear.width / 2, gear.height / 2)))
-            stage.touchDown(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
-            stage.touchUp(click.x.toInt(), click.y.toInt(), 0, Input.Buttons.LEFT)
+            fun click(actor: Actor) {
+                val point = actor.localToStageCoordinates(Vector2(actor.width / 2, actor.height / 2))
+                val screen = stage.stageToScreenCoordinates(point)
+                stage.touchDown(screen.x.toInt(), screen.y.toInt(), 0, Input.Buttons.LEFT)
+                stage.touchUp(screen.x.toInt(), screen.y.toInt(), 0, Input.Buttons.LEFT)
+            }
+            click(gear)
             val globalBox = stage.root.findActor<SelectBox<ConsoleLevel>>("console.logLevel.global")
             val networkBox = stage.root.findActor<SelectBox<LogLevelOverride>>("console.logLevel.network")
             val globalLabel = stage.root.findActor<Label>("console.logLevel.global.label")
@@ -88,15 +91,13 @@ class ConsoleLogSettingsGlTest {
             assertNull(stage.root.findActor<Actor>("console.logLevels"))
             assertSame(stage.consoleInput, stage.keyboardFocus)
             assertEquals("echo unfinished", stage.consoleInput.text)
-            assertTrue(stage.keyDown(Input.Keys.F4))
-            repeat(LogSubsystem.entries.size) { assertTrue(stage.keyDown(Input.Keys.TAB)) }
-            val serverBox = stage.root.findActor<SelectBox<LogLevelOverride>>("console.logLevel.server")
-            assertSame(serverBox, stage.keyboardFocus)
-            assertTrue((stage.scrollFocus as ScrollPane).scrollY > 0f)
-            assertTrue(stage.keyDown(Input.Keys.ENTER))
-            assertTrue(serverBox.list.isTouchable)
+            click(gear)
+            assertSame(globalBox, stage.keyboardFocus)
+            stage.draw()
+            click(globalBox)
+            assertTrue(globalBox.list.isTouchable)
             assertTrue(stage.keyDown(Input.Keys.ESCAPE))
-            assertFalse(serverBox.list.isTouchable)
+            assertFalse(globalBox.list.isTouchable)
         } finally {
             stage.dispose()
             skin.dispose()
