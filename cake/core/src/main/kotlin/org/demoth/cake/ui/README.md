@@ -9,7 +9,7 @@ Configstring assets belong to [game configuration](../config/README.md).
 | Component | Responsibility |
 |---|---|
 | `GameUiStyle` | HUD fonts, number glyphs, menu widgets, optional sounds; owns acquired asset references. |
-| `GameUiStyleFactory` | Tries IdTech2 assets through mod/base lookup for every mod; releases partial acquisitions and falls back to `EngineUiStyle` on failure. |
+| `GameUiStyleFactory` | Requires a real `pics/conchars.pcx` for IdTech2 styling. Releases partial acquisitions and falls back to `EngineUiStyle` if the atlas is missing or style creation fails. |
 | `Cake` | Caches style by base-directory/mod, closes samples before style disposal, rebuilds menus and supplies the HUD style. |
 | `MenuStages` | Owns menu stages; rebuilds them when the shared style changes. |
 | `UiSamplePreview` | Owns gallery, commands, and local mode changes; requests application transitions through the menu bus. |

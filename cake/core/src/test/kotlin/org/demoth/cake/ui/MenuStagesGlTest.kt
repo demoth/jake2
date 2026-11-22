@@ -38,6 +38,7 @@ import org.demoth.cake.ui.menu.MenuStateSnapshot
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import ktx.scene2d.Scene2DSkin
 import org.demoth.cake.assets.CakeFileResolver
+import org.demoth.cake.assets.PcxLoader
 import org.demoth.cake.stages.MenuStages
 import org.demoth.cake.ui.menu.MenuEventBus
 import org.demoth.cake.ui.menu.MenuIntent
@@ -76,6 +77,7 @@ class MenuStagesGlTest {
         }
         try {
             verifyMissingTextures()
+            verifyMissingConcharsUsesEngineStyle(skin)
             verifyModelTextureReplacement()
             verifyModsBrowser(viewport, style)
             // Exercise the conchars-based game theme as well as the engine skin.
@@ -222,6 +224,23 @@ class MenuStagesGlTest {
             }
             assertFalse(assets.isLoaded("q2palette.bin"), "Missing WAL textures need no game palette")
         } finally { assets.dispose() }
+    }
+
+    private fun verifyMissingConcharsUsesEngineStyle(skin: Skin) {
+        val resolver = CakeFileResolver()
+        val assets = AssetManager(resolver).apply { PcxLoader(resolver).registerWith(this) }
+        try {
+            val style = GameUiStyleFactory.create("baseq2", assets, skin)
+            try {
+                assertTrue(style is EngineUiStyle, "The first-profile UI needs the engine style without game data")
+                assertSame(skin.getFont("menu"), style.menuWidgets.label.font)
+                assertFalse(assets.isLoaded("pics/conchars.pcx"))
+            } finally {
+                style.dispose()
+            }
+        } finally {
+            assets.dispose()
+        }
     }
 
     private fun verifyWrappedText(style: GameUiStyle) {

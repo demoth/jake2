@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Com
 import jake2.qcommon.Com.LogSubsystem.CLIENT
+import org.demoth.cake.assets.tryResolveRaw
 import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 
 private const val CONCHARS_PATH = "pics/conchars.pcx"
@@ -101,6 +102,10 @@ object GameUiStyleFactory {
         val hudAssetPaths = mutableListOf<String>()
         val fonts = mutableListOf<BitmapFont>()
         return try {
+            // Avoid missing conchars be replaced with the engine checkerboard fallback.
+            check(assetManager.fileHandleResolver.tryResolveRaw(CONCHARS_PATH)?.exists() == true) {
+                "Missing $CONCHARS_PATH"
+            }
             val concharsTexture = loadTexture(assetManager, CONCHARS_PATH, hudAssetPaths)
             // Fonts own independent metrics/caches but borrow the same AssetManager texture.
             val hudFont = ConcharsFontLoader.createBitmapFont(concharsTexture).also { fonts += it }

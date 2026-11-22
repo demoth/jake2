@@ -33,8 +33,9 @@ sounds run after valid packet-entity reconstruction, rather than on every draw.
 Cake replays sent movement commands that the server has yet to acknowledge.
 When every move is acknowledged, prediction uses the latest server position and
 view angles. An empty replay leaves the movement simulator's angles at zero,
-which previously caused a brief camera turn between sends. Predicting unsent
-input, as Yamagi and Q2PRO do, would require a separate change to input scheduling.
+which previously caused a brief camera turn between sends. 
+
+TODO: Predicting unsent input, as Yamagi and Q2PRO do, would require a separate change to input scheduling.
 
 ## World Presentation
 
