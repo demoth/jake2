@@ -69,7 +69,7 @@ class CakeTextureData(private var pixmap: Pixmap) : TextureData {
 internal fun createMissingTexture(): Texture {
     val pixels = Pixmap(64, 64, Pixmap.Format.RGBA8888)
     for (y in 0 until 64) for (x in 0 until 64) {
-        pixels.drawPixel(x, y, if ((x / 16 + y / 16) % 2 == 0) 0xFF00FFFF.toInt() else 0x181818FF)
+        pixels.drawPixel(x, y, if ((x / 16 + y / 16) % 2 == 0) 0xFFFFFFFF.toInt() else 0x000000FF)
     }
     return Texture(CakeTextureData(pixels))
 }
