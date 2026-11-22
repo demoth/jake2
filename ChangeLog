@@ -1,3 +1,11 @@
+1.2.10
+    - unified engine messaging with consistent line endings, reporting-only errors, and lazy TRACE diagnostics
+    - added global and per-subsystem log levels, with color-coded controls in the Cake console
+    - scoped rcon output capture to each command and split long replies into bounded plain-text packets
+    - added interactive stdout colors with the Yamagi-compatible colorterminal cvar
+    - added interactive terminal commands to the dedicated server
+    - removed the legacy Jake2 client and updated the application guides
+
 1.2.9
     - added GitHub Actions builds of self-contained Fullgame, Viewer and Client bundles for Linux, Windows and macOS (Intel and Apple Silicon)
     - reduced desktop bundle sizes by removing unused dependencies, foreign native libraries and authoring assets
