@@ -46,6 +46,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import static jake2.qcommon.Defines.*;
 import static jake2.qcommon.exec.cvar_t.nativeClass;
 
@@ -79,7 +80,7 @@ public class Cvar {
         Cmd.AddCommand("set", (List<String> args) -> {
             int flags;
             if (args.size() != 3 && args.size() != 4) {
-                Com.Printf("usage: set <variable> <value> [u / s]\n");
+                Com.Print("usage: set <variable> <value> [u / s]");
                 return;
             }
 
@@ -89,37 +90,24 @@ public class Cvar {
                 else if (args.get(3).equals("s"))
                     flags = CVAR_SERVERINFO;
                 else {
-                    Com.Printf("flags can only be 'u' or 's'\n");
+                    Com.Warn(COMMON, "flags can only be 'u' or 's'");
                     return;
                 }
-                report(Cvar.getInstance().setWithSuggestedFlags(args.get(1), args.get(2), flags));
+                reportQueued(Cvar.getInstance().setWithSuggestedFlags(args.get(1), args.get(2), flags));
             } else
-                report(Cvar.getInstance().setResult(args.get(1), args.get(2)));
+                reportQueued(Cvar.getInstance().setResult(args.get(1), args.get(2)));
 
         });
         Cmd.AddCommand("cvarlist", (List<String> args) -> {
             for (cvar_t<?> var : Cvar.getInstance().cvarMap.values()) {
-                if ((var.flags & CVAR_ARCHIVE) != 0)
-                    Com.Printf("*");
-                else
-                    Com.Printf(" ");
-                if ((var.flags & CVAR_USERINFO) != 0)
-                    Com.Printf("U");
-                else
-                    Com.Printf(" ");
-                if ((var.flags & CVAR_SERVERINFO) != 0)
-                    Com.Printf("S");
-                else
-                    Com.Printf(" ");
-                if ((var.flags & CVAR_NOSET) != 0)
-                    Com.Printf("-");
-                else if ((var.flags & CVAR_LATCH) != 0)
-                    Com.Printf("L");
-                else
-                    Com.Printf(" ");
-                Com.Printf(" " + var.name + " \"" + var.getRawString() + "\"\n");
+                char archive = (var.flags & CVAR_ARCHIVE) != 0 ? '*' : ' ';
+                char user = (var.flags & CVAR_USERINFO) != 0 ? 'U' : ' ';
+                char server = (var.flags & CVAR_SERVERINFO) != 0 ? 'S' : ' ';
+                char write = (var.flags & CVAR_NOSET) != 0 ? '-'
+                        : (var.flags & CVAR_LATCH) != 0 ? 'L' : ' ';
+                Com.Print("" + archive + user + server + write + " " + var.name + " \"" + var.getRawString() + "\"");
             }
-            Com.Printf(Cvar.getInstance().cvarMap.size() + " cvars\n");
+            Com.Print(Cvar.getInstance().cvarMap.size() + " cvars");
         });
     }
 
@@ -168,7 +156,7 @@ public class Cvar {
     /** Unknown-type registered lookup. Early inputs are not entries; missing names warn and return null. */
     public @Nullable cvar_t<?> find(String name) {
         cvar_t<?> var = lookup(name);
-        if (var == null) Com.Warn("Cvar '" + name + "' is not registered\n");
+        if (var == null) Com.Warn(COMMON, "Cvar '" + name + "' is not registered");
         return var;
     }
 
@@ -178,20 +166,20 @@ public class Cvar {
         if (var != null) return var.getRawString();
         EarlyCvarValue early = earlyValues.get(resolveCanonicalName(name));
         if (early != null) {
-            Com.Warn("Reading early value for '" + name + "' before cvar registration\n");
+            Com.Debug(COMMON, "Reading early value for '" + name + "' before cvar registration");
             return early.getText();
         }
-        Com.Warn("Cvar '" + name + "' is not registered\n");
+        Com.Warn(COMMON, "Cvar '" + name + "' is not registered");
         return "";
     }
 
     /** Stages input until an owner supplies its type/default/flags; latest text wins. */
     private CvarSetResult stageEarly(String name, String text, Integer suggestedFlags) {
-        if (text == null) return rejected("Missing value for " + name);
+        if (text == null) return rejectWrite("Missing value for " + name);
         EarlyCvarValue previous = earlyValues.remove(name);
         earlyValues.put(name, new EarlyCvarValue(text, suggestedFlags != null ? suggestedFlags
                 : previous == null ? null : previous.getSuggestedFlags()));
-        Com.Warn("Cvar '" + name + "' is not registered; storing early input\n");
+        Com.Debug(COMMON, "Cvar '" + name + "' is not registered; storing early input");
         return new CvarSetResult(CvarSetResult.Status.QUEUED, "Awaiting registration of " + name);
     }
 
@@ -200,7 +188,7 @@ public class Cvar {
         cvar_t<?> var = lookup(name);
         if (var == null) return stageEarly(resolveCanonicalName(name), text, suggestedFlags);
         if ((var.flags & suggestedFlags) != suggestedFlags)
-            return rejected("Suggested flags conflict with owning declaration for " + name);
+            return rejectWrite("Suggested flags conflict with owning declaration for " + name);
         return var.setText(text);
     }
 
@@ -234,7 +222,7 @@ public class Cvar {
         boolean usedEarly = earlyValues.containsKey(trimmedAlias);
         cvarAliases.put(trimmedAlias, resolvedCanonicalName);
         if (usedEarly) {
-            Com.Warn("Alias '" + trimmedAlias + "' was used before alias registration\n");
+            Com.Debug(COMMON, "Alias '" + trimmedAlias + "' was used before alias registration");
             Map<String, EarlyCvarValue> routed = new LinkedHashMap<>();
             for (Map.Entry<String, EarlyCvarValue> entry : earlyValues.entrySet()) {
                 String name = resolveCanonicalName(entry.getKey());
@@ -250,9 +238,9 @@ public class Cvar {
                 EarlyCvarValue input = earlyValues.remove(resolvedCanonicalName);
                 try {
                     validateSuggestedFlags(input, target.flags);
-                    report(setResult(resolvedCanonicalName, input.getText()));
+                    reportQueued(setResult(resolvedCanonicalName, input.getText()));
                 } catch (IllegalArgumentException e) {
-                    Com.Warn("Rejected early alias input for '" + trimmedAlias + "': " + e.getMessage() + "\n");
+                    Com.Warn(COMMON, "Rejected early alias input for '" + trimmedAlias + "': " + e.getMessage());
                 }
             }
         }
@@ -272,11 +260,11 @@ public class Cvar {
 
         // perform a variable print or set
         if (args.size() == 1) {
-            Com.Printf("\"" + v.name + "\" is \"" + v.getRawString() + "\"\n");
+            Com.Print("\"" + v.name + "\" is \"" + v.getRawString() + "\"");
             return true;
         }
 
-        report(v.setText(args.get(1)));
+        reportQueued(v.setText(args.get(1)));
         return true;
     }
 
@@ -321,7 +309,7 @@ public class Cvar {
      */
     public void updateLatchedVars() {
         for (cvar_t<?> var : cvarMap.values()) {
-            if (var.getPendingValue() != null) report(var.applyPending());
+            if (var.getPendingValue() != null) var.applyPending();
         }
     }
 
@@ -358,7 +346,7 @@ public class Cvar {
                 try {
                     f.write(buffer.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 } catch (IOException e) {
-                    Com.Printf("Could not write cvar " + var + " to " + path);
+                    Com.Error(COMMON, "Could not write cvar " + var + " to " + path);
                 }
             }
         }
@@ -447,7 +435,7 @@ public class Cvar {
                 validateSuggestedFlags(early, flags);
                 active = var.normalize(early.getText());
             } catch (IllegalArgumentException e) {
-                Com.Warn("Rejected early input for '" + name + "'; using default: " + e.getMessage() + "\n");
+                Com.Warn(COMMON, "Rejected early input for '" + name + "'; using default: " + e.getMessage());
             }
         }
         var.commitActive(active);
@@ -471,8 +459,8 @@ public class Cvar {
     public CvarSetResult setResult(String name, String value) { return setResult(name, value, false); }
     /** Runtime-checked native writes for heterogeneous editors whose entries have unknown generic types. */
     public CvarSetResult setNativeResult(String name, Object value) {
-        cvar_t<?> var = find(name);
-        if (var == null) return rejected("Unknown cvar: " + name);
+        cvar_t<?> var = lookup(name);
+        if (var == null) return rejectWrite("Unknown cvar: " + name);
         return var.setNative(value, false);
     }
 
@@ -486,14 +474,15 @@ public class Cvar {
         return var.setText(value, force);
     }
 
-    /** Keeps rejection feedback consistent across write paths. */
-    private static CvarSetResult rejected(String diagnostic) {
+    /** Reports a rejected write while keeping the reason available to callers. */
+    static CvarSetResult rejectWrite(String diagnostic) {
+        Com.Warn(COMMON, diagnostic);
         return new CvarSetResult(CvarSetResult.Status.REJECTED, diagnostic);
     }
 
-    /** Prints command feedback from validation and latch results. */
-    private static void report(CvarSetResult result) {
-        if (result.getDiagnostic() != null) Com.Printf(result.getDiagnostic() + "\n");
+    /** A console caller gets feedback when an accepted change is deferred. */
+    private static void reportQueued(CvarSetResult result) {
+        if (result.getStatus() == CvarSetResult.Status.QUEUED) Com.Print(result.getDiagnostic());
     }
 
     /** Clears entries and aliases for tests; discard acquired entries and their consumers before reuse. */

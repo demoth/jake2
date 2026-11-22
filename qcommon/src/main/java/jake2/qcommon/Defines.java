@@ -81,9 +81,6 @@ public class Defines {
 	public final static int ERR_DROP = 1; // print to console and disconnect from game
 	public final static int ERR_DISCONNECT = 2; // don't kill server 
 
-	public final static int PRINT_ALL = 0;
-	public final static int PRINT_DEVELOPER = 1; // only print when "developer 1" 
-	public final static int PRINT_ALERT = 2;
 
 	//	key / value info strings
 	public final static int MAX_INFO_KEY = 64;

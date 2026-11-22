@@ -30,6 +30,7 @@ import jake2.game.items.GameItems;
 import jake2.qcommon.*;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 
 public class GameUtil {
 
@@ -50,7 +51,7 @@ public class GameUtil {
     public static void G_UseTargets(GameEntity ent, GameEntity activator, GameExportsImpl gameExports) {
 
         if (ent.classname == null) {
-            gameExports.gameImports.dprintf("edict with classname = null: " + ent.index);
+            Com.Warn(GAME, "edict with classname = null: " + ent.index);
         }
 
         // check for a delay
@@ -63,7 +64,7 @@ public class GameUtil {
             t.think.action = Think_Delay;
             t.activator = activator;
             if (activator == null)
-                gameExports.gameImports.dprintf("Think_Delay with no activator\n");
+                Com.Warn(GAME, "Think_Delay with no activator");
             t.message = ent.message;
             t.target = ent.target;
             t.killtarget = ent.killtarget;
@@ -91,7 +92,7 @@ public class GameUtil {
                 t = edit.o;
                 gameExports.freeEntity(t);
                 if (!ent.inuse) {
-                    gameExports.gameImports.dprintf("entity was removed while using killtargets\n");
+                    Com.Warn(GAME, "entity was removed while using killtargets");
                     return;
                 }
             }
@@ -109,14 +110,13 @@ public class GameUtil {
                     continue;
 
                 if (t == ent) {
-                    gameExports.gameImports.dprintf("WARNING: Entity tried to use itself.\n");
+                    Com.Warn(GAME, "WARNING: Entity tried to use itself.");
                 } else {
                     if (t.use != null)
                         t.use.use(t, ent, activator, gameExports);
                 }
                 if (!ent.inuse) {
-                    gameExports.gameImports
-                            .dprintf("entity was removed while using targets\n");
+                    Com.Warn(GAME, "entity was removed while using targets");
                     return;
                 }
             }
@@ -452,9 +452,9 @@ public class GameUtil {
         if (self.movetarget == null) {
             self.goalentity = self.movetarget = self.enemy;
             GameAI.HuntTarget(self, gameExports);
-            gameExports.gameImports.dprintf("" + self.classname + "at "
+            Com.Warn(GAME, "" + self.classname + "at "
                     + Lib.vtos(self.s.origin) + ", combattarget "
-                    + self.combattarget + " not found\n");
+                    + self.combattarget + " not found");
             return;
         }
 

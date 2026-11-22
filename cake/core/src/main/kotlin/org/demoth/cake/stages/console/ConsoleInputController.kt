@@ -49,7 +49,7 @@ class ConsoleInputController(
 
     private fun submitCurrentInput() {
         val command = input.text
-        appendOutput(Com.ConsoleLevel.INFO, "$command\n")
+        appendOutput(Com.ConsoleLevel.PRINT, "$command\n")
         submitCommand(command)
         if (history.recordSubmitted(command)) {
             persistHistory(history.entries())
@@ -91,7 +91,7 @@ class ConsoleInputController(
         }
 
         appendOutput(
-            Com.ConsoleLevel.INFO,
+            Com.ConsoleLevel.PRINT,
             buildString {
                 append("\nMatches:\n")
                 // Print one candidate per line so long cvar values and descriptions stay readable.

@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon.util;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 
@@ -36,6 +37,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.Objects;
 
 @SuppressWarnings("deprecation")
@@ -54,7 +56,7 @@ public class Lib {
 	
 	/** Converts a vector to a beatiful string. */
 	public static String vtofsbeaty(float[] v) {
-		return Com.sprintf("%8.2f %8.2f %8.2f", new Vargs().add(v[0]).add(v[1]).add(v[2]));
+		return String.format(Locale.ROOT, "%8.2f %8.2f %8.2f", v[0], v[1], v[2]);
 	}
 	
 	/** Like in  libc. */
@@ -189,10 +191,10 @@ public class Lib {
 			return (char) i;
 	}
 	
-	/** Prints a vector to the quake console. */
+	/** Logs a vector when developer diagnostics are enabled. */
 	public static void printv(String in, float arr[]) {
 		for (int n = 0; n < arr.length; n++) {
-			Com.Println(in + "[" + n + "]: " + arr[n]);
+			Com.Debug(COMMON, in + "[" + n + "]: " + arr[n]);
 		}
 	}
 	
@@ -218,7 +220,7 @@ public class Lib {
 			return new RandomAccessFile(name, mode);
 		}
 		catch (Exception e) {
-			Com.DPrintf("Could not open file:" + name);
+			Com.Error(COMMON, "Could not open " + name + ": " + e);
 			return null;
 		}
 	}

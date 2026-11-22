@@ -1,6 +1,7 @@
 package org.demoth.cake.ui.menu
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.BspHeader
 import jake2.qcommon.parseEntities
@@ -45,7 +46,7 @@ fun loadHostMaps(profile: CakeGameProfile?): List<HostMap> {
                     ?.get("message")?.replace(Regex("\\s+"), " ")?.trim()?.takeIf(String::isNotEmpty)
             }
         } catch (error: Exception) {
-            Com.Warn("Cannot read map title for '$path': ${error.message}\n")
+            Com.Warn(CLIENT, "Cannot read map title for '$path': ${error.message}")
             null
         }
         HostMap(name, title)

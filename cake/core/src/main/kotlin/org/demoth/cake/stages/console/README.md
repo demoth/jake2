@@ -1,52 +1,69 @@
 # Developer Console
 
-## Responsibilities
+## Commands and history
 
-The console uses Scene2D for stage layout, skin integration, and single-line input.
-It owns scrollback rendering, completion, command history, and scrolling. Engine
-command semantics remain in `Cbuf`, `Cmd`, and `Cvar`; `Cake` controls console
-visibility and input routing.
+- Enter echoes and runs the command.
+- Tab completes command and cvar names. Shared prefixes expand and multiple matches are listed.
+- Up and Down browse history and restore the draft when returning to the newest entry.
+- Page Up, Page Down, and the mouse wheel scroll output. `clear` clears it.
+- Each profile keeps up to 500 history entries in `$HOME/.cake/<profileId>/console-history.txt`. A leading space runs a command without saving it to history.
 
-- `ConsoleStage` connects the engine console sink, widgets, and command execution.
-- `ConsoleBuffer` stores bounded logical entries with severity, independently of
-  display width and wrapping.
-- `ConsoleOutputWidget` wraps, clips, colours, and draws only visible rows; it owns
-  output scroll position.
-- `ConsoleInputController` handles submission, completion, and history navigation.
-- `ConsoleCommandHistory` stores bounded submitted history and restores the draft
-  input when navigating back from history.
+## Engine messaging contract
 
-## Output and Commands
+| Function | Level | Description | Cake console style | Stdout color |
+|---|---|---|---|---|
+| `Com.Print` | `PRINT` | Gameplay and command output. Always shown. | Default | Default |
+| `Com.Error(message)` | `ERROR` | Reports an operation failure. The caller handles recovery. | Red | Red |
+| `Com.Warn` | `WARN` | Recoverable problems and rejected requests. | Yellow | Yellow |
+| `Com.Info` | `INFO` | Significant lifecycle events. | Default | Default |
+| `Com.Debug` | `DEBUG` | Occasional developer detail. | Muted | Gray |
+| `Com.Trace { ... }` | `TRACE` | Frequent diagnostics. Builds the message only when enabled. | More muted | Dim default |
 
-```text
-Com.Printf / Com.Warn / Com.Error
-  -> Com.ConsoleSink -> ConsoleStage.appendOutput -> ConsoleBuffer
-  -> ConsoleOutputWidget: wrap and draw visible rows
+Choose the level from context the caller already has. Keep the existing level
+when a finer distinction would add behavior solely for logging. Use single
+quotes around interpolated values in diagnostic prose.
 
-Input -> ConsoleInputController
-  -> Enter: echo and execute through Cbuf.AddText / Cbuf.Execute
-  -> Tab: command/cvar prefix completion
-  -> Up/Down: command history
-  -> PageUp/PageDown: output scrolling
-```
+## Log levels
 
-Command exceptions are caught and displayed in the console. Severity maps to skin
-colours; consecutive same-severity appends coalesce until a newline boundary.
-`clear` clears scrollback. Mouse-wheel scrolling is attached to the output widget;
-scrolling is line-based, without a `ScrollPane`.
+All levels except print are diagnostic log levels.
 
-Completion covers command and cvar names. Multiple matches extend the longest
-common prefix and print the candidate list. Input focus stays on the text field;
-output is excluded from focus traversal.
+- `loglevel` defaults to `INFO`. From least to most verbose, the levels are `ERROR`, `WARN`, `INFO`, `DEBUG`, and `TRACE`.
+- Subsystem overrides use `GLOBAL` to follow `loglevel`.
+- Click the gear to open log settings. Escape dismisses the open selector or the popover.
+- Changing **Global** in the popover sets `loglevel` and resets every subsystem override to `GLOBAL`.
+- Threshold changes apply to new output in the process, including an embedded server. `developer` controls developer features such as automation.
 
-## History and Presentation
+## Logging subsystems
 
-Submitted commands persist to `$HOME/.cake/<profileId>/console-history.txt`, capped
-to the latest 500 entries and restored on subsequent launches. Commands starting
-with a space execute without being recorded. Profile history storage is wired by
-`Cake`.
+Choose the subsystem that owns the operation. For example, Cake's packet handling uses `Network`, its render statistics 
+use `Render`, and its missing-texture fallback uses `Client`.
 
-Output and input panels use the `console-panel` drawable behind their content in
-Scene2D stacks. Children draw in insertion order, so the background must be added
-first. Panel texture, nine-patch split/pad values, and widget padding all contribute
-to the visible spacing.
+| Subsystem | Cvar | Scope |
+|---|---|---|
+| Client | `loglevel_client` | Cake input, audio, asset loading, demos, profiles, and client session state. |
+| FileSystem | `loglevel_filesystem` | Virtual filesystem lookup, mounts, and package indexing. |
+| Game | `loglevel_game` | Gameplay code in the `game` module. |
+| Network | `loglevel_network` | Transport, packets, handshakes, snapshot deltas, downloads, and rcon across client and server. |
+| Render | `loglevel_render` | Cake rendering, including graphics modes, framebuffers, screenshots, and cinematic frame upload. |
+| Server | `loglevel_server` | Dedicated and embedded hosting, including game instances, map transitions, saves, and client slots. |
+| Common | `loglevel_common` | Shared engine code such as commands, cvars, basically everything that didn't fit into other systems.|
+
+## Player message priority
+
+`msg` filters server print messages before they reach the HUD and console.
+
+- `0` accepts every print priority.
+- `1` accepts death, critical, and chat messages. This is the default.
+- `2` accepts critical and chat messages.
+- `3` accepts chat only.
+- `4` suppresses all server print priorities.
+
+Center prints use a separate message type and are independent of `msg`.
+
+## Colors
+
+The log settings labels use the Cake console style for each row's effective level.
+
+`colorterminal` is an archived boolean that defaults to `true`. Stdout colors require
+an interactive terminal with a nonempty `TERM` other than `dumb`. Pipes and files
+receive plain text.

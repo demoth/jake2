@@ -25,7 +25,7 @@ class UiSamplePreview(
     fun registerCommands() {
         Cmd.AddCommand("ui_sample", "(internal) Preview UI styles: ui_sample [engine|game|off]") { args ->
             if (args.size > 2) {
-                Com.Printf("Usage: ui_sample [engine|game|off]\n")
+                Com.Print("Usage: ui_sample [engine|game|off]")
                 return@AddCommand
             }
             when (args.getOrNull(1)) {
@@ -33,7 +33,7 @@ class UiSamplePreview(
                 "engine" -> menuEventBus.postIntent(MenuIntent.OpenUiSample(false))
                 "game" -> menuEventBus.postIntent(MenuIntent.OpenUiSample(true))
                 "off" -> menuEventBus.postIntent(MenuIntent.CloseUiSample)
-                else -> Com.Printf("Usage: ui_sample [engine|game|off]\n")
+                else -> Com.Print("Usage: ui_sample [engine|game|off]")
             }
         }
     }

@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
+import jake2.qcommon.Com.LogSubsystem.RENDER
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import ktx.graphics.use
 import org.demoth.cake.config.GameConfiguration
@@ -35,7 +37,6 @@ class CinematicPresentationController(
     private var framePixmap: Pixmap? = null
     private var streamDecoder: CinematicCinDecoder? = null
     private var audioDevice: AudioDevice? = null
-    private var lastDebugLogTimeMs = Int.MIN_VALUE
 
     fun begin(cinematicName: String, currentTimeMs: Int) {
         releaseMedia()
@@ -58,10 +59,9 @@ class CinematicPresentationController(
         } catch (error: Exception) {
             releaseMedia()
             autoAdvancePending = true
-            Com.Warn("Cinematic stream failed: ${error.message}\n")
+            Com.Error(CLIENT, "Cinematic stream failed: ${error.message}")
         }
         renderStaticImage(spriteBatch, screenWidth, screenHeight)
-        logDiagnostics(currentTimeMs)
     }
 
     /**
@@ -107,7 +107,7 @@ class CinematicPresentationController(
         }
         val imagePath = resolvePicturePath(cinematicName)
         if (assetManager.fileHandleResolver.tryResolveRaw(imagePath) == null) {
-            Com.Warn("Cinematic image not found: $imagePath\n")
+            Com.Error(CLIENT, "Cinematic image not found: $imagePath")
             return
         }
         staticImage = gameConfig.acquireAsset<Texture>(imagePath)
@@ -117,7 +117,7 @@ class CinematicPresentationController(
         val streamPath = resolveStreamPath(cinematicName)
         val streamHandle = assetManager.fileHandleResolver.tryResolveRaw(streamPath)
         if (streamHandle == null || !streamHandle.exists()) {
-            Com.Warn("Cinematic stream not found: $streamPath\n")
+            Com.Error(CLIENT, "Cinematic stream not found: $streamPath")
             autoAdvancePending = true
             return
         }
@@ -155,7 +155,7 @@ class CinematicPresentationController(
             )
         } catch (ex: Exception) {
             releaseMedia()
-            Com.Warn("Failed to open cinematic stream $streamPath: ${ex.message}\n")
+            Com.Error(CLIENT, "Failed to open cinematic stream $streamPath: ${ex.message}")
             autoAdvancePending = true
         }
     }
@@ -225,7 +225,7 @@ class CinematicPresentationController(
         palette: IntArray,
     ): Boolean {
         if (indexedFrame.size < width * height) {
-            Com.Warn("Cinematic frame is truncated (${indexedFrame.size} < ${width * height})\n")
+            Com.Error(RENDER, "Cinematic frame is truncated (${indexedFrame.size} < ${width * height})")
             return false
         }
         val pixmap = ensureFramePixmap(width, height)
@@ -289,7 +289,7 @@ class CinematicPresentationController(
             }
 
             else -> {
-                Com.Warn("Unsupported cinematic audio sample width: $sampleWidth\n")
+                Com.Warn(CLIENT, "Unsupported cinematic audio sample width: $sampleWidth")
             }
         }
     }
@@ -301,7 +301,7 @@ class CinematicPresentationController(
             return
         }
         if (decoder.sampleChannels !in 1..2) {
-            Com.Warn("Unsupported cinematic audio channels: ${decoder.sampleChannels}\n")
+            Com.Warn(CLIENT, "Unsupported cinematic audio channels: ${decoder.sampleChannels}")
             return
         }
         audioDevice = Gdx.audio.newAudioDevice(decoder.sampleRate, decoder.sampleChannels == 1)
@@ -336,30 +336,6 @@ class CinematicPresentationController(
         staticImage = null
     }
 
-    private fun logDiagnostics(currentTimeMs: Int) {
-        if (!RenderTuningCvars.bspBatchDebugEnabled()) {
-            lastDebugLogTimeMs = Int.MIN_VALUE
-            return
-        }
-        if (lastDebugLogTimeMs != Int.MIN_VALUE && currentTimeMs - lastDebugLogTimeMs < DEBUG_LOG_INTERVAL_MS) {
-            return
-        }
-        lastDebugLogTimeMs = currentTimeMs
-        val decoder = streamDecoder
-        val elapsedMs = if (startTimeMs == Int.MIN_VALUE) 0 else (currentTimeMs - startTimeMs).coerceAtLeast(0)
-        val targetFrame = elapsedMs * CINEMATIC_FPS / 1000
-        val mediaKind = when {
-            decoder != null -> "cin"
-            frameTexture != null -> "stream-frame"
-            staticImage != null -> "image"
-            else -> "none"
-        }
-        Com.Printf(
-            "cinematic_debug t=$currentTimeMs media=$mediaKind decoded=${decoder?.decodedFrameCount ?: 0} " +
-                "target=$targetFrame auto=$autoAdvancePending skip=$skipSent audio=${audioDevice != null}\n"
-        )
-    }
-
     override fun dispose() {
         end()
     }
@@ -368,6 +344,5 @@ class CinematicPresentationController(
         private const val CINEMATIC_FPS = 14
         private const val CINEMATIC_SKIP_DELAY_MS = 1000
         private const val PALETTE_COLOR_COUNT = 256
-        private const val DEBUG_LOG_INTERVAL_MS = 1000
     }
 }

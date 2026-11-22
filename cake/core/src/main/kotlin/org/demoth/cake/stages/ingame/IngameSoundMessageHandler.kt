@@ -2,6 +2,7 @@ package org.demoth.cake.stages.ingame
 
 import com.badlogic.gdx.math.Vector3
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.network.messages.server.SoundMessage
@@ -48,7 +49,7 @@ internal class IngameSoundMessageHandler(
                 )
             )
         } else {
-            Com.Warn("sound ${msg.soundIndex} (${gameConfig.getSoundPath(msg.soundIndex)}) not found")
+            Com.Warn(CLIENT, "sound ${msg.soundIndex} (${gameConfig.getSoundPath(msg.soundIndex)}) not found")
         }
     }
 
@@ -114,7 +115,7 @@ internal class IngameSoundMessageHandler(
      */
     fun processWeaponSoundMessage(msg: WeaponSoundMessage) {
         if (msg.entityIndex !in 1 until Defines.MAX_EDICTS) {
-            Com.Warn("Ignoring WeaponSoundMessage with invalid entity index ${msg.entityIndex}")
+            Com.Warn(CLIENT, "Ignoring WeaponSoundMessage with invalid entity index ${msg.entityIndex}")
             return
         }
         // The weapon type occupies the low seven bits of the packed flash type.
@@ -214,7 +215,7 @@ internal class IngameSoundMessageHandler(
                 // Keep backward-compatible fallback for unknown mod-specific muzzleflash values.
                 val fallback = gameConfig.getWeaponSound(weaponType)
                 if (fallback == null) {
-                    Com.Warn("weapon sound $weaponType not found")
+                    Com.Warn(CLIENT, "weapon sound $weaponType not found")
                 } else {
                     audioSystem.play(
                         SoundPlaybackRequest(
@@ -354,7 +355,7 @@ internal class IngameSoundMessageHandler(
     ) {
         val sound = gameConfig.getNamedSound(soundPath)
         if (sound == null) {
-            Com.Warn("weapon sound path $soundPath not found")
+            Com.Warn(CLIENT, "weapon sound path $soundPath not found")
             return
         }
         audioSystem.play(

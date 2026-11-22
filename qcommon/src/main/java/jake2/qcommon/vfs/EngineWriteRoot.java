@@ -1,6 +1,7 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.FILESYSTEM;
 import jake2.qcommon.Globals;
 
 import java.nio.file.Files;
@@ -46,7 +47,7 @@ public final class EngineWriteRoot {
         try {
             Files.createDirectories(path);
         } catch (Exception e) {
-            Com.Printf("can't create path \"" + path + "\"\n");
+            Com.Error(FILESYSTEM, "can't create path \"" + path + "\"");
         }
     }
 }

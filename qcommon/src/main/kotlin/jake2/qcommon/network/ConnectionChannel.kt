@@ -22,6 +22,9 @@
 // $Id: netchan_t.java,v 1.2 2004-09-22 19:22:09 salomo Exp $
 package jake2.qcommon.network
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.NETWORK
+
 import jake2.qcommon.Defines
 import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.NetworkPacket
@@ -35,14 +38,12 @@ import java.util.function.LongSupplier
 /**
  * Engine connection adapter, confined to its owner's game-loop thread. Protocol state and reliable
  * bytes belong to [ReliableChannel]. The sender borrows its owner's transport; clearing a connection
- * never closes it. Transport, monotonic clock, and diagnostics are supplied explicitly.
+ * never closes it. Transport and the monotonic clock are supplied explicitly.
  */
-class ConnectionChannel @JvmOverloads constructor(
+class ConnectionChannel(
     private val role: ChannelRole,
     private val localPeer: NetworkAddress.Local,
     private val sendPacket: (NetworkAddress, PacketBytes) -> SendResult,
-    private val logPackets: () -> Boolean = { false },
-    private val log: (String) -> Unit = {},
     private val clockMillis: LongSupplier,
 ) {
     private var channel = ReliableChannel(role, 0)
@@ -111,7 +112,7 @@ class ConnectionChannel @JvmOverloads constructor(
     fun transmit(unreliable: Collection<NetworkMessage>?): Boolean {
         if (queuedReliableBytes > Defines.MAX_MSGLEN - 16) {
             fatalError = true
-            log("$destination:Outgoing message overflow\n")
+            Com.Error(NETWORK, "$destination:Outgoing message overflow")
             return false
         }
         var staged = false
@@ -138,11 +139,11 @@ class ConnectionChannel @JvmOverloads constructor(
             }
             if (sent) {
                 idleSinceMillis = channel.lastSentMillis
-                if (transmission.unreliableDropped) log("Netchan_Transmit: dumped unreliable\n")
-                if (logPackets()) log(String.format(
-                    "Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d \n",
+                if (transmission.unreliableDropped) Com.Debug(NETWORK, "Netchan_Transmit: dumped unreliable")
+                Com.Trace(NETWORK) { String.format(
+                    "Netchan: %s | out: %6d | in: %6d | outr: %1d | inr: %1d ",
                     if (role == ChannelRole.CLIENT) "client" else "server", transmission.sequence,
-                    channel.incomingSequence, if (transmission.containsReliable) 1 else 0, channel.reliableReceivedFlag))
+                    channel.incomingSequence, if (transmission.containsReliable) 1 else 0, channel.reliableReceivedFlag) }
             }
             return sent
         } finally {

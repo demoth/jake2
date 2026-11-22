@@ -16,9 +16,7 @@ class ConsoleOutputWidget(
     skin: Skin,
 ) : Widget() {
     private val font: BitmapFont = skin.getFont("default")
-    private val infoColor: Color = Color(skin.getColor("font"))
-    private val warningColor: Color = Color(skin.getColor("warning"))
-    private val errorColor: Color = Color(skin.getColor("error"))
+    private val severityColors = ConsoleSeverityColors(skin)
     private val clipBounds = Rectangle()
     private val scissors = Rectangle()
     private val wrappedLines = mutableListOf<WrappedLine>()
@@ -66,7 +64,7 @@ class ConsoleOutputWidget(
 
         try {
             for (index in topLine until endExclusive) {
-                font.color = colorFor(wrappedLines[index].severity)
+                font.color = severityColors[wrappedLines[index].severity]
                 font.draw(batch, wrappedLines[index].text, startX, drawY)
                 drawY -= font.lineHeight
             }
@@ -139,12 +137,6 @@ class ConsoleOutputWidget(
     }
 
     private fun maxTopLine(): Int = (wrappedLines.size - visibleLineCapacity()).coerceAtLeast(0)
-
-    private fun colorFor(severity: Com.ConsoleLevel): Color = when (severity) {
-        Com.ConsoleLevel.INFO -> infoColor
-        Com.ConsoleLevel.WARN -> warningColor
-        Com.ConsoleLevel.ERROR -> errorColor
-    }
 
     private data class WrappedLine(
         val text: String,

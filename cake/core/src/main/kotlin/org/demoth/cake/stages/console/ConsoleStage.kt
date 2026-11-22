@@ -36,6 +36,7 @@ class ConsoleStage(
 ) : Stage(viewport) {
     private val consoleBuffer = ConsoleBuffer()
     private val consoleSink = Com.ConsoleSink { level, message -> appendOutput(level, message) }
+    private val logSettings by lazy { ConsoleLogSettings(this, Scene2DSkin.defaultSkin, ::focusInput) }
     private val inputController by lazy {
         ConsoleInputController(
             input = consoleInput,
@@ -48,6 +49,11 @@ class ConsoleStage(
 
     /** Requests keyboard focus for the input field. */
     fun focus() {
+        logSettings.close()
+        focusInput()
+    }
+
+    private fun focusInput() {
         consoleInput.setKeyboardFocus(true)
         setScrollFocus(consoleOutput)
     }
@@ -95,11 +101,14 @@ class ConsoleStage(
                 }
                 row()
                 container {
-                    consoleInput = textField(style = "console")
-                    // Reject tabs at the widget level so completion never leaves a literal tab in the buffer.
-                    consoleInput.setTextFieldFilter { _, character -> character != '\t' }
-                    consoleInput.setFocusTraversal(false)
-                    consoleInput.addListener(inputController)
+                    table {
+                        consoleInput = textField(style = "console") { it.growX() }
+                        // Reject tabs at the widget level so completion never leaves a literal tab in the buffer.
+                        consoleInput.setTextFieldFilter { _, character -> character != '\t' }
+                        consoleInput.setFocusTraversal(false)
+                        consoleInput.addListener(inputController)
+                        add(logSettings.button).padLeft(8f).growY()
+                    }
                     fill()
                 }
             }

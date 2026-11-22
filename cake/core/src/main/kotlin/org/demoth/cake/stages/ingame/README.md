@@ -101,16 +101,16 @@ input guide.
 
 ## Rendering Diagnostics
 
-`r_bsp_batch_debug` (default `0`) prints throttled world/entity/sprite/beam/particle
-submission stats and cinematic diagnostics. For world batching and visibility
-internals, see the [BSP pipeline guide](../../assets/bsp/README.md).
+Throttled world, entity, sprite, beam, and particle submission stats use TRACE.
+Run `set loglevel TRACE` to collect them and `set loglevel INFO` when finished.
+For world batching and visibility internals, see the
+[BSP pipeline guide](../../assets/bsp/README.md).
 
 To profile representative maps and views:
 
 1. Enable draw-call and texture-binding graphs with `set r_debug_drawcalls 1` and
    `set r_debug_texturebindings 1`.
-2. Enable submission statistics with `set r_bsp_batch_debug 1`.
-3. Use `set cl_showfps 1` for average FPS, `2` for minimum/maximum/average FPS, or
+2. Use `set cl_showfps 1` for average FPS, `2` for minimum/maximum/average FPS, or
    `3` to include a frame-time line.
 
 Filesystem lookup diagnostics (`fs_files`, `fs_find`, `fs_mounts`, `fs_overrides`)

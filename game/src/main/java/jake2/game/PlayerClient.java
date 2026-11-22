@@ -32,6 +32,7 @@ import jake2.qcommon.network.MulticastTypes;
 import jake2.qcommon.network.messages.server.WeaponSoundMessage;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 
 public class PlayerClient {
 
@@ -1034,7 +1035,7 @@ public class PlayerClient {
         ClientUserinfoChanged(ent, userinfo, gameExports);
 
         if (gameExports.game.maxclients > 1)
-            gameExports.gameImports.dprintf(client.pers.netname + " connected\n");
+            Com.Info(GAME, client.pers.netname + " connected");
 
         ent.svflags = 0; // make sure we start with known default
         client.pers.connected = true;

@@ -1,5 +1,7 @@
 package org.demoth.cake.profile
 
+import jake2.qcommon.Com
+import jake2.qcommon.Globals
 import jake2.qcommon.MainCommon
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
@@ -140,6 +142,31 @@ class CakeProfilePersistenceTest {
         assertEquals("incoming", cvars.find<String>("name").typedValue)
         assertEquals(1280, cvars.find<Int>("vid_windowed_width").typedValue)
         assertNull(cvars.find<Int>("vid_windowed_width").rawPendingString)
+    }
+
+    @Test
+    fun `explicit config save confirms at quiet levels and autosave confirms at debug`() {
+        active = CakeGameProfile("feedback", temp.toString())
+        val messages = mutableListOf<Com.ConsoleLevel>()
+        val sink = Com.ConsoleSink { level, message ->
+            if (message.startsWith("Saved Cake profile config:")) messages += level
+        }
+        val logLevel = Globals.logLevel
+        val previousLevel = logLevel.typedValue
+        Com.SetConsoleSink(sink)
+        try {
+            logLevel.set(Com.ConsoleLevel.ERROR)
+            persistence.saveConfig()
+            persistence.saveConfig(explicit = true)
+            assertEquals(listOf(Com.ConsoleLevel.PRINT), messages)
+
+            logLevel.set(Com.ConsoleLevel.DEBUG)
+            persistence.saveConfig()
+            assertEquals(listOf(Com.ConsoleLevel.PRINT, Com.ConsoleLevel.DEBUG), messages)
+        } finally {
+            logLevel.set(previousLevel)
+            Com.ClearConsoleSink(sink)
+        }
     }
 
     @Test

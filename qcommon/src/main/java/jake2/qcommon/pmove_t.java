@@ -25,6 +25,7 @@ package jake2.qcommon;
 import jake2.qcommon.util.Math3D;
 
 import java.util.Arrays;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 
 public class pmove_t {
     public static final int MAX_CLIP_PLANES = 5;
@@ -443,7 +444,7 @@ public class pmove_t {
             }
         }
 
-        Com.DPrintf("Bad InitialSnapPosition\n");
+        Com.Trace(COMMON, () -> "Bad InitialSnapPosition");
     }
 
     /**

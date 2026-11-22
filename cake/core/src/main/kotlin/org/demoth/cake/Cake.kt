@@ -27,6 +27,10 @@ import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.protocol.PacketEnvelope
 import org.demoth.cake.demo.demoLogicalPath
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
+import jake2.qcommon.Com.LogSubsystem.RENDER
+import jake2.qcommon.Com.LogSubsystem.SERVER
+import jake2.qcommon.Com.LogSubsystem.NETWORK
 import jake2.qcommon.Defines.*
 import jake2.qcommon.Globals
 import jake2.qcommon.exec.Cbuf
@@ -258,7 +262,6 @@ class Cake(
     private var transitionBackdropActive = false
 
     // Live cvar handles (startup bootstrap registers their defaults).
-    private val clDebugStufftext = Cvar.getInstance().find<Boolean>("cl_debug_stufftext")
     private val clMaxfps = Cvar.getInstance().find<Float>("cl_maxfps")
     private val uiSize = Cvar.getInstance().find<Float>("cl_ui_size")
 
@@ -355,7 +358,7 @@ class Cake(
             handshake.pause()
             // todo: indicate somehow about the map changing (loading screen or spinner)
             // SCR.BeginLoadingPlaque();
-            Com.Printf("\nChanging map...\n")
+            Com.Info(CLIENT, "\nChanging map...")
 
             beginMapTransitionRetainingConfigAssets()
         }
@@ -363,17 +366,20 @@ class Cake(
         // Important: like a svc_reconnect but more lightweight
         Cmd.AddCommand("reconnect", "Reconnect to the current server") {
             if (demoPlayback != null) return@AddCommand
-            Com.Printf("Reconnecting..\n")
 
             if (networkState == CONNECTED) { // set on "changing" command
-                Com.Printf("Sending 'new' to server\n")
+                Com.Debug(NETWORK, "Sending 'new' to server")
                 netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
+                Com.Info(NETWORK, "Reconnecting to the current server...")
 
             } else {
-                val target = handshake.lastTarget ?: return@AddCommand
+                val target = handshake.lastTarget ?: run {
+                    Com.Warn(NETWORK, "No server to reconnect to.")
+                    return@AddCommand
+                }
                 val local = target is NetworkAddress.Local
                 if (local && host.state != HostState.RUNNING) {
-                    Com.Warn("No local server is running.\n")
+                    Com.Warn(CLIENT, "No local server is running.")
                     return@AddCommand
                 }
                 resetClientConnection()
@@ -383,15 +389,19 @@ class Cake(
         }
 
         Cmd.AddCommand("record", "Record a protocol-34 client demo: record <name>") { args ->
-            if (args.size != 2) Com.Printf("usage: record <name>\n") else startRecording(args[1])
+            if (args.size != 2) Com.Print("usage: record <name>") else startRecording(args[1])
         }
         Cmd.AddCommand("stop", "Finish the current client demo recording") {
-            if (demoRecording == null) Com.Printf("Not recording a demo\n") else stopRecording()
+            if (demoRecording == null) {
+                Com.Warn(CLIENT, "Not recording a demo")
+            } else if (stopRecording()) {
+                Com.Print("Stopped demo recording")
+            }
         }
 
         Cmd.AddCommand("demomap", "Play a protocol-26/32/34 demo: demomap <name or demos/path.dm2>") { args ->
             if (args.size != 2) {
-                Com.Printf("usage: demomap <name or demos/path.dm2>\n")
+                Com.Print("usage: demomap <name or demos/path.dm2>")
             } else {
                 startDemo(args[1])
             }
@@ -406,17 +416,17 @@ class Cake(
         Cmd.AddCommand("connect", "Connect to a remote server") {
             val server = sanitizeConnectTarget(it)
             if (server == null) {
-                Com.Printf("usage: connect <server>\n")
+                Com.Print("usage: connect <server>")
                 return@AddCommand
             }
             val target = network.resolveAddress(server, PORT_SERVER)
             if (target == null) {
-                Com.Warn("Bad server address\n")
+                Com.Warn(NETWORK, "Bad server address")
                 return@AddCommand
             }
             if (target is NetworkAddress.Local) {
                 if (host.state != HostState.RUNNING) {
-                    Com.Warn("No local server is running. Use map to start a local game or connect to a UDP address.\n")
+                    Com.Warn(CLIENT, "No local server is running. Use map to start a local game or connect to a UDP address.")
                     return@AddCommand
                 }
                 resetClientConnection()
@@ -435,7 +445,7 @@ class Cake(
         Cmd.AddCommand("rcon", "Send a remote console command (requires rcon_password)") { args ->
             val rconPassword = Cvar.getInstance().find<String>("rcon_password").typedValue
             if (rconPassword.isEmpty()) {
-                Com.Printf("You must set 'rcon_password' before\nissuing an rcon command.\n")
+                Com.Warn(NETWORK, "You must set 'rcon_password' before\nissuing an rcon command.")
                 return@AddCommand
             }
 
@@ -454,17 +464,16 @@ class Cake(
             } else {
                 val rconAddress = Cvar.getInstance().find<String>("rcon_address").typedValue
                 if (rconAddress.isEmpty()) {
-                    Com.Printf("You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands\n")
+                    Com.Warn(NETWORK, "You must either be connected,\nor set the 'rcon_address' cvar\nto issue rcon commands")
                     return@AddCommand
                 }
                 network.resolveAddress(rconAddress, PORT_SERVER) ?: run {
-                    Com.Warn("Bad rcon_address\n")
+                    Com.Warn(NETWORK, "Bad rcon_address")
                     return@AddCommand
                 }
             }
 
             if (to !is NetworkAddress.Local && !network.configure(true)) {
-                Com.Warn("Could not open the client UDP socket\n")
                 return@AddCommand
             }
             network.sendConnectionless(to, ConnectionlessCommand.rcon, message)
@@ -488,20 +497,20 @@ class Cake(
 
         Cmd.AddCommand("userinfo", "Print the current userinfo string") {
             val userInfo = Cvar.getInstance().Userinfo()
-            Com.Println("Userinfo: $userInfo")
+            Com.Print("Userinfo: $userInfo")
         }
 
         Cmd.AddCommand("jvm_info", "Print JVM version and memory information") {
-            Com.Println("Version: ${Runtime.version()}")
+            Com.Print("Version: ${Runtime.version()}")
             val rt = Runtime.getRuntime()
-            Com.Println("Free: ${rt.freeMemory() / 1024 / 1024} MB")
-            Com.Println("Used: ${(rt.totalMemory() - rt.freeMemory()) / 1024 / 1024} MB")
-            Com.Println("Total: ${rt.totalMemory() / 1024 / 1024} MB")
-            Com.Println("Max: ${rt.maxMemory() / 1024 / 1024} MB")
+            Com.Print("Free: ${rt.freeMemory() / 1024 / 1024} MB")
+            Com.Print("Used: ${(rt.totalMemory() - rt.freeMemory()) / 1024 / 1024} MB")
+            Com.Print("Total: ${rt.totalMemory() / 1024 / 1024} MB")
+            Com.Print("Max: ${rt.maxMemory() / 1024 / 1024} MB")
         }
 
         Cmd.AddCommand("print_cbuf", "Print current command buffer contents") {
-            Com.Println(Cbuf.contents())
+            Com.Print(Cbuf.contents())
         }
 
         Cmd.AddCommand("screenshot", "Save a screenshot to the active profile") {
@@ -526,26 +535,26 @@ class Cake(
         Cmd.AddCommand("cmd", "(internal) Forward a command to the connected server") {
             if (demoPlayback != null) return@AddCommand
             if (networkState != CONNECTED && networkState != ACTIVE) {
-                Com.Warn("Cannot cmd '${it}', not connected")
+                Com.Warn(NETWORK, "Cannot cmd '${it}', not connected")
             } else {
                 if (it.size > 1)
                     netchan.queueReliable(StringCmdMessage(getArguments(it)))
                 else
-                    Com.Warn("Empty cmd") // todo: warning
+                    Com.Warn(CLIENT, "Empty cmd") // todo: warning
             }
         }
 
         Cmd.AddCommand("precache", "(internal) Finish client precache for the active map") {
             if (networkState == ACTIVE) {
                 // tothink: do we ignore it or restart the map?
-                Com.Warn("precache - during the game!\n") // todo: warning
+                Com.Warn(CLIENT, "precache - during the game!") // todo: warning
                 return@AddCommand
             }
             val precache_spawncount = it.getOrNull(1)?.toIntOrNull() ?: if (demoPlayback != null) 0 else return@AddCommand
 
             val activeScreen = game3dScreen
             if (activeScreen == null) {
-                Com.Warn("precache called without an active game screen")
+                Com.Warn(CLIENT, "precache called without an active game screen")
                 return@AddCommand
             }
             try {
@@ -578,20 +587,20 @@ class Cake(
         val result = host.start(request)
         when (result) {
             HostStartResult.Started -> {
-                Com.Printf("Local server started: ${request.map}\n")
+                Com.Info(SERVER, "Local server started: ${request.map}")
             }
-            is HostStartResult.Rejected -> Com.Warn("Could not start local server: ${result.reason}\n")
+            is HostStartResult.Rejected -> Com.Warn(SERVER, "Could not start local server: ${result.reason}")
         }
         return result
     }
 
     private fun startRecording(name: String) {
         if (demoRecording != null) {
-            Com.Warn("Already recording a demo\n")
+            Com.Warn(CLIENT, "Already recording a demo")
             return
         }
         if (demoPlayback != null || networkState != ACTIVE || game3dScreen == null) {
-            Com.Warn("Recording requires an active live game\n")
+            Com.Warn(CLIENT, "Recording requires an active live game")
             return
         }
         try {
@@ -599,20 +608,21 @@ class Cake(
             demoRecording = DemoRecording(DemoWriter(output.stream)) {
                 checkNotNull(game3dScreen) { "No active game for recording startup" }.demoBootstrap()
             }
-            Com.Printf("Recording to ${output.path}; waiting for a full snapshot\n")
+            Com.Print("Recording to ${output.path}; waiting for a full snapshot")
         } catch (error: Exception) {
-            Com.Warn("Could not start recording: ${error.message}\n")
+            Com.Error(CLIENT, "Could not start recording: ${error.message}")
         }
     }
 
-    private fun stopRecording() {
-        val recording = demoRecording ?: return
+    private fun stopRecording(): Boolean {
+        val recording = demoRecording ?: return false
         demoRecording = null
-        try {
+        return try {
             recording.close()
-            Com.Printf("Stopped demo recording\n")
+            true
         } catch (error: Exception) {
-            Com.Warn("Could not finish recording: ${error.message}\n")
+            Com.Error(CLIENT, "Could not finish recording: ${error.message}")
+            false
         }
     }
 
@@ -626,20 +636,20 @@ class Cake(
             try { recording.close() } catch (closing: Exception) {
                 if (closing !== error) error.addSuppressed(closing)
             }
-            Com.Warn("Demo recording failed: ${error.message}\n")
+            Com.Error(CLIENT, "Demo recording failed: ${error.message}")
         }
     }
 
     private fun startDemo(name: String) {
         val path = demoLogicalPath(name)
         if (path == null) {
-            Com.Warn("Invalid demo path: $name\n")
+            Com.Warn(CLIENT, "Invalid demo path: $name")
             return
         }
         val input = try {
             demoFiles.open(name)
         } catch (error: Exception) {
-            Com.Warn("${error.message}\n")
+            Com.Error(CLIENT, "${error.message}")
             return
         }
         beginDemo(input, path)
@@ -652,7 +662,7 @@ class Cake(
             demoFiles.open(entry)
         } catch (error: Exception) {
             val message = "Could not open demo: ${error.message}"
-            Com.Warn("$message\n")
+            Com.Error(CLIENT, message)
             menuStages.showContentBrowser(message)
             return
         }
@@ -673,7 +683,7 @@ class Cake(
         networkState = CONNECTED
         consoleVisible = false
         menuVisible = false
-        Com.Printf("Playing $path\n")
+        Com.Print("Playing $path")
     }
 
     private fun updateDemo(deltaSeconds: Float) {
@@ -686,27 +696,26 @@ class Cake(
             }
             if (demoPlayback !== playback) return
             if (!running) {
-                Com.Printf("Demo completed\n")
+                Com.Info(CLIENT, "Demo completed")
                 finishSession()
                 return
             }
             game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
         } catch (error: IOException) {
-            Com.Warn("Demo playback failed: ${error.message}\n")
+            Com.Error(CLIENT, "Demo playback failed: ${error.message}")
             finishSession("Demo playback failed: ${error.message}")
         } catch (error: RuntimeException) {
             // Asset loading and applying recorded state can also reject structurally valid bodies.
-            Com.Warn("Demo playback failed: ${error.message}\n")
+            Com.Error(CLIENT, "Demo playback failed: ${error.message}")
             finishSession("Demo playback failed: ${error.message}")
         }
     }
 
     private fun beginConnection(target: NetworkAddress, local: Boolean) {
         if (!handshake.begin(target)) {
-            Com.Warn("Could not open the client UDP socket\n")
             return
         }
-        Com.Printf("Connecting to ${if (local) "local server" else target}...\n")
+        Com.Info(NETWORK, "Connecting to ${if (local) "local server" else target}...")
         networkState = CONNECTING
     }
 
@@ -721,16 +730,16 @@ class Cake(
 
     /** Reset client state without closing the hosted server or discarding its reconnect traffic. */
     private fun resetClientConnection() {
-        stopRecording()
+        if (stopRecording()) Com.Info(CLIENT, "Stopped demo recording")
         val playback = demoPlayback
         demoBrowserReturn = null
         val wasDemo = playback != null
         demoPlayback = null
         demoPaused = false
         try { playback?.close() } catch (error: IOException) {
-            Com.Warn("Could not close demo: ${error.message}\n")
+            Com.Warn(CLIENT, "Could not close demo: ${error.message}")
         }
-        Com.Printf("Disconnecting from server...\n")
+        Com.Info(NETWORK, "Disconnecting from server...")
         if (!wasDemo && (networkState == CONNECTED || networkState == ACTIVE)) {
             transmitAndRecord(listOf(StringCmdMessage(StringCmdMessage.DISCONNECT)))
         }
@@ -753,7 +762,7 @@ class Cake(
     }
 
     private fun handleMissingResourceFailure(error: MissingResourceException) {
-        Com.Warn("${error.message}\n")
+        Com.Error(CLIENT, "${error.message}")
         finishSession()
     }
 
@@ -807,7 +816,7 @@ class Cake(
             profileBackgroundTexture = assetManager.get(PROFILE_BACKGROUND_PATH, Texture::class.java)
         } catch (error: RuntimeException) {
             clearProfileBackground()
-            Com.Warn("Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${error.message}\n")
+            Com.Warn(CLIENT, "Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${error.message}")
         }
     }
 
@@ -987,7 +996,7 @@ class Cake(
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
                 val startingFromMenu = awaitingNewGame
-                Com.Warn("Local server stopped: ${error.message}\n")
+                Com.Error(SERVER, "Local server stopped: ${error.message}")
                 finishSession()
                 if (startingFromMenu) {
                     menuEventBus.postIntent(MenuIntent.HostingFailed(error.message ?: "New Game failed"))
@@ -1315,7 +1324,7 @@ class Cake(
             // packet from server
             //
             if (networkPacket.from != netchan.remoteAddress) {
-                Com.Warn(networkPacket.from.toString() + ": sequenced packet without connection\n")
+                Com.Debug(NETWORK, networkPacket.from.toString() + ": sequenced packet without connection")
                 return@poll
             }
 
@@ -1323,9 +1332,8 @@ class Cake(
                 networkDebugSampler.recordInbound(netchan.lastReceivedSize, Globals.curtime)
                 when (val body = networkPacket.parseBodyFromServer()) {
                     is MessageDecodeResult.Decoded -> {
-                        if (network.logMessages) body.messages.forEach { message ->
-                            if (message !is FrameHeaderMessage && message !is PlayerInfoMessage && message !is PacketEntitiesMessage)
-                                Com.Printf("Network: Received server msg: $message\n")
+                        if (Com.isTraceEnabled(NETWORK)) body.messages.forEach { message ->
+                            Com.Trace(NETWORK) { "Network: Received server msg: $message" }
                         }
                         val recording = demoRecording
                         val envelope = networkPacket.sequencedEnvelope()
@@ -1334,7 +1342,7 @@ class Cake(
                         }
                     }
                     is MessageDecodeResult.Rejected -> {
-                        Com.Warn("Bad server payload at ${body.offset}: ${body.detail}\n")
+                        Com.Error(NETWORK, "Bad server payload at ${body.offset}: ${body.detail}")
                         finishSession()
                     }
                 }
@@ -1360,7 +1368,7 @@ class Cake(
         messages.forEach { msg ->
             when (msg) {
                 is DisconnectMessage -> {
-                    Com.Printf("Server disconnected\n")
+                    Com.Info(NETWORK, "Server disconnected")
                     onParsed(snapshotAccepted)
                     finishSession()
                     return
@@ -1370,19 +1378,16 @@ class Cake(
                 // sent on server restart
                 is ReconnectMessage -> {
                     if (demoPlayback != null) return@forEach
-                    Com.Printf("ReconnectMessage: Reconnecting..\n")
+                    Com.Info(NETWORK, "ReconnectMessage: Reconnecting..")
                     beginMapTransitionRetainingConfigAssets()
                     networkState = CONNECTING
                     handshake.restart()
                 }
 
                 is StuffTextMessage -> {
-                    if (clDebugStufftext.typedValue) {
-                        Com.Printf("svc_stufftext: ${Com.makePrintable(msg.text)}\n")
-                    }
                     val filtered = filterServerStuffText(msg.text, demoPlayback = demoPlayback != null)
                     filtered.rejectedCommands.forEach {
-                        Com.Warn("Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")
+                        Com.Warn(NETWORK, "Ignoring unexpected server stufftext command: '${Com.makePrintable(it)}'")
                     }
                     if (filtered.acceptedCommands.isNotEmpty()) {
                         Cbuf.AddText(filtered.acceptedCommands.joinToString(separator = "\n", postfix = "\n"))
@@ -1390,7 +1395,7 @@ class Cake(
                 }
 
                 is ServerDataMessage -> {
-                    Com.Printf("joining ${msg.levelString}\n")
+                    Com.Info(CLIENT, "joining ${msg.levelString}")
 
                     // new game is starting
                     Cbuf.Execute()
@@ -1409,16 +1414,6 @@ class Cake(
 
                 }
 
-                // delegate all game-related updates to the game screen
-                is FrameHeaderMessage -> {
-                    if (demoPlayback != null) game3dScreen?.setDemoTime(msg.frameNumber * 100 - 100, 0f)
-                    game3dScreen?.processServerFrameHeader(msg)
-                }
-
-                is ConfigStringMessage -> {
-                    game3dScreen?.processConfigStringMessage(msg)
-                }
-
                 is DownloadMessage -> {
                     if (demoPlayback != null) return@forEach
                     if (msg is DownloadMessage.Chunk && msg.data.size > 0) {
@@ -1430,6 +1425,17 @@ class Cake(
                             Cbuf.AddText("${StringCmdMessage.PRECACHE} ${result.spawnCount}\n")
                         CakeDownloadSession.Result.MissingOnServer -> finishSession()
                     }
+                }
+                // delegate all game-related updates to the game screen
+
+                is FrameHeaderMessage -> {
+                    if (demoPlayback != null)
+                        game3dScreen?.setDemoTime(msg.frameNumber * 100 - 100, 0f)
+                    game3dScreen?.processServerFrameHeader(msg)
+                }
+
+                is ConfigStringMessage -> {
+                    game3dScreen?.processConfigStringMessage(msg)
                 }
 
                 is SoundMessage -> {
@@ -1455,11 +1461,12 @@ class Cake(
                 is PacketEntitiesMessage -> {
                     val valid = game3dScreen?.processPacketEntitiesMessage(msg) == true
                     snapshotAccepted = valid
-                    if (demoPlayback != null && !valid) throw IOException("Demo snapshot depends on an unavailable frame")
+                    if (demoPlayback != null && !valid)
+                        throw IOException("Demo snapshot depends on an unavailable frame")
                     if (valid) {
                         if (networkState != ACTIVE) {
                             networkState = ACTIVE
-                            Com.Printf("Game started!\n")
+                            Com.Info(CLIENT, "Game started!")
 
                             // todo: check the rest of the player view related code from jake2.client.CL_ents#parsePacketEntities
                         }
@@ -1574,6 +1581,7 @@ class Cake(
         val args = Cmd.TokenizeString(packet.connectionlessMessage, false)
         val c = args.firstOrNull() ?: return
         val cmd = ConnectionlessCommand.fromString(c)
+        Com.Trace(NETWORK) { "Received connectionless ${cmd.name} from ${packet.from}" }
         when (cmd) {
             ConnectionlessCommand.challenge -> {
                 handshake.receiveChallenge(packet.from, args.getOrNull(1))
@@ -1584,12 +1592,12 @@ class Cake(
                 networkState = CONNECTED
                 netchan.setup(packet.from, network.qport)
                 netchan.queueReliable(StringCmdMessage(StringCmdMessage.NEW))
-                Com.Println("Connected!")
+                Com.Info(NETWORK, "Connected!")
             }
 
             ConnectionlessCommand.print -> {
                 if (!packet.connectionlessParameters.isNullOrEmpty()) {
-                    Com.Printf(packet.connectionlessParameters)
+                    Com.Print(packet.connectionlessParameters, false)
                 }
             }
 
@@ -1607,7 +1615,7 @@ class Cake(
                 ?: error("Failed to resolve screenshot write path")
             writeScreenshot(Gdx.files.absolute(screenshotPath))
         } catch (e: Exception) {
-            Com.Warn("Failed to save screenshot: ${e.message}\n")
+            Com.Error(RENDER, "Failed to save screenshot: ${e.message}")
         }
     }
 
@@ -1621,7 +1629,7 @@ class Cake(
         return try {
             gameProfileStore.readConfig()?.profiles?.firstOrNull { it.id == normalizedId }
         } catch (e: Exception) {
-            Com.Warn("Failed to load profile '$profileId': ${e.message}\n")
+            Com.Warn(CLIENT, "Failed to load profile '$profileId': ${e.message}")
             null
         }
     }
@@ -1629,7 +1637,7 @@ class Cake(
     private fun listProfileIdsForMenu(): List<String> = try {
         gameProfileStore.readConfig()?.profiles?.map { it.id }.orEmpty()
     } catch (e: Exception) {
-        Com.Warn("Failed to list Cake profiles: ${e.message}\n")
+        Com.Warn(CLIENT, "Failed to list Cake profiles: ${e.message}")
         emptyList()
     }
 
@@ -1685,14 +1693,14 @@ class Cake(
     // when switching profiles, we expect no active game, therefore, no loaded game resources
     private fun applySelectedProfileForMenu(profileId: String): String {
         if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching requires disconnecting and stopping the local server.\n")
+            Com.Warn(CLIENT, "Profile switching requires disconnecting and stopping the local server.")
             return "Disconnect first to switch profiles"
         }
         val selected = try {
             val config = gameProfileStore.readConfig() ?: return "No profiles config found"
             config.profiles.firstOrNull { it.id == profileId } ?: return "Unknown profile '$profileId'"
         } catch (e: Exception) {
-            Com.Warn("Failed to load profiles config: ${e.message}\n")
+            Com.Error(CLIENT, "Failed to load profiles config: ${e.message}")
             return "Failed to load profiles config: ${e.message}"
         }
 
@@ -1700,10 +1708,10 @@ class Cake(
             activateGameProfile(selected) {
                 gameProfileStore.selectProfile(profileId)
             }
-            Com.Printf("Active profile switched to '$profileId'\n")
+            Com.Info(CLIENT, "Active profile switched to '$profileId'")
             "Applied profile '$profileId'"
         } catch (e: Exception) {
-            Com.Warn("Failed to switch profile '$profileId': ${e.message}\n")
+            Com.Error(CLIENT, "Failed to switch profile '$profileId': ${e.message}")
             "Failed to switch profile '$profileId': ${e.message}"
         }
     }
@@ -1783,11 +1791,11 @@ class Cake(
 
     private fun setActiveGameProfile(args: List<String>) {
         if (!isProfileSwitchAllowed()) {
-            Com.Warn("Profile switching requires disconnecting and stopping the local server.\n")
+            Com.Warn(CLIENT, "Profile switching requires disconnecting and stopping the local server.")
             return
         }
         if (args.size < 3) {
-            Com.Printf("usage: cake_profile_set <id> <basedir> [gamemod]\n")
+            Com.Print("usage: cake_profile_set <id> <basedir> [gamemod]")
             return
         }
         val profile = CakeGameProfile(
@@ -1801,9 +1809,9 @@ class Cake(
             val path = activateGameProfile(profile) {
                 gameProfileStore.upsertProfile(profile, select = true)
             }
-            Com.Printf("Cake profile saved: $path\n")
+            Com.Print("Cake profile saved: $path")
         } catch (e: Exception) {
-            Com.Warn("Failed to save Cake profile: ${e.message}\n")
+            Com.Error(CLIENT, "Failed to save Cake profile: ${e.message}")
         }
     }
 
@@ -1813,7 +1821,7 @@ class Cake(
         val previous = activeGameProfile ?: return "Select a profile first."
         val before = fileResolver.packageSelection.automount()
         val after = automount ?: before
-        return try {
+        try {
             var next = previous
             if (archive != null) {
                 require(!before) { "Disable automatic archive loading before using Include or Exclude." }
@@ -1837,21 +1845,24 @@ class Cake(
                     if (explicit || Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue)
                         profilePersistence.saveConfigOrThrow()
                 })
-            if (archive == null) "Automatic archive loading ${if (after) "enabled" else "disabled"}."
-            else "${if (include == true) "Included" else "Excluded"}: $archive"
         } catch (failure: Exception) {
             Cvar.getInstance().find<Boolean>(org.demoth.cake.profile.CakePackageSettings.AUTOMOUNT).forceSet(before)
             val recovery = if (failure.suppressed.isEmpty()) "" else " Recovery also failed; reselect the profile."
-            "Could not change mods: ${failure.message}.$recovery"
+            val message = "Could not change mods: ${failure.message}.$recovery"
+            if (!explicit) Com.Error(CLIENT, message)
+            return message
         }
+        val message = if (archive == null) "Automatic archive loading ${if (after) "enabled" else "disabled"}."
+        else "${if (include == true) "Included" else "Excluded"}: $archive"
+        if (!explicit) Com.Info(CLIENT, message)
+        return message
     }
 
     private fun syncPackageSettings() {
         if (!isProfileSwitchAllowed() || activeGameProfile == null) return
         val automatic = org.demoth.cake.profile.CakePackageSettings.automount()
         if (automatic != fileResolver.packageSelection.automount()) {
-            val message = changeProfileMods(automount = automatic, explicit = false)
-            Com.Printf("$message\n")
+            changeProfileMods(automount = automatic, explicit = false)
             menuEventBus.postIntent(MenuIntent.RefreshMods)
         }
     }
@@ -1882,7 +1893,7 @@ class Cake(
                     game3dScreen?.canRenderPresentationFrame() == true) game3dScreen?.captureScenePixmap() else null
                 image?.let { try { encodeSavePreview(it) } finally { it.dispose() } }
             } catch (failure: Exception) {
-                Com.Warn("Could not capture save preview: ${failure.message}\n")
+                Com.Warn(RENDER, "Could not capture save preview: ${failure.message}")
                 null
             }
             val result = finishSaveOperation(host.saveGame(slot, overwrite, preview))

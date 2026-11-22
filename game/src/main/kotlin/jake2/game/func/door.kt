@@ -1,5 +1,7 @@
 package jake2.game.func
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.EdictIterator
 import jake2.game.GameBase
 import jake2.game.GameBase.G_SetMovedir
@@ -208,7 +210,7 @@ fun funcDoorRotating(self: GameEntity, game: GameExportsImpl) {
         Math3D.VectorNegate(self.movedir, self.movedir)
 
     if (0 == self.st.distance) {
-        game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)} with no distance set")
+        Com.Warn(GAME, "${self.classname} at ${Lib.vtos(self.s.origin)} with no distance set")
         self.st.distance = 90
     }
 

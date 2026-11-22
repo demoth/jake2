@@ -2,6 +2,7 @@ package jake2.qcommon.exec;
 
 import jake2.qcommon.Com;
 import jake2.qcommon.Globals;
+import jake2.qcommon.MainCommon;
 import jake2.qcommon.ServerStates;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class TypedCvarTest {
     private Cvar registry;
     private boolean previousUserinfoModified;
+    private cvar_t<Com.ConsoleLevel> previousLogLevel;
 
     @BeforeEach
     void setup() {
         registry = new Cvar();
+        previousLogLevel = Globals.logLevel;
         // Registries share this notification flag; isolate tests that assert or trigger it.
         previousUserinfoModified = Globals.userinfo_modified;
         Globals.userinfo_modified = false;
@@ -32,6 +35,7 @@ class TypedCvarTest {
     @AfterEach
     void restoreGlobals() {
         Globals.userinfo_modified = previousUserinfoModified;
+        Globals.logLevel = previousLogLevel;
     }
 
     private <T> cvar_t<T> register(String name, CvarType<T> type, T value, int flags) {
@@ -271,9 +275,10 @@ class TypedCvarTest {
 
     @Test
     void earlyWritesStayOutOfRegisteredViewsAndProduceDiagnostics() {
+        Globals.logLevel = MainCommon.registerLogLevel(new Cvar());
+        Globals.logLevel.set(Com.ConsoleLevel.DEBUG);
         var output = new StringBuilder();
-        Com.BeginRedirect(output::append);
-        try {
+        Com.RedirectOutput(output::append, () -> {
             registry.setResult("early", "private-invalid-value");
             assertNull(registry.find("early"));
             assertTrue(registry.listByPrefixAndFlags("", 0).isEmpty());
@@ -282,9 +287,7 @@ class TypedCvarTest {
             assertEquals("private-invalid-value", registry.getRawString("early"));
             assertNull(registry.find("missing"));
             assertEquals(7, register("early", CvarTypes.INTEGER, 7, CVAR_USERINFO).getTypedValue());
-        } finally {
-            Com.EndRedirect();
-        }
+        });
         assertFalse(output.toString().contains("private-invalid-value"));
         assertTrue(output.toString().contains("Cvar 'missing' is not registered"));
         assertTrue(output.toString().contains("storing early input"));
@@ -295,16 +298,15 @@ class TypedCvarTest {
 
     @Test
     void aliasesRouteEarlyInputInLastWriteOrder() {
+        Globals.logLevel = MainCommon.registerLogLevel(new Cvar());
+        Globals.logLevel.set(Com.ConsoleLevel.DEBUG);
         registry.setResult("old_number", "2");
         registry.setResult("number", "3");
         registry.setResult("old_number", "4");
         var output = new StringBuilder();
-        Com.BeginRedirect(output::append);
-        try {
+        Com.RedirectOutput(output::append, () -> {
             registry.AddAlias("old_number", "number");
-        } finally {
-            Com.EndRedirect();
-        }
+        });
         assertTrue(output.toString().contains("Alias 'old_number' was used before alias registration"));
         var number = register("number", CvarTypes.INTEGER, 1, 0);
         assertEquals(4, number.getTypedValue());

@@ -31,6 +31,7 @@ import jake2.qcommon.util.Math3D;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
+import static jake2.qcommon.Com.LogSubsystem.COMMON;
 
 /**
  * sizebuf_t
@@ -65,7 +66,7 @@ public class sizebuf_t {
             if (length > maxsize)
                 throw new IllegalStateException("SZ_GetSpace: " + length + " is > full buffer size");
 
-            Com.Printf("SZ_GetSpace: overflow\n");
+            Com.Warn(COMMON, "SZ_GetSpace: overflow");
             clear();
             overflowed = true;
         }
@@ -143,7 +144,7 @@ public class sizebuf_t {
         final int c;
 
         if (readcount + 4 > cursize) {
-            Com.Printf("buffer underrun in ReadInt!");
+            Com.Warn(COMMON, "buffer underrun in ReadInt!");
             c = -1;
         } else
             c = readByte() & 0xff

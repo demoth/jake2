@@ -1,5 +1,7 @@
 package jake2.game
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.adapters.SuperAdapter.Companion.registerBlocked
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
@@ -102,7 +104,7 @@ fun turretBreach(self: GameEntity, game: GameExportsImpl) {
 private val turretBreachFinishInit = registerThink("turret_breach_finish_init") { self, game ->
     // get and save info for muzzle location
     if (self.target == null) {
-        game.gameImports.dprintf(self.classname + " at " + Lib.vtos(self.s.origin) + " needs a target\n")
+        Com.Warn(GAME, self.classname + " at " + Lib.vtos(self.s.origin) + " needs a target")
     } else {
         self.target_ent = GameBase.G_PickTarget(self.target, game)
         Math3D.VectorSubtract(self.target_ent.s.origin, self.s.origin, self.move_origin)
@@ -289,7 +291,7 @@ fun turretDriver(self: GameEntity, game: GameExportsImpl) {
     if (self.st.item != null) {
         self.item = GameItems.FindItemByClassname(self.st.item, game)
         if (self.item == null)
-            game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)} has bad item: ${self.st.item}\n")
+            Com.Warn(GAME, "${self.classname} at ${Lib.vtos(self.s.origin)} has bad item: ${self.st.item}")
     }
     self.think.action = turretDriverLink
     self.think.nextTime = game.level.time + Defines.FRAMETIME

@@ -1,5 +1,7 @@
 package jake2.game
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
 import jake2.qcommon.Defines
 import jake2.qcommon.util.Lib
@@ -17,7 +19,7 @@ import jake2.qcommon.util.Math3D
 private const val TELEPORT = 1
 fun pathCorner(self: GameEntity, game: GameExportsImpl) {
     if (self.targetname == null) {
-        game.gameImports.dprintf("path_corner with no targetname at ${Lib.vtos(self.s.origin)}")
+        Com.Warn(GAME, "path_corner with no targetname at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
@@ -100,7 +102,7 @@ private val pointCombatTouch = registerTouch("point_combat_touch") { self, other
         other.movetarget = GameBase.G_PickTarget(other.target, game)
         other.goalentity = other.movetarget
         if (other.goalentity == null) {
-            game.gameImports.dprintf("${self.classname} at ${Lib.vtos(self.s.origin)} target ${self.target} does not exist\n")
+            Com.Warn(GAME, "${self.classname} at ${Lib.vtos(self.s.origin)} target ${self.target} does not exist")
             other.movetarget = self
         }
         self.target = null

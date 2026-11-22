@@ -96,11 +96,11 @@
   TintedDrawable: {
     console-panel: {
       name: panel-thick,
-      color: panelBorder
+      color: { r: 0.400000, g: 0.313725, b: 0.247059, a: 0.8 }
     },
     console-input: {
       name: control-panel,
-      color: border
+      color: { r: 0.588235, g: 0.517647, b: 0.466667, a: 0.8 }
     },
     split: {
       name: white

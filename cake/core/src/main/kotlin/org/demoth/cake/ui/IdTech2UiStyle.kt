@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import org.demoth.cake.stages.ingame.hud.LayoutCoordinateMapper
 
 private const val CONCHARS_PATH = "pics/conchars.pcx"
@@ -123,7 +124,7 @@ object GameUiStyleFactory {
         } catch (e: Exception) {
             fonts.forEach { it.dispose() }
             unloadAssets(assetManager, hudAssetPaths)
-            Com.Warn("Failed to load IdTech2 UI style for game '$gameName', using engine default style: ${e.message}")
+            Com.Warn(CLIENT, "Failed to load IdTech2 UI style for game '$gameName', using engine default style: ${e.message}")
             EngineUiStyle(
                 skin = skin,
                 menuSounds = menuSounds,

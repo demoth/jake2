@@ -2,6 +2,7 @@ package org.demoth.cake
 
 import com.badlogic.gdx.graphics.glutils.HdpiMode
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.RENDER
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 
@@ -47,7 +48,7 @@ data class CakeDisplayMode(val width: Int, val height: Int, val refreshRate: Int
 fun resolveFullscreenMode(requested: String, desktop: CakeDisplayMode, available: List<CakeDisplayMode>): CakeDisplayMode {
     if (requested.equals("desktop", ignoreCase = true)) return desktop
     return available.firstOrNull { it.id.equals(requested, ignoreCase = true) } ?: desktop.also {
-        Com.Warn("Fullscreen mode '$requested' is unavailable; using desktop ${desktop.id}\n")
+        Com.Warn(RENDER, "Fullscreen mode '$requested' is unavailable; using desktop ${desktop.id}")
     }
 }
 

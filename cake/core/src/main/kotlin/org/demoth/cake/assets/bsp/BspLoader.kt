@@ -22,6 +22,7 @@ import com.badlogic.gdx.math.collision.BoundingBox
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.Bsp
 import java.nio.ByteBuffer
@@ -258,11 +259,11 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         val bsp = Bsp(ByteBuffer.wrap(mapData))
         val visLumpLength = bsp.header.lumps[Defines.LUMP_VISIBILITY].length
         if (visLumpLength <= 0) {
-            Com.Warn("Map '$fileName' has no visibility lump; world culling will use all-visible fallback")
+            Com.Warn(CLIENT, "Map '$fileName' has no visibility lump; world culling will use all-visible fallback")
         }
         val lightLumpLength = bsp.header.lumps[Defines.LUMP_LIGHTING].length
         if (lightLumpLength <= 0) {
-            Com.Warn("Map '$fileName' has no lightmap lump; world surfaces will render fullbright")
+            Com.Warn(CLIENT, "Map '$fileName' has no lightmap lump; world surfaces will render fullbright")
         }
         val worldSurfaces = collectWorldSurfaceRecords(bsp)
         val inlineRenderData = collectInlineModelRenderData(bsp)

@@ -28,6 +28,7 @@ package jake2.qcommon;
 import jake2.qcommon.exec.cvar_t;
 
 import java.io.RandomAccessFile;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -62,9 +63,11 @@ public class Globals extends Defines {
 
 	public static cvar_t<Boolean> dedicated;
 	public static cvar_t<Boolean> developer;
+	public static cvar_t<Boolean> colorTerminal;
+	public static cvar_t<Com.ConsoleLevel> logLevel;
+	public static Map<Com.LogSubsystem, cvar_t<Com.LogLevelOverride>> logLevelOverrides = Map.of();
 	public static cvar_t<Integer> fixedtime;
 	public static cvar_t<Boolean> host_speeds;
-	public static cvar_t<Boolean> showtrace;
 	public static cvar_t<Float> timescale;
 
 
@@ -246,6 +249,7 @@ public class Globals extends Defines {
 	
 	public static final float vec3_origin[] = { 0.0f, 0.0f, 0.0f };
 
+	// todo: do not use shared random, use per instance one (server, client, one per game) - for testing & development
 	public static Random rnd = new Random();
 
 }

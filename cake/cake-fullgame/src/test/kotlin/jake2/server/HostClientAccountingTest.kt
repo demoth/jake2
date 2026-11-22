@@ -8,6 +8,7 @@ import jake2.qcommon.*
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.network.*
+import jake2.qcommon.network.messages.ConnectionlessCommand
 import jake2.qcommon.network.messages.client.MoveMessage
 import jake2.qcommon.network.messages.client.UserCommand
 import jake2.qcommon.network.messages.client.UserInfoMessage
@@ -19,6 +20,35 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 class HostClientAccountingTest {
+    @Test
+    fun `rcon reports accepted and rejected requests without logging their arguments`() {
+        val output = mutableListOf<Pair<Com.ConsoleLevel, String>>()
+        val sink = Com.ConsoleSink { level, text -> output.add(level to text) }
+        val logLevel = Globals.logLevel
+        val previousLevel = logLevel.typedValue
+        logLevel.set(Com.ConsoleLevel.TRACE)
+        Com.SetConsoleSink(sink)
+        try {
+            val from = network.server.localPeer
+            cvars.find<String>("rcon_password").set("configured-password")
+            network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " wrong-password status")
+            host.readPackets()
+
+            assertTrue(output.contains(Com.ConsoleLevel.WARN to "Bad rcon from $from\n"))
+            assertFalse(output.any { (level, _) -> level == Com.ConsoleLevel.INFO })
+
+            network.client.sendConnectionless(network.client.localPeer, ConnectionlessCommand.rcon, " configured-password status")
+            host.readPackets()
+
+            assertTrue(output.contains(Com.ConsoleLevel.INFO to "Rcon from $from\n"))
+            assertTrue(output.contains(Com.ConsoleLevel.TRACE to "Received connectionless rcon from $from\n"))
+            assertTrue(output.none { (_, text) -> "wrong-password" in text || "configured-password" in text || "status" in text })
+        } finally {
+            Com.ClearConsoleSink(sink)
+            logLevel.set(previousLevel)
+        }
+    }
+
     @Test
     fun `checksum rejection skips trailing commands and callbacks cannot mutate command snapshots`() {
         val client = bind(0, first)
@@ -129,7 +159,7 @@ class HostClientAccountingTest {
     fun `targeted map change preserves connection timestamps`() {
         val client = bind(0, first)
         host.update(400)
-        host.changeMap(listOf("gamemap", "testbox2", "1"))
+        host.gameMap(listOf("gamemap", "testbox2", "1"))
         assertNotEquals(first.name, client.gameName)
         assertEquals("testbox2", host.games.getValue(client.gameName).mapName)
         assertSame(second, host.games[second.name])

@@ -24,6 +24,8 @@
 
 package jake2.game;
 
+import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.game.adapters.AIAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.qcommon.Defines;
@@ -285,8 +287,8 @@ public class GameAI {
 
                 if (self.groundentity != null)
                     if (!M.M_walkmove(self, 0, 0, gameExports))
-                        gameExports.gameImports.dprintf(self.classname + " in solid at "
-                                + Lib.vtos(self.s.origin) + "\n");
+                        Com.Warn(GAME, self.classname + " in solid at "
+                                + Lib.vtos(self.s.origin));
             }
 
             if (0 == self.yaw_speed)
@@ -310,8 +312,8 @@ public class GameAI {
         public String getID() { return "flymonster_start_go";}
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (!M.M_walkmove(self, 0, 0, gameExports))
-                gameExports.gameImports.dprintf(self.classname + " in solid at "
-                        + Lib.vtos(self.s.origin) + "\n");
+                Com.Warn(GAME, self.classname + " in solid at "
+                        + Lib.vtos(self.s.origin));
 
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;

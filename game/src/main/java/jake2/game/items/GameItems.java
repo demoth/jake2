@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.game.items;
 
 
+import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.game.*;
 import jake2.game.adapters.*;
 import jake2.game.components.Medkit;
@@ -278,7 +280,7 @@ public class GameItems {
             if (!taken)
                 return;
 
-            gameExports.gameImports.dprintf("Picked up:" + ent.classname + "\n");
+            Com.Debug(GAME, "Picked up:" + ent.classname);
     
             if (!((gameExports.gameCvars.coop.getTypedValue()) && (ent.item.flags & GameDefines.IT_STAY_COOP) != 0)
                     || 0 != (ent.spawnflags & (GameDefines.DROPPED_ITEM | GameDefines.DROPPED_PLAYER_ITEM))) {
@@ -758,8 +760,8 @@ public class GameItems {
             tr = gameExports.gameImports.trace(ent.s.origin, ent.mins, ent.maxs, dest, ent,
                     Defines.MASK_SOLID);
             if (tr.startsolid) {
-                gameExports.gameImports.dprintf("droptofloor: " + ent.classname
-                        + " startsolid at " + Lib.vtos(ent.s.origin) + "\n");
+                Com.Warn(GAME, "droptofloor: " + ent.classname
+                        + " startsolid at " + Lib.vtos(ent.s.origin));
                 gameExports.freeEntity(ent);
                 return true;
             }
@@ -870,7 +872,7 @@ public class GameItems {
                 .filter(it -> pickup_name.equalsIgnoreCase(it.pickup_name))
                 .findFirst();
         if (found.isEmpty())
-            gameExports.gameImports.dprintf("Item not found:" + pickup_name + "\n");
+            Com.Warn(GAME, "Item not found:" + pickup_name);
         return found.orElse(null);
     }
 
@@ -1150,9 +1152,9 @@ public class GameItems {
         if (ent.spawnflags != 0) {
             if (!"key_power_cube".equals(ent.classname)) {
                 ent.spawnflags = 0;
-                gameExports.gameImports.dprintf("" + ent.classname + " at "
+                Com.Warn(GAME, "" + ent.classname + " at "
                         + Lib.vtos(ent.s.origin)
-                        + " has invalid spawnflags set\n");
+                        + " has invalid spawnflags set");
             }
         }
     

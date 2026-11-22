@@ -65,6 +65,11 @@ this repository. Cake attempts to detect a Steam installation on first launch.
 If no usable profile is found, it opens the profile editor so you can configure
 your game-data location.  See [game-data setup](cake/README.md#game-data-and-profiles) for manual configuration.
 
+### Run the dedicated server
+
+See the [dedicated server guide](dedicated/README.md) for installation, launch,
+and console commands.
+
 ### Other applications
 
 See the [Cake guide](cake/README.md#building-and-running) for desktop packages,

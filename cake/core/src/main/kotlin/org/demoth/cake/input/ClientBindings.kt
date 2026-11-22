@@ -2,6 +2,7 @@ package org.demoth.cake.input
 
 import com.badlogic.gdx.Input
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cmd
 
@@ -343,23 +344,23 @@ class ClientBindings(
     private fun registerBindingCommands() {
         Cmd.AddCommand("bind", true, "Bind a key to a command") { args ->
             if (args.size < 2) {
-                Com.Printf("bind <key> [command] : attach a command to a key\n")
+                Com.Print("bind <key> [command] : attach a command to a key")
                 return@AddCommand
             }
 
             val keyName = args[1]
             val keyCode = parseKeyName(keyName)
             if (keyCode == null) {
-                Com.Printf("\"$keyName\" isn't a valid keaaaaay\n")
+                Com.Warn(CLIENT, "'$keyName' isn't a valid key")
                 return@AddCommand
             }
 
             if (args.size == 2) {
                 val binding = bindings[keyCode]
                 if (binding != null) {
-                    Com.Printf("\"$keyName\" = \"$binding\"\n")
+                    Com.Print("\"$keyName\" = \"$binding\"")
                 } else {
-                    Com.Printf("\"$keyName\" is not bound\n")
+                    Com.Print("\"$keyName\" is not bound")
                 }
                 return@AddCommand
             }
@@ -370,13 +371,13 @@ class ClientBindings(
 
         Cmd.AddCommand("unbind", true, "Remove a key binding") { args ->
             if (args.size != 2) {
-                Com.Printf("unbind <key> : remove commands from a key\n")
+                Com.Print("unbind <key> : remove commands from a key")
                 return@AddCommand
             }
 
             val keyCode = parseKeyName(args[1])
             if (keyCode == null) {
-                Com.Printf("\"${args[1]}\" isn't a valid key\n")
+                Com.Warn(CLIENT, "'${args[1]}' isn't a valid key")
                 return@AddCommand
             }
 
@@ -389,7 +390,7 @@ class ClientBindings(
 
         Cmd.AddCommand("bindlist", true, "List current key bindings") {
             for ((key, binding) in listBindings()) {
-                Com.Printf("$key \"$binding\"\n")
+                Com.Print("$key \"$binding\"")
             }
         }
     }

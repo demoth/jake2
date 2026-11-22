@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch
 import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.utils.Disposable
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines
 import jake2.qcommon.Globals
 import jake2.qcommon.M_Flash
@@ -132,11 +133,11 @@ class ClientEffectsSystem(
      */
     fun processMuzzleFlash2Message(msg: MuzzleFlash2Message) {
         if (msg.entityIndex !in 1 until Defines.MAX_EDICTS) {
-            Com.Warn("Ignoring MuzzleFlash2Message with invalid entity index ${msg.entityIndex}")
+            Com.Warn(CLIENT, "Ignoring MuzzleFlash2Message with invalid entity index ${msg.entityIndex}")
             return
         }
         if (msg.flashType <= 0 || msg.flashType >= M_Flash.monster_flash_offset.size) {
-            Com.Warn("Ignoring MuzzleFlash2Message with invalid flash type ${msg.flashType}")
+            Com.Warn(CLIENT, "Ignoring MuzzleFlash2Message with invalid flash type ${msg.flashType}")
             return
         }
 

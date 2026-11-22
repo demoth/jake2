@@ -45,19 +45,35 @@ class TestCvar {
     }
 
     @Test
+    void cvarlistPrintsEachFormattedRowAsOneMessage() {
+        cvars.register("listed", CvarTypes.BOOLEAN, false, CVAR_ARCHIVE | CVAR_USERINFO | CVAR_SERVERINFO | CVAR_NOSET);
+        var rows = new java.util.ArrayList<String>();
+        Com.ConsoleSink sink = (level, text) -> {
+            if (level == Com.ConsoleLevel.PRINT) rows.add(text);
+        };
+        Com.SetConsoleSink(sink);
+        try {
+            Cmd.ExecuteString("cvarlist");
+        } finally {
+            Com.ClearConsoleSink(sink);
+        }
+        assertTrue(rows.contains("*US- listed \"0\"\n"), rows::toString);
+    }
+
+    @Test
     void commandRegistrationProbesQuietlyAndRejectsCvarCollisions() {
         String command = "test_quiet_command_probe";
         String collision = "test_empty_cvar_collision";
         var output = new StringBuilder();
-        Com.BeginRedirect(output::append);
         try {
-            Cmd.AddCommand(command, true, args -> {});
-            assertNotNull(Cmd.FindCommand(command));
-            cvars.register(collision, CvarTypes.STRING, "");
-            Cmd.AddCommand(collision, args -> {});
-            assertNull(Cmd.FindCommand(collision));
+            Com.RedirectOutput(output::append, () -> {
+                Cmd.AddCommand(command, true, args -> {});
+                assertNotNull(Cmd.FindCommand(command));
+                cvars.register(collision, CvarTypes.STRING, "");
+                Cmd.AddCommand(collision, args -> {});
+                assertNull(Cmd.FindCommand(collision));
+            });
         } finally {
-            Com.EndRedirect();
             Cmd.RemoveCommand(command);
         }
         assertFalse(output.toString().contains("not registered"));

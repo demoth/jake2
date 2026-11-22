@@ -1,6 +1,7 @@
 package org.demoth.cake.profile
 
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
@@ -48,27 +49,29 @@ class CakeProfilePersistence(
             val configText = profileConfigStore.readConfig(profileId) ?: return
             Cbuf.AddAndExecuteScript(configText)
             Cvar.getInstance().updateLatchedVars()
-            Com.Printf("Loaded Cake profile config for '$profileId'\n")
+            Com.Info(CLIENT, "Loaded Cake profile config for '$profileId'")
         } catch (e: Exception) {
-            Com.Warn("Failed to load Cake profile config for '$profileId': ${e.message}\n")
+            Com.Warn(CLIENT, "Failed to load Cake profile config for '$profileId': ${e.message}")
         }
     }
 
     fun saveConfig(explicit: Boolean = false) {
         if (!explicit && !Cvar.getInstance().find<Boolean>("cfg_autosave").typedValue) return
         val profileId = currentConfigProfileId() ?: return
-        try {
+        val path = try {
             saveConfigOrThrow()
         } catch (e: Exception) {
-            Com.Warn("Failed to save Cake profile config for '$profileId': ${e.message}\n")
+            Com.Error(CLIENT, "Failed to save Cake profile config for '$profileId': ${e.message}")
+            return
         }
+        if (explicit) Com.Print("Saved Cake profile config: $path")
+        else Com.Debug(CLIENT, "Saved Cake profile config: $path")
     }
 
-    /** Explicit menu edits must report persistence failures instead of claiming success. */
-    fun saveConfigOrThrow() {
+    /** Save as part of an operation whose caller handles persistence failures. */
+    fun saveConfigOrThrow(): String {
         val profileId = currentConfigProfileId() ?: error("No active profile")
-        val path = profileConfigStore.writeConfig(profileId, clientBindings.listBindings())
-        Com.Printf("Saved Cake profile config: $path\n")
+        return profileConfigStore.writeConfig(profileId, clientBindings.listBindings())
     }
 
     fun loadHistory(): List<String> {
@@ -76,7 +79,7 @@ class CakeProfilePersistence(
         return try {
             consoleHistoryStore.readHistory(profileId)
         } catch (e: Exception) {
-            Com.Warn("Failed to load console history for '$profileId': ${e.message}\n")
+            Com.Warn(CLIENT, "Failed to load console history for '$profileId': ${e.message}")
             emptyList()
         }
     }
@@ -87,7 +90,7 @@ class CakeProfilePersistence(
         try {
             consoleHistoryStore.writeHistory(profileId, commands)
         } catch (e: Exception) {
-            Com.Warn("Failed to save console history for '$profileId': ${e.message}\n")
+            Com.Warn(CLIENT, "Failed to save console history for '$profileId': ${e.message}")
         }
     }
 }

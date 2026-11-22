@@ -1,5 +1,7 @@
 package jake2.game.func
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.GameDefines
 import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
@@ -52,14 +54,14 @@ fun funcWall(self: GameEntity, game: GameExportsImpl) {
     // it must be TRIGGER_SPAWN
     if (!self.hasSpawnFlag(TRIGGER_SPAWN)) {
         self.setSpawnFlag(TRIGGER_SPAWN)
-        game.gameImports.dprintf("func_wall missing TRIGGER_SPAWN\n")
+        Com.Warn(GAME, "func_wall missing TRIGGER_SPAWN")
     }
 
     // yell if the spawnflags are odd
     if (self.hasSpawnFlag(START_ON)) {
         if (!self.hasSpawnFlag(TOGGLE)) {
             self.setSpawnFlag(TOGGLE)
-            game.gameImports.dprintf("func_wall START_ON without TOGGLE\n")
+            Com.Warn(GAME, "func_wall START_ON without TOGGLE")
         }
     }
 

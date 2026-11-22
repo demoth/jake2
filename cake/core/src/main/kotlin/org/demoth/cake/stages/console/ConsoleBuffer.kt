@@ -21,7 +21,9 @@ class ConsoleBuffer(
 
         if (entries.isNotEmpty()) {
             val previous = entries.removeLast()
-            if (!previous.text.endsWith('\n') && previous.severity == severity) {
+            if (!previous.text.endsWith('\n') && !previous.text.endsWith('\r') &&
+                previous.severity == severity
+            ) {
                 entries.addLast(previous.copy(text = previous.text + text))
             } else {
                 entries.addLast(previous)

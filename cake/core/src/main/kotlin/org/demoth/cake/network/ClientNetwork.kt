@@ -12,7 +12,6 @@ import jake2.qcommon.network.runtime.NetworkRole
 
 /** Client transport boundary. A stopped game retires UDP and incoming local traffic, not its peer. */
 interface ClientNetwork : AutoCloseable {
-    val logMessages: Boolean
     val qport: Int
     val localPeer: NetworkAddress.Local
     fun resolveAddress(text: String, defaultPort: Int): NetworkAddress? = AddressResolver.resolve(text, defaultPort, localPeer)
@@ -30,7 +29,6 @@ class TransportClientNetwork(
     private val settings: NetworkSettings = CvarNetworkSettings(Cvar.getInstance()),
 ) : ClientNetwork {
     private val packets = PacketNetwork(transport, NetworkRole.CLIENT, settings)
-    override val logMessages: Boolean get() = settings.logMessages
     override val qport: Int get() = settings.qport
     override val localPeer: NetworkAddress.Local get() = packets.localPeer
     override fun newChannel() = packets.newChannel()

@@ -12,7 +12,6 @@ class ClientHandshakeTest {
     private data class Sent(val address: NetworkAddress, val command: ConnectionlessCommand, val payload: String)
     private class Network : ClientNetwork {
         override val qport = 0
-        override val logMessages = false
         override val localPeer = jake2.qcommon.network.transport.LoopbackLink().second.localAddress
         val sent = mutableListOf<Sent>()
         val binds = mutableListOf<Boolean>()

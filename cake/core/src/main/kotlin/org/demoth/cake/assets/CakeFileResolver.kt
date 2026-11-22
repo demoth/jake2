@@ -5,6 +5,7 @@ import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
 import jake2.qcommon.vfs.VfsEntry
@@ -174,7 +175,7 @@ class CakeFileResolver(
             if (exact.exists()) return exact
             val caseInsensitive = findCaseInsensitive(root, normalized)
             if (caseInsensitive != null && caseInsensitive.exists()) {
-                Com.Warn("Resource $fileName was found with different case")
+                Com.Debug(CLIENT, "Resource $fileName was found with different case")
                 return caseInsensitive
             }
         }
@@ -193,7 +194,7 @@ class CakeFileResolver(
     private fun warnMissingOnce(path: String, resourceKind: ResourceKind, detail: String) {
         val key = path.lowercase(Locale.ROOT) to resourceKind
         if (warnedMissing.add(key)) {
-            Com.Warn("Missing ${resourceKind.name.lowercase(Locale.ROOT)} resource '$path'; $detail")
+            Com.Warn(CLIENT, "Missing ${resourceKind.name.lowercase(Locale.ROOT)} resource '$path'; $detail")
         }
     }
 

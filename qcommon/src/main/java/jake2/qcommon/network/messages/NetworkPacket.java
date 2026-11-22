@@ -7,6 +7,7 @@ import jake2.qcommon.network.messages.server.ServerMessage;
 import jake2.qcommon.network.protocol.MessageDecodeResult;
 import jake2.qcommon.network.protocol.MessageBodyCodec;
 import jake2.qcommon.sizebuf_t;
+import org.jetbrains.annotations.NotNull;
 
 
 public class NetworkPacket {
@@ -71,6 +72,7 @@ public class NetworkPacket {
     }
 
     /** Decode the complete client payload with the incoming sequence used by movement checksums. */
+    @NotNull
     public MessageDecodeResult<ClientMessage> parseBodyFromClient(int incomingSequence) {
         return MessageBodyCodec.decodeClient(envelope, incomingSequence);
     }

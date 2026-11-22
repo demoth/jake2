@@ -1,5 +1,7 @@
 package jake2.game
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.adapters.SuperAdapter.Companion.registerDie
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerTouch
@@ -376,7 +378,7 @@ fun miscBigViper(self: GameEntity, game: GameExportsImpl) {
  */
 fun miscTeleporter(self: GameEntity, game: GameExportsImpl) {
     if (self.target == null) {
-        game.gameImports.dprintf("teleporter without a target.\n")
+        Com.Warn(GAME, "teleporter without a target.")
         game.freeEntity(self)
         return
     }
@@ -406,7 +408,7 @@ private val teleporterTriggerTouch = registerTouch("teleporter_touch") { self, o
     val dest = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)?.o
 
     if (dest == null) {
-        game.gameImports.dprintf("Couldn't find destination\n")
+        Com.Warn(GAME, "Couldn't find destination")
         return@registerTouch
     }
 

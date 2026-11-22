@@ -1,6 +1,7 @@
 package jake2.qcommon.vfs;
 
 import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.FILESYSTEM;
 import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 import jake2.qcommon.exec.Cbuf;
@@ -125,7 +126,7 @@ public final class EngineFilesystemLifecycle {
 
     public static void setGameDir(String gameName) {
         if (gameName.contains("..") || gameName.contains("/") || gameName.contains("\\") || gameName.contains(":")) {
-            Com.Printf("Gamedir should be a single filename, not a path\n");
+            Com.Warn(FILESYSTEM, "Gamedir should be a single filename, not a path");
             return;
         }
 
@@ -234,30 +235,30 @@ public final class EngineFilesystemLifecycle {
         }
 
         if (!EngineVfs.isInitialized()) {
-            Com.Printf("VFS is not initialized.\n");
+            Com.Warn(FILESYSTEM, "VFS is not initialized.");
             return;
         }
 
         syncVfsCaseSensitivity();
         List<String> matches = EngineVfs.debugFilesMatching(wildcard);
-        Com.Printf("Directory of " + wildcard + '\n');
+        Com.Print("Directory of " + wildcard);
         for (String match : matches) {
-            Com.Printf("  " + match + '\n');
+            Com.Print("  " + match);
         }
         if (matches.isEmpty()) {
-            Com.Printf("  <no matches>\n");
+            Com.Print("  <no matches>");
         }
-        Com.Printf("\n");
+        Com.Print("");
     }
 
     private static void printPackFiles(List<String> args) {
         if (args.size() != 2) {
-            Com.Printf("USAGE: packfiles <packname>\n");
+            Com.Print("USAGE: packfiles <packname>");
             return;
         }
 
         if (!EngineVfs.isInitialized()) {
-            Com.Printf("VFS is not initialized.\n");
+            Com.Warn(FILESYSTEM, "VFS is not initialized.");
             return;
         }
 
@@ -265,35 +266,35 @@ public final class EngineFilesystemLifecycle {
         String packName = args.get(1);
         VfsResult<List<String>> result = EngineVfs.debugFilesInPack(packName);
         if (!result.success()) {
-            Com.Printf(result.error() + "\n");
+            Com.Warn(FILESYSTEM, result.error());
             return;
         }
 
         List<String> files = result.value();
-        Com.Printf("Files in pack " + packName + "\n");
+        Com.Print("Files in pack " + packName);
         for (String file : files) {
-            Com.Printf("  " + file + "\n");
+            Com.Print("  " + file);
         }
         if (files.isEmpty()) {
-            Com.Printf("  <pack is empty>\n");
+            Com.Print("  <pack is empty>");
         }
-        Com.Printf("Total files in pack: " + files.size() + "\n\n");
+        Com.Print("Total files in pack: " + files.size() + "\n\n");
     }
 
     private static void printPath() {
         if (!EngineVfs.isInitialized()) {
-            Com.Printf("VFS is not initialized.\n");
+            Com.Warn(FILESYSTEM, "VFS is not initialized.");
             return;
         }
 
         syncVfsCaseSensitivity();
         List<String> mounts = EngineVfs.debugMounts();
         if (mounts.isEmpty()) {
-            Com.Printf("No VFS mounts available.\n");
+            Com.Print("No VFS mounts available.");
             return;
         }
         for (String mount : mounts) {
-            Com.Printf(mount + "\n");
+            Com.Print(mount);
         }
     }
 }

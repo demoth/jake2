@@ -1,5 +1,7 @@
 package jake2.game.func
 
+import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.GAME
 import jake2.game.GameBase
 import jake2.game.GameCombat
 import jake2.game.GameDefines
@@ -67,7 +69,7 @@ fun funcTrain(self: GameEntity, game: GameExportsImpl) {
         self.think.nextTime = game.level.time + Defines.FRAMETIME
         self.think.action = trainFindTarget
     } else {
-        game.gameImports.dprintf("func_train without a target at ${Lib.vtos(self.absmin)}\n")
+        Com.Warn(GAME, "func_train without a target at ${Lib.vtos(self.absmin)}")
     }
 }
 
@@ -118,12 +120,12 @@ private val trainUse = registerUse("train_use") { self, other, activator, game -
 
 private val trainFindTarget = registerThink("func_train_find") { self, game ->
     if (self.target == null) {
-        game.gameImports.dprintf("train_find: no target\n")
+        Com.Warn(GAME, "train_find: no target")
         return@registerThink true
     }
     val ent = GameBase.G_PickTarget(self.target, game)
     if (ent == null) {
-        game.gameImports.dprintf("train_find: target ${self.target} not found\n")
+        Com.Warn(GAME, "train_find: target ${self.target} not found")
         return@registerThink true
     }
     self.target = ent.target
@@ -160,7 +162,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
         }
         ent = GameBase.G_PickTarget(self.target, game)
         if (ent == null) {
-            game.gameImports.dprintf("train_next: bad target " + self.target + "\n")
+            Com.Warn(GAME, "train_next: bad target " + self.target)
             return@registerThink true
         }
         self.target = ent.target
@@ -168,7 +170,7 @@ private val trainNextGoal = registerThink("train_next") { self, game ->
         // check for a teleport path_corner
         if (ent.hasSpawnFlag(TRAIN_START_ON)) {
             if (!first) {
-                game.gameImports.dprintf("connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin) + "\n")
+                Com.Warn(GAME, "connected teleport path_corners, see " + ent.classname + " at " + Lib.vtos(ent.s.origin))
                 return@registerThink true
             }
             first = false
@@ -276,16 +278,16 @@ fun triggerElevator(self: GameEntity, game: GameExportsImpl) {
 
 private val triggerElevatorCheckTargets = registerThink("trigger_elevator_init") { self, game ->
     if (self.target == null) {
-        game.gameImports.dprintf("trigger_elevator has no target\n")
+        Com.Warn(GAME, "trigger_elevator has no target")
         return@registerThink true
     }
     self.movetarget = GameBase.G_PickTarget(self.target, game)
     if (self.movetarget == null) {
-        game.gameImports.dprintf("trigger_elevator unable to find target ${self.target}\n")
+        Com.Warn(GAME, "trigger_elevator unable to find target ${self.target}")
         return@registerThink true
     }
     if ("func_train" != self.movetarget.classname) {
-        game.gameImports.dprintf("trigger_elevator target ${self.target} is not a train\n")
+        Com.Warn(GAME, "trigger_elevator target ${self.target} is not a train")
         return@registerThink true
     }
 
@@ -301,13 +303,13 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
     }
 
     if (other?.pathtarget == null) {
-        game.gameImports.dprintf("elevator used with no pathtarget\n")
+        Com.Warn(GAME, "elevator used with no pathtarget")
         return@registerUse
     }
 
     val target = GameBase.G_PickTarget(other.pathtarget, game)
     if (target == null) {
-        game.gameImports.dprintf("elevator used with bad pathtarget: ${other.pathtarget}\n")
+        Com.Warn(GAME, "elevator used with bad pathtarget: ${other.pathtarget}")
         return@registerUse
     }
 
@@ -331,7 +333,7 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
  */
 fun miscFlyingShip(self: GameEntity, game: GameExportsImpl, model: String) {
     if (self.target == null) {
-        game.gameImports.dprintf("${self.classname} without a target at ${Lib.vtos(self.absmin)}\n")
+        Com.Warn(GAME, "${self.classname} without a target at ${Lib.vtos(self.absmin)}")
         game.freeEntity(self)
         return
     }

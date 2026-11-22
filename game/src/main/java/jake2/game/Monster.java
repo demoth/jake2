@@ -22,6 +22,8 @@
 
 package jake2.game;
 
+import jake2.qcommon.Com;
+import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.game.items.GameItems;
@@ -158,9 +160,9 @@ public class Monster {
         if (self.st != null && self.st.item != null && self.st.item.length() > 0) {
             self.item = GameItems.FindItemByClassname(self.st.item, gameExports);
             if (self.item == null)
-                gameExports.gameImports.dprintf("monster_start:" + self.classname + " at "
+                Com.Warn(GAME, "monster_start:" + self.classname + " at "
                         + Lib.vtos(self.s.origin) + " has bad item: "
-                        + self.st.item + "\n");
+                        + self.st.item);
         }
 
         // randomize what frame they start on
@@ -182,18 +184,6 @@ public class Monster {
         if (self.target != null) {
             boolean notcombat = false;
             boolean fixup = false;
-            /*
-             * if (true) { Com.Printf("all entities:\n");
-             * 
-             * for (int n = 0; n < Game.globals.num_edicts; n++) { edict_t ent =
-             * gameExports.g_edicts[n]; Com.Printf( "|%4i | %25s
-             * |%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f||%8.2f|%8.2f|%8.2f|\n", new
-             * Vargs().add(n).add(ent.classname).
-             * add(ent.s.origin[0]).add(ent.s.origin[1]).add(ent.s.origin[2])
-             * .add(ent.mins[0]).add(ent.mins[1]).add(ent.mins[2])
-             * .add(ent.maxs[0]).add(ent.maxs[1]).add(ent.maxs[2])); }
-             * sleep(10); }
-             */
 
             EdictIterator edit = null;
 
@@ -208,9 +198,9 @@ public class Monster {
                 }
             }
             if (notcombat && self.combattarget != null)
-                gameExports.gameImports.dprintf(self.classname + " at "
+                Com.Warn(GAME, self.classname + " at "
                         + Lib.vtos(self.s.origin)
-                        + " has target with mixed types\n");
+                        + " has target with mixed types");
             if (fixup)
                 self.target = null;
         }
@@ -224,7 +214,7 @@ public class Monster {
                 GameEntity target = edit.o;
 
                 if (!"point_combat".equals(target.classname)) {
-                    gameExports.gameImports.dprintf(self.classname + " at "
+                    Com.Warn(GAME, self.classname + " at "
                             + Lib.vtos(self.s.origin)
                             + " has bad combattarget " + self.combattarget
                             + " : " + target.classname + " at "
@@ -237,10 +227,9 @@ public class Monster {
             self.goalentity = self.movetarget = GameBase
                     .G_PickTarget(self.target, gameExports);
             if (null == self.movetarget) {
-                gameExports.gameImports
-                        .dprintf(self.classname + " can't find target "
+                Com.Warn(GAME, self.classname + " can't find target "
                                 + self.target + " at "
-                                + Lib.vtos(self.s.origin) + "\n");
+                                + Lib.vtos(self.s.origin));
                 self.target = null;
                 self.monsterinfo.pausetime = 100000000;
                 self.monsterinfo.stand.think(self, gameExports);

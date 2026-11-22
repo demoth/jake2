@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g3d.Model
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.GdxRuntimeException
 import jake2.qcommon.Com
+import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines.*
 import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.exec.Cmd
@@ -64,17 +65,17 @@ class GameConfiguration(
         Cmd.AddCommand("print_configs", true, "Print loaded server configstrings") {
             configStrings.forEachIndexed { i, c ->
                 if (c != null) {
-                    Com.Printf("ConfigString[$i] = ${c.value}, loaded = ${c.resource != null}\n")
+                    Com.Print("ConfigString[$i] = ${c.value}, loaded = ${c.resource != null}")
                 }
             }
         }
         Cmd.AddCommand("print_asset_errors", true, "Print failed asset loads for the current configuration") {
             if (failedAssets.isEmpty()) {
-                Com.Printf("No failed assets\n")
+                Com.Print("No failed assets")
                 return@AddCommand
             }
             failedAssets.forEach { (path, error) ->
-                Com.Printf("Failed asset: $path -> $error\n")
+                Com.Print("Failed asset: $path -> $error")
             }
         }
     }
@@ -335,7 +336,7 @@ class GameConfiguration(
                 val modelPath = config.value
                 if (modelPath.isNotBlank() && !modelPath.startsWith("*") && !modelPath.startsWith("#") &&
                     modelPath !in failedAssets) {
-                    Com.Warn("Failed to load model data for config $modelPath")
+                    Com.Warn(CLIENT, "Failed to load model data for config $modelPath")
                 }
             }
         }
@@ -393,7 +394,7 @@ class GameConfiguration(
         if (trackedType == null || !assetManager.isLoaded(path, assetClass)) {
             if (trackedType != null) {
                 // Defensive recovery: something external unloaded this path, so reacquire ownership.
-                Com.Warn("Reacquiring unexpectedly unloaded asset: $path")
+                Com.Warn(CLIENT, "Reacquiring unexpectedly unloaded asset: $path")
             }
             loadAsset()
             assetManager.finishLoadingAsset<T>(path)
@@ -424,7 +425,7 @@ class GameConfiguration(
             config.resource = null
             if (modelPath !in failedAssets) {
                 failedAssets[modelPath] = "Model absent from game data during old-demo playback"
-                Com.Warn("Skipping missing demo model: $modelPath")
+                Com.Warn(CLIENT, "Skipping missing demo model: $modelPath")
             }
             return false
         }
@@ -473,12 +474,12 @@ class GameConfiguration(
         } catch (e: MissingResourceException) {
             val error = e.message ?: e.javaClass.simpleName
             failedAssets[assetPath] = error
-            Com.Warn("Failed to load asset $assetPath: $error")
+            Com.Warn(CLIENT, "Failed to load asset $assetPath: $error")
             null
         } catch (e: GdxRuntimeException) {
             val error = rootCauseMessage(e)
             failedAssets[assetPath] = error
-            Com.Warn("Failed to load asset $assetPath: $error")
+            Com.Warn(CLIENT, "Failed to load asset $assetPath: $error")
             null
         }
     }
