@@ -122,13 +122,16 @@ class ClientPrediction(
             return
         }
 
-        if (outgoingSequence <= incomingAcknowledged) {
+        // outgoingSequence is the next packet to send. With every move acknowledged,
+        // there is no replay to populate pmove's view angles.
+        val sequenceDistance = outgoingSequence - incomingAcknowledged
+        if (sequenceDistance <= 1) {
             syncFromServerFrame(currentFrame)
             return
         }
 
         // `CL_pred.PredictMovement` freezes when replay window exceeds CMD_BACKUP.
-        if (outgoingSequence - incomingAcknowledged >= Defines.CMD_BACKUP) {
+        if (sequenceDistance >= Defines.CMD_BACKUP) {
             return
         }
 

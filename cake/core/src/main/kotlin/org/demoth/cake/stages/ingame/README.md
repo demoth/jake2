@@ -30,6 +30,12 @@ model/sprite/beam buckets. `ClientPrediction` reconciles acknowledged movement
 commands with server state and supplies local movement/view smoothing. Entity-event
 sounds run after valid packet-entity reconstruction, rather than on every draw.
 
+Cake replays sent movement commands that the server has yet to acknowledge.
+When every move is acknowledged, prediction uses the latest server position and
+view angles. An empty replay leaves the movement simulator's angles at zero,
+which previously caused a brief camera turn between sends. Predicting unsent
+input, as Yamagi and Q2PRO do, would require a separate change to input scheduling.
+
 ## World Presentation
 
 `WorldPresentationRenderer` sequences drawing through a frame context supplied by
