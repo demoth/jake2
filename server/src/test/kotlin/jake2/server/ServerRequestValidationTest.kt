@@ -34,6 +34,10 @@ import java.nio.file.Path
 import java.lang.reflect.Proxy
 import kotlin.random.Random
 
+/**
+ * Verifies that the server refuses invalid handshake and download requests while preserving client progress.
+ * Covers download replies from the requested offset through the end of the file.
+ */
 class ServerRequestValidationTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path

@@ -15,6 +15,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
+/**
+ * Verifies that a client receives the current map's configstrings and baselines before entering gameplay once.
+ * Covers retries, reconnects, and map changes that affect which handshake can complete.
+ */
 class ServerHandshakeTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path

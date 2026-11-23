@@ -22,6 +22,10 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Files
 import java.nio.file.Path
 
+/**
+ * Verifies which cvars are shared with the Host and how Game-owned values are initialized, inherited, and restored.
+ * Covers how those values affect gameplay settings advertised to clients.
+ */
 class GameCvarLifecycleTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
