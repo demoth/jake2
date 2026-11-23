@@ -133,10 +133,8 @@ public class DeltaUtils {
     }
 
     private static int getDeltaFlags(entity_state_t from, entity_state_t to, boolean newentity) {
-        if (0 == to.index)
-            Com.Error(ERR_FATAL, "Unset entity number");
-        if (to.index >= MAX_EDICTS)
-            Com.Error(ERR_FATAL, "Entity number >= MAX_EDICTS");
+        if (to.index <= 0 || to.index >= MAX_EDICTS)
+            throw new IllegalArgumentException("Entity number out of range: " + to.index);
 
         // send an update
         int deltaFlags = 0;

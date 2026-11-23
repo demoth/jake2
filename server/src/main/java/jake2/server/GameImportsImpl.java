@@ -497,14 +497,6 @@ public class GameImportsImpl implements GameImports {
         throw new GameFailure(this, err);
     }
 
-    /** @deprecated Use {@link #error(String)} for the same Game-scoped failure. */
-    @Deprecated
-    @Override
-    public void error(int level, String err) {
-        // Legacy severity codes do not select process/client ownership here.
-        throw new GameFailure(this, err);
-    }
-
     /* the *index functions create configstrings and some internal server state */
     @Override
     public int modelindex(String name) {

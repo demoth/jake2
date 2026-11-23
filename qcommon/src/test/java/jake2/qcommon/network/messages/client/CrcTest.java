@@ -50,5 +50,7 @@ public class CrcTest {
         for (int n = 0; n < 5; n++) {
             Assertions.assertEquals(expected[n], BlockSequenceCRCByte(TEST_DATA, 0, 21, n * 10) & 0xff);
         }
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> BlockSequenceCRCByte(TEST_DATA, 0, 21, -1));
     }
 }

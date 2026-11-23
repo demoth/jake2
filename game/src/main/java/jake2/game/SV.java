@@ -91,7 +91,7 @@ final class SV {
         ent.think.nextTime = 0;
 
         if (ent.think.action == null)
-            gameExports.gameImports.error(Defines.ERR_FATAL, "ent.think == null");
+            gameExports.gameImports.error("ent.think == null");
 
         ent.think.action.think(ent, gameExports);
 
@@ -483,7 +483,7 @@ final class SV {
             }
         }
         if (gameExports.pushed_p > Defines.MAX_EDICTS)
-            gameExports.gameImports.error(Defines.ERR_FATAL, "pushed_p > &pushed[MAX_EDICTS], memory corrupted");
+            gameExports.gameImports.error("pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 
         if (part != null) {
             // the move failed, bump all nextthink times and back out moves

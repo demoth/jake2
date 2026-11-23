@@ -270,7 +270,7 @@ class GameContinuationTest {
         first.gameExports = object : GameExports by first.gameExports {
             override fun ClientCommand(ent: ServerEntity, args: MutableList<String>) {
                 commands++
-                first.error(Defines.ERR_FATAL, "broken Game state")
+                first.error("broken Game state")
             }
         }
         host.handleClientMessages(a, listOf(

@@ -25,7 +25,6 @@ package jake2.qcommon.util;
 
 import jake2.qcommon.Com;
 import static jake2.qcommon.Com.LogSubsystem.COMMON;
-import jake2.qcommon.Defines;
 import jake2.qcommon.Globals;
 
 import java.io.File;
@@ -232,19 +231,6 @@ public class Lib {
 		}
 		catch (Exception e) {
 		}
-	}
-	
-	/** @deprecated Unused binary reader. Propagate file read failures to the operation that owns the file. */
-	@Deprecated
-	public static String freadString(RandomAccessFile f, int len) {
-		byte buffer[] = new byte[len];
-		try {
-			f.readFully(buffer);
-		} catch (IOException e) {
-			Com.Error(Defines.ERR_FATAL, e.toString());
-		}
-	
-		return Lib.CtoJava(buffer);
 	}
 	
 	/** Returns the right part of the string from the last occruence of c. */

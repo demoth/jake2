@@ -31,11 +31,8 @@ import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
 import jake2.qcommon.util.Vec3Cache;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -1718,53 +1715,6 @@ public class CM {
         }
 
         return bytes;
-    }
-
-    /**
-     * CM_WritePortalState writes the portal state to a savegame file.
-     * @deprecated Unused binary save path. The server persists portal state in its level JSON.
-     */
-    @Deprecated
-    public void CM_WritePortalState(RandomAccessFile os) {
-
-        try {
-            for (int n = 0; n < portalopen.length; n++)
-                if (portalopen[n])
-                    os.writeInt(1);
-                else
-                    os.writeInt(0);
-        } catch (Exception e) {
-            Com.Error(COMMON, "Could not write portal state: " + e);
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * CM_ReadPortalState reads the portal state from a savegame file and recalculates the area
-     * connections.
-     * @deprecated Unused binary save path. The server restores portal state from its level JSON.
-     */
-    @Deprecated
-    public void CM_ReadPortalState(RandomAccessFile f) {
-
-        //was: FS_Read(portalopen, sizeof(portalopen), f);
-        int len = portalopen.length * 4;
-
-        byte buf[] = new byte[len];
-
-        try {
-            f.readFully(buf);
-        } catch (IOException e) {
-            throw failureFactory.apply(Defines.ERR_FATAL, e.toString());
-        }
-
-        ByteBuffer bb = ByteBuffer.wrap(buf);
-        IntBuffer ib = bb.asIntBuffer();
-
-        for (int n = 0; n < portalopen.length; n++)
-            portalopen[n] = ib.get() != 0;
-
-        FloodAreaConnections();
     }
 
     /**

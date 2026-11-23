@@ -194,11 +194,6 @@ public class GameAITest {
         }
 
         @Override
-        public void error(int level, String err) {
-            // Do nothing for tests
-        }
-
-        @Override
         public int modelindex(String name) {
             return 0;
         }

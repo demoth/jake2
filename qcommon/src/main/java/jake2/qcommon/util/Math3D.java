@@ -23,7 +23,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon.util;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.cplane_t;
 import org.jetbrains.annotations.NotNull;
@@ -475,22 +474,5 @@ public class Math3D {
 		if (a1 - a2 < -180)
 			a1 += 360;
 		return a2 + frac * (a1 - a2);
-	}
-	/** @deprecated Unused FOV helper that dispatches a legacy engine drop. */
-	@Deprecated
-	public static float CalcFov(float fov_x, float width, float height) {
-		double a = 0.0f;
-		double x;
-
-		if (fov_x < 1.0f || fov_x > 179.0f)
-			Com.Error(Defines.ERR_DROP, "Bad fov: " + fov_x);
-
-		x = width / Math.tan(fov_x * piratio);
-
-		a = Math.atan(height / x);
-
-		a = a / piratio;
-
-		return (float) a;
 	}
 }

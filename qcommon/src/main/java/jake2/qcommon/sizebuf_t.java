@@ -258,25 +258,6 @@ public class sizebuf_t {
         writeByte((byte) best);
     }
 
-    /** @deprecated Use the bounded direction reader on {@link jake2.qcommon.network.protocol.MessageReader}. */
-    @Deprecated
-    public float[] readDir() {
-        float[] dir = new float[3];
-        int b = readByte();
-        if (b >= Defines.NUMVERTEXNORMALS)
-            Com.Error(Defines.ERR_DROP, "MSF_ReadDir: out of range");
-        Math3D.VectorCopy(Globals.bytedirs[b], dir);
-        return dir;
-    }
-
-    /**
-     * Read 'len' bytes into 'data'
-     */
-    public void readData(byte[] data, int len) {
-        for (int i = 0; i < len; i++)
-            data[i] = (byte) readByte();
-    }
-
     public void writeBytes(byte[] data, int length) {
         System.arraycopy(data, 0, this.data, GetSpace(length), length);
     }

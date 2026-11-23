@@ -22,8 +22,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.qcommon.network.messages.client;
 
-import jake2.qcommon.sys.Sys;
-
 class CRC
 {
 
@@ -277,10 +275,10 @@ class CRC
 	 * Calculates a crc checksum-sequence over an array.
 	 */
 	static byte BlockSequenceCRCByte(byte base[], int offset, int length, int sequence) {
-		byte[] chkb = new byte [60 + 4];
-
 		if (sequence < 0)
-			Sys.Error("sequence < 0, this shouldn't happen\n");
+			throw new IllegalArgumentException("CRC sequence must be non-negative: " + sequence);
+
+		byte[] chkb = new byte [60 + 4];
 
 		//p_ndx = (sequence % (sizeof(chktbl) - 4));
 		int p_ndx = (sequence % (1024 - 4));

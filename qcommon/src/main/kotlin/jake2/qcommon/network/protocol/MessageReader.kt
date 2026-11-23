@@ -65,15 +65,7 @@ class MessageReader(bytes: PacketBytes, offset: Int) : sizebuf_t(bytes.size) {
         return super.readInt()
     }
 
-    override fun readData(destination: ByteArray, length: Int) {
-        if (length < 0 || length > destination.size)
-            throw MessageReadException(MessageRejection.INVALID_LENGTH, readcount, "Invalid copy length $length")
-        requireRemaining(this, length)
-        System.arraycopy(data, readcount, destination, 0, length)
-        readcount += length
-    }
-
-    override fun readDir(): FloatArray {
+    fun readDir(): FloatArray {
         val index = readByte()
         if (index !in 0 until Defines.NUMVERTEXNORMALS)
             throw MessageReadException(MessageRejection.INVALID_VALUE, readcount - 1, "Invalid direction index $index")

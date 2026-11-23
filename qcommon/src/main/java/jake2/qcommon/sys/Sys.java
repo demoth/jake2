@@ -46,6 +46,7 @@ import java.util.regex.PatternSyntaxException;
  */
 public final class Sys extends Defines {
 
+    // TODO(JK2-TSK-26): Remove this helper with Com.Error(int, String), its only remaining caller.
     /** @deprecated Propagate the failure to its owner. Only an application or CLI should choose to exit. */
     @Deprecated
     public static void Error(String error) {
@@ -59,6 +60,8 @@ public final class Sys extends Defines {
     public static File[] FindAll(String path, int musthave, int canthave) {
 
         int index = path.lastIndexOf('/');
+        String findbase;
+        String findpattern;
 
         if (index != -1) {
             findbase = path.substring(0, index);
@@ -180,50 +183,6 @@ public final class Sys extends Defines {
 
     }
 
-
-    //============================================
-
-    static File[] fdir;
-
-    static int fileindex;
-
-    static String findbase;
-
-    static String findpattern;
-
-    /** @deprecated Unused shared cursor. Use {@link #FindAll(String, int, int)} for a file listing. */
-    @Deprecated
-    public static File FindFirst(String path, int musthave, int canthave) {
-
-        if (fdir != null)
-            Sys.Error("Sys_BeginFind without close");
-
-        //	COM_FilePath (path, findbase);
-
-        fdir = FindAll(path, canthave, musthave);
-        fileindex = 0;
-
-        if (fdir == null)
-            return null;
-
-        return FindNext();
-    }
-
-    /** @deprecated Use a caller-owned iterator over the listing. */
-    @Deprecated
-    public static File FindNext() {
-
-        if (fileindex >= fdir.length)
-            return null;
-
-        return fdir[fileindex++];
-    }
-
-    /** @deprecated Use a caller-owned iterator over the listing. */
-    @Deprecated
-    public static void FindClose() {
-        fdir = null;
-    }
 
     // sfranzyshen -start
 	// public static String GetClipboardData() {
