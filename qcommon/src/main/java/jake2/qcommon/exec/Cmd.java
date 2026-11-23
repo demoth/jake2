@@ -110,15 +110,6 @@ public final class Cmd {
 
     private final static Command Wait_f = (List<String> args) -> Globals.cmd_wait = true;
 
-    /** @deprecated The fatal console command is part of the legacy recovery path. */
-    @Deprecated
-    private static void Error_f(List<String> args) {
-        if (args.size() >= 2)
-            Com.Error(Defines.ERR_FATAL, args.get(1));
-        else
-            Com.Error(Defines.ERR_FATAL, "error occurred");
-    }
-
     private static Map<String, cmd_function_t> cmd_functions = new HashMap<>();
 
     private static Map<String, cmdalias_t> cmd_alias = new HashMap<>();
@@ -135,7 +126,6 @@ public final class Cmd {
         Cmd.AddCommand("cmdlist", List_f);
         Cmd.AddCommand("alias", Alias_f);
         Cmd.AddCommand("wait", Wait_f);
-        Cmd.AddCommand("error", Cmd::Error_f);
     }
 
     /**
