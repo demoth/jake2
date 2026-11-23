@@ -234,7 +234,8 @@ public class Lib {
 		}
 	}
 	
-	/** Like in libc */
+	/** @deprecated Unused binary reader. Propagate file read failures to the operation that owns the file. */
+	@Deprecated
 	public static String freadString(RandomAccessFile f, int len) {
 		byte buffer[] = new byte[len];
 		try {

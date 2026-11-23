@@ -46,6 +46,8 @@ import java.util.regex.PatternSyntaxException;
  */
 public final class Sys extends Defines {
 
+    /** @deprecated Propagate the failure to its owner. Only an application or CLI should choose to exit. */
+    @Deprecated
     public static void Error(String error) {
 
         Cmd.ExecuteFunction("cl_shutdown");
@@ -189,7 +191,8 @@ public final class Sys extends Defines {
 
     static String findpattern;
 
-    // ok.
+    /** @deprecated Unused shared cursor. Use {@link #FindAll(String, int, int)} for a file listing. */
+    @Deprecated
     public static File FindFirst(String path, int musthave, int canthave) {
 
         if (fdir != null)
@@ -206,6 +209,8 @@ public final class Sys extends Defines {
         return FindNext();
     }
 
+    /** @deprecated Use a caller-owned iterator over the listing. */
+    @Deprecated
     public static File FindNext() {
 
         if (fileindex >= fdir.length)
@@ -214,6 +219,8 @@ public final class Sys extends Defines {
         return fdir[fileindex++];
     }
 
+    /** @deprecated Use a caller-owned iterator over the listing. */
+    @Deprecated
     public static void FindClose() {
         fdir = null;
     }

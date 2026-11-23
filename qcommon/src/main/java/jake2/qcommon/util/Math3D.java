@@ -476,6 +476,8 @@ public class Math3D {
 			a1 += 360;
 		return a2 + frac * (a1 - a2);
 	}
+	/** @deprecated Unused FOV helper that dispatches a legacy engine drop. */
+	@Deprecated
 	public static float CalcFov(float fov_x, float width, float height) {
 		double a = 0.0f;
 		double x;

@@ -288,7 +288,7 @@ public final class Com
 
 	private static String msg= "";
 
-    /** @deprecated Legacy recovery API; migrate recovery to the failure handler and report with Error(String). */
+    /** @deprecated Move recovery to the owning operation or lifecycle boundary and report with {@link #Error(String)}. */
     @Deprecated
 	public static void Error(int code, String message) throws longjmpException
 	{

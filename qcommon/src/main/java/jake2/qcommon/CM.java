@@ -45,12 +45,13 @@ import static jake2.qcommon.Com.LogSubsystem.COMMON;
 public class CM {
     private final BiFunction<Integer, String, ? extends RuntimeException> failureFactory;
 
-    /** Preserve the legacy client error policy until its execution boundary is migrated. */
+    // TODO(JK2-TSK-24): Switch to direct collision exceptions when client and Game boundaries handle them.
     public CM() {
         this(CM::legacyFailure);
     }
 
-    /** Let the owner classify collision failures without introducing shutdown into collision code. */
+    /** @deprecated Classify collision failures at the calling Game or application boundary. */
+    @Deprecated
     public CM(BiFunction<Integer, String, ? extends RuntimeException> failureFactory) {
         this.failureFactory = Objects.requireNonNull(failureFactory);
 
@@ -75,6 +76,8 @@ public class CM {
 
     }
 
+    /** @deprecated The default collision model will propagate failures directly. */
+    @Deprecated
     private static RuntimeException legacyFailure(int severity, String message) {
         Com.Error(severity, message);
         return new IllegalStateException(message); // Defensive fallback if legacy dispatch ever returns.
@@ -1719,8 +1722,9 @@ public class CM {
 
     /**
      * CM_WritePortalState writes the portal state to a savegame file.
+     * @deprecated Unused binary save path. The server persists portal state in its level JSON.
      */
-
+    @Deprecated
     public void CM_WritePortalState(RandomAccessFile os) {
 
         try {
@@ -1738,7 +1742,9 @@ public class CM {
     /**
      * CM_ReadPortalState reads the portal state from a savegame file and recalculates the area
      * connections.
+     * @deprecated Unused binary save path. The server restores portal state from its level JSON.
      */
+    @Deprecated
     public void CM_ReadPortalState(RandomAccessFile f) {
 
         //was: FS_Read(portalopen, sizeof(portalopen), f);

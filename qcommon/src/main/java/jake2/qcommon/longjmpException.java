@@ -26,7 +26,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 /**
- * longjmpException is used to replace the setjmp/longjmp code.
+ * Replaces the original setjmp/longjmp control flow.
+ * @deprecated Retire with {@link Com#Error(int, String)} once callers handle failures at their owning boundaries.
  */
 @Deprecated
 public final class longjmpException extends IllegalStateException {

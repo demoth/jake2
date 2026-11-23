@@ -993,6 +993,7 @@ class Cake(
             automationCaptures.afterDraw(CaptureLayer.FINAL)
             automation.frameRendered()
         } catch (error: RuntimeException) {
+            // TODO(JK2-TSK-24): Drop the legacy catch once collision and sprite failures reach their session boundaries.
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
                 val startingFromMenu = awaitingNewGame

@@ -110,6 +110,8 @@ public final class Cmd {
 
     private final static Command Wait_f = (List<String> args) -> Globals.cmd_wait = true;
 
+    /** @deprecated The fatal console command is part of the legacy recovery path. */
+    @Deprecated
     private static void Error_f(List<String> args) {
         if (args.size() >= 2)
             Com.Error(Defines.ERR_FATAL, args.get(1));

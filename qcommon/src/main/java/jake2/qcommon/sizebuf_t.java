@@ -258,6 +258,8 @@ public class sizebuf_t {
         writeByte((byte) best);
     }
 
+    /** @deprecated Use the bounded direction reader on {@link jake2.qcommon.network.protocol.MessageReader}. */
+    @Deprecated
     public float[] readDir() {
         float[] dir = new float[3];
         int b = readByte();

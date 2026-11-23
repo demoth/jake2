@@ -30,8 +30,11 @@ public interface GameImports {
     */
     void configstring(int num, String string);
 
+    /** Fails the owning Game. The Host handles cleanup after the callback unwinds. */
     void error(String err);
 
+    /** @deprecated Use {@link #error(String)}. The legacy level does not affect Game failure handling. */
+    @Deprecated
     void error(int level, String err);
 
     /* the *index functions create configstrings and some internal server state */
