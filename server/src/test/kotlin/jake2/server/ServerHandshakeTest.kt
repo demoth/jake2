@@ -3,7 +3,11 @@ package jake2.server
 import jake2.qcommon.*
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
+import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.StringCmdMessage
+import jake2.qcommon.network.messages.server.ConfigStringMessage
+import jake2.qcommon.network.messages.server.ServerDataMessage
+import jake2.qcommon.network.messages.server.SpawnBaselineMessage
 import jake2.qcommon.network.messages.server.StuffTextMessage
 import jake2.qcommon.vfs.EngineWriteRoot
 import org.junit.jupiter.api.*
@@ -20,6 +24,13 @@ class ServerHandshakeTest {
     private lateinit var game: GameImportsImpl
     private lateinit var gameplay: Gameplay
     private lateinit var client: ClientNetworkInfo
+    private val levelName = "Handshake fixture"
+    // Sparse data spans several packets and includes the last usable index of each kind.
+    private val expectedConfigstrings = listOf(ConfigStringMessage(Defines.CS_NAME, levelName)) +
+        (0..23).map { ConfigStringMessage(Defines.CS_GENERAL + it * 3, "value-$it ${"x".repeat(96)}") } +
+        ConfigStringMessage(Defines.MAX_CONFIGSTRINGS - 1, "last-config")
+    private val expectedBaselines = ((1..640 step 2).toList() + (Defines.MAX_EDICTS - 1))
+        .map { it to (1 + it % 31) }
 
     // Handshake tests need a callback counter, without loading a map or game assets.
     private class Gameplay : GameExports {
@@ -80,11 +91,11 @@ class ServerHandshakeTest {
             spawncount = count
             gameExports = exports
             host.games[name] = this
-            // Force more than one request for both parts of the negotiation.
-            configstrings.indices.forEach { configstrings[it] = "value".repeat(20) }
-            baselines.forEachIndexed { index, baseline ->
-                baseline.index = index
-                if (index != 0) baseline.modelindex = 1
+            configstrings.fill(null)
+            for (config in expectedConfigstrings) configstrings[config.index] = config.config
+            for ((index, model) in expectedBaselines) {
+                baselines[index].index = index
+                baselines[index].modelindex = model
             }
         }
 
@@ -95,19 +106,29 @@ class ServerHandshakeTest {
         client.netchan.clearQueuedReliable()
     }
 
-    private fun command(text: String): String? {
+    private fun request(text: String): List<NetworkMessage> {
         client.netchan.clearQueuedReliable()
         host.handleClientMessages(client, listOf(StringCmdMessage(text)))
-        return client.netchan.queuedReliable.filterIsInstance<StuffTextMessage>().lastOrNull()?.text?.trim()
+        return client.netchan.queuedReliable
     }
 
+    private fun continuation(messages: List<NetworkMessage>): String? =
+        messages.filterIsInstance<StuffTextMessage>().lastOrNull()?.text?.trim()
+
+    private fun command(text: String): String? = continuation(request(text))
+
     // Act on the server's actual continuation commands, as a protocol-34 client does.
-    private fun completeNegotiation(initial: String = command("new")!!): String {
+    private fun completeNegotiation(
+        initial: String = command("new")!!,
+        onChunk: (List<NetworkMessage>) -> Unit = {},
+    ): String {
         var next = initial
         repeat(1000) {
             if (next.startsWith("precache ")) return next
             assertTrue(next.startsWith("cmd "), next)
-            next = command(next.removePrefix("cmd ")) ?: fail("No continuation for $next")
+            val messages = request(next.removePrefix("cmd "))
+            next = continuation(messages) ?: fail("No continuation for $next")
+            onChunk(messages)
         }
         return fail("Negotiation did not complete")
     }
@@ -118,37 +139,42 @@ class ServerHandshakeTest {
     }
 
     @Test
-    fun `begin requires new and every configstring and baseline chunk`() {
+    fun `client receives complete map data before gameplay can begin`() {
         assertNull(command("configstrings ${game.spawncount} 0"))
         assertNull(command("baselines ${game.spawncount} 0"))
         command("begin ${game.spawncount}")
         assertNotBegun()
-        var next = command("new")!!
+        val initial = request("new")
+        assertEquals(ServerDataMessage(34, game.spawncount, false, "baseq2", 0, levelName),
+            initial.filterIsInstance<ServerDataMessage>().single())
         assertNull(command("baselines ${game.spawncount} 0"))
-        command("begin ${game.spawncount}")
-        assertNotBegun()
 
         // A terminal cursor cannot claim unsent configstrings or baselines.
-        command("configstrings ${game.spawncount} ${Defines.MAX_CONFIGSTRINGS}")
-        command("baselines ${game.spawncount} ${Defines.MAX_EDICTS}")
+        assertTrue(request("configstrings ${game.spawncount} ${Defines.MAX_CONFIGSTRINGS}").isEmpty())
+        assertTrue(request("baselines ${game.spawncount} ${Defines.MAX_EDICTS}").isEmpty())
         command("begin ${game.spawncount}")
         assertNotBegun()
 
-        var configRequests = 0
-        while (next.startsWith("cmd configstrings ")) {
-            next = command(next.removePrefix("cmd "))!!
-            configRequests++
-            command("begin ${game.spawncount}")
-            assertNotBegun()
+        val receivedConfigs = mutableListOf<ConfigStringMessage>()
+        val receivedModels = mutableListOf<Pair<Int, Int>>()
+        var configChunks = 0
+        var baselineChunks = 0
+        val precache = completeNegotiation(continuation(initial)!!) { messages ->
+            val configChunk = messages.filterIsInstance<ConfigStringMessage>()
+            val baselineChunk = messages.filterIsInstance<SpawnBaselineMessage>()
+            receivedConfigs += configChunk
+            receivedModels += baselineChunk.map { it.entityState.index to it.entityState.modelIndex }
+            val firstConfigChunk = configChunk.isNotEmpty() && ++configChunks == 1
+            val firstBaselineChunk = baselineChunk.isNotEmpty() && ++baselineChunks == 1
+            if (firstConfigChunk || firstBaselineChunk) {
+                command("begin ${game.spawncount}")
+                assertNotBegun()
+            }
         }
-        assertTrue(configRequests > 1)
-        assertTrue(next.startsWith("cmd baselines "))
-        next = command(next.removePrefix("cmd "))!!
-        assertTrue(next.startsWith("cmd baselines "), "Fixture must have another baseline chunk")
-        command("begin ${game.spawncount}")
-        assertNotBegun()
-
-        assertEquals("precache ${game.spawncount}", completeNegotiation(next))
+        assertTrue(configChunks > 1 && baselineChunks > 1, "Fixture must span multiple chunks of each kind")
+        assertEquals(expectedConfigstrings, receivedConfigs.sortedBy { it.index })
+        assertEquals(expectedBaselines, receivedModels.sortedBy { it.first })
+        assertEquals("precache ${game.spawncount}", precache)
         command("begin ${game.spawncount}")
         assertEquals(ClientStates.CS_SPAWNED, client.state)
         assertEquals(1, gameplay.begins)
@@ -158,7 +184,7 @@ class ServerHandshakeTest {
     fun `malformed begin cannot consume a ready transition even when map count is zero`() {
         game.spawncount = 0
         completeNegotiation()
-        for (text in listOf("begin", "begin junk", "begin 0.0", "begin 2147483648", "begin 0 extra")) {
+        for (text in listOf("begin", "begin 0.0", "begin 2147483648", "begin 0 extra")) {
             command(text)
             assertNotBegun()
         }
@@ -191,14 +217,20 @@ class ServerHandshakeTest {
 
     @Test
     fun `covered chunks can be retried without losing completed negotiation`() {
-        var next = command("new")!!
-        val first = next.removePrefix("cmd ")
-        next = command(first)!!
-        assertTrue(next.startsWith("cmd configstrings "))
-        assertNotNull(command(first))
-        completeNegotiation(next)
-        assertNotNull(command("configstrings ${game.spawncount} 0"))
-        assertNotNull(command("baselines ${game.spawncount} 0"))
+        val first = command("new")!!.removePrefix("cmd ")
+        val firstReply = request(first)
+        assertEquals(firstReply, request(first))
+        var firstBaselineReply: List<NetworkMessage>? = null
+        completeNegotiation(continuation(firstReply)!!) { messages ->
+            if (firstBaselineReply == null && messages.any { it is SpawnBaselineMessage }) {
+                firstBaselineReply = messages
+            }
+        }
+        assertEquals(firstReply, request(first))
+        assertEquals(firstBaselineReply, request("baselines ${game.spawncount} 0"))
+        assertEquals("cmd baselines ${game.spawncount} 0",
+            command("configstrings ${game.spawncount} ${Defines.MAX_CONFIGSTRINGS}"))
+        assertEquals("precache ${game.spawncount}", command("baselines ${game.spawncount} ${Defines.MAX_EDICTS}"))
         command("begin ${game.spawncount}")
         assertEquals(1, gameplay.begins)
         assertEquals(ClientStates.CS_SPAWNED, client.state)

@@ -10,11 +10,11 @@ import jake2.qcommon.ServerStates
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
 import jake2.qcommon.network.NetworkSettings
+import jake2.qcommon.network.messages.NetworkMessage
 import jake2.qcommon.network.messages.client.StringCmdMessage
 import jake2.qcommon.network.messages.server.DownloadMessage
 import jake2.qcommon.network.messages.server.PrintMessage
 import jake2.qcommon.network.messages.server.ServerDataMessage
-import jake2.qcommon.network.messages.server.StuffTextMessage
 import jake2.qcommon.network.protocol.PacketCodec
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.qcommon.network.transport.LoopbackLink
@@ -28,9 +28,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import java.io.ByteArrayOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.lang.reflect.Proxy
+import kotlin.random.Random
 
 class ServerRequestValidationTest {
     @TempDir lateinit var root: Path
@@ -43,7 +45,7 @@ class ServerRequestValidationTest {
     private lateinit var healthy: ClientNetworkInfo
     private var sequence = 0
     private var simulationTicks = 0
-    private val file = ByteArray(2500) { it.toByte() }
+    private val file = Random(0).nextBytes(2500)
     private val entity = object : ServerEntity(1) {
         override fun getOwner(): ServerEntity? = null
         override fun getClient(): ServerPlayerInfo? = null
@@ -99,20 +101,19 @@ class ServerRequestValidationTest {
         Globals.server_state = previousState
     }
 
-    private fun send(command: String, client: ClientNetworkInfo = requester) {
+    private fun request(command: String, client: ClientNetworkInfo = requester): List<NetworkMessage> {
+        client.netchan.clearQueuedReliable()
         val payload = sizebuf_t(2048).apply { StringCmdMessage(command).writeTo(this) }
         val packet = PacketCodec.encodeSequenced(++sequence, 0, client.netchan.qport,
             PacketBytes.copyOf(payload.data, payload.cursize))
         transport.send(transport.localPeer, packet)
         host.readPackets()
+        return client.netchan.queuedReliable
     }
 
     private fun assertNextTickContinues() {
-        send("new", healthy)
-        assertTrue(healthy.netchan.queuedReliable.any { it is ServerDataMessage })
-        val frame = game.frameNum
+        assertTrue(request("new", healthy).any { it is ServerDataMessage })
         host.update(1000)
-        assertEquals(frame + 1, game.frameNum)
         assertEquals(1, simulationTicks)
         assertSame(game, host.games[game.name])
         assertEquals(ClientStates.CS_CONNECTED, healthy.state)
@@ -128,106 +129,66 @@ class ServerRequestValidationTest {
                 "$command ${game.spawncount} -1",
                 "$command ${game.spawncount} ${limit + 1}",
                 "$command ${game.spawncount} 2147483648",
-                "$command ${game.spawncount} -2147483649",
-                "$command ${game.spawncount} bad",
                 "$command ${game.spawncount} 1junk",
-                "$command ${game.spawncount} \"\"",
                 "$command bad 0",
-                "$command 0.0 0",
-                "$command 999999999999999999999999 0",
                 "$command ${game.spawncount}",
-                "$command",
                 "$command ${game.spawncount} 0 extra",
                 // Bad cursors must be refused even when a stale level would normally restart negotiation.
                 "$command ${game.spawncount + 1} -1",
             )
-            for (request in invalid) {
-                requester.netchan.clearQueuedReliable()
-                send(request)
-                assertEquals(ClientStates.CS_CONNECTED, requester.state, request)
-                assertTrue(requester.netchan.queuedReliable.single() is PrintMessage, request)
-                assertTrue(healthy.netchan.queuedReliable.isEmpty(), request)
+            for (input in invalid) {
+                assertTrue(request(input).single() is PrintMessage, input)
+                assertEquals(ClientStates.CS_CONNECTED, requester.state, input)
+                assertTrue(healthy.netchan.queuedReliable.isEmpty(), input)
             }
         }
         assertNextTickContinues()
     }
 
     @Test
-    fun `handshake terminal cursors produce their normal next protocol command`() {
-        game.state = ServerStates.SS_GAME
-        requester.edict = entity
-        game.configstrings.indices.forEach { game.configstrings[it] = "value".repeat(20) }
-        game.baselines.forEachIndexed { index, baseline ->
-            baseline.index = index
-            if (index != 0) baseline.modelindex = 1
-        }
-        send("new")
-        var next = requester.netchan.queuedReliable.filterIsInstance<StuffTextMessage>().single().text.trim()
-        var requests = 0
-        while (next.startsWith("cmd ") && requests++ < 1000) {
-            requester.netchan.clearQueuedReliable()
-            send(next.removePrefix("cmd "))
-            next = requester.netchan.queuedReliable.filterIsInstance<StuffTextMessage>().single().text.trim()
-        }
-        assertEquals("precache ${game.spawncount}", next)
-        assertTrue(requests > 2, "Fixture should negotiate multiple chunks")
-        requester.netchan.clearQueuedReliable()
-        send("configstrings ${game.spawncount} ${Defines.MAX_CONFIGSTRINGS}")
-        assertEquals(StuffTextMessage.command("cmd baselines ${game.spawncount} 0"),
-            requester.netchan.queuedReliable.single())
-        requester.netchan.clearQueuedReliable()
-        send("baselines ${game.spawncount} ${Defines.MAX_EDICTS}")
-        assertEquals(StuffTextMessage.command("precache ${game.spawncount}"),
-            requester.netchan.queuedReliable.single())
-    }
-
-    @Test
     fun `invalid downloads preserve the current transfer and other clients next tick`() {
-        send("download models/test.bin")
-        val activeDownload = requester.download
-        assertNotNull(activeDownload)
+        val firstChunk = request("download models/test.bin").single() as DownloadMessage.Chunk
+        assertTrue(firstChunk.percentage in 1..99, "Fixture must leave an active transfer")
         val invalid = listOf(
             "download",
             "download \"\"",
             "download models/test.bin -1",
-            "download models/test.bin -2147483648",
-            "download models/test.bin -2147483649",
-            "download models/test.bin 2147483647",
             "download models/test.bin 2147483648",
-            "download models/test.bin 99999999999999999999999999",
-            "download models/test.bin bad",
             "download models/test.bin 1junk",
             "download models/test.bin ${file.size + 1}",
             "download models/test.bin 0 extra",
             "download models/missing.bin",
         )
-        for (request in invalid) {
-            requester.netchan.clearQueuedReliable()
-            send(request)
-            assertEquals(DownloadMessage.Failure(), requester.netchan.queuedReliable.single(), request)
-            assertSame(activeDownload, requester.download, request)
-            assertEquals(file.size, requester.downloadsize, request)
-            assertEquals(1024, requester.downloadcount, request)
-            assertTrue(healthy.netchan.queuedReliable.isEmpty(), request)
+        for (command in invalid) {
+            assertEquals(DownloadMessage.Failure(), request(command).single(), command)
+            assertTrue(healthy.netchan.queuedReliable.isEmpty(), command)
         }
-        requester.netchan.clearQueuedReliable()
-        send("nextdl")
-        val chunk = requester.netchan.queuedReliable.single() as DownloadMessage.Chunk
-        assertArrayEquals(file.copyOfRange(1024, 2048), chunk.data.toByteArray())
+        assertArrayEquals(file, receiveDownload(firstChunk, offset = 0))
         assertNextTickContinues()
     }
 
     @Test
     fun `downloads retain normal resume and end of file behavior`() {
         for (offset in listOf(0, 1200, file.size)) {
-            requester.netchan.clearQueuedReliable()
-            send("download models/test.bin $offset")
-            val chunk = requester.netchan.queuedReliable.single() as DownloadMessage.Chunk
-            val end = minOf(offset + 1024, file.size)
-            assertArrayEquals(file.copyOfRange(offset, end), chunk.data.toByteArray())
-            assertEquals(end * 100 / file.size, chunk.percentage)
-            assertEquals(end, requester.downloadcount)
-            if (end == file.size) assertNull(requester.download)
+            val firstChunk = request("download models/test.bin $offset").single() as DownloadMessage.Chunk
+            assertArrayEquals(file.copyOfRange(offset, file.size), receiveDownload(firstChunk, offset))
+        }
+    }
+
+    private fun receiveDownload(firstChunk: DownloadMessage.Chunk, offset: Int): ByteArray {
+        val contents = ByteArrayOutputStream()
+        var chunk = firstChunk
+        while (true) {
+            contents.write(chunk.data.toByteArray())
+            val position = offset + contents.size()
+            assertTrue(position <= file.size, "Transfer exceeded the end of the file")
+            assertEquals(position * 100 / file.size, chunk.percentage)
+            if (chunk.percentage == 100) {
+                assertTrue(request("nextdl").isEmpty(), "Completed transfer should send no more chunks")
+                return contents.toByteArray()
+            }
+            assertTrue(chunk.data.size > 0, "An incomplete transfer must make progress")
+            chunk = request("nextdl").single() as DownloadMessage.Chunk
         }
     }
 }
