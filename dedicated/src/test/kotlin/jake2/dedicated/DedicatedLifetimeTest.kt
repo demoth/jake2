@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 
+/** Dedicated owns its Host through startup, loop recovery, and shutdown. */
 @Timeout(10)
 class DedicatedLifetimeTest {
     private lateinit var transport: NetworkTransport
@@ -38,7 +39,6 @@ class DedicatedLifetimeTest {
         Thread.interrupted()
         Cmd.RemoveCommand("test_start")
         Cmd.RemoveCommand("test_end")
-        Cmd.RemoveCommand("test_drop")
         Cbuf.Execute()
         if (::network.isInitialized) network.close()
         Cvar.getInstance().clear()
@@ -98,19 +98,16 @@ class DedicatedLifetimeTest {
     }
 
     @Test
-    fun `legacy recoverable drop retains Host commands and continues loop`() {
+    fun `map rejection leaves the dedicated loop and transport available`() {
         Cmd.AddCommand("test_start") { assertTrue(network.configure(true)) }
-        Cmd.AddCommand("test_drop") {
-            jake2.qcommon.Com.Error(jake2.qcommon.Defines.ERR_DROP, "recoverable test failure")
-        }
         var continued = false
         Cmd.AddCommand("test_end") {
             continued = true
             assertNotNull(Cmd.FindCommand("map"))
-            assertNull(transport.udpEndpoint)
+            assertNotNull(transport.udpEndpoint)
             Thread.currentThread().interrupt()
         }
-        runHost(listOf("Jake2", "+test_start", "+wait", "+test_drop", "+test_end"))
+        runHost(listOf("Jake2", "+test_start", "+wait", "+gamemap", "__missing_dedicated_test_map__", "+test_end"))
         assertTrue(continued)
         assertReleased()
     }

@@ -77,17 +77,6 @@ public class Defines {
 	public final static int PRINT_HIGH = 2; // critical messages 
 	public final static int PRINT_CHAT = 3; // chat messages 
 
-	/** @deprecated Fail the owning Game or propagate to the application boundary, as appropriate. */
-	@Deprecated
-	public final static int ERR_FATAL = 0;
-	/** @deprecated Recover at the owning Game or session boundary. */
-	@Deprecated
-	public final static int ERR_DROP = 1; // print to console and disconnect from game
-	/** @deprecated End the affected connection explicitly. */
-	@Deprecated
-	public final static int ERR_DISCONNECT = 2; // don't kill server
-
-
 	//	key / value info strings
 	public final static int MAX_INFO_KEY = 64;
 	public final static int MAX_INFO_VALUE = 64;

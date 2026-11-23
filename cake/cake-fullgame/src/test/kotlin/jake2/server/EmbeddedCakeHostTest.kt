@@ -24,6 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.net.DatagramSocket
 
+/** Covers embedded Host startup, session operations, and ownership of resources and commands. */
 class EmbeddedCakeHostTest {
     @TempDir lateinit var temp: Path
     private lateinit var host: EmbeddedCakeHost
@@ -398,9 +399,9 @@ class EmbeddedCakeHostTest {
     }
 
     @Test
-    fun `server drop and later command replacement are cleaned up without removing another owner`() {
+    fun `sv_shutdown permits restart and disposal preserves a replacement command`() {
         assertEquals(HostStartResult.Started, host.start(request()))
-        assertThrows(longjmpException::class.java) { Com.Error(Defines.ERR_DROP, "test drop") }
+        Cmd.ExecuteString("sv_shutdown \"test shutdown\" false")
         host.update(0)
         assertEquals(HostState.STOPPED, host.state)
         assertNotNull(Cmd.FindCommand("save"))

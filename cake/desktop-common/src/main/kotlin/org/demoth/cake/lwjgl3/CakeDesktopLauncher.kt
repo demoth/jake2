@@ -1,5 +1,7 @@
 package org.demoth.cake.lwjgl3
 
+import com.badlogic.gdx.ApplicationAdapter
+import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Files.FileType
 import com.badlogic.gdx.Graphics
@@ -9,7 +11,6 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Graphics
 import org.demoth.cake.Cake
 import org.demoth.cake.CakeDisplayMode
 import org.demoth.cake.CakeStartupBootstrap
-import org.demoth.cake.CakeStartupContext
 import org.demoth.cake.CakeVideoModeSettings
 import org.demoth.cake.CakeVideoPlatform
 import org.demoth.cake.publishFullscreenModes
@@ -23,11 +24,14 @@ object CakeDesktopLauncher {
     fun launch(args: Array<String>, host: CakeHost, windowTitle: String) {
         if (startNewJvmIfRequired(args)) return
         val startupContext = CakeStartupBootstrap.bootstrap(arguments = args.toList())
-        createApplication(startupContext, host, windowTitle)
-    }
-
-    private fun createApplication(startupContext: CakeStartupContext, host: CakeHost, windowTitle: String): Lwjgl3Application {
-        return Lwjgl3Application(Cake(startupContext, Lwjgl3VideoPlatform(), host), getDefaultConfiguration(startupContext.videoMode, windowTitle))
+        val lifecycle = ExitOnFailureListener { Cake(startupContext, Lwjgl3VideoPlatform(), host) }
+        try {
+            Lwjgl3Application(lifecycle, getDefaultConfiguration(startupContext.videoMode, windowTitle))
+        } catch (error: Exception) {
+            val failure = lifecycle.failure ?: throw error
+            if (failure !== error) failure.addSuppressed(error)
+        }
+        lifecycle.failure?.let { throw it }
     }
 
     private fun getDefaultConfiguration(videoMode: CakeVideoModeSettings, windowTitle: String): Lwjgl3ApplicationConfiguration {
@@ -70,6 +74,43 @@ object CakeDesktopLauncher {
         }
     }
 
+}
+
+/** Wrapper class, lets LWJGL leave its loop normally so Application can release resources while the GL context is alive. */
+private class ExitOnFailureListener(private val appCreation: () -> ApplicationListener) : ApplicationAdapter() {
+    private var app: ApplicationListener? = null
+    var failure: Exception? = null
+        private set
+
+    override fun create() = runUntilExit {
+        val application = appCreation()
+        app = application
+        application.create()
+    }
+    override fun render() = runUntilExit { app?.render() }
+    override fun resize(width: Int, height: Int) = runUntilExit { app?.resize(width, height) }
+    override fun pause() = runUntilExit { app?.pause() }
+    override fun resume() = runUntilExit { app?.resume() }
+
+    override fun dispose() {
+        try {
+            app?.dispose()
+        } catch (error: Exception) {
+            val first = failure
+            if (first == null) failure = error
+            else if (first !== error) first.addSuppressed(error)
+        }
+    }
+
+    private inline fun runUntilExit(action: () -> Unit) {
+        if (failure != null) return
+        try {
+            action()
+        } catch (error: Exception) {
+            failure = error
+            Gdx.app.exit()
+        }
+    }
 }
 
 

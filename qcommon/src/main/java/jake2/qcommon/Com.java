@@ -26,7 +26,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 package jake2.qcommon;
 
 import jake2.qcommon.exec.Cmd;
-import jake2.qcommon.sys.Sys;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
@@ -282,48 +281,6 @@ public final class Com
             }
         }
     }
-
-	// Detect recursion during shutdown
-	private static boolean recursive= false;
-
-	private static String msg= "";
-
-    /** @deprecated Move recovery to the owning operation or lifecycle boundary and report with {@link #Error(String)}. */
-    @Deprecated
-	public static void Error(int code, String message) throws longjmpException
-	{
-		if (recursive)
-		{
-			Sys.Error("recursive error after: " + msg);
-		}
-		recursive= true;
-
-		msg= message;
-
-		if (code == Defines.ERR_DISCONNECT)
-		{
-            printToConsole(ConsoleLevel.ERROR, "Error: " + msg + "\n");
-			Cmd.ExecuteFunction("cl_drop");
-			recursive= false;
-			throw new longjmpException("Error: (disconnect) " + msg);
-		}
-		else if (code == Defines.ERR_DROP)
-		{
-            printToConsole(ConsoleLevel.ERROR, "********************\nERROR: " + msg + "\n********************\n");
-			Cmd.ExecuteFunction("sv_shutdown", "Server crashed: " + msg, "false");
-			Cmd.ExecuteFunction("cl_drop");
-			recursive= false;
-			throw new longjmpException("Error: (drop) " + msg);
-		}
-		else
-		{
-            printToConsole(ConsoleLevel.ERROR, "ERROR: " + msg + "\n");
-			Cmd.ExecuteFunction("sv_shutdown", "Server fatal crashed: " + msg, "false");
-			Cmd.ExecuteFunction("cl_shutdown");
-		}
-
-		Sys.Error(msg);
-	}
 
     public static void SetConsoleSink(ConsoleSink sink) {
         consoleSink = sink;

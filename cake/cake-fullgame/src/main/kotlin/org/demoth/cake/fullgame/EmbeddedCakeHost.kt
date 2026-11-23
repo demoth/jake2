@@ -7,7 +7,6 @@ import jake2.qcommon.exec.Cbuf
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.CvarTypes
 import jake2.qcommon.exec.find
-import jake2.qcommon.longjmpException
 import jake2.qcommon.network.transport.LoopbackLink
 import jake2.qcommon.network.runtime.NetworkTransport
 import jake2.server.TransportServerNetwork
@@ -150,15 +149,11 @@ class EmbeddedCakeHost(
             }
             starting = false
             return HostStartResult.Started
-        } catch (error: longjmpException) {
-            stop("Server dropped during startup")
-            return HostStartResult.Rejected(error.message ?: "Server startup failed")
         } catch (error: IOException) {
             stop("Filesystem setup failed")
             return HostStartResult.Rejected("Could not prepare game files: ${error.message}")
-        } catch (error: RuntimeException) {
-            stop("Server startup failed")
-            throw error
+        } catch (error: Exception) {
+            stopAfterFailure("Server startup failed", error)
         }
     }
 
@@ -177,13 +172,18 @@ class EmbeddedCakeHost(
         if (!manager.isRunning) return // An idle Host retains commands and profile context.
         try {
             manager.update(elapsedMillis.coerceAtLeast(0))
-        } catch (error: longjmpException) {
-            stop("Server dropped")
-            throw HostFailureException(error.message ?: "Server dropped", error)
-        } catch (error: RuntimeException) {
-            stop("Server failed")
-            throw error
+        } catch (error: Exception) {
+            stopAfterFailure("Server failed", error)
         }
+    }
+
+    private fun stopAfterFailure(reason: String, failure: Exception): Nothing {
+        try {
+            stop(reason)
+        } catch (cleanupFailure: Exception) {
+            if (cleanupFailure !== failure) failure.addSuppressed(cleanupFailure)
+        }
+        throw failure
     }
 
     override fun stop(reason: String) {

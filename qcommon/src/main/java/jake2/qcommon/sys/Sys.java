@@ -25,7 +25,6 @@
  */
 package jake2.qcommon.sys;
 
-import jake2.qcommon.exec.Cmd;
 import jake2.qcommon.Com;
 import static jake2.qcommon.Com.LogSubsystem.COMMON;
 import jake2.qcommon.Defines;
@@ -45,16 +44,6 @@ import java.util.regex.PatternSyntaxException;
  * Sys
  */
 public final class Sys extends Defines {
-
-    // TODO(JK2-TSK-26): Remove this helper with Com.Error(int, String), its only remaining caller.
-    /** @deprecated Propagate the failure to its owner. Only an application or CLI should choose to exit. */
-    @Deprecated
-    public static void Error(String error) {
-
-        Cmd.ExecuteFunction("cl_shutdown");
-        new Exception(error).printStackTrace();
-        System.exit(1);
-    }
 
     //ok!
     public static File[] FindAll(String path, int musthave, int canthave) {

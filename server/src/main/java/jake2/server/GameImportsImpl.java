@@ -398,9 +398,6 @@ public class GameImportsImpl implements GameImports {
         if (attenuation < 0 || attenuation > 4)
             throw new GameFailure(this, "SV_StartSound: attenuation = " + attenuation);
 
-        //    if (channel < 0 || channel > 15)
-        //        Com_Error (ERR_FATAL, "SV_StartSound: channel = %i", channel);
-
         if (timeofs < 0 || timeofs > 0.255)
             throw new GameFailure(this, "SV_StartSound: timeofs = " + timeofs);
 

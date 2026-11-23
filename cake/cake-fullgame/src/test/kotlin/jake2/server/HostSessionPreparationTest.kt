@@ -493,25 +493,16 @@ class HostSessionPreparationTest {
     }
 
     @Test
-    fun `gamemap port failure is recoverable without global shutdown callbacks`() {
+    fun `gamemap can retry once the occupied server port is released`() {
         cvars.find<Boolean>("coop").forceSet(true)
-        var globalShutdown = false
-        val previous = jake2.qcommon.exec.Cmd.FindCommand("cl_drop")
-        jake2.qcommon.exec.Cmd.AddCommand("cl_drop", true) { globalShutdown = true }
-        try {
-            java.net.DatagramSocket(0).use { occupied ->
-                cvars.find<Int>("port").forceSet(occupied.localPort)
-                assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.changeMap("testbox"))
-                assertTrue(host.games.isEmpty())
-                assertTrue(host.clients.isEmpty())
-                assertFalse(globalShutdown)
-            }
-            cvars.find<Int>("port").forceSet(0)
-            assertEquals(ServerHost.OperationResult.Completed, host.changeMap("testbox"))
-        } finally {
-            jake2.qcommon.exec.Cmd.RemoveCommand("cl_drop")
-            if (previous != null) jake2.qcommon.exec.Cmd.AddCommand("cl_drop", previous.description, previous.function)
+        java.net.DatagramSocket(0).use { occupied ->
+            cvars.find<Int>("port").forceSet(occupied.localPort)
+            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.changeMap("testbox"))
+            assertTrue(host.games.isEmpty())
+            assertTrue(host.clients.isEmpty())
         }
+        cvars.find<Int>("port").forceSet(0)
+        assertEquals(ServerHost.OperationResult.Completed, host.changeMap("testbox"))
     }
 
     @Test

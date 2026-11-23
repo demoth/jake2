@@ -150,6 +150,7 @@ class Cake(
     private val hostClock = HostFrameClock()
     private var applicationPaused = false
     private var awaitingNewGame = false
+    private var startupComplete = false
 
     // Connection and download protocol state.
     private var demoRecording: DemoRecording? = null
@@ -585,6 +586,7 @@ class Cake(
         // endregion
         automation.syncCommands()
         Cbuf.AddLateCommands(startup.startupCommands)
+        startupComplete = true
     }
 
     /** Menu startup uses the same automatic local attachment as console commands. */
@@ -875,9 +877,9 @@ class Cake(
     }
 
     override fun render() {
-        automation.update()
-        automationCaptures.beginFrame()
         try {
+            automation.update()
+            automationCaptures.beginFrame()
             updateGlProfilerState()
             syncPackageSettings()
             menuController.pumpIntents()
@@ -908,8 +910,21 @@ class Cake(
                 updateDemo(deltaSeconds)
             } else {
                 host.setPaused(menuVisible || consoleVisible || uiSample.isOpen || applicationPaused)
-                host.update(hostClock.advance(Gdx.graphics.rawDeltaTime,
-                    Globals.fixedtime.typedValue, Globals.timescale.typedValue))
+                val elapsed = hostClock.advance(Gdx.graphics.rawDeltaTime,
+                    Globals.fixedtime.typedValue, Globals.timescale.typedValue)
+                try {
+                    host.update(elapsed)
+                } catch (error: HostFailureException) {
+                    val startingFromMenu = awaitingNewGame
+                    Com.Error(SERVER, "Local server stopped: ${error.message}")
+                    finishSession()
+                    if (startingFromMenu) {
+                        menuEventBus.postIntent(MenuIntent.HostingFailed(error.message ?: "New Game failed"))
+                        menuVisible = true
+                        consoleVisible = false
+                    }
+                    return
+                }
                 // Console/startup commands can start a Host without going through a menu.
                 // Existing local transitions and remote connections retain their handshake paths.
                 if (networkState == DISCONNECTED && host.state == HostState.RUNNING) {
@@ -992,19 +1007,6 @@ class Cake(
             automationCaptures.afterDraw(CaptureLayer.FINAL)
             automation.frameRendered()
         } catch (error: RuntimeException) {
-            // TODO(JK2-TSK-24): Drop the legacy catch once collision failures reach their owners directly.
-            if (error is HostFailureException ||
-                (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
-                val startingFromMenu = awaitingNewGame
-                Com.Error(SERVER, "Local server stopped: ${error.message}")
-                finishSession()
-                if (startingFromMenu) {
-                    menuEventBus.postIntent(MenuIntent.HostingFailed(error.message ?: "New Game failed"))
-                    menuVisible = true
-                    consoleVisible = false
-                }
-                return
-            }
             val resourceFailure = error.findResourceFailure()
             if (resourceFailure != null && (game3dScreen != null || demoPlayback != null)) {
                 handleClientSessionFailure(resourceFailure)
@@ -1182,30 +1184,41 @@ class Cake(
     }
 
     override fun dispose() {
-        automation.dispose()
-        automationCaptures.cancelAll("Application disposed")
-        closeUiSample()
-        uiSample.dispose()
-        try {
-            disconnect()
-        } finally {
-            try { host.dispose() } finally { network.close() }
+        var failure: Exception? = null
+        fun release(action: () -> Unit) {
+            try {
+                action()
+            } catch (error: Exception) {
+                val first = failure
+                if (first == null) failure = error
+                else if (first !== error) first.addSuppressed(error)
+            }
         }
-        profilePersistence.saveConfig()
-        menuStages.dispose()
-        consoleStage.dispose()
-        debugGraphStage.dispose()
-        clearCurrentGameUiStyle()
-        clearProfileBackground()
-        profileBackgroundBatch?.dispose()
+
+        release(automation::dispose)
+        release { automationCaptures.cancelAll("Application disposed") }
+        release(::closeUiSample)
+        release(uiSample::dispose)
+        release { disconnect() }
+        release(host::dispose)
+        release(network::close)
+        if (startupComplete) release { profilePersistence.saveConfig() }
+        if (::menuStages.isInitialized) release(menuStages::dispose)
+        if (::consoleStage.isInitialized) release(consoleStage::dispose)
+        if (::debugGraphStage.isInitialized) release(debugGraphStage::dispose)
+        release(::clearCurrentGameUiStyle)
+        release(::clearProfileBackground)
+        release { profileBackgroundBatch?.dispose() }
         profileBackgroundBatch = null
-        clearTransitionBackdrop()
-        transitionBackdropBatch?.dispose()
+        release(::clearTransitionBackdrop)
+        release { transitionBackdropBatch?.dispose() }
         transitionBackdropBatch = null
-        if (glProfilerActive) {
+        if (glProfilerActive) release {
             glProfiler.disable()
             glProfilerActive = false
         }
+        release(assetManager::dispose)
+        failure?.let { throw it }
     }
 
     /**
@@ -1219,8 +1232,8 @@ class Cake(
                 screen.unloadConfigAssets()
             }
             screen.dispose()
+            game3dScreen = null
         }
-        game3dScreen = null
         return screen
     }
 
