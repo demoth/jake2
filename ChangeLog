@@ -1,3 +1,14 @@
+1.2.11
+    - fixed brief camera flashes in network games when prediction had no moves to replay
+    - fixed unreadable first-profile menus when the original Quake II UI assets are unavailable
+    - switched the missing-texture checkerboard to black and white so colored lighting remains visible
+    - added a saved footstep sound option (cl_footsteps) and support for TGA, PNG, and JPEG cinematic stills
+    - tightened server handshake and download request validation and kept map generations distinct across Game restarts
+    - removed RCON credentials from request logs and ensured output capture is released when a command fails
+    - improved recovery from invalid assets in live games, demos, and Viewer previews
+    - removed the legacy global error shutdown path and the fatal error console command
+    - consolidated tests around server handshake, Game settings, and resource and application lifecycles
+
 1.2.10
     - unified engine messaging with consistent line endings, reporting-only errors, and lazy TRACE diagnostics
     - added global and per-subsystem log levels, with color-coded controls in the Cake console

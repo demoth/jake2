@@ -6,6 +6,6 @@ import org.demoth.cake.hosting.UnavailableCakeHost
 object Lwjgl3GameLauncher {
     @JvmStatic
     fun main(args: Array<String>) {
-        CakeDesktopLauncher.launch(args, UnavailableCakeHost(), "Cake Client v1.2.10")
+        CakeDesktopLauncher.launch(args, UnavailableCakeHost(), "Cake Client v1.2.11")
     }
 }

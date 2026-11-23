@@ -47,7 +47,7 @@ private fun createApplication(options: ViewerOptions): Lwjgl3Application {
 }
 
 private fun createConfiguration(options: ViewerOptions) = Lwjgl3ApplicationConfiguration().apply {
-    setTitle("Cake Viewer 1.2.10")
+    setTitle("Cake Viewer 1.2.11")
     setCakeWindowIcons()
     setOpenGLEmulation(Lwjgl3ApplicationConfiguration.GLEmulation.GL32, 3, 2)
     useVsync(true)
