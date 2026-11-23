@@ -45,11 +45,14 @@ import org.demoth.cake.assets.Sp2Asset
 import org.demoth.cake.assets.Sp2Loader
 import org.demoth.cake.assets.WalLoader
 import org.demoth.cake.assets.getLoaded
+import org.demoth.cake.assets.reportResourceReadFailures
+import org.demoth.cake.assets.findResourceFailure
 import org.demoth.cake.ui.ImagePreviewPane
 import org.demoth.cake.ui.ImageThumbnails
 import org.demoth.cake.ui.ContentBrowser
 import org.demoth.cake.ui.FileResourcePreview
 import java.io.File
+import java.io.IOException
 import java.nio.file.Path
 import org.demoth.cake.ui.writeScreenshot
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
@@ -105,6 +108,7 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
         }
         fileResolver = ViewerFileResolver()
         assetManager = AssetManager(fileResolver).apply {
+            reportResourceReadFailures()
             setLoader(String::class.java, TextAssetLoader(fileResolver))
             setLoader(Any::class.java, ObjectLoader(fileResolver))
             setLoader(ByteArray::class.java, ByteArrayLoader(fileResolver))
@@ -159,9 +163,11 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             errorLabel.setText("")
             updateResourceInfo()
         } catch (error: Exception) {
+            val failure = error.findResourceFailure() ?: (error as? IOException) ?: throw error
             if (captureOutput != null) throw IllegalStateException("Could not load ${file.absolutePath}", error)
             Gdx.app.error("Cake Viewer", "Could not open ${file.absolutePath}", error)
-            recoverFromLoadError("Could not load ${file.name}. Drop another file or folder to continue.")
+            recoverFromLoadError(failure.message
+                ?: "Could not load ${file.name}. Drop another file or folder to continue.")
         }
     }
 
@@ -212,8 +218,9 @@ class CakeViewer(val args: Array<String>, private val captureOutput: Path? = nul
             loadPreview(entry.normalizedPath)
             true
         } catch (error: Exception) {
+            val failure = error.findResourceFailure() ?: (error as? IOException) ?: throw error
             Gdx.app.error("Cake Viewer", "Could not preview ${entry.displayPath}", error)
-            recoverFromLoadError("Could not preview ${entry.displayPath}.", location)
+            recoverFromLoadError(failure.message ?: "Could not preview ${entry.displayPath}.", location)
             false
         }
     }

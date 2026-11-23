@@ -104,7 +104,7 @@ class WalLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
             Com.Warn(CLIENT, "Missing texture '$fileName'; using engine checkerboard.")
             createMissingTexture()
         } else {
-            val wal = WAL(file.readBytes())
+            val wal = decodeResource(fileName) { WAL(file.readResourceBytes(fileName)) }
             val palette = parameter?.externalPalette
                 ?: manager.get(parameter?.paletteAssetPath ?: "q2palette.bin", Any::class.java) as IntArray
             Texture(CakeTextureData(fromWal(wal, palette)))
@@ -182,7 +182,8 @@ class PcxLoader(private val textureResolver: FileHandleResolver) : SynchronousAs
             Com.Warn(CLIENT, "Missing texture '$fileName'; using engine checkerboard.")
             createMissingTexture()
         } else {
-            Texture(CakeTextureData(fromPCX(PCX(file.readBytes()), parameter?.externalPalette)))
+            val pcx = decodeResource(fileName) { PCX(file.readResourceBytes(fileName)) }
+            Texture(CakeTextureData(fromPCX(pcx, parameter?.externalPalette)))
         }
         val minFilter = parameter?.minFilter
         val magFilter = parameter?.magFilter

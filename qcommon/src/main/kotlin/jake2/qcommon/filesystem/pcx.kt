@@ -135,20 +135,22 @@ class PCX(buffer: ByteBuffer) {
         vScreenSize = buffer.getShort().toInt() and 0xFFFF
         buffer.get(filler)
 
-        // fill data
+        checkResourceFormat(buffer.remaining() >= PCX_PALETTE_SIZE + 1) { "Truncated PCX palette" }
         data = buffer.slice()
+        val paletteOffset = data.limit() - PCX_PALETTE_SIZE - 1
+        data.limit(paletteOffset)
 
         // Q2 supports only a subset of all possible formats fixme: why not support all?
-        check(manufacturer ==  0x0a.toByte()) { "Bad .pcx file: wrong manufacturer: $manufacturer"}
-        check(version == 5.toByte()) { "Bad .pcx file: wrong version: $version"}
-        check(encoding == 1.toByte()) { "Bad .pcx file: wrong encoding: $encoding"}
-        check(bits_per_pixel == 8.toByte()) { "Bad .pcx file: wrong bits_per_pixel: $bits_per_pixel"}
-        check(xmax < 640) { "Bad .pcx file: wrong xmax: $xmax"}
-        check(ymax < 480) { "Bad .pcx file: wrong ymax: $ymax"}
+        checkResourceFormat(manufacturer == 0x0a.toByte()) { "Wrong PCX manufacturer: $manufacturer" }
+        checkResourceFormat(version == 5.toByte()) { "Unsupported PCX version: $version" }
+        checkResourceFormat(encoding == 1.toByte()) { "Unsupported PCX encoding: $encoding" }
+        checkResourceFormat(bits_per_pixel == 8.toByte()) { "Unsupported PCX bits per pixel: $bits_per_pixel" }
+        checkResourceFormat(xmax in xmin until 640 && ymax in ymin until 480) { "Invalid PCX image bounds" }
 
         // parse image data
         width = xmax - xmin + 1
         height = ymax - ymin + 1
+        checkResourceFormat(bytes_per_line >= width) { "Invalid PCX scanline size: $bytes_per_line" }
         imageData = ByteArray(bytes_per_line * height) // fixme: fix padding issue when bytes_per_line != width
         var index = 0
         while (index < imageData.size) {
@@ -157,6 +159,7 @@ class PCX(buffer: ByteBuffer) {
                 // Run length encoding inflation
                 val runLength = dataByte and RLE_LOWER
                 val nextByte = data.get().toInt() and 0xFF
+                checkResourceFormat(runLength <= imageData.size - index) { "PCX run exceeds image size" }
                 // write runLength pixels
                 repeat(runLength) {
                     imageData[index++] = nextByte.toByte()
@@ -169,9 +172,10 @@ class PCX(buffer: ByteBuffer) {
 
         // read the palette, located at the end of the file
         // skip to byte -769
-        data.position(data.limit() - PCX_PALETTE_SIZE - 1)
+        data.limit(data.capacity())
+        data.position(paletteOffset)
         val paletteMarker = data.get().toInt() and 0xFF
-        check(paletteMarker == 0x0C) { "Unexpected pcx palette marker" }
+        checkResourceFormat(paletteMarker == 0x0C) { "Unexpected PCX palette marker" }
         data.get(palette)
 
         // read colors

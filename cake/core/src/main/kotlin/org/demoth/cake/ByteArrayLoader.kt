@@ -7,6 +7,7 @@ import com.badlogic.gdx.assets.loaders.AsynchronousAssetLoader
 import com.badlogic.gdx.assets.loaders.FileHandleResolver
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.utils.Array
+import org.demoth.cake.assets.readResourceBytes
 
 class ByteArrayLoader(resolver: FileHandleResolver) :
     AsynchronousAssetLoader<ByteArray, ByteArrayLoader.Parameters>(resolver) {
@@ -22,7 +23,7 @@ class ByteArrayLoader(resolver: FileHandleResolver) :
         parameter: Parameters?
     ) {
         // run on AssetManager’s loader thread
-        cache = file.readBytes()
+        cache = file.readResourceBytes(fileName)
     }
 
     override fun loadSync(
@@ -31,7 +32,7 @@ class ByteArrayLoader(resolver: FileHandleResolver) :
         file: FileHandle,
         parameter: Parameters?
     ): ByteArray {
-        val result = cache ?: file.readBytes()
+        val result = cache ?: file.readResourceBytes(fileName)
         cache = null
         return result
     }

@@ -1,5 +1,6 @@
 package org.demoth.cake.assets
 
+import jake2.qcommon.filesystem.ResourceFormatException
 import java.io.DataInputStream
 import java.io.EOFException
 import java.io.InputStream
@@ -42,9 +43,11 @@ internal class CinematicCinDecoder(
             sampleRate = readInt()
             sampleWidth = readInt()
             sampleChannels = readInt()
-            require(width > 0 && height > 0 && width.toLong() * height <= Int.MAX_VALUE) { "Invalid .cin dimensions" }
-            require(sampleRate >= 0) { "Invalid .cin sample rate: $sampleRate" }
-            require(sampleWidth >= 0 && sampleChannels >= 0) { "Invalid .cin audio format" }
+            if (width <= 0 || height <= 0 || width.toLong() * height > Int.MAX_VALUE) {
+                throw ResourceFormatException("Invalid .cin dimensions")
+            }
+            if (sampleRate < 0) throw ResourceFormatException("Invalid .cin sample rate: $sampleRate")
+            if (sampleWidth < 0 || sampleChannels < 0) throw ResourceFormatException("Invalid .cin audio format")
             for (i in 0 until PALETTE_COLOR_COUNT) paletteRgba8888[i] = defaultPalette.getOrElse(i) { 0xFF }
             initHuffmanTables()
         } catch (error: Exception) {
@@ -70,15 +73,17 @@ internal class CinematicCinDecoder(
                 close()
                 return null
             }
-            require(command in 0..1) { "Invalid .cin frame command: $command" }
+            if (command !in 0..1) throw ResourceFormatException("Invalid .cin frame command: $command")
             if (command == CIN_COMMAND_PALETTE) updatePalette(readBytes(PALETTE_RGB_BYTES))
             val compressedSize = readInt()
-            require(compressedSize > 0 && compressedSize <= width.toLong() * height * 32 + 4) { "Invalid .cin frame size" }
+            if (compressedSize < Int.SIZE_BYTES || compressedSize > width.toLong() * height * 32 + 4) {
+                throw ResourceFormatException("Invalid .cin frame size")
+            }
             val compressed = readBytes(compressedSize)
             val start = decodedFrameCount.toLong() * sampleRate / CINEMATIC_FPS
             val end = (decodedFrameCount.toLong() + 1) * sampleRate / CINEMATIC_FPS
             val soundBytes = (end - start) * sampleWidth * sampleChannels
-            require(soundBytes in 0..Int.MAX_VALUE.toLong()) { "Invalid .cin audio block size" }
+            if (soundBytes !in 0..Int.MAX_VALUE.toLong()) throw ResourceFormatException("Invalid .cin audio block size")
             val audio = readBytes(soundBytes.toInt())
             val indexedFrame = huff1Decompress(compressed)
             decodedFrameCount++
@@ -154,14 +159,11 @@ internal class CinematicCinDecoder(
     }
 
     private fun huff1Decompress(compressed: ByteArray): ByteArray {
-        if (compressed.size < Int.SIZE_BYTES) {
-            return ByteArray(0)
-        }
         val outputCount = (compressed[0].toInt() and 0xFF) or
             ((compressed[1].toInt() and 0xFF) shl 8) or
             ((compressed[2].toInt() and 0xFF) shl 16) or
             ((compressed[3].toInt() and 0xFF) shl 24)
-        require(outputCount == width * height) { "Invalid .cin decoded frame size" }
+        if (outputCount != width * height) throw ResourceFormatException("Invalid .cin decoded frame size")
 
         val output = ByteArray(outputCount)
         var outputPos = 0

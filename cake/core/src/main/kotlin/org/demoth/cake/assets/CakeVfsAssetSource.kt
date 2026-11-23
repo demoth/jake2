@@ -94,13 +94,13 @@ internal class CakeVfsAssetSource {
                         // The selected archive may itself be a numbered base PAK. Mount it last.
                         if (basePak.toAbsolutePath().normalize() != selected) {
                             val mounted = archiveVfs.mountPackage(basePak.toString())
-                            require(mounted.success) { mounted.error ?: "Could not mount base archive: $basePak" }
+                            if (!mounted.success) throw ResourceLoadException(basePak.toString(), mounted.error ?: "Could not mount base archive")
                         }
                     }
             }
         }
         val mounted = archiveVfs.mountPackage(selected.toString())
-        require(mounted.success) { mounted.error ?: "Could not mount archive: $archivePath" }
+        if (!mounted.success) throw ResourceLoadException(archivePath, mounted.error ?: "Could not mount archive")
         val entries = archiveVfs.listEntries().filter { it.source.containerPath == selected }
         clearExtractedPackageFiles()
         vfs = archiveVfs
@@ -113,7 +113,7 @@ internal class CakeVfsAssetSource {
     @Synchronized
     fun configureDirectory(directory: String): List<VfsEntry> {
         val root = Path.of(directory).toAbsolutePath().normalize()
-        require(Files.isDirectory(root) && Files.isReadable(root)) { "Folder is missing or unreadable: $root" }
+        if (!Files.isDirectory(root) || !Files.isReadable(root)) throw ResourceLoadException(directory, "Folder is missing or unreadable")
         val folderVfs = DefaultVirtualFileSystem()
         folderVfs.configure(VfsConfig(
             root, ".", null, false, false, false, emptyList(),
@@ -153,7 +153,8 @@ internal class CakeVfsAssetSource {
             VfsSourceType.DIRECTORY -> {
                 val sourcePath = lookup.entry.source.containerPath.resolve(lookup.entry.source.entryPath)
                 val file = sourcePath.toFile()
-                if (!file.exists() || !file.canRead()) return null
+                if (!file.exists()) return null
+                if (!file.canRead()) throw ResourceLoadException(path, "File is unreadable: $file")
                 FileHandle(file)
             }
 
@@ -167,9 +168,15 @@ internal class CakeVfsAssetSource {
                         override fun length() = size
                         override fun read(): java.io.InputStream {
                             val result = source.openRead(path, jake2.qcommon.vfs.VfsOpenOptions.DEFAULT)
-                            val handle = checkNotNull(result.value) { "Could not open cinematic: $path" }
-                            return object : java.io.FilterInputStream(handle.inputStream()) {
-                                override fun close() = handle.close()
+                            val handle = result.value ?: throw ResourceLoadException(path, result.error ?: "Read failed")
+                            return readResource(path) {
+                                val stream = try { handle.inputStream() } catch (error: java.io.IOException) {
+                                    try { handle.close() } catch (closeError: java.io.IOException) { error.addSuppressed(closeError) }
+                                    throw error
+                                }
+                                object : java.io.FilterInputStream(stream) {
+                                    override fun close() = handle.close()
+                                }
                             }
                         }
                     }
@@ -188,10 +195,8 @@ internal class CakeVfsAssetSource {
                 }
 
                 val bytesResult = vfs.loadBytes(path)
-                if (!bytesResult.success || bytesResult.value == null) {
-                    return null
-                }
-                val temp = createTempAssetFile(path, bytesResult.value)
+                val bytes = bytesResult.value ?: throw ResourceLoadException(path, bytesResult.error ?: "Read failed")
+                val temp = readResource(path) { createTempAssetFile(path, bytes) }
                 extractedPackageFiles[cacheKey] = temp
                 FileHandle(temp.toFile())
             }

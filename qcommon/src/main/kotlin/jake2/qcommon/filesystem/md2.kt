@@ -64,12 +64,12 @@ class Md2Model(buffer: ByteBuffer) {
         //
         val fileIdentifier = buffer.getInt()
 
-        check(fileIdentifier == IDALIASHEADER) {
+        checkResourceFormat(fileIdentifier == IDALIASHEADER) {
             "Wrong .md2 identifier: $fileIdentifier"
         }
 
         val version = buffer.getInt()
-        check(version == ALIAS_VERSION) {
+        checkResourceFormat(version == ALIAS_VERSION) {
             "Wrong .md2 version: $version"
         }
 
@@ -90,6 +90,16 @@ class Md2Model(buffer: ByteBuffer) {
         firstFrameOffset = buffer.getInt() // offset for first frame
         glCommandsOffset = buffer.getInt()
         endOfFileOffset = buffer.getInt() // end of file
+
+        fun checkSection(name: String, offset: Int, count: Int, stride: Long) {
+            checkResourceFormat(offset in 0..buffer.limit() && count >= 0 &&
+                    count <= (buffer.limit() - offset) / stride) { "Invalid MD2 $name section" }
+        }
+
+        checkResourceFormat(framesCount == 0 || verticesCount > 0) { "MD2 contains no frame vertices" }
+        checkSection("frame", firstFrameOffset, framesCount, 40L + 4L * verticesCount)
+        checkSection("GL command", glCommandsOffset, glcmdCount, 4L)
+        checkSection("skin", skinsOffset, skinCount, qfiles.MAX_SKINNAME.toLong())
 
         //
         // Parsing the BODY
@@ -123,12 +133,13 @@ class Md2Model(buffer: ByteBuffer) {
                 Md2GlCmdType.TRIANGLE_FAN
             else {
                 // == 0
-                check(commandQueue.isEmpty()) { "unexpected glcmds found after reaching command 0" }
+                checkResourceFormat(commandQueue.isEmpty()) { "unexpected glcmds found after reaching command 0" }
                 break
             }
 
 
             val numVertices = if (command > 0) command else -command
+            checkResourceFormat(numVertices in 1..(commandQueue.size / 3)) { "Truncated MD2 GL command" }
 
             val vertices = ArrayList<Md2VertexInfo>(numVertices)
 
@@ -136,6 +147,7 @@ class Md2Model(buffer: ByteBuffer) {
                 val s = intBitsToFloat(commandQueue.removeFirst())
                 val t = intBitsToFloat(commandQueue.removeFirst())
                 val vertexIndex = commandQueue.removeFirst()
+                checkResourceFormat(vertexIndex in 0 until verticesCount) { "Invalid MD2 GL command vertex: $vertexIndex" }
                 vertices.add(Md2VertexInfo(vertexIndex, s, t))
             }
             glCommands.add(Md2GlCmd(cmdType, vertices))
@@ -144,7 +156,9 @@ class Md2Model(buffer: ByteBuffer) {
         // Some exporters omit the strip/fan list. Reuse the same runtime
         // path by representing each indexed triangle as a three-vertex fan.
         if (glCommands.isEmpty() && trisCount > 0) {
-            check(skinWidth > 0 && skinHeight > 0) { "Invalid MD2 skin dimensions" }
+            checkSection("texture coordinate", textureCoordinatesOffset, textureCoordinateCount, 4L)
+            checkSection("triangle", trianglesOffset, trisCount, 12L)
+            checkResourceFormat(skinWidth > 0 && skinHeight > 0) { "Invalid MD2 skin dimensions" }
             buffer.position(textureCoordinatesOffset)
             val coordinates = List(textureCoordinateCount) {
                 // Match the texel-center convention used by Quake II's command builder.
@@ -156,9 +170,9 @@ class Md2Model(buffer: ByteBuffer) {
                 val uvIndices = List(3) { buffer.short.toInt() and 0xffff }
                 val vertices = indices.indices.map { corner ->
                     val index = indices[corner]
-                    check(index < verticesCount) { "Invalid MD2 triangle vertex index: $index" }
+                    checkResourceFormat(index < verticesCount) { "Invalid MD2 triangle vertex index: $index" }
                     val uvIndex = uvIndices[corner]
-                    check(uvIndex < coordinates.size) { "Invalid MD2 triangle texture index: $uvIndex" }
+                    checkResourceFormat(uvIndex < coordinates.size) { "Invalid MD2 triangle texture index: $uvIndex" }
                     val (s, t) = coordinates[uvIndex]
                     Md2VertexInfo(index, s, t)
                 }
@@ -191,7 +205,7 @@ fun buildVertexData(
     glCmds: List<Md2GlCmd>,
     frames: List<Md2Frame>
 ): Md2VertexData {
-    check(frames.isNotEmpty()) { "MD2 must contain at least one frame" }
+    checkResourceFormat(frames.isNotEmpty()) { "MD2 must contain at least one frame" }
 
     // First, we need to reindex the vertices.
     // In md2 format the vertices are indexed without the texture coordinates (which are part of gl commands).
@@ -207,7 +221,7 @@ fun buildVertexData(
     }
     check(attributes.size % 3 == 0) { "MD2 vertex attributes should contain triples: (vatIndex, u, v)" }
     val indexedVertexCount = attributes.size / 3
-    check(indexedVertexCount <= 0xFFFF) {
+    checkResourceFormat(indexedVertexCount <= 0xFFFF) {
         "MD2 indexed vertex count exceeds unsigned short index range: $indexedVertexCount"
     }
 

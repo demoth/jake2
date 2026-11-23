@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationListener
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.backends.headless.HeadlessApplication
 import com.badlogic.gdx.backends.headless.HeadlessApplicationConfiguration
+import org.demoth.cake.assets.ResourceLoadException
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -67,7 +68,7 @@ class ViewerFileResolverTest {
         val root = Files.createDirectories(temp.resolve("empty"))
         val resolver = ViewerFileResolver()
         assertTrue(resolver.configureDirectory(root.toString()).isEmpty())
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(ResourceLoadException::class.java) {
             resolver.configureDirectory(root.resolve("missing").toString())
         }
         assertTrue(resolver.textureCandidates().isEmpty())
@@ -288,7 +289,7 @@ class ViewerFileResolverTest {
         resolver.configureArchive(pak.toString())
         val extracted = resolver.resolve("textures/shared.wal")!!
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertThrows(ResourceLoadException::class.java) {
             resolver.configureArchive(temp.resolve("missing.pak").toString())
         }
 

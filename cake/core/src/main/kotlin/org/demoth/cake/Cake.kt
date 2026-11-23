@@ -129,6 +129,7 @@ class Cake(
     private val playerSetup = PlayerSetup(fileResolver)
     private val assetManager = AssetManager(fileResolver).apply {
         // for loading shaders and other text files
+        reportResourceReadFailures()
         setLoader(String::class.java, TextAssetLoader(fileResolver))
         // for loading binary files
         setLoader(Any::class.java, ObjectLoader(fileResolver))
@@ -289,7 +290,11 @@ class Cake(
         assetManager.load(md2FragmentShader, String::class.java)
         assetManager.load(postProcessVertexShader, String::class.java)
         assetManager.load(postProcessFragmentShader, String::class.java)
-        assetManager.finishLoading() // these assets are necessary anyway
+        try {
+            assetManager.finishLoading()
+        } catch (error: RuntimeException) {
+            throw IllegalStateException("Could not load resources required to start Cake", error)
+        }
 
         Scene2DSkin.defaultSkin = assetManager.get(cakeSkin, Skin::class.java)
         backgroundColor = Scene2DSkin.defaultSkin.getColor("background")
@@ -560,7 +565,7 @@ class Cake(
             try {
                 activeScreen.precache()
             } catch (error: RuntimeException) {
-                val missingResource = findMissingResourceFailure(error)
+                val missingResource = error.findResourceFailure() as? MissingResourceException
                 if (demoPlayback == null && missingResource != null && downloads.requestMissingResource(
                         missingResource.path, fileResolver.gamemod, precache_spawncount,
                     )) {
@@ -702,12 +707,9 @@ class Cake(
             }
             game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
         } catch (error: IOException) {
-            Com.Error(CLIENT, "Demo playback failed: ${error.message}")
-            finishSession("Demo playback failed: ${error.message}")
+            handleSessionResourceFailure(error)
         } catch (error: RuntimeException) {
-            // Asset loading and applying recorded state can also reject structurally valid bodies.
-            Com.Error(CLIENT, "Demo playback failed: ${error.message}")
-            finishSession("Demo playback failed: ${error.message}")
+            handleSessionResourceFailure(error.findResourceFailure() ?: throw error)
         }
     }
 
@@ -720,11 +722,13 @@ class Cake(
     }
 
     /** End the complete session. Map transitions use client reset/handshake paths instead. */
-    private fun disconnect() {
+    private fun disconnect(stopHost: Boolean = true) {
         awaitingNewGame = false
         resetClientConnection()
-        host.stop("Disconnected")
-        hostClock.reset()
+        if (stopHost) {
+            host.stop("Disconnected")
+            hostClock.reset()
+        }
         network.stop()
     }
 
@@ -761,26 +765,16 @@ class Cake(
         }
     }
 
-    private fun handleMissingResourceFailure(error: MissingResourceException) {
-        Com.Error(CLIENT, "${error.message}")
-        finishSession()
-    }
-
-    private fun findMissingResourceFailure(error: Throwable): MissingResourceException? {
-        var current: Throwable? = error
-        while (current != null) {
-            if (current is MissingResourceException) {
-                return current
-            }
-            current = current.cause
-        }
-        return null
+    private fun handleSessionResourceFailure(error: Exception) {
+        val message = if (demoPlayback != null) "Demo playback failed: ${error.message}" else "${error.message}"
+        Com.Error(CLIENT, message)
+        finishSession(message, stopHost = localConnection)
     }
 
     /** Retire the session and return to its browser origin, or to the console for other sessions. */
-    private fun finishSession(message: String? = null) {
+    private fun finishSession(message: String? = null, stopHost: Boolean = true) {
         val origin = demoBrowserReturn.takeIf { demoPlayback != null }
-        disconnect()
+        disconnect(stopHost)
         if (origin != null && origin.profileId == activeGameProfile?.id) {
             fileResolver.gamemod = origin.gameDirectory
             refreshContentStyledMenus()
@@ -806,17 +800,15 @@ class Cake(
     private fun reloadProfileBackground() {
         clearProfileBackground()
 
-        if (fileResolver.tryResolve(PROFILE_BACKGROUND_PATH) == null) {
-            return
-        }
-
         try {
+            if (fileResolver.tryResolve(PROFILE_BACKGROUND_PATH) == null) return
             assetManager.load(PROFILE_BACKGROUND_PATH, Texture::class.java)
             assetManager.finishLoadingAsset<Texture>(PROFILE_BACKGROUND_PATH)
             profileBackgroundTexture = assetManager.get(PROFILE_BACKGROUND_PATH, Texture::class.java)
         } catch (error: RuntimeException) {
             clearProfileBackground()
-            Com.Warn(CLIENT, "Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${error.message}")
+            val failure = error.findResourceFailure() ?: throw error
+            Com.Warn(CLIENT, "Failed to load profile background '$PROFILE_BACKGROUND_PATH': ${failure.message}")
         }
     }
 
@@ -993,7 +985,7 @@ class Cake(
             automationCaptures.afterDraw(CaptureLayer.FINAL)
             automation.frameRendered()
         } catch (error: RuntimeException) {
-            // TODO(JK2-TSK-24): Drop the legacy catch once collision and sprite failures reach their session boundaries.
+            // TODO(JK2-TSK-24): Drop the legacy catch once collision failures reach their owners directly.
             if (error is HostFailureException ||
                 (error is jake2.qcommon.longjmpException && host.availability == HostAvailability.AVAILABLE)) {
                 val startingFromMenu = awaitingNewGame
@@ -1006,9 +998,9 @@ class Cake(
                 }
                 return
             }
-            val missingResource = findMissingResourceFailure(error)
-            if (missingResource != null) {
-                handleMissingResourceFailure(missingResource)
+            val resourceFailure = error.findResourceFailure()
+            if (resourceFailure != null && (game3dScreen != null || demoPlayback != null)) {
+                handleSessionResourceFailure(resourceFailure)
                 return
             }
             automation.fail(error)

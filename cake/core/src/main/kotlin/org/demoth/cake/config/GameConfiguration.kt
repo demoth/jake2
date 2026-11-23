@@ -12,7 +12,8 @@ import jake2.qcommon.Defines.*
 import jake2.qcommon.network.messages.server.ConfigStringMessage
 import jake2.qcommon.exec.Cmd
 import org.demoth.cake.assets.bsp.BspMapAsset
-import org.demoth.cake.assets.MissingResourceException
+import org.demoth.cake.assets.findResourceFailure
+import org.demoth.cake.assets.ResourceLoadException
 import org.demoth.cake.assets.md2.Md2Asset
 import org.demoth.cake.assets.SkyLoader
 import org.demoth.cake.assets.Sp2Asset
@@ -471,21 +472,22 @@ class GameConfiguration(
         }
         return try {
             acquireAsset<T>(assetPath)
-        } catch (e: MissingResourceException) {
-            val error = e.message ?: e.javaClass.simpleName
-            failedAssets[assetPath] = error
-            Com.Warn(CLIENT, "Failed to load asset $assetPath: $error")
-            null
-        } catch (e: GdxRuntimeException) {
-            val error = rootCauseMessage(e)
+        } catch (e: RuntimeException) {
+            val failure = e.findResourceFailure()
+            // TODO(JK2-TSK-26): Identify decoder rejections from stock LibGDX loaders before narrowing this fallback.
+            if (failure == null && e !is GdxRuntimeException) throw e
+            val error = failure?.message ?: rootCauseMessage(e)
             failedAssets[assetPath] = error
             Com.Warn(CLIENT, "Failed to load asset $assetPath: $error")
             null
         }
     }
 
-    private fun assetExists(path: String): Boolean {
-        return assetManager.fileHandleResolver.tryResolveRaw(path) != null
+    private fun assetExists(path: String): Boolean = try {
+        assetManager.fileHandleResolver.tryResolveRaw(path) != null
+    } catch (_: ResourceLoadException) {
+        // A broken entry is present. Let acquisition apply the required or optional asset policy.
+        true
     }
 
     fun rootCauseMessage(t: Throwable): String {

@@ -6,6 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Align
+import org.demoth.cake.assets.ResourceLoadException
+import org.demoth.cake.assets.decodeResource
+import org.demoth.cake.assets.readResource
 
 /** Shared read-only text and cinematic presentation for loose, archive, and profile resources. */
 internal class FileResourcePreview(private val assets: AssetManager, private val styles: ContentBrowserStyles) {
@@ -16,13 +19,13 @@ internal class FileResourcePreview(private val assets: AssetManager, private val
     fun open(path: String): Actor {
         close()
         try {
-            val file = requireNotNull(assets.fileHandleResolver.resolve(path)) { "Missing resource: $path" }
+            val file = assets.fileHandleResolver.resolve(path) ?: throw ResourceLoadException(path, "File is missing")
             actor = if (path.substringAfterLast('.').lowercase() == "cin") {
                 val palette = resources.load("q2palette.bin", Any::class.java) as IntArray
-                resources.own(CinematicPreview(file, palette, styles))
+                resources.own(decodeResource(path) { CinematicPreview(file, palette, styles) })
             } else {
                 // Bound label layout work even for unexpectedly large configuration/log files.
-                val bytes = file.read().use { it.readNBytes(MAX_TEXT_BYTES + 1) }
+                val bytes = readResource(path) { file.read().use { it.readNBytes(MAX_TEXT_BYTES + 1) } }
                 val text = bytes.copyOf(minOf(bytes.size, MAX_TEXT_BYTES)).toString(Charsets.UTF_8)
                     .removePrefix("\uFEFF").replace("\r\n", "\n").replace('\r', '\n').replace("\t", "    ")
                 val literal = if (styles.label.font.data.markupEnabled) text.replace("[", "[[") else text

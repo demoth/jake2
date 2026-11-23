@@ -25,6 +25,11 @@ import jake2.qcommon.Com
 import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Defines
 import jake2.qcommon.filesystem.Bsp
+import jake2.qcommon.filesystem.ResourceFormatException
+import org.demoth.cake.assets.decodeResource
+import org.demoth.cake.assets.readResourceBytes
+import org.demoth.cake.assets.MissingResourceException
+import org.demoth.cake.assets.ResourceKind
 import java.nio.ByteBuffer
 import java.util.LinkedHashSet
 import kotlin.math.ceil
@@ -255,8 +260,8 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
         BspLightmapTexture1Attribute.init()
         BspLightmapTexture2Attribute.init()
         BspLightmapTexture3Attribute.init()
-        val mapData = file.readBytes()
-        val bsp = Bsp(ByteBuffer.wrap(mapData))
+        val mapData = file.readResourceBytes(fileName)
+        val bsp = decodeResource(fileName) { readBspRenderData(mapData) }
         val visLumpLength = bsp.header.lumps[Defines.LUMP_VISIBILITY].length
         if (visLumpLength <= 0) {
             Com.Warn(CLIENT, "Map '$fileName' has no visibility lump; world culling will use all-visible fallback")
@@ -306,12 +311,10 @@ class BspLoader(resolver: FileHandleResolver) : SynchronousAssetLoader<BspMapAss
      * Declares WAL texture dependencies required by BSP face texinfos and animation chains.
      */
     override fun getDependencies(fileName: String, file: FileHandle?, parameter: Parameters?): Array<AssetDescriptor<*>>? {
-        if (file == null) {
-            return null
-        }
+        val resolvedFile = file ?: throw MissingResourceException(fileName, ResourceKind.BSP, "loader")
 
         val walParams = parameter?.walParameters ?: defaultWalParameters()
-        val texturePaths = collectWalTexturePaths(file.readBytes())
+        val texturePaths = decodeResource(fileName) { collectWalTexturePaths(resolvedFile.readResourceBytes(fileName)) }
         if (texturePaths.isEmpty()) {
             return null
         }
@@ -599,7 +602,7 @@ internal fun collectInlineModelRenderData(bsp: Bsp): List<BspInlineModelRenderDa
  * `client/render/fast/Model.Mod_LoadTexinfo` + `Surf.R_TextureAnimation`.
  */
 internal fun collectWalTexturePaths(bspData: ByteArray): List<String> {
-    val bsp = Bsp(ByteBuffer.wrap(bspData))
+    val bsp = readBspRenderData(bspData)
     val texturePaths = LinkedHashSet<String>()
     val texInfoIndices = LinkedHashSet<Int>()
 
@@ -618,6 +621,33 @@ internal fun collectWalTexturePaths(bspData: ByteArray): List<String> {
         }
     }
     return texturePaths.toList()
+}
+
+private fun readBspRenderData(data: ByteArray): Bsp = Bsp(ByteBuffer.wrap(data)).also { bsp ->
+    bsp.models.forEachIndexed { index, model ->
+        if (model.firstFace !in 0..bsp.faces.size || model.faceCount !in 0..(bsp.faces.size - model.firstFace)) {
+            throw ResourceFormatException("Invalid BSP face range for model $index")
+        }
+        for (faceIndex in model.firstFace until model.firstFace + model.faceCount) {
+            val face = bsp.faces[faceIndex]
+            if (face.textureInfoIndex !in bsp.textures.indices) {
+                throw ResourceFormatException("Invalid BSP texture reference for face $faceIndex")
+            }
+            if (face.numEdges < 3) continue // Degenerate faces have no render geometry.
+            if (face.firstEdgeIndex !in 0..bsp.faceEdges.size || face.numEdges > bsp.faceEdges.size - face.firstEdgeIndex) {
+                throw ResourceFormatException("Invalid BSP edge range for face $faceIndex")
+            }
+            for (edgeIndex in face.firstEdgeIndex until face.firstEdgeIndex + face.numEdges) {
+                val edge = bsp.faceEdges[edgeIndex]
+                val entry = bsp.edges.getOrNull(kotlin.math.abs(edge))
+                    ?: throw ResourceFormatException("Invalid BSP edge reference for face $faceIndex")
+                val vertex = if (edge > 0) entry.v2 else entry.v1
+                if (vertex !in bsp.vertices.indices) {
+                    throw ResourceFormatException("Invalid BSP vertex reference for face $faceIndex")
+                }
+            }
+        }
+    }
 }
 
 /**

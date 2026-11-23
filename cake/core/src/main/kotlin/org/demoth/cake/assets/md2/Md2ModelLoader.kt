@@ -35,6 +35,9 @@ import kotlin.jvm.java
 import org.demoth.cake.assets.createMissingTexture
 import org.demoth.cake.assets.MissingResourceException
 import org.demoth.cake.assets.ResourceKind
+import org.demoth.cake.assets.ResourceLoadException
+import org.demoth.cake.assets.decodeResource
+import org.demoth.cake.assets.readResourceBytes
 
 /**
  * Loaded MD2 asset bundle.
@@ -110,7 +113,7 @@ class Md2Loader(private val skinResolver: FileHandleResolver) : SynchronousAsset
         parameter: Parameters?
     ): Array<AssetDescriptor<*>>? {
         val resolvedFile = file ?: throw MissingResourceException(fileName, ResourceKind.MD2, "loader")
-        val md2 = readMd2Model(resolvedFile.readBytes())
+        val md2 = readMd2Model(resolvedFile, fileName)
         val skinPaths = resolveDependencySkinPaths(md2, fileName, parameter).also { pendingSkinPaths[fileName] = it }
         if (skinPaths.isEmpty()) {
             return null
@@ -126,16 +129,17 @@ class Md2Loader(private val skinResolver: FileHandleResolver) : SynchronousAsset
         file: FileHandle,
         parameter: Parameters?
     ): Md2Asset {
-        val md2 = readMd2Model(file.readBytes())
+        val md2 = readMd2Model(file, fileName)
 
         val skinPaths = pendingSkinPaths.remove(fileName) ?: resolveDependencySkinPaths(md2, fileName, parameter)
+        val vertexData = decodeResource(fileName) { buildVertexData(md2.glCommands, md2.frames) }
         val defaultSkin = if (skinPaths.isEmpty() && parameter?.useDefaultSkinIfMissing == true) {
             createMissingTexture()
         } else {
             null
         }
-        check(skinPaths.isNotEmpty() || defaultSkin != null) {
-            "No MD2 skins found and no default skin was provided for $fileName"
+        if (skinPaths.isEmpty() && defaultSkin == null) {
+            throw ResourceLoadException(fileName, "No MD2 skins found and no default skin was provided")
         }
         val skins = if (skinPaths.isNotEmpty()) {
             skinPaths.map { path -> manager.get(path, Texture::class.java) }
@@ -143,7 +147,6 @@ class Md2Loader(private val skinResolver: FileHandleResolver) : SynchronousAsset
             listOf(defaultSkin!!)
         }
         // Winding normalization is handled by buildVertexData() and is part of MD2 decode defaults.
-        val vertexData = buildVertexData(md2.glCommands, md2.frames)
         check(vertexData.vertexAttributes.size % 3 == 0) {
             "MD2 vertex attributes should contain triples: (vatIndex, u, v)"
         }
@@ -343,9 +346,9 @@ private fun FloatArray.toFloatBuffer(): FloatBuffer {
     return result
 }
 
-private fun readMd2Model(modelData: ByteArray): Md2Model {
+private fun readMd2Model(file: FileHandle, path: String): Md2Model = decodeResource(path) {
     val byteBuffer = ByteBuffer
-        .wrap(modelData)
+        .wrap(file.readResourceBytes(path))
         .order(ByteOrder.LITTLE_ENDIAN)
-    return Md2Model(byteBuffer)
+    Md2Model(byteBuffer)
 }

@@ -69,8 +69,12 @@ class WAL(buffer: ByteBuffer) {
         value = buffer.getInt()
 
         // read the largest MIP
-        buffer.position(offsets.first())
-        imageData = ByteArray(width * height)
+        val offset = offsets.first()
+        val pixelCount = width.toLong() * height
+        checkResourceFormat(width > 0 && height > 0 && offset in buffer.position()..buffer.limit() &&
+                pixelCount <= buffer.limit() - offset) { "Invalid WAL dimensions or mip offset" }
+        buffer.position(offset)
+        imageData = ByteArray(pixelCount.toInt())
         buffer.get(imageData)
     }
 }

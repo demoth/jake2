@@ -72,7 +72,7 @@ class Sp2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Sp2Asset,
         parameter: AssetLoaderParameters<Sp2Asset>?
     ): Array<AssetDescriptor<*>>? {
         val resolvedFile = file ?: throw MissingResourceException(fileName, ResourceKind.SP2, "loader")
-        val sprite = readSp2(resolvedFile.readBytes(), fileName)
+        val sprite = readSp2(resolvedFile, fileName)
         val imagePaths = LinkedHashSet<String>()
         sprite.frames.forEach { frame ->
             if (frame.imageFileName.isNotBlank()) {
@@ -96,7 +96,7 @@ class Sp2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Sp2Asset,
         file: FileHandle,
         parameter: AssetLoaderParameters<Sp2Asset>?
     ): Sp2Asset {
-        val sprite = readSp2(file.readBytes(), fileName)
+        val sprite = readSp2(file, fileName)
         val frames = sprite.frames.map { frame ->
             Sp2Asset.Frame(
                 width = frame.width,
@@ -110,8 +110,8 @@ class Sp2Loader(resolver: FileHandleResolver) : SynchronousAssetLoader<Sp2Asset,
         return Sp2Asset(frames)
     }
 
-    private fun readSp2(data: ByteArray, fileName: String): qfiles.Sp2Sprite {
-        val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
-        return qfiles.Sp2Sprite(buffer, fileName)
+    private fun readSp2(file: FileHandle, fileName: String): qfiles.Sp2Sprite = decodeResource(fileName) {
+        val buffer = ByteBuffer.wrap(file.readResourceBytes(fileName)).order(ByteOrder.LITTLE_ENDIAN)
+        qfiles.Sp2Sprite(buffer, fileName)
     }
 }

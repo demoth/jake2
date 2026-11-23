@@ -221,6 +221,9 @@ class CakeViewerPreviewGlTest {
                     assertTrue(labels(stage).contains("0 files"))
                     app.openFile(broken.toString())
                     app.render()
+                    assertTrue(labels(Gdx.input.inputProcessor as Stage).any {
+                        "Could not load resource" in it && "broken.md2" in it
+                    })
                     app.openFile(temp.resolve("model.md2").toString())
                     app.render()
                     assertEquals(1, actors((Gdx.input.inputProcessor as Stage).root)

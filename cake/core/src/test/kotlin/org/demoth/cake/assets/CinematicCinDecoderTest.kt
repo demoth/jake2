@@ -1,11 +1,14 @@
 package org.demoth.cake.assets
 
+import jake2.qcommon.filesystem.ResourceFormatException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
+import java.io.EOFException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
+/** Verifies incremental frame reads, failure reporting, and ownership of the input stream. */
 class CinematicCinDecoderTest {
     private class TrackedInput(bytes: ByteArray) : ByteArrayInputStream(bytes) {
         var closed = false
@@ -49,9 +52,18 @@ class CinematicCinDecoderTest {
         assertTrue(truncated.closed)
     }
 
-    @Test fun `failed initialization closes input`() {
-        val input = TrackedInput(byteArrayOf(0))
-        assertThrows(Exception::class.java) { CinematicCinDecoder(input, IntArray(256)) }
-        assertTrue(input.closed)
+    @Test fun `failed initialization distinguishes truncated streams from invalid content and closes input`() {
+        val truncated = TrackedInput(byteArrayOf(0))
+        assertThrows(EOFException::class.java) { CinematicCinDecoder(truncated, IntArray(256)) }
+        assertTrue(truncated.closed)
+
+        val path = "video/broken.cin"
+        val invalid = TrackedInput(movie().apply { this[0] = 0 }) // Width is now zero.
+        val failure = assertThrows(ResourceLoadException::class.java) {
+            decodeResource(path) { CinematicCinDecoder(invalid, IntArray(256)) }
+        }
+        assertEquals(path, failure.path)
+        assertInstanceOf(ResourceFormatException::class.java, failure.cause)
+        assertTrue(invalid.closed)
     }
 }

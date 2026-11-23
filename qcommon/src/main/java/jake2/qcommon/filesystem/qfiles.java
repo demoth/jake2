@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 package jake2.qcommon.filesystem;
 
-import jake2.qcommon.Com;
 import jake2.qcommon.Defines;
 import jake2.qcommon.util.Lib;
 
@@ -147,24 +146,27 @@ public class qfiles {
 
 		// assume Little endian format
 		public Sp2Sprite(ByteBuffer b, String name) {
+			if (b.remaining() < Integer.BYTES * 3)
+				throw new ResourceFormatException("Truncated SP2 header: " + name);
 			ident = b.getInt();
 			version = b.getInt();
 			numframes = b.getInt();
 
+			if (ident != IDSPRITEHEADER)
+				throw new ResourceFormatException("Wrong SP2 identifier: " + ident);
+			if (version != SPRITE_VERSION)
+				throw new ResourceFormatException("Unsupported SP2 version: " + version + ", expected " + SPRITE_VERSION);
+			if (numframes < 1 || numframes > MAX_MD2SKINS)
+				throw new ResourceFormatException("SP2 frame count out of range: " + numframes);
+			if (numframes > b.remaining() / (Integer.BYTES * 4 + MAX_SKINNAME))
+				throw new ResourceFormatException("Truncated SP2 frames: " + name);
+
 			frames = new Sp2SpriteFrame[numframes];
 			for (int i = 0; i < numframes; i++) {
 				frames[i] = new Sp2SpriteFrame(b);
+				if (frames[i].imageFileName.isBlank())
+					throw new ResourceFormatException("SP2 frame " + i + " has no image path");
 			}
-
-			if (version != qfiles.Sp2Sprite.SPRITE_VERSION) {
-				Com.Error(Defines.ERR_DROP, name + "has wrong version number " + version + ", expected: " + SPRITE_VERSION);
-			}
-
-			if (numframes > qfiles.MAX_MD2SKINS) {
-				Com.Error(Defines.ERR_DROP, name + "has too many frames " + numframes + ", expected < " + MAX_MD2SKINS);
-			}
-
-
 		}
 	}
 	

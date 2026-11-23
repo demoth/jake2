@@ -78,7 +78,7 @@ class CakeVfsAssetSourceTest {
             assertFalse(oldExtract.exists())
             val currentExtract = source.resolve("textures/base.wal")!!
             assertEquals("second", currentExtract.readString())
-            assertThrows(IllegalArgumentException::class.java) {
+            assertThrows(ResourceLoadException::class.java) {
                 source.configureArchive(temp.resolve("missing.zip").toString(), first.toString())
             }
             assertTrue(currentExtract.exists())

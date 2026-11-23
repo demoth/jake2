@@ -25,13 +25,13 @@ class ObjectLoader(resolver: FileHandleResolver) : AsynchronousAssetLoader<Any, 
         manager: AssetManager, fileName: String, file: FileHandle, parameter: Parameters?
     ) {
         // run on AssetManager’s loader thread
-        cache = readObjectFromFile(file)
+        cache = readResource(fileName) { readObjectFromFile(file) }
     }
 
     override fun loadSync(
         manager: AssetManager, fileName: String, file: FileHandle, parameter: Parameters?
     ): Any {
-        val result: Any = cache ?: readObjectFromFile(file)
+        val result: Any = cache ?: readResource(fileName) { readObjectFromFile(file) }
         cache = null
         return result
     }

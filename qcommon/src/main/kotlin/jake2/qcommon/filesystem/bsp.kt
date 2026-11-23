@@ -13,7 +13,13 @@ import kotlin.math.max
 const val IDBSPHEADER = (('P'.code shl 24) + ('S'.code shl 16) + ('B'.code shl 8) + 'I'.code)
 
 class Bsp(buffer: ByteBuffer) {
-    val header = BspHeader(buffer)
+    val header = BspHeader(buffer).also { header ->
+        header.lumps.forEachIndexed { index, lump ->
+            checkResourceFormat(lump.offset in 0..buffer.limit() && lump.length in 0..(buffer.limit() - lump.offset)) {
+                "BSP lump $index is outside the file"
+            }
+        }
+    }
     val rootNodeBounds = readRootNodeBounds(buffer, header.lumps[Defines.LUMP_NODES])
     val entityString = readEntities(buffer, header.lumps[0])
     // planes lump skipped
@@ -29,7 +35,7 @@ class Bsp(buffer: ByteBuffer) {
     val entities = parseEntities(entityString)
 
     private fun readRootNodeBounds(buffer: ByteBuffer, lump: BspLump): BspNodeBounds? {
-        check(lump.length % qfiles.dnode_t.SIZE == 0) {
+        checkResourceFormat(lump.length % qfiles.dnode_t.SIZE == 0) {
             "Unexpected node lump size: ${lump.length}, should be divisible by ${qfiles.dnode_t.SIZE}"
         }
         if (lump.length == 0) return null
@@ -50,7 +56,7 @@ class Bsp(buffer: ByteBuffer) {
 
     private fun readVertices(buffer: ByteBuffer, bspLump: BspLump): Array<Vector3f> {
         // every vertex is 12 bytes (3 floats)
-        check(bspLump.length % 12 == 0) {
+        checkResourceFormat(bspLump.length % 12 == 0) {
             "Unexpected vertex lump size: ${bspLump.length}, should be divisible by 12"
         }
         buffer.position(bspLump.offset)
@@ -62,7 +68,7 @@ class Bsp(buffer: ByteBuffer) {
     }
 
     private fun readEdges(buffer: ByteBuffer, bspLump: BspLump): Array<BspEdge> {
-        check(bspLump.length % 4 == 0) {
+        checkResourceFormat(bspLump.length % 4 == 0) {
             "Unexpected edge lump size: ${bspLump.length}, should be divisible by 4"
         }
         buffer.position(bspLump.offset)
@@ -78,7 +84,7 @@ class Bsp(buffer: ByteBuffer) {
 
     // Array of Indices may be signed, which denotes the reversed direction
     private fun readFaceEdges(buffer: ByteBuffer, bspLump: BspLump): Array<Int> {
-        check(bspLump.length % 4 == 0) {
+        checkResourceFormat(bspLump.length % 4 == 0) {
             "Unexpected face edge lump size: ${bspLump.length}, should be divisible by 4"
         }
         buffer.position(bspLump.offset)
@@ -90,7 +96,7 @@ class Bsp(buffer: ByteBuffer) {
     }
 
     private fun readFaces(buffer: ByteBuffer, bspLump: BspLump): Array<BspFace> {
-        check(bspLump.length % 20 == 0) {
+        checkResourceFormat(bspLump.length % 20 == 0) {
             "Unexpected face lump size: ${bspLump.length}, should be divisible by 20"
         }
         buffer.position(bspLump.offset)
@@ -121,7 +127,7 @@ class Bsp(buffer: ByteBuffer) {
     }
 
     private fun readTextures(buffer: ByteBuffer, bspLump: BspLump): Array<BspTextureInfo> {
-        check(bspLump.length % 76 == 0) {
+        checkResourceFormat(bspLump.length % 76 == 0) {
             "Unexpected texture lump size: ${bspLump.length}, should be divisible by 76"
         }
         buffer.position(bspLump.offset)
@@ -143,7 +149,7 @@ class Bsp(buffer: ByteBuffer) {
     }
 
     private fun readLeaves(buffer: ByteBuffer, bspLump: BspLump): Array<BspLeaf> {
-        check(bspLump.length % 28 == 0) {
+        checkResourceFormat(bspLump.length % 28 == 0) {
             "Unexpected leaf lump size: ${bspLump.length}, should be divisible by 28"
         }
         buffer.position(bspLump.offset)
@@ -170,7 +176,7 @@ class Bsp(buffer: ByteBuffer) {
     }
 
     private fun readLeafFaces(buffer: ByteBuffer, bspLump: BspLump): Array<Int> {
-        check(bspLump.length % 2 == 0) {
+        checkResourceFormat(bspLump.length % 2 == 0) {
             "Unexpected leaf-face lump size: ${bspLump.length}, should be divisible by 2"
         }
         buffer.position(bspLump.offset)
@@ -182,7 +188,7 @@ class Bsp(buffer: ByteBuffer) {
     }
 
     private fun readModels(buffer: ByteBuffer, bspLump: BspLump): Array<BspModel> {
-        check(bspLump.length % 48 == 0) {
+        checkResourceFormat(bspLump.length % 48 == 0) {
             "Unexpected model lump size: ${bspLump.length}, should be divisible by 48"
         }
         buffer.position(bspLump.offset)
@@ -211,9 +217,9 @@ class BspHeader(buffer: ByteBuffer) {
     init {
         buffer.order(ByteOrder.LITTLE_ENDIAN)
         this.ident = buffer.getInt()
-        check(ident == IDBSPHEADER) { "Wrong bsp identifier: $ident" }
+        checkResourceFormat(ident == IDBSPHEADER) { "Wrong bsp identifier: $ident" }
         this.version = buffer.getInt()
-        check(version == 38) { "Unsupported bsp version: $version" }
+        checkResourceFormat(version == 38) { "Unsupported bsp version: $version" }
         val lumpList = ArrayList<BspLump>(Defines.HEADER_LUMPS)
         repeat(Defines.HEADER_LUMPS) {
             lumpList.add(BspLump(offset = buffer.getInt(), length = buffer.getInt()))

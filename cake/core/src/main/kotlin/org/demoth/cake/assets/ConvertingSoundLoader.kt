@@ -35,18 +35,7 @@ class ConvertingSoundLoader(resolver: FileHandleResolver) :
         parameter: Parameters?
     ) {
         cache = null
-        val sourceBytes = file.readBytes()
-        val durationMs = WavPcm8To16Converter.readDurationMs(sourceBytes)
-        val convertedTemp = maybeConvert8BitWav(file, sourceBytes)
-        val source = convertedTemp ?: file
-        cache = try {
-            RegisteredSound(Gdx.audio.newSound(source), durationMs, convertedTemp)
-        } catch (e: Throwable) {
-            if (convertedTemp != null && convertedTemp.exists()) {
-                convertedTemp.delete()
-            }
-            throw e
-        }
+        cache = loadSound(fileName, file)
     }
 
     override fun loadSync(
@@ -60,12 +49,19 @@ class ConvertingSoundLoader(resolver: FileHandleResolver) :
             return it
         }
 
-        val sourceBytes = file.readBytes()
+        return loadSound(fileName, file)
+    }
+
+    private fun loadSound(fileName: String, file: FileHandle): Sound {
+        val sourceBytes = file.readResourceBytes(fileName)
+        if (file.extension().equals("wav", ignoreCase = true) && !WavPcm8To16Converter.hasWaveHeader(sourceBytes)) {
+            throw ResourceLoadException(fileName, "Invalid WAV header")
+        }
         val durationMs = WavPcm8To16Converter.readDurationMs(sourceBytes)
-        val convertedTemp = maybeConvert8BitWav(file, sourceBytes)
+        val convertedTemp = readResource(fileName) { maybeConvert8BitWav(file, sourceBytes) }
         val source = convertedTemp ?: file
         return try {
-            RegisteredSound(Gdx.audio.newSound(source), durationMs, convertedTemp)
+            RegisteredSound(readResource(fileName) { Gdx.audio.newSound(source) }, durationMs, convertedTemp)
         } catch (e: Throwable) {
             if (convertedTemp != null && convertedTemp.exists()) {
                 convertedTemp.delete()
@@ -162,10 +158,11 @@ internal object WavPcm8To16Converter {
         return ceil(frames * 1000.0 / meta.sampleRate.toDouble()).toInt()
     }
 
+    fun hasWaveHeader(bytes: ByteArray): Boolean = bytes.size >= 12 &&
+        isChunkId(bytes, 0, "RIFF") && isChunkId(bytes, 8, "WAVE")
+
     private fun parse(bytes: ByteArray): WavMeta? {
-        if (bytes.size < 12) return null
-        if (!isChunkId(bytes, 0, "RIFF")) return null
-        if (!isChunkId(bytes, 8, "WAVE")) return null
+        if (!hasWaveHeader(bytes)) return null
 
         var offset = 12
         var formatTag = -1

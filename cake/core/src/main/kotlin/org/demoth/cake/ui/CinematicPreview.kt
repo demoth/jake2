@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.Scaling
+import jake2.qcommon.filesystem.ResourceFormatException
 import ktx.actors.onClick
 import org.demoth.cake.assets.CinematicCinDecoder
 import org.demoth.cake.assets.DecodedCinFrame
@@ -25,7 +26,7 @@ internal class CinematicPreview(
 ) : Table(), Disposable {
     private var decoder = CinematicCinDecoder(file.read(), palette)
     private var frame = try {
-        requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
+        decoder.readNextFrame() ?: throw ResourceFormatException("Cinematic has no frames")
     } catch (error: Exception) {
         decoder.close()
         throw error
@@ -86,7 +87,7 @@ internal class CinematicPreview(
         decoder.close()
         return try {
             decoder = CinematicCinDecoder(file.read(), palette)
-            frame = requireNotNull(decoder.readNextFrame()) { "Cinematic has no frames" }
+            frame = decoder.readNextFrame() ?: throw ResourceFormatException("Cinematic has no frames")
             elapsed = 0f
             ended = false
             audioSubmitted = false
@@ -131,7 +132,7 @@ internal class CinematicPreview(
     }
 
     private fun upload(frame: DecodedCinFrame) {
-        require(frame.indexedFrame.size == decoder.width * decoder.height) { "Invalid cinematic frame size" }
+        if (frame.indexedFrame.size != decoder.width * decoder.height) throw ResourceFormatException("Invalid cinematic frame size")
         val pixels = pixmap ?: Pixmap(decoder.width, decoder.height, Pixmap.Format.RGBA8888).also { pixmap = it }
         val colors = decoder.currentPalette()
         for (y in 0 until decoder.height) for (x in 0 until decoder.width) {
@@ -148,7 +149,9 @@ internal class CinematicPreview(
         audioSubmitted = true
         val pcm = frame.audioPcmBytes
         if (pcm.isEmpty() || decoder.sampleRate == 0) return
-        require(decoder.sampleWidth in 1..2 && decoder.sampleChannels in 1..2) { "Unsupported cinematic audio format" }
+        if (decoder.sampleWidth !in 1..2 || decoder.sampleChannels !in 1..2) {
+            throw ResourceFormatException("Unsupported cinematic audio format")
+        }
         val device = audio ?: Gdx.audio.newAudioDevice(decoder.sampleRate, decoder.sampleChannels == 1).also { audio = it }
         val samples = ShortArray(pcm.size / decoder.sampleWidth) { i ->
             if (decoder.sampleWidth == 1) (((pcm[i].toInt() and 255) - 128) shl 8).toShort()
