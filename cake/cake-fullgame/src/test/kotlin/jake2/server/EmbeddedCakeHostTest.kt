@@ -20,6 +20,8 @@ import org.demoth.cake.profile.CakeGameProfile
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.nio.file.Files
 import java.nio.file.Path
 import java.net.DatagramSocket
@@ -301,20 +303,25 @@ class EmbeddedCakeHostTest {
     }
 
     @Test
-    fun `disposal restores the command that preceded the Host across map changes`() {
+    fun `disposal restores prior commands and keeps commands another owner has replaced`() {
         host.dispose()
-        var called = false
-        Cmd.AddCommand("status") { called = true }
+        var priorCalled = false
+        var replacementCalled = false
+        Cmd.AddCommand("status") { priorCalled = true }
         host = EmbeddedCakeHost(temp)
         host.initialize()
         try {
             assertEquals(HostStartResult.Started, host.start(request()))
             Cmd.ExecuteString("gamemap testbox2")
+            Cmd.AddCommand("serverinfo", true) { replacementCalled = true }
             host.dispose()
             Cmd.ExecuteString("status")
-            assertTrue(called)
+            Cmd.ExecuteString("serverinfo")
+            assertTrue(priorCalled)
+            assertTrue(replacementCalled)
         } finally {
             Cmd.RemoveCommand("status")
+            Cmd.RemoveCommand("serverinfo")
         }
     }
 
@@ -372,9 +379,11 @@ class EmbeddedCakeHostTest {
         assertEquals(HostStartResult.Started, host.start(request()))
     }
 
-    @Test
-    fun `console transitions retain manager and shutdown clears deferred commands`() {
+    @ParameterizedTest
+    @ValueSource(strings = ["killserver", "sv_shutdown \"test shutdown\" false"])
+    fun `console shutdown clears deferred commands and permits restart`(command: String) {
         assertEquals(HostStartResult.Started, host.start(request()))
+        val manager = host.server
         val mapCommand = Cmd.FindCommand("map")
         Cmd.ExecuteString("gamemap testbox2")
         assertEquals(HostState.RUNNING, host.state)
@@ -385,35 +394,18 @@ class EmbeddedCakeHostTest {
         try {
             Cbuf.AddText("host_test_deferred")
             Cbuf.CopyToDefer()
-            Cmd.ExecuteString("killserver")
+            Cmd.ExecuteString(command)
             host.update(0)
             Cbuf.InsertFromDefer()
             Cbuf.Execute()
             assertFalse(ran)
             assertEquals(HostState.STOPPED, host.state)
-            assertNotNull(Cmd.FindCommand("killserver"))
-            assertNotNull(Cmd.FindCommand("map"))
+            assertSame(mapCommand, Cmd.FindCommand("map"))
+            assertNotNull(Cmd.FindCommand("save"))
+            assertEquals(HostStartResult.Started, host.start(request()))
+            assertSame(manager, host.server)
         } finally {
             Cmd.RemoveCommand("host_test_deferred")
-        }
-    }
-
-    @Test
-    fun `sv_shutdown permits restart and disposal preserves a replacement command`() {
-        assertEquals(HostStartResult.Started, host.start(request()))
-        Cmd.ExecuteString("sv_shutdown \"test shutdown\" false")
-        host.update(0)
-        assertEquals(HostState.STOPPED, host.state)
-        assertNotNull(Cmd.FindCommand("save"))
-        assertEquals(HostStartResult.Started, host.start(request()))
-        var called = false
-        Cmd.AddCommand("status", true) { called = true }
-        host.dispose()
-        try {
-            Cmd.ExecuteString("status")
-            assertTrue(called)
-        } finally {
-            Cmd.RemoveCommand("status")
         }
     }
 }

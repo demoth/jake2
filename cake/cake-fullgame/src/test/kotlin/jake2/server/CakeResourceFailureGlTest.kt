@@ -37,7 +37,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 
-/** Required content failures retire live precache or demo playback and leave Cake available. */
+/** Required content failures end the affected session and stop a Host only when it belongs to that session. */
 @EnabledIfEnvironmentVariable(named = "CAKE_HOST_GL_TESTS", matches = "1")
 class CakeResourceFailureGlTest {
     @TempDir lateinit var root: Path

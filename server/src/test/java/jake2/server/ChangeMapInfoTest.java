@@ -13,6 +13,7 @@ import java.util.Locale;
 import static jake2.qcommon.Defines.CS_MODELS;
 import static org.junit.jupiter.api.Assertions.*;
 
+/** Covers how still images and cinematics select server presentation and carry continuation metadata. */
 class ChangeMapInfoTest {
     private static final List<String> STILL_EXTENSIONS = List.of("pcx", "tga", "png", "jpg", "jpeg");
 

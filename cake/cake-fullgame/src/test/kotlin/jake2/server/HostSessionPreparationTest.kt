@@ -424,22 +424,6 @@ class HostSessionPreparationTest {
     }
 
     @Test
-    fun `load port failure leaves reusable idle Host`() {
-        save(true)
-        host.stop("test", false)
-        network.server.configure(false)
-        java.net.DatagramSocket(0).use { occupied ->
-            cvars.find<Int>("port").forceSet(occupied.localPort)
-            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.loadGame("slot"))
-            assertTrue(host.games.isEmpty())
-            assertTrue(host.clients.isEmpty())
-            assertNull(network.serverTransport.udpEndpoint)
-        }
-        cvars.find<Int>("port").forceSet(0)
-        assertEquals(ServerHost.OperationResult.Completed, host.loadGame("slot"))
-    }
-
-    @Test
     fun `console load failure does not abort following startup command`() {
         save(false)
         val file = root.resolve("save/slot/testbox.sav.json")
@@ -492,17 +476,26 @@ class HostSessionPreparationTest {
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
     }
 
-    @Test
-    fun `gamemap can retry once the occupied server port is released`() {
-        cvars.find<Boolean>("coop").forceSet(true)
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `map and save transitions can retry after a bind failure`(loadSave: Boolean) {
+        if (loadSave) {
+            save(true)
+            host.stop("test", false)
+            network.server.configure(false)
+        } else {
+            cvars.find<Boolean>("coop").forceSet(true)
+        }
+        fun transition() = if (loadSave) host.loadGame("slot") else host.changeMap("testbox")
         java.net.DatagramSocket(0).use { occupied ->
             cvars.find<Int>("port").forceSet(occupied.localPort)
-            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.changeMap("testbox"))
+            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, transition())
             assertTrue(host.games.isEmpty())
             assertTrue(host.clients.isEmpty())
+            assertNull(network.serverTransport.udpEndpoint)
         }
         cvars.find<Int>("port").forceSet(0)
-        assertEquals(ServerHost.OperationResult.Completed, host.changeMap("testbox"))
+        assertEquals(ServerHost.OperationResult.Completed, transition())
     }
 
     @Test

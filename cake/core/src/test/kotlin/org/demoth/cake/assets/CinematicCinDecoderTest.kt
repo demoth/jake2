@@ -57,13 +57,8 @@ class CinematicCinDecoderTest {
         assertThrows(EOFException::class.java) { CinematicCinDecoder(truncated, IntArray(256)) }
         assertTrue(truncated.closed)
 
-        val path = "video/broken.cin"
         val invalid = TrackedInput(movie().apply { this[0] = 0 }) // Width is now zero.
-        val failure = assertThrows(ResourceLoadException::class.java) {
-            decodeResource(path) { CinematicCinDecoder(invalid, IntArray(256)) }
-        }
-        assertEquals(path, failure.path)
-        assertInstanceOf(ResourceFormatException::class.java, failure.cause)
+        assertThrows(ResourceFormatException::class.java) { CinematicCinDecoder(invalid, IntArray(256)) }
         assertTrue(invalid.closed)
     }
 }

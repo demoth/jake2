@@ -35,7 +35,7 @@ import java.nio.ByteOrder
 import java.nio.file.Files
 import java.nio.file.Path
 
-/** Uses the fullgame test resources for the viewer's bundled skin and shaders. */
+/** Covers Viewer navigation, replacement of live previews, and recovery from invalid preview content. */
 @EnabledIfEnvironmentVariable(named = "CAKE_HOST_GL_TESTS", matches = "1")
 class CakeViewerPreviewGlTest {
     @TempDir lateinit var temp: Path

@@ -24,6 +24,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.LinkedHashMap
 
+/** Covers dependency lookup and resource ownership as Viewer switches between files, folders, and archives. */
 class ViewerFileResolverTest {
 
     @TempDir
@@ -112,54 +113,19 @@ class ViewerFileResolverTest {
     }
 
     @Test
-    fun fallsBackToBasedirBaseq2WhenProvided() {
+    fun resolvesLooseAndPackagedDependenciesFromTheConfiguredGame() {
         val openedFile = createFile("viewer/tris.md2")
-        val baseSkin = createFile("baseq2/models/monsters/berserk/skin.pcx")
-        val resolver = ViewerFileResolver(
-            openedFilePath = openedFile.absolutePath,
-            basedir = temp.toString(),
-        )
+        val loosePath = "models/monsters/berserk/skin.pcx"
+        val pakPath = "models/monsters/berserk/packed.pcx"
+        val zipPath = "textures/e1u1/wall.wal"
+        val loose = createFile("baseq2/$loosePath")
+        writePak(temp.resolve("baseq2/pak0.pak"), linkedMapOf(pakPath to "pak-skin".toByteArray()))
+        writeZip(temp.resolve("baseq2/assets.pk3"), linkedMapOf(zipPath to "zip-wall".toByteArray()))
+        val resolver = ViewerFileResolver(openedFile.absolutePath, basedir = temp.toString())
 
-        val resolved = resolver.resolve("models/monsters/berserk/skin.pcx")
-
-        assertNotNull(resolved)
-        assertEquals(baseSkin.absolutePath, resolved!!.file().absolutePath)
-    }
-
-    @Test
-    fun fallsBackToBasedirPakWhenProvided() {
-        val openedFile = createFile("viewer/tris.md2")
-        writePak(
-            temp.resolve("baseq2").resolve("pak0.pak"),
-            linkedMapOf("models/monsters/berserk/skin.pcx" to "pak-skin".toByteArray(StandardCharsets.US_ASCII)),
-        )
-        val resolver = ViewerFileResolver(
-            openedFilePath = openedFile.absolutePath,
-            basedir = temp.toString(),
-        )
-
-        val resolved = resolver.resolve("models/monsters/berserk/skin.pcx")
-
-        assertNotNull(resolved)
-        assertEquals("pak-skin", String(resolved!!.readBytes(), StandardCharsets.US_ASCII))
-    }
-
-    @Test
-    fun fallsBackToBasedirZipWhenProvided() {
-        val openedFile = createFile("viewer/tris.md2")
-        writeZip(
-            temp.resolve("baseq2").resolve("assets.pk3"),
-            linkedMapOf("textures/e1u1/wall.wal" to "zip-wall".toByteArray(StandardCharsets.US_ASCII)),
-        )
-        val resolver = ViewerFileResolver(
-            openedFilePath = openedFile.absolutePath,
-            basedir = temp.toString(),
-        )
-
-        val resolved = resolver.resolve("textures/e1u1/wall.wal")
-
-        assertNotNull(resolved)
-        assertEquals("zip-wall", String(resolved!!.readBytes(), StandardCharsets.US_ASCII))
+        assertEquals(loose.absolutePath, resolver.resolve(loosePath)?.file()?.absolutePath)
+        assertEquals("pak-skin", resolver.resolve(pakPath)?.readString())
+        assertEquals("zip-wall", resolver.resolve(zipPath)?.readString())
     }
 
     @Test
@@ -255,7 +221,7 @@ class ViewerFileResolverTest {
     }
 
     @Test
-    fun changingArchivesAndReturningToLooseContextReleasesExtracts() {
+    fun archiveSwitchesReleaseExtractsOnlyAfterTheNewContextIsAvailable() {
         val openedFile = createFile("viewer/models/tris.md2")
         val loose = createFile("viewer/textures/shared.wal")
         val path = "textures/shared.wal"
@@ -268,6 +234,12 @@ class ViewerFileResolverTest {
         val firstExtract = resolver.resolve(path)!!
         assertEquals("first", firstExtract.readString())
 
+        assertThrows(ResourceLoadException::class.java) {
+            resolver.configureArchive(temp.resolve("missing.pak").toString())
+        }
+        assertTrue(firstExtract.exists())
+        assertEquals("first", resolver.resolve(path)!!.readString())
+
         resolver.configureArchive(second.toString())
 
         assertFalse(firstExtract.exists())
@@ -278,24 +250,6 @@ class ViewerFileResolverTest {
 
         assertFalse(secondExtract.exists())
         assertEquals(loose.absolutePath, resolver.resolve(path)!!.file().absolutePath)
-    }
-
-    @Test
-    fun failedArchiveMountRetainsThePreviousContext() {
-        val openedFile = createFile("viewer/models/tris.md2")
-        val pak = temp.resolve("selected.pak")
-        writePak(pak, linkedMapOf("textures/shared.wal" to "selected".toByteArray()))
-        val resolver = ViewerFileResolver(openedFile.absolutePath)
-        resolver.configureArchive(pak.toString())
-        val extracted = resolver.resolve("textures/shared.wal")!!
-
-        assertThrows(ResourceLoadException::class.java) {
-            resolver.configureArchive(temp.resolve("missing.pak").toString())
-        }
-
-        assertTrue(extracted.exists())
-        assertEquals("selected", resolver.resolve("textures/shared.wal")!!.readString())
-        resolver.configure(openedFile.absolutePath)
     }
 
     @Test

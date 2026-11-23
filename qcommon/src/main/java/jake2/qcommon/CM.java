@@ -619,6 +619,7 @@ public class CM {
             throw new ResourceFormatException("Invalid area portal lump size: " + l.length);
         count = l.length / qfiles.dareaportal_t.SIZE;
 
+        // TODO: Verify the area-portal record limit and valid portal indices against existing BSPs before changing the bounds.
         if (count > Defines.MAX_MAP_AREAS)
             throw new ResourceFormatException("Map has too many area portals");
 

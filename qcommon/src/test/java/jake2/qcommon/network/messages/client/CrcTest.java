@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static jake2.qcommon.network.messages.client.CRC.BlockSequenceCRCByte;
 import static jake2.qcommon.network.messages.client.CRC.CRC_Block;
 
+/** Checks Quake II movement checksum vectors and the sequence argument contract. */
 public class CrcTest {
 
     private static final byte[] TEST_DATA = {

@@ -27,6 +27,7 @@ import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 
 import java.io.IOException;
 
+/** Manual smoke entry point for loading base1 from a configured Quake II installation. */
 public class LoadMapUtil {
 	public static void main(String[] args) throws IOException {
 		Com.Debug("hello!");

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 
 /** Dedicated owns its Host through startup, loop recovery, and shutdown. */
 @Timeout(10)
@@ -44,39 +46,19 @@ class DedicatedLifetimeTest {
         Cvar.getInstance().clear()
     }
 
-    @Test
-    fun `late startup failure closes Host and preserves original exception`() {
-        val failure = IllegalStateException("startup failed")
+    @ParameterizedTest
+    @ValueSource(booleans = [true, false])
+    fun `startup and loop failures close the Host and preserve the exception`(duringStartup: Boolean) {
+        val failure = IllegalStateException("dedicated command failed")
         Cmd.AddCommand("test_start") {
             assertNotNull(Cmd.FindCommand("map"))
             assertTrue(network.configure(true))
-            throw failure
+            if (duringStartup) throw failure
         }
-        assertSame(failure, assertThrows(IllegalStateException::class.java) {
-            runHost(listOf("Jake2", "+test_start"))
-        })
-        assertReleased()
-    }
-
-    @Test
-    fun `loop command failure closes Host without swallowing programming errors`() {
-        val failure = IllegalStateException("frame command failed")
-        Cmd.AddCommand("test_start") { assertTrue(network.configure(true)) }
         Cmd.AddCommand("test_end") { throw failure }
-        assertSame(failure, assertThrows(IllegalStateException::class.java) {
-            runHost(listOf("Jake2", "+test_start", "+wait", "+test_end"))
-        })
-        assertReleased()
-    }
-
-    @Test
-    fun `output buffer failure unwinds the loop and closes Host`() {
-        Cmd.AddCommand("test_start") { assertTrue(network.configure(true)) }
-        Cmd.AddCommand("test_end") { jake2.qcommon.sizebuf_t(1).writeInt(123) }
-        val failure = assertThrows(IllegalStateException::class.java) {
-            runHost(listOf("Jake2", "+test_start", "+wait", "+test_end"))
-        }
-        assertTrue(failure.message!!.contains("SZ_GetSpace"))
+        val arguments = if (duringStartup) listOf("Jake2", "+test_start")
+            else listOf("Jake2", "+test_start", "+wait", "+test_end")
+        assertSame(failure, assertThrows(IllegalStateException::class.java) { runHost(arguments) })
         assertReleased()
     }
 

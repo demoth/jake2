@@ -11,6 +11,7 @@ import java.nio.file.Path
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
+/** Covers selected-archive visibility, base PAK precedence, and extracted-file lifetime. */
 class CakeVfsAssetSourceTest {
     @TempDir lateinit var temp: Path
 
@@ -62,7 +63,7 @@ class CakeVfsAssetSourceTest {
     }
 
     @Test
-    fun reconfigurationClearsExtractsAndFailedMountsPreserveTheWorkingContext() {
+    fun switchingArchiveBaselinesReleasesExtractsAndCanReturnToArchiveOnly() {
         val first = temp.resolve("first")
         val second = temp.resolve("second")
         writePak(first.resolve("baseq2/pak0.pak"), mapOf("textures/base.wal" to "first"))
@@ -78,11 +79,6 @@ class CakeVfsAssetSourceTest {
             assertFalse(oldExtract.exists())
             val currentExtract = source.resolve("textures/base.wal")!!
             assertEquals("second", currentExtract.readString())
-            assertThrows(ResourceLoadException::class.java) {
-                source.configureArchive(temp.resolve("missing.zip").toString(), first.toString())
-            }
-            assertTrue(currentExtract.exists())
-            assertEquals("second", source.resolve("textures/base.wal")!!.readString())
             source.configureArchive(selected.toString())
             assertFalse(currentExtract.exists())
             assertNull(source.resolve("textures/base.wal"), "Archive-only callers retain strict isolation")

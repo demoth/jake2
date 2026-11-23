@@ -24,6 +24,7 @@ package jake2.qcommon;
 
 import static jake2.qcommon.Defines.*;
 
+/** Legacy entity-delta encoder used as a wire-format reference by protocol tests. */
 public class DeltaUtils {
 
     /*
