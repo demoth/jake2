@@ -16,6 +16,7 @@ import java.nio.file.Files
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
+/** Covers map sequencing and the isolation of running Games when one fails. */
 class GameContinuationTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
@@ -260,7 +261,7 @@ class GameContinuationTest {
     }
 
     @Test
-    fun `Game failure in client command aborts packet and stops Game rather than just client`() {
+    fun `collision failure in a client command aborts the packet and stops its Game`() {
         val first = game("default", "testbox")
         val second = game("other", "end.cin")
         val a = bind(0, first)
@@ -270,7 +271,7 @@ class GameContinuationTest {
         first.gameExports = object : GameExports by first.gameExports {
             override fun ClientCommand(ent: ServerEntity, args: MutableList<String>) {
                 commands++
-                first.error("broken Game state")
+                first.cm.InlineModel("invalid")
             }
         }
         host.handleClientMessages(a, listOf(

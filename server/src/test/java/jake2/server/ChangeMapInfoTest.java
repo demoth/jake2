@@ -6,6 +6,7 @@ import jake2.qcommon.ServerStates;
 import jake2.qcommon.exec.Cvar;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,7 +36,7 @@ class ChangeMapInfoTest {
     }
 
     @Test
-    void stillGamesAvoidBspLoadingAndKeepTerminalAndCooperativeContinuationRules() {
+    void stillGamesAvoidBspLoadingAndKeepTerminalAndCooperativeContinuationRules() throws IOException {
         Cvar cvars = Cvar.getInstance();
         var previousState = Globals.server_state;
         cvars.clear();

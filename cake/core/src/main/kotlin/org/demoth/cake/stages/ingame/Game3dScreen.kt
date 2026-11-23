@@ -785,6 +785,7 @@ class Game3dScreen(
             "Missing map config string at index ${Defines.CS_MODELS + 1}"
         }
         val bspMap = gameConfig.loadMapAsset()
+        decodeResource(mapName) { collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1)) }
         camera.far = worldCameraFar(bspMap.rootNodeBounds)
         camera.update()
         val brushModels = bspMap.models
@@ -798,7 +799,6 @@ class Game3dScreen(
             configString.resource = model
         }
 
-        collisionModel.CM_LoadMapFile(bspMap.mapData, mapName, IntArray(1) {0})
         worldVisibilityMaskTracker = BspWorldVisibilityMaskTracker(
             worldRenderData = bspMap.worldRenderData,
             collisionModel = collisionModel,

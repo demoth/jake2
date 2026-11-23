@@ -230,7 +230,7 @@ class ClientPrediction(
                 if (!modelName.startsWith("*")) {
                     return@forEachCurrentEntityState
                 }
-                val cmodel = runCatching { collisionModel.InlineModel(modelName) }.getOrNull()
+                val cmodel = collisionModel.findInlineModel(modelName)
                     ?: return@forEachCurrentEntityState
                 headnode = cmodel.headnode
                 angles = entity.angles
@@ -289,7 +289,7 @@ class ClientPrediction(
             if (!modelName.startsWith("*")) {
                 return@forEachCurrentEntityState
             }
-            val cmodel = runCatching { collisionModel.InlineModel(modelName) }.getOrNull()
+            val cmodel = collisionModel.findInlineModel(modelName)
                 ?: return@forEachCurrentEntityState
             contents = contents or collisionModel.TransformedPointContents(
                 point,

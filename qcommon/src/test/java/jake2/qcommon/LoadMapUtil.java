@@ -25,8 +25,10 @@ package jake2.qcommon;
 
 import jake2.qcommon.vfs.EngineFilesystemLifecycle;
 
+import java.io.IOException;
+
 public class LoadMapUtil {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		Com.Debug("hello!");
 
 		MainCommon.registerCvars(false);

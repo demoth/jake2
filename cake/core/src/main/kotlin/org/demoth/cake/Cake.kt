@@ -26,6 +26,7 @@ import org.demoth.cake.demo.DemoMetadata
 import jake2.qcommon.network.demo.DemoWriter
 import jake2.qcommon.network.protocol.PacketEnvelope
 import org.demoth.cake.demo.demoLogicalPath
+import jake2.qcommon.CollisionStateException
 import jake2.qcommon.Com
 import jake2.qcommon.Com.LogSubsystem.CLIENT
 import jake2.qcommon.Com.LogSubsystem.RENDER
@@ -707,9 +708,9 @@ class Cake(
             }
             game3dScreen?.setDemoTime(playback.presentationTimeMillis, playback.interpolationSeconds)
         } catch (error: IOException) {
-            handleSessionResourceFailure(error)
+            handleClientSessionFailure(error)
         } catch (error: RuntimeException) {
-            handleSessionResourceFailure(error.findResourceFailure() ?: throw error)
+            handleClientSessionFailure(error.findResourceFailure() ?: throw error)
         }
     }
 
@@ -765,7 +766,7 @@ class Cake(
         }
     }
 
-    private fun handleSessionResourceFailure(error: Exception) {
+    private fun handleClientSessionFailure(error: Exception) {
         val message = if (demoPlayback != null) "Demo playback failed: ${error.message}" else "${error.message}"
         Com.Error(CLIENT, message)
         finishSession(message, stopHost = localConnection)
@@ -942,7 +943,13 @@ class Cake(
                     netchan.outgoingSequence,
                     Globals.curtime
                 )
-                game3dScreen?.render(if (demoPlayback != null && (demoPaused || menuVisible || applicationPaused)) 0f else deltaSeconds)
+                val pausedDemo = demoPlayback != null && (demoPaused || menuVisible || applicationPaused)
+                try {
+                    game3dScreen?.render(if (pausedDemo) 0f else deltaSeconds)
+                } catch (error: CollisionStateException) {
+                    handleClientSessionFailure(error)
+                    return
+                }
             }
 
             val activeScreen = game3dScreen
@@ -1000,7 +1007,7 @@ class Cake(
             }
             val resourceFailure = error.findResourceFailure()
             if (resourceFailure != null && (game3dScreen != null || demoPlayback != null)) {
-                handleSessionResourceFailure(resourceFailure)
+                handleClientSessionFailure(resourceFailure)
                 return
             }
             automation.fail(error)

@@ -121,11 +121,11 @@ public class GameImportsImpl implements GameImports {
     final float airAcceleration;
     private final PMove.PmoveProcessor pmoveProcessor = PMove.newLegacyProcessor();
 
-    public GameImportsImpl(ServerHost serverMain, ChangeMapInfo changeMapInfo) {
+    public GameImportsImpl(ServerHost serverMain, ChangeMapInfo changeMapInfo) throws IOException {
         this(serverMain, changeMapInfo, null);
     }
 
-    GameImportsImpl(ServerHost serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+    GameImportsImpl(ServerHost serverMain, ChangeMapInfo changeMapInfo, GameImportsImpl previous) throws IOException {
         this.serverMain = serverMain;
         this.name = serverMain.allocateGameName();
         if (previous != null && !changeMapInfo.isLoadgame)
@@ -162,7 +162,7 @@ public class GameImportsImpl implements GameImports {
 
         spawncount = serverMain.allocateSpawnCount();
 
-        cm = new CM((severity, message) -> new GameFailure(this, message));
+        cm = new CM();
         clientEntityStates = new entity_state_t[serverMain.getClients().size() * Defines.UPDATE_BACKUP * 64];
         for (int i = 0; i < clientEntityStates.length; i++) clientEntityStates[i] = new entity_state_t();
 
@@ -222,7 +222,7 @@ public class GameImportsImpl implements GameImports {
     }
 
     /** Allocate the gameplay module after engine services and latched settings are ready. */
-    static GameImportsImpl create(ServerHost host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) {
+    static GameImportsImpl create(ServerHost host, ChangeMapInfo changeMapInfo, GameImportsImpl previous) throws IOException {
         GameImportsImpl game = new GameImportsImpl(host, changeMapInfo, previous);
         game.gameExports = game.createGameModInstance();
         if (changeMapInfo.isLoadgame)

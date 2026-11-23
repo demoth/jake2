@@ -1,40 +1,30 @@
 package jake2.qcommon
 
-import jake2.qcommon.exec.Cmd
+import jake2.qcommon.filesystem.ResourceFormatException
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+/** Collision worlds report load and lookup failures directly and keep query scratch per world. */
 class CollisionOwnershipTest {
     @Test
-    fun `owner policy propagates its exception`() {
-        val failure = IllegalArgumentException("owner failure")
-        val cm = CM { severity, message ->
-            assertEquals(Defines.ERR_DROP, severity)
-            assertTrue(message.contains("Couldn't load"))
-            failure
+    fun `truncated map data fails with a format error`() {
+        val failure = assertThrows(ResourceFormatException::class.java) {
+            CM().CM_LoadMapFile(byteArrayOf(0), "broken.bsp", IntArray(1))
         }
-        assertSame(failure, assertThrows(IllegalArgumentException::class.java) {
-            cm.CM_LoadMapFile(null, "missing", intArrayOf(0))
-        })
+        assertEquals("Truncated BSP header", failure.message)
     }
 
     @Test
-    fun `default policy preserves legacy drop dispatch`() {
-        val names = listOf("sv_shutdown", "cl_drop")
-        val previous = names.associateWith { Cmd.FindCommand(it) }
-        val called = mutableListOf<String>()
-        try {
-            names.forEach { name -> Cmd.AddCommand(name, true) { called.add(name) } }
-            assertThrows(longjmpException::class.java) { CM().InlineModel("invalid") }
-            assertEquals(names, called)
-        } finally {
-            names.forEach { name ->
-                Cmd.RemoveCommand(name)
-                previous[name]?.let { Cmd.AddCommand(name, it.function) }
-            }
+    fun `optional and required lookups agree on which inline models exist`() {
+        val cm = CM().apply { numcmodels = 2 }
+        assertSame(cm.map_cmodels[1], cm.findInlineModel("*1"))
+        assertSame(cm.map_cmodels[1], cm.InlineModel("*1"))
+        for (reference in listOf(null, "", "maps/test.bsp", "*0", "*2")) {
+            assertNull(cm.findInlineModel(reference))
+            assertThrows(CollisionStateException::class.java) { cm.InlineModel(reference) }
         }
     }
 

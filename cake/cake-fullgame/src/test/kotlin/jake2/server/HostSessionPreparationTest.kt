@@ -3,6 +3,7 @@ package jake2.server
 import jake2.qcommon.*
 import jake2.qcommon.exec.Cvar
 import jake2.qcommon.exec.find
+import jake2.qcommon.filesystem.ResourceFormatException
 import jake2.qcommon.vfs.*
 import jake2.server.save.ServerSaveFiles
 import org.junit.jupiter.api.*
@@ -10,9 +11,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 
+/** Validates session setup and map/save transitions, including rejection and cleanup. */
 class HostSessionPreparationTest {
     @TempDir lateinit var root: Path
     private lateinit var previousRoot: Path
@@ -707,31 +710,31 @@ class HostSessionPreparationTest {
         assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
     }
 
-    @Test
-    fun `malformed BSP propagates Game failure without global client drop`() {
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `map load failures report their cause and leave the Host ready for another map`(missingAfterIndexing: Boolean) {
         val content = root.resolve("content")
         val map = content.resolve("baseq2/maps/broken.bsp")
         Files.createDirectories(map.parent)
         val bytes = Files.readAllBytes(Path.of("src/test/resources/baseq2/maps/testbox.bsp"))
+        Files.write(map.resolveSibling("testbox.bsp"), bytes)
         java.nio.ByteBuffer.wrap(bytes).order(java.nio.ByteOrder.LITTLE_ENDIAN).putInt(8 + Defines.LUMP_TEXINFO * 8 + 4, 1)
         Files.write(map, bytes)
         EngineVfs.configure(VfsConfig(content, "baseq2", null,
             true, false, false, emptyList(), setOf("pak")))
-        val previous = jake2.qcommon.exec.Cmd.FindCommand("cl_drop")
-        var clientDropped = false
-        jake2.qcommon.exec.Cmd.AddCommand("cl_drop", true) { clientDropped = true }
-        try {
-            val result = host.map("broken")
-            assertInstanceOf(ServerHost.OperationResult.Failed::class.java, result)
-            assertInstanceOf(GameFailure::class.java, (result as ServerHost.OperationResult.Failed).cause, result.cause.stackTraceToString())
-            assertTrue(result.reason.contains("funny lump size"))
-            assertFalse(clientDropped)
-            assertFalse(host.isRunning)
-            assertNotNull(jake2.qcommon.exec.Cmd.FindCommand("map"))
-        } finally {
-            jake2.qcommon.exec.Cmd.RemoveCommand("cl_drop")
-            previous?.let { jake2.qcommon.exec.Cmd.AddCommand("cl_drop", it.function) }
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
+        if (missingAfterIndexing) Files.delete(map)
+        val result = assertInstanceOf(ServerHost.OperationResult.Failed::class.java, host.changeMap("broken"))
+        if (missingAfterIndexing) {
+            assertInstanceOf(IOException::class.java, result.cause)
+            assertTrue(result.reason.contains("Could not read BSP 'maps/broken.bsp': Failed to open resource"))
+        } else {
+            assertInstanceOf(ResourceFormatException::class.java, result.cause)
+            assertTrue(result.reason.contains("Invalid texture info lump size"))
         }
+        assertFalse(host.isRunning)
+        assertTrue(host.clients.isEmpty())
+        assertEquals(ServerHost.OperationResult.Completed, host.map("testbox"))
     }
 
     @Test

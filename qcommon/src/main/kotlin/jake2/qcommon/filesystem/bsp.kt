@@ -13,13 +13,7 @@ import kotlin.math.max
 const val IDBSPHEADER = (('P'.code shl 24) + ('S'.code shl 16) + ('B'.code shl 8) + 'I'.code)
 
 class Bsp(buffer: ByteBuffer) {
-    val header = BspHeader(buffer).also { header ->
-        header.lumps.forEachIndexed { index, lump ->
-            checkResourceFormat(lump.offset in 0..buffer.limit() && lump.length in 0..(buffer.limit() - lump.offset)) {
-                "BSP lump $index is outside the file"
-            }
-        }
-    }
+    val header = BspHeader(buffer).also { it.validateLumpBounds(buffer.limit()) }
     val rootNodeBounds = readRootNodeBounds(buffer, header.lumps[Defines.LUMP_NODES])
     val entityString = readEntities(buffer, header.lumps[0])
     // planes lump skipped
@@ -215,6 +209,8 @@ class BspHeader(buffer: ByteBuffer) {
     @JvmField val lumps: Array<BspLump>
 
     init {
+        val headerSize = (2 + 2 * Defines.HEADER_LUMPS) * Int.SIZE_BYTES
+        checkResourceFormat(buffer.remaining() >= headerSize) { "Truncated BSP header" }
         buffer.order(ByteOrder.LITTLE_ENDIAN)
         this.ident = buffer.getInt()
         checkResourceFormat(ident == IDBSPHEADER) { "Wrong bsp identifier: $ident" }
@@ -225,6 +221,15 @@ class BspHeader(buffer: ByteBuffer) {
             lumpList.add(BspLump(offset = buffer.getInt(), length = buffer.getInt()))
         }
         lumps = lumpList.toTypedArray()
+    }
+
+    /** Validate lump ranges when reading the full file. Header-only readers can omit this check. */
+    fun validateLumpBounds(fileSize: Int) {
+        lumps.forEachIndexed { index, lump ->
+            checkResourceFormat(lump.offset in 0..fileSize && lump.length in 0..(fileSize - lump.offset)) {
+                "BSP lump $index is outside the file"
+            }
+        }
     }
 }
 

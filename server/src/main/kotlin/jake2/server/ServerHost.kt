@@ -590,7 +590,8 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // leaves the live world usable, so do not tear it down or proceed to replacement.
         if (!newSession && !target.newUnit) {
             try {
-                games["default"]?.takeIf { it.state == ServerStates.SS_GAME }?.archiveLevelForTransition()
+                games["default"]?.takeIf { it.state == ServerStates.SS_GAME }
+                    ?.withCollisionFailure { archiveLevelForTransition() }
             } catch (failure: GameFailure) {
                 handleGameFailure(failure)
                 return OperationResult.Failed(failure.toString(), failure)
@@ -646,7 +647,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
             // preview of the multi instance mode
             val cl = clients[clientIndex - 1]
             val previousGame: GameImportsImpl = games[cl.gameName]!!
-            previousGame.gameExports.ClientDisconnect(cl.edict)
+            previousGame.withCollisionFailure { gameExports.ClientDisconnect(cl.edict) }
             games[game.name] = game
             cl.gameName = game.name
         }
@@ -683,7 +684,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         transitionClients: List<ClientNetworkInfo>
     ): GameImportsImpl {
         publishLegacyServerState(ServerStates.SS_DEAD)
-        previous?.prepareLevelTransition()
+        previous?.withCollisionFailure { prepareLevelTransition() }
 
         val gameImports = createGameInstance(changeMapInfo, previous)
 
@@ -704,7 +705,7 @@ Spins up a new game instance, to be used with either `map` or `join` (TBD)
         // map initialization
         publishLegacyServerState(gameImports.state)
 
-        gameImports.initializeLevel(changeMapInfo, previous)
+        gameImports.withCollisionFailure { initializeLevel(changeMapInfo, previous) }
         publishLegacyServerState(gameImports.state)
 
         // set serverinfo variable
@@ -764,7 +765,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val game = games["default"] ?: return OperationResult.Rejected("No running default game")
         game.saveRejectionReason()?.let { return OperationResult.Rejected(it) }
         return try {
-            game.saveGame(destination)
+            game.withCollisionFailure { saveGame(destination) }
             OperationResult.Completed
         } catch (failure: GameFailure) {
             handleGameFailure(failure)
@@ -793,6 +794,13 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         } catch (failure: GameFailure) {
             handleGameFailure(failure)
         }
+    }
+
+    /** Attribute known collision failures before unwinding to the Host's recovery boundary. */
+    private inline fun <T> GameImportsImpl.withCollisionFailure(action: GameImportsImpl.() -> T): T = try {
+        action(this)
+    } catch (failure: CollisionStateException) {
+        throw GameFailure(this, failure.message ?: "Collision world failed", failure)
     }
 
     /**
@@ -851,7 +859,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // let everything in the world think and move
         for (game in games.values.toList()) {
             if (games[game.name] !== game) continue
-            withGameFailureBoundary { game.runFrame() }
+            withGameFailureBoundary { game.withCollisionFailure { runFrame() } }
         }
         if (games.isEmpty()) return
 
@@ -1039,7 +1047,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         val gameImports: GameImportsImpl = games["default"]!!
         client.gameName = "default"
 
-        val ent = gameImports.gameExports.getEdict(i + 1)
+        val ent = gameImports.withCollisionFailure { gameExports.getEdict(i + 1) }
         client.edict = ent // fixme: why? isn't it already set?
 
         // save challenge for checksumming
@@ -1047,7 +1055,8 @@ Resets server to host a given map, moves all clients to it (via reconnect)
 
         // get the game a chance to reject this connection or modify the
         // userinfo
-        if (!(gameImports.gameExports.ClientConnect(ent, userinfo))) {
+        val accepted = gameImports.withCollisionFailure { gameExports.ClientConnect(ent, userinfo) }
+        if (!accepted) {
             if (Info.Info_ValueForKey(userinfo, "rejmsg") != null) {
                 network.sendConnectionless(adr,
                     ConnectionlessCommand.print,
@@ -1140,7 +1149,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         try {
             client.netchan.queueReliable(DisconnectMessage)
             if (client.state == ClientStates.CS_SPAWNED) {
-                games[client.gameName]!!.gameExports.ClientDisconnect(client.edict)
+                games[client.gameName]!!.withCollisionFailure { gameExports.ClientDisconnect(client.edict) }
             }
         } finally {
             client.download = null
@@ -1279,7 +1288,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return
         }
 
-        games[cl.gameName]!!.gameExports.ClientThink(cl.edict, cmd)
+        games[cl.gameName]!!.withCollisionFailure { gameExports.ClientThink(cl.edict, cmd) }
     }
 
     /**
@@ -1288,7 +1297,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
      */
     fun updateClientUserinfo(cl: ClientNetworkInfo) {
         // call prog code to allow overrides
-        games[cl.gameName]!!.gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo)
+        games[cl.gameName]!!.withCollisionFailure { gameExports.ClientUserinfoChanged(cl.edict, cl.userinfo) }
 
         // name for C code
         cl.name = Info.Info_ValueForKey(cl.userinfo, "name")
@@ -1322,7 +1331,9 @@ Resets server to host a given map, moves all clients to it (via reconnect)
             return
         }
 
-        if (game.state == ServerStates.SS_GAME) game.gameExports.ClientCommand(cl.edict, args)
+        if (game.state == ServerStates.SS_GAME) {
+            game.withCollisionFailure { gameExports.ClientCommand(cl.edict, args) }
+        }
     }
 
     // endregion
@@ -1375,7 +1386,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         if (gameImports.state == ServerStates.SS_GAME) {
             client.handshakeGame = gameImports
             // set up the entity for the client
-            val ent = gameImports.gameExports.getEdict(clientIndex + 1)
+            val ent = gameImports.withCollisionFailure { gameExports.getEdict(clientIndex + 1) }
             ent.s.index = clientIndex + 1
             client.edict = ent
             client.lastcmd = usercmd_t()
@@ -1516,7 +1527,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         client.state = ClientStates.CS_SPAWNED
 
         // call the jake2.game begin function
-        gameImports.gameExports.ClientBegin(client.edict)
+        gameImports.withCollisionFailure { gameExports.ClientBegin(client.edict) }
 
         Cbuf.InsertFromDefer()
     }
@@ -1782,7 +1793,7 @@ Resets server to host a given map, moves all clients to it (via reconnect)
         // send over all the relevant entity_state_t
         // and the player_state_t
         val unreliable: MutableList<NetworkMessage> = mutableListOf()
-        unreliable.addAll(gameImports.buildClientFrameMessages(client)) // 3 messages
+        unreliable.addAll(gameImports.withCollisionFailure { buildClientFrameMessages(client) }) // 3 messages
 
         // copy the accumulated multicast datagram
         // for this client out to the message
