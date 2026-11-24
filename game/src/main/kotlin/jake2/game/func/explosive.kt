@@ -83,6 +83,7 @@ private val explosiveUse = registerUse("func_explosive_use") { self, other, acti
 }
 
 private val explosiveExplode = registerDie("func_explosive_explode") { self, inflictor, attacker, damage, point, game ->
+    if (inflictor == null || attacker == null) return@registerDie
     val origin = floatArrayOf(0f, 0f, 0f)
     val chunkorigin = floatArrayOf(0f, 0f, 0f)
     val size = floatArrayOf(0f, 0f, 0f)
@@ -105,7 +106,7 @@ private val explosiveExplode = registerDie("func_explosive_explode") { self, inf
             game
         )
 
-    Math3D.VectorSubtract(self.s.origin, inflictor!!.s.origin, self.velocity)
+    Math3D.VectorSubtract(self.s.origin, inflictor.s.origin, self.velocity)
     Math3D.VectorNormalize(self.velocity)
     Math3D.VectorScale(self.velocity, 150f, self.velocity)
 
@@ -130,7 +131,7 @@ private val explosiveExplode = registerDie("func_explosive_explode") { self, inf
     var smallChunks = mass / 25
     if (smallChunks > 16)
         smallChunks = 16
-    while (smallChunks-- != 0) {
+    while (smallChunks-- > 0) {
         chunkorigin[0] = origin[0] + Lib.crandom() * size[0]
         chunkorigin[1] = origin[1] + Lib.crandom() * size[1]
         chunkorigin[2] = origin[2] + Lib.crandom() * size[2]
