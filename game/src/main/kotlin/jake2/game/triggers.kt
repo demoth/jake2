@@ -93,6 +93,7 @@ fun triggerMultiple(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val triggerUseMultiple = registerUse("Use_Multi") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     self.activator = activator
     multiTrigger(self, game)
 }
@@ -171,8 +172,8 @@ fun triggerCounter(self: GameEntity, game: GameExportsImpl) {
     self.use = triggerCounterUse
 }
 
-private val triggerCounterUse = registerUse("trigger_counter_use") { self, other, activator, game ->
-    if (self.count == 0)
+private val triggerCounterUse = registerUse("trigger_counter_use") { self, _, activator, game ->
+    if (activator == null || self.count == 0)
         return@registerUse
 
     self.count--
@@ -209,7 +210,8 @@ fun triggerRelay(self: GameEntity, game: GameExportsImpl) {
     self.use = triggerRelayUse
 }
 
-private val triggerRelayUse = registerUse("trigger_relay_use") { self: GameEntity, other: GameEntity?, activator: GameEntity?, game: GameExportsImpl ->
+private val triggerRelayUse = registerUse("trigger_relay_use") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     GameUtil.G_UseTargets(self, activator, game)
 }
 
@@ -357,9 +359,13 @@ fun triggerGravity(self: GameEntity, game: GameExportsImpl) {
         return
     }
     initTrigger(self, game)
-    self.gravity = Lib.atoi(self.st.gravity).toFloat()
+    // Yamagi reads the map field with strtol in base 10.
+    val prefix = gravityIntegerPrefix.find(self.st.gravity.trimStart())?.value
+    self.gravity = prefix?.toLongOrNull()?.toInt()?.toFloat() ?: 0f
     self.touch = triggerGravityTouch
 }
+
+private val gravityIntegerPrefix = Regex("^[+-]?[0-9]+")
 
 private val triggerGravityTouch = registerTouch("trigger_gravity_touch") { self, other, _, _, _ ->
     other.gravity = self.gravity
@@ -403,12 +409,16 @@ fun triggerHurt(self: GameEntity, game: GameExportsImpl) {
     game.gameImports.linkentity(self)
 }
 
-private val triggerHurtTouch = registerTouch("hurt_touch") { self, other, plane, surf, game ->
+private val triggerHurtTouch = registerTouch("hurt_touch") { self, other, _, _, game ->
+    hurtOccupant(self, other, game)
+}
+
+private fun hurtOccupant(self: GameEntity, other: GameEntity, game: GameExportsImpl) {
     if (other.takedamage == DAMAGE_NO)
-        return@registerTouch
+        return
 
     if (self.timestamp > game.level.time)
-        return@registerTouch
+        return
 
     if (self.hasSpawnFlag(SLOW))
         self.timestamp = game.level.time + 1
@@ -432,13 +442,17 @@ private val triggerHurtTouch = registerTouch("hurt_touch") { self, other, plane,
     )
 }
 
-private val triggerHurtUse = registerUse("hurt_use") { self, other, activator, game ->
-    if (self.solid == Defines.SOLID_NOT)
+private val triggerHurtUse = registerUse("hurt_use") { self, _, _, game ->
+    if (self.solid == Defines.SOLID_NOT) {
         self.solid = Defines.SOLID_TRIGGER
-    else
+        val occupants = arrayOfNulls<GameEntity>(Defines.MAX_EDICTS)
+        val count = game.gameImports.BoxEdicts(self.absmin, self.absmax, occupants, occupants.size, Defines.AREA_SOLID)
+        for (i in 0 until count) {
+            hurtOccupant(self, occupants[i]!!, game)
+        }
+    } else {
         self.solid = Defines.SOLID_NOT
-
-    // todo: fix from yamagi quake for monsters spawning inside the trigger_hurt
+    }
 
     game.gameImports.linkentity(self)
 
@@ -481,9 +495,10 @@ private val triggerMonsterJumpTouch = registerTouch("trigger_monsterjump_touch")
     other.velocity[0] = self.movedir[0] * self.speed
     other.velocity[1] = self.movedir[1] * self.speed
 
-    if (other.groundentity != null)
+    if (other.groundentity == null)
         return@registerTouch
 
+    other.groundentity = null
     other.velocity[2] = self.movedir[2]
 
 }

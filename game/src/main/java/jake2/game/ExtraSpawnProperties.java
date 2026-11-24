@@ -38,7 +38,7 @@ public class ExtraSpawnProperties {
 	public float skyrotate;
 	public float[] skyaxis = { 0, 0, 0 };
 	// can also be used by trigger
-	public String gravity="";
+	public String gravity;
 
 	public String nextmap="";
 

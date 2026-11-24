@@ -134,7 +134,7 @@ public class GameSpawn {
             gameExports.level.pic_health = gameExports.gameImports.imageindex("i_health");
             gameExports.gameImports.imageindex("help");
             gameExports.gameImports.imageindex("field_3");
-            if (ent.st.gravity.isBlank()) {
+            if (ent.st.gravity == null || ent.st.gravity.isBlank()) {
                 gameExports.gameCvars.sv_gravity.set(gameExports.gameCvars.sv_gravity.getDefaultValue());
             } else {
                 gameExports.gameCvars.sv_gravity.setText(ent.st.gravity);

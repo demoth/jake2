@@ -297,13 +297,15 @@ private val triggerElevatorCheckTargets = registerThink("trigger_elevator_init")
     true
 }
 
-private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, other, activator, game ->
-    if (self.movetarget.think.nextTime != 0f) {
+private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, other, _, game ->
+    val train = self.movetarget ?: return@registerUse
+    if (other == null || !train.inuse || train.classname != "func_train") return@registerUse
+    if (train.think.nextTime != 0f) {
         // elevator busy
         return@registerUse
     }
 
-    if (other?.pathtarget == null) {
+    if (other.pathtarget == null) {
         Com.Warn(GAME, "elevator used with no pathtarget")
         return@registerUse
     }
@@ -314,8 +316,8 @@ private val triggerElevatorUse = registerUse("trigger_elevator_use") { self, oth
         return@registerUse
     }
 
-    self.movetarget.target_ent = target
-    trainResume(self.movetarget, game)
+    train.target_ent = target
+    trainResume(train, game)
 }
 
 // since the entities below behave like func_train and require similar routines, they are placed here
