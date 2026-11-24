@@ -16,6 +16,7 @@ public class GameCvars {
     public final cvar_t<Boolean> sv_cheats;
     public final cvar_t<Integer> maxspectators;
     public final cvar_t<Boolean> coop;
+    public final cvar_t<Float> coop_elevator_delay;
     public final cvar_t<Integer> skill;
     public final cvar_t<Integer> dmflags;
     public final cvar_t<Integer> fraglimit;
@@ -53,6 +54,8 @@ public class GameCvars {
         skill = gameImports.registerCvar("skill", new CvarTypes.ChoiceType<>(List.of(0, 1, 2, 3)), 0, Defines.CVAR_LATCH, "Difficulty: 0 easy, 1 medium, 2 hard, 3 nightmare");
 
         // change anytime vars
+        coop_elevator_delay = gameImports.registerCvar("coop_elevator_delay", CvarTypes.FLOAT, 1f, Defines.CVAR_ARCHIVE,
+                "Seconds a platform waits for other riders before rising in co-op. Zero disables the delay.");
         dmflags = gameImports.findCvar("dmflags", Integer.class);
         fraglimit = gameImports.findCvar("fraglimit", Integer.class);
         timelimit = gameImports.findCvar("timelimit", Float.class);

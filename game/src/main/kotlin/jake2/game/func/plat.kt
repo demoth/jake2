@@ -150,7 +150,7 @@ private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, game
     if (moveInfo.state == MovementState.UP)
         platGoDown.think(self, gameExports)
     else if (moveInfo.state == MovementState.DOWN)
-        platGoUp(self, gameExports)
+        platGoUp.think(self, gameExports)
 
 }
 
@@ -200,14 +200,22 @@ private val platTriggerTouch = registerTouch("touch_plat_center") { self, other,
     // now point at the plat, not the trigger
     val plat = self.enemy
     val moveInfo: MoveInfo = self.enemy.getComponent()!!
-    if (moveInfo.state == MovementState.BOTTOM)
-        platGoUp(plat, game)
-    else if (moveInfo.state == MovementState.TOP) {
+    if (moveInfo.state == MovementState.BOTTOM) {
+        val delay = game.gameCvars.coop_elevator_delay.typedValue
+        if (game.gameCvars.coop.typedValue && delay > 0f) {
+            if (plat.think.nextTime == 0f) {
+                plat.think.action = platGoUp
+                plat.think.nextTime = game.level.time + delay
+            }
+        } else {
+            platGoUp.think(plat, game)
+        }
+    } else if (moveInfo.state == MovementState.TOP) {
         // the player is still on the plat, so delay going down
         plat.think.nextTime = game.level.time + 1 
     }
 }
-private fun platGoUp(self: GameEntity, game: GameExportsImpl) {
+private val platGoUp = registerThink("plat_go_up") { self, game ->
     val moveInfo: MoveInfo = self.getComponent()!!
 
     if (self.flags and GameDefines.FL_TEAMSLAVE == 0) {
@@ -221,6 +229,7 @@ private fun platGoUp(self: GameEntity, game: GameExportsImpl) {
     }
     moveInfo.state = MovementState.UP
     startMovement(self, moveInfo.start_origin, platHitTop, game)
+    true
 }
 
 private val platHitTop = registerThink("plat_hit_top") { self, game ->

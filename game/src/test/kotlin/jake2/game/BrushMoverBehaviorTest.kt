@@ -14,6 +14,35 @@ class BrushMoverBehaviorTest {
     private val game = scenario.game
 
     @Test
+    fun platformWaitsOnceForCoopRidersBeforeStartingItsMotor() {
+        fun checkDeparture(coop: Boolean, delay: Float?, waitFrames: Int) {
+            val world = EntityScenario(object : GameImports by TestGameImports() {
+                override fun soundindex(name: String?) = if (name == "plats/pt1_mid.wav") 1 else 0
+            })
+            val game = world.game
+            game.gameCvars.coop.forceSet(coop)
+            if (delay != null) game.gameCvars.coop_elevator_delay.forceSet(delay)
+            val plat = world.spawn("func_plat") { targetname = null; st.height = 64 }
+            val trigger = game.g_edicts.single { it.inuse && it.solid == Defines.SOLID_TRIGGER }
+            val rider = game.G_Spawn().apply { setClient(GamePlayerInfo(0)); health = 100 }
+            fun board() = trigger.touch.touch(trigger, rider, GameBase.dummyplane, null, game)
+            board()
+            repeat(waitFrames) {
+                assertEquals(0, plat.s.sound)
+                board()
+                game.G_RunFrame()
+            }
+            assertEquals(1, plat.s.sound)
+            repeat(15) { game.G_RunFrame() }
+            assertEquals(0f, plat.s.origin[2])
+        }
+        checkDeparture(coop = true, delay = null, waitFrames = 10)
+        checkDeparture(coop = true, delay = 0.4f, waitFrames = 4)
+        checkDeparture(coop = true, delay = 0f, waitFrames = 0)
+        checkDeparture(coop = false, delay = 1f, waitFrames = 0)
+    }
+
+    @Test
     fun platformAndTrainExplodeDebrisAtItsWorldBoundsCenter() {
         val messages = mutableListOf<ServerMessage>()
         val world = EntityScenario(object : GameImports by TestGameImports() {
