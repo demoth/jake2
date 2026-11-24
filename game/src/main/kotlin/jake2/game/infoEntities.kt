@@ -9,30 +9,74 @@ import jake2.qcommon.util.Math3D
  * The normal starting point for a level.
  */
 fun infoPlayerStart(self: GameEntity, game: GameExportsImpl) {
-    if (!game.gameCvars.coop.typedValue)
-        return
-    if ("security".equals(game.level.mapname, true)) {
+    val mapName = game.level.mapname.orEmpty().lowercase()
+
+    // map hack
+    if (mapName == "security" && game.gameCvars.coop.typedValue) {
         // invoke one of our gross, ugly, disgusting hacks
         self.think.action = createCoopStartHack
         self.think.nextTime = game.level.time + Defines.FRAMETIME
     }
+
+    // map hack
+    if (mapName in unnamedStartEntrances) {
+        // Call function to hack unnamed spawn points
+        self.think.action = createUnnamedStart
+        self.think.nextTime = game.level.time + Defines.FRAMETIME
+    }
+}
+
+private val unnamedStartEntrances = mapOf(
+    "mine1" to "mintro",
+    "mine2" to "mine1",
+    "mine3" to "mine2a",
+    "mine4" to "mine3",
+    "power2" to "power1",
+    "waste1" to "power2",
+    "waste2" to "waste1",
+    "city2" to "city2NL"
+)
+
+/*
+ * Some maps have no unnamed (e.g. generic)
+ * info_player_start. This is no problem in
+ * normal gameplay, but if the map is loaded
+ * via console there is a huge chance that
+ * the player will spawn in the wrong point.
+ * Therefore create an unnamed info_player_start
+ * at the correct point.
+ */
+private val createUnnamedStart = registerThink("SP_CreateUnnamedSpawn") { self, game ->
+    val entrance = unnamedStartEntrances[game.level.mapname.lowercase()] ?: return@registerThink true
+    if (entrance.equals(self.targetname, ignoreCase = true)) {
+        game.spawnOptional()?.apply {
+            classname = "info_player_start"
+            Math3D.VectorCopy(self.s.origin, s.origin)
+            s.angles[1] = self.s.angles[1]
+        }
+    }
+    true
 }
 
 private val mapsToFixCoop = setOf(
     "jail2",
     "jail4",
+    "mintro",
     "mine1",
     "mine2",
     "mine3",
     "mine4",
     "lab",
     "boss1",
+    "fact1",
     "fact3",
+    "waste1", // really?
     "biggun",
     "space",
     "command",
     "power2",
-    "strike"
+    "strike",
+    "city2"
 )
 
 /**
@@ -44,7 +88,8 @@ fun infoPlayerCoop(self: GameEntity, game: GameExportsImpl) {
         game.freeEntity(self)
         return
     }
-    if (game.level.mapname in mapsToFixCoop) {
+    // map hack
+    if (game.level.mapname.orEmpty().lowercase() in mapsToFixCoop) {
         // invoke one of our gross, ugly, disgusting hacks
         self.think.action = fixCoopStartHack
         self.think.nextTime = game.level.time + Defines.FRAMETIME
@@ -72,8 +117,8 @@ private val fixCoopStartHack = registerThink("SP_FixCoopSpots") { self, game ->
         if (spot.targetname == null)
             continue
         Math3D.VectorSubtract(self.s.origin, spot.s.origin, d)
-        if (Math3D.VectorLength(d) < 384) {
-            if (self.targetname == null || self.targetname.equals(spot.targetname, true)) {
+        if (Math3D.VectorLength(d) < 550) {
+            if (!spot.targetname.equals(self.targetname, ignoreCase = true)) {
                 self.targetname = spot.targetname
             }
             return@registerThink true

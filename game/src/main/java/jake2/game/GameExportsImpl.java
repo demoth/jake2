@@ -245,27 +245,41 @@ public class GameExportsImpl implements GameExports {
      * recreated, which can cause interpolated angles and bad trails.
      */
     public GameEntity G_Spawn() {
-        GameEntity e;
+        GameEntity entity = allocateEdict(false);
+        if (entity == null)
+            this.gameImports.error("ED_Alloc: no free edicts");
+        return entity;
+    }
+
+    GameEntity spawnOptional() {
+        return allocateEdict(true);
+    }
+
+    private GameEntity allocateEdict(boolean allowRecentSlotAtCapacity) {
+        int recentSlot = -1;
         int i;
-        for (i = this.game.maxclients + 1; i < this.num_edicts; i++) {
-            e = this.g_edicts[i];
-            // the first couple seconds of server time can involve a lot of
-            // freeing and allocating, so relax the replacement policy
-            if (!e.inuse
-                    && (e.freetime < 2 || this.level.time - e.freetime > 0.5)) {
-                e = this.g_edicts[i] = new GameEntity(i);
-                e.G_InitEdict(i);
-                return e;
-            }
+        for (i = game.maxclients + 1; i < num_edicts; i++) {
+            GameEntity slot = g_edicts[i];
+            if (slot.inuse)
+                continue;
+            if (slot.freetime < 2 || level.time - slot.freetime > 0.5)
+                break;
+            if (recentSlot < 0)
+                recentSlot = i;
         }
 
-        if (i == this.game.maxentities)
-            this.gameImports.error("ED_Alloc: no free edicts");
+        if (i == game.maxentities) {
+            if (!allowRecentSlotAtCapacity || recentSlot < 0)
+                return null;
+            i = recentSlot;
+        } else if (i == num_edicts) {
+            num_edicts++;
+        }
 
-        e = this.g_edicts[i] = new GameEntity(i);
-        e.G_InitEdict(i);
-        this.num_edicts++;
-        return e;
+        GameEntity entity = new GameEntity(i);
+        entity.G_InitEdict(i);
+        g_edicts[i] = entity;
+        return entity;
     }
 
     /**
