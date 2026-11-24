@@ -299,9 +299,10 @@ private val doorBlocked = registerBlocked("door_blocked") { self, obstacle, game
             GameDefines.MOD_CRUSH, game
         )
         // if it's still there, nuke it
-        // fixme check: before it was `obstacle != null`
-        if (obstacle.inuse)
+        if (obstacle.inuse) {
+            VectorMA(obstacle.absmin, 0.5f, obstacle.size, obstacle.s.origin)
             GameMisc.BecomeExplosion1(obstacle, game)
+        }
         return@registerBlocked
     }
 
@@ -548,6 +549,7 @@ private val doorClosed = registerThink("door_hit_bottom") { self, game ->
 }
 
 private val doorKilled = registerDie("door_killed") { self, inflictor, attacker, damage, point, game ->
+    if (attacker == null) return@registerDie
     var ent: GameEntity? = self.teammaster
     while (ent != null) {
             ent.health = ent.max_health
@@ -646,6 +648,7 @@ fun funcDoorSecret(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val doorSecretKilled = registerDie("door_secret_die") { self, inflictor, attacker, damage, point, game ->
+    if (attacker == null) return@registerDie
     self.takedamage = Defines.DAMAGE_NO
     doorSecretOpeningBack.use(self, attacker, attacker, game)
 }
@@ -715,8 +718,10 @@ private val doorSecretBlocked = registerBlocked("door_secret_blocked") { self, o
             GameDefines.MOD_CRUSH, game
         )
         // if it's still there, nuke it
-        if (obstacle.inuse)
+        if (obstacle.inuse) {
+            VectorMA(obstacle.absmin, 0.5f, obstacle.size, obstacle.s.origin)
             GameMisc.BecomeExplosion1(obstacle, game)
+        }
         return@registerBlocked
     }
 
@@ -854,7 +859,7 @@ private val doorRotatingFinal = registerThink("angle_move_final") { self, game -
     true
 }
 
-private val doorRotatingDone = registerThink("angle_move_final") { self, game ->
+private val doorRotatingDone = registerThink("angle_move_done") { self, game ->
     Math3D.VectorClear(self.avelocity)
     self.getComponent<MoveInfo>()!!.endfunc!!.think(self, game)
     true

@@ -43,14 +43,14 @@ class BrushMoverBehaviorTest {
     }
 
     @Test
-    fun platformAndTrainExplodeDebrisAtItsWorldBoundsCenter() {
+    fun moversExplodeDebrisAtItsWorldBoundsCenter() {
         val messages = mutableListOf<ServerMessage>()
         val world = EntityScenario(object : GameImports by TestGameImports() {
             override fun multicastMessage(origin: FloatArray?, msg: ServerMessage, to: MulticastTypes?) {
                 messages.add(msg)
             }
         })
-        for (classname in listOf("func_plat", "func_train")) {
+        for (classname in listOf("func_plat", "func_train", "func_door", "func_door_rotating", "func_door_secret")) {
             val mover = world.spawn(classname)
             val debris = world.game.G_Spawn().apply {
                 absmin = floatArrayOf(100f, 200f, 300f)
