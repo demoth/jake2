@@ -33,6 +33,17 @@ class TargetFamilyBehaviorTest {
     private val game = scenario.game
 
     @Test
+    fun firingSharedTargetsSkipsEntitiesRemovedByAnEarlierRelay() {
+        val first = scenario.spawn("target_temp_entity") { targetname = "group"; style = Defines.TE_EXPLOSION2 }
+        scenario.spawn("trigger_relay") { targetname = "group"; target = "cleanup" }
+        val last = scenario.spawn("target_temp_entity") { targetname = "GROUP"; style = Defines.TE_EXPLOSION1 }
+        scenario.spawn("trigger_relay") { targetname = "cleanup"; killtarget = "group" }
+        scenario.fire(first)
+        assertFalse(last.inuse)
+        assertEquals(listOf(PointTEMessage(Defines.TE_EXPLOSION2, first.s.origin)), messages)
+    }
+
+    @Test
     fun tempEntitySendsItsConfiguredPointEffect() {
         val effect = scenario.spawn("target_temp_entity") { style = Defines.TE_EXPLOSION2 }
         scenario.fire(effect)

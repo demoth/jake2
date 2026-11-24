@@ -29,7 +29,6 @@ package jake2.game;
 import jake2.qcommon.Com;
 import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.qcommon.Defines;
-import jake2.qcommon.ServerEntity;
 import jake2.qcommon.cplane_t;
 import jake2.qcommon.util.Lib;
 import jake2.qcommon.util.Math3D;
@@ -77,7 +76,10 @@ public class GameBase {
      * will be returned if the end of the list is reached.
      *
      * @param name - either className or targetName
+     * @deprecated Use {@link GameExportsImpl#findEntity(java.util.function.Predicate)} for a single match.
+     * Use {@link GameExportsImpl#findEntities(java.util.function.Predicate)} to visit multiple matches.
      */
+    @Deprecated
     public static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
                                 String name, GameExportsImpl gameExports) {
 
@@ -100,16 +102,6 @@ public class GameBase {
         }
 
         return null;
-    }
-
-    // comfort version (rst)
-    static ServerEntity G_FindEdict(EdictIterator from, EdictFindFilter eff,
-                                    String s, GameExportsImpl gameExports) {
-        EdictIterator ei = G_Find(from, eff, s, gameExports);
-        if (ei == null)
-            return null;
-        else
-            return ei.o;
     }
 
     /**
@@ -163,10 +155,8 @@ public class GameBase {
             return null;
         }
 
-        EdictIterator es = null;
-
-        while ((es = G_Find(es, findByTargetName, targetname, gameExports)) != null) {
-            choice[num_choices++] = es.o;
+        for (GameEntity entity : gameExports.findEntities(e -> targetname.equalsIgnoreCase(e.targetname))) {
+            choice[num_choices++] = entity;
             if (num_choices == MAXCHOICES)
                 break;
         }
@@ -229,11 +219,15 @@ public class GameBase {
     static final int STEPSIZE = 18;
 
 
+    /** @deprecated Compare targetname directly in the predicate passed to findEntity or findEntities. */
+    @Deprecated
     public static final EdictFindFilter findByTargetName = (e, targetName) -> {
         if (e.targetname == null)
             return false;
         return e.targetname.equalsIgnoreCase(targetName);
     };
 
+    /** @deprecated Compare classname directly in the predicate passed to findEntity or findEntities. */
+    @Deprecated
     static final EdictFindFilter findByClassName = (e, className) -> e.classname.equalsIgnoreCase(className);
 }

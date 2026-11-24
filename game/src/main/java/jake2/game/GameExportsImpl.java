@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import static jake2.qcommon.Com.LogSubsystem.GAME;
 import static jake2.game.GameBase.G_Find;
@@ -228,6 +229,14 @@ public class GameExportsImpl implements GameExports {
                 return entity;
         }
         return null;
+    }
+
+    /** Visits matching active entities in slot order, including changes to later slots as callers iterate. */
+    public Iterable<GameEntity> findEntities(Predicate<GameEntity> matches) {
+        return () -> IntStream.iterate(0, slot -> slot < num_edicts, slot -> slot + 1)
+                .mapToObj(slot -> g_edicts[slot])
+                .filter(entity -> entity.inuse && matches.test(entity))
+                .iterator();
     }
 
     /**
