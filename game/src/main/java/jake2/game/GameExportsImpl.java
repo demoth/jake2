@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.function.Predicate;
 
 import static jake2.qcommon.Com.LogSubsystem.GAME;
 import static jake2.game.GameBase.G_Find;
@@ -217,6 +218,16 @@ public class GameExportsImpl implements GameExports {
         }
 
         playerTrail = new PlayerTrail(this);
+    }
+
+    /** Returns the first active entity in slot order matching the predicate, or null. */
+    public GameEntity findEntity(Predicate<GameEntity> matches) {
+        for (int i = 0; i < num_edicts; i++) {
+            GameEntity entity = g_edicts[i];
+            if (entity.inuse && matches.test(entity))
+                return entity;
+        }
+        return null;
     }
 
     /**

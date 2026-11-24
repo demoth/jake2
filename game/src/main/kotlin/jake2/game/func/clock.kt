@@ -57,10 +57,15 @@ fun funcClock(self: GameEntity, game: GameExportsImpl) {
 
 private val clockThink = registerThink("func_clock_think") { self, game ->
     // enemy here is just the target entity
-    val display = self.enemy?.takeIf { it.inuse && it.classname == "target_string" }
-        ?: GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)?.o
-            ?.takeIf { it.classname == "target_string" }
-    self.enemy = display
+    var display = self.enemy
+    if (display == null || !display.inuse || display.classname != "target_string") {
+        // Compatibility: Yamagi skips the display update if another class matches the name first.
+        // Look up the display directly so an unrelated entity cannot hide it.
+        display = game.findEntity {
+            it.classname == "target_string" && it.targetname.equals(self.target, ignoreCase = true)
+        }
+        self.enemy = display
+    }
     if (display != null) {
         val text = if (self.hasSpawnFlag(TIMER_UP) || self.hasSpawnFlag(TIMER_DOWN)) {
             formatCounter(self.style, self.health)

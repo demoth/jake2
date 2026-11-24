@@ -41,6 +41,27 @@ class ClockAndTimerBehaviorTest {
     }
 
     @Test
+    fun clockFindsTheFirstDisplayEvenWhenARelaySharesItsName() {
+        val portal = scene.spawn("func_areaportal")
+        scene.spawn("trigger_relay") { targetname = "time"; target = portal.targetname }
+        val first = scene.spawn("target_string") { targetname = "Time" }
+        val second = scene.spawn("target_string") { targetname = "time" }
+        val firstDigit = scene.spawn("target_character") { count = 2 }
+        val secondDigit = scene.spawn("target_character") { count = 2 }
+        first.teammaster = firstDigit
+        second.teammaster = secondDigit
+        scene.spawn("func_clock") { target = "TIME"; count = 5; spawnflags = 2 }
+
+        advance(10)
+        assertEquals(5, firstDigit.s.frame)
+        assertEquals(12, secondDigit.s.frame)
+        scene.game.freeEntity(first)
+        advance(10)
+        assertEquals(4, secondDigit.s.frame)
+        assertTrue(writes.isEmpty())
+    }
+
+    @Test
     fun restartableClockFiresAtZeroEvenWithoutItsDisplay() {
         val portal = scene.spawn("func_areaportal")
         val clock = scene.spawn("func_clock") {
