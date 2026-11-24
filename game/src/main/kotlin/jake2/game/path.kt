@@ -101,7 +101,11 @@ private val pointCombatTouch = registerTouch("point_combat_touch") { self, other
         other.target = self.target
         other.movetarget = GameBase.G_PickTarget(other.target, game)
         other.goalentity = other.movetarget
-        if (other.goalentity == null) {
+        if (other.goalentity != null) {
+            val direction = FloatArray(3)
+            Math3D.VectorSubtract(other.goalentity.s.origin, other.s.origin, direction)
+            other.ideal_yaw = Math3D.vectoyaw(direction)
+        } else {
             Com.Warn(GAME, "${self.classname} at ${Lib.vtos(self.s.origin)} target ${self.target} does not exist")
             other.movetarget = self
         }
