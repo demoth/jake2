@@ -27,8 +27,8 @@ class EntityComponentsSnapshotTest {
         }
         entity.addComponent(Medkit(100, 12, ignoreMax = true, timed = true))
         entity.addComponent(Light(35, false))
-        entity.addComponent(LightRamp(97, 122, 3f, targetTime = 10f,
-            toggleable = true, fraction = 0.4f, targetLightStyle = 35))
+        entity.addComponent(LightRamp(0, 25, 3f, targetTime = 10f,
+            toggleable = true, targetLightStyle = 35))
         entity.addComponent(AreaPortal(4, true))
         entity.addComponent(Earthquake(13, duration = 9f, magnitude = 250f, soundTime = 4f, stopTime = 12f))
 

@@ -3,7 +3,6 @@ package jake2.game.components
 import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.qcommon.Defines
-import jake2.qcommon.lerpI
 
 inline fun <reified T> GameEntity.getComponent(): T? {
     return this.components[T::class.java.name] as? T
@@ -38,26 +37,18 @@ data class LightRamp(
     val duration: Float, // seconds
     var targetTime: Float = 0f,
     val toggleable: Boolean = false,
-    var fraction: Float = 0f,
     var targetLightStyle: Int = -1
 ) {
-    fun update(delta: Float): Int {
-        if (fraction < 1) {
-            fraction += delta / duration
-        }
-        if (fraction > 1) {
-            fraction = 1f
-        }
-        return lerpI(start, end, fraction)
+    fun styleAt(time: Float): Char {
+        val remaining = targetTime - time
+        val fraction = if (remaining <= 0f) 1f else (1f - remaining / duration).coerceIn(0f, 1f)
+        return ('a'.code + start + (end - start) * fraction).toInt().toChar()
     }
 
-    fun toggle(currentTime: Float) {
-        val tmp = start
+    fun toggle() {
+        val previousStart = start
         start = end
-        end = tmp
-
-        targetTime = currentTime + duration
-        fraction = 0f
+        end = previousStart
     }
 }
 

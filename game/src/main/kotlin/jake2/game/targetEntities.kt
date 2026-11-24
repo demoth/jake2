@@ -432,23 +432,19 @@ fun targetLightramp(self: GameEntity, game: GameExportsImpl) {
         self.message[0].code - 'a'.code,
         self.message[1].code - 'a'.code,
         self.speed,
-        game.level.time + self.speed,
-        self.hasSpawnFlag(LIGHTRAMP_TOGGLE)
+        toggleable = self.hasSpawnFlag(LIGHTRAMP_TOGGLE)
     ))
 
 }
 
 private val targetLightrampThink = registerThink("target_lightramp_think") { self, game ->
     val lightRamp: LightRamp = self.getComponent() ?: return@registerThink false
-    if (lightRamp.targetTime < game.level.time) {
-        val newValue = lightRamp.update(Defines.FRAMETIME)
-        // fixme: don't call if not changed
-        game.gameImports.configstring(Defines.CS_LIGHTS + lightRamp.targetLightStyle, ('a'.code + newValue).toChar().toString())
-        self.think.nextTime = game.level.time + Defines.FRAMETIME
-    } else {
-        if (lightRamp.toggleable) {
-            lightRamp.toggle(game.level.time)
-        }
+    val time = game.level.time
+    game.gameImports.configstring(Defines.CS_LIGHTS + lightRamp.targetLightStyle, lightRamp.styleAt(time).toString())
+    if (time < lightRamp.targetTime) {
+        self.think.nextTime = time + Defines.FRAMETIME
+    } else if (lightRamp.toggleable) {
+        lightRamp.toggle()
     }
     true
 }
@@ -478,7 +474,7 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
             return@registerUse
         }
     }
-    // start the ramping
+    lightRamp.targetTime = game.level.time + lightRamp.duration
     targetLightrampThink.think(self, game)
 
 }
