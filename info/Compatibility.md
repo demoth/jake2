@@ -35,6 +35,13 @@ lookup order and package precedence.
 
 ## Mods and gameplay
 
+Jake2 uses Yamagi Quake II as a reference for gameplay behavior. As a JVM port,
+it favors standard Java and Kotlin facilities wherever they fit. Number parsing
+and string handling are two examples.
+Edge cases can differ from the original C code. Preserve a C-specific rule when
+maps or normal gameplay depend on it. For example, a `trigger_gravity` value of
+`0.5` means half gravity in Jake2.
+
 Custom maps and asset replacements can work when they use supported formats,
 available resources, and gameplay entities implemented by Jake2.
 

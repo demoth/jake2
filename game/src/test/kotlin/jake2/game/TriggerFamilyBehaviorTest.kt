@@ -102,13 +102,16 @@ class TriggerFamilyBehaviorTest {
     }
 
     @Test
-    fun gravityReadsTheDecimalIntegerPrefix() {
+    fun gravityAppliesTheConfiguredMultiplier() {
         val entity = game.G_Spawn()
-        for ((value, expected) in listOf("2" to 2f, "0.5" to 0f, "1e2" to 1f, " -2x" to -2f)) {
+        for ((value, expected) in listOf("2" to 2f, "0.5" to 0.5f, "0" to 0f, "-1" to -1f)) {
             touch(scenario.spawn("trigger_gravity") { st.gravity = value }, entity)
             assertEquals(expected, entity.gravity, value)
         }
         assertFalse(scenario.spawn("trigger_gravity").inuse)
+        for (invalid in listOf("half", "NaN", "Infinity")) {
+            assertFalse(scenario.spawn("trigger_gravity") { st.gravity = invalid }.inuse)
+        }
     }
 
     @Test

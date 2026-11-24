@@ -353,19 +353,16 @@ private val triggerPushTouch = registerTouch("trigger_push_touch") { self, other
  * to the value of "gravity". 1.0 is standard gravity for the level.
  */
 fun triggerGravity(self: GameEntity, game: GameExportsImpl) {
-    if (self.st.gravity == null) {
-        Com.Warn(GAME, "trigger_gravity without gravity set at ${Lib.vtos(self.s.origin)}")
+    val gravity = self.st.gravity?.toFloatOrNull()
+    if (gravity == null || !gravity.isFinite()) {
+        Com.Warn(GAME, "trigger_gravity requires a finite gravity multiplier at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
     initTrigger(self, game)
-    // Yamagi reads the map field with strtol in base 10.
-    val prefix = gravityIntegerPrefix.find(self.st.gravity.trimStart())?.value
-    self.gravity = prefix?.toLongOrNull()?.toInt()?.toFloat() ?: 0f
+    self.gravity = gravity
     self.touch = triggerGravityTouch
 }
-
-private val gravityIntegerPrefix = Regex("^[+-]?[0-9]+")
 
 private val triggerGravityTouch = registerTouch("trigger_gravity_touch") { self, other, _, _, _ ->
     other.gravity = self.gravity
