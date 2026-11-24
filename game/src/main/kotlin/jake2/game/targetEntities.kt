@@ -147,13 +147,12 @@ fun targetSecret(self: GameEntity, game: GameExportsImpl) {
     self.svflags = Defines.SVF_NOCLIENT
     game.level.total_secrets++
 
-    // map bug hack
-    if ("mine3".equals(game.level.mapname, ignoreCase = true)
-        && self.s.origin[0] == 280f
-        && self.s.origin[1] == -2048f
-        && self.s.origin[2] == -624f
-    ) {
-        self.message = "You have found a secret area."
+    // map hack
+    if ("mine3".equals(game.level.mapname, ignoreCase = true)) {
+        // map bug hack
+        if (self.s.origin.contentEquals(floatArrayOf(280f, -2048f, -624f))) {
+            self.message = "You have found a secret area."
+        }
     }
 }
 
@@ -242,16 +241,20 @@ private val targetSplashUse = registerUse("use_target_splash") { self, _, activa
  * should be moving otherwise it will just be dropped
  */
 fun targetSpawner(self: GameEntity, game: GameExportsImpl) {
-    // Lower the stock factory spawn point to match the corrected floor position.
-    if ("fact2".equals(game.level.mapname, ignoreCase = true) &&
-        self.s.origin.contentEquals(floatArrayOf(-1504f, 512f, 72f))) {
-        self.s.origin[2] = 64f
-    }
     self.use = targetSpawnerUse
     self.svflags = Defines.SVF_NOCLIENT
     if (self.speed != 0f) {
         GameBase.G_SetMovedir(self.s.angles, self.movedir)
         Math3D.VectorScale(self.movedir, self.speed, self.movedir)
+    }
+
+    // map hack
+    if ("fact2".equals(game.level.mapname, ignoreCase = true)) {
+        // Maphack for the insane spawner in Mobs-Egerlings
+        // beloved fact2. Found in KMQuake2
+        if (self.s.origin.contentEquals(floatArrayOf(-1504f, 512f, 72f))) {
+            self.s.origin[2] = 64f
+        }
     }
 }
 
@@ -556,12 +559,16 @@ fun targetChangelevel(self: GameEntity, game: GameExportsImpl) {
         return
     }
 
-    // ugly hack because *SOMEBODY* screwed up their map
-    if ("fact3".equals(self.map, ignoreCase = true) && "fact1".equals(game.level.mapname, ignoreCase = true))
-        self.map = "fact3\$secret1"
-
     self.use = targetChangelevelUse
     self.svflags = Defines.SVF_NOCLIENT
+
+    // map hack
+    if ("fact1".equals(game.level.mapname, ignoreCase = true)) {
+        // ugly hack because *SOMEBODY* screwed up their map
+        if ("fact3".equals(self.map, ignoreCase = true)) {
+            self.map = "fact3\$secret1"
+        }
+    }
 }
 
 private val targetChangelevelUse = registerUse("use_target_changelevel") { self, other, activator, game ->
