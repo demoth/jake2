@@ -101,7 +101,8 @@ private val trainBlocked = registerBlocked("train_blocked") { self, obstacle, ga
     )
 }
 
-private val trainUse = registerUse("train_use") { self, other, activator, game ->
+private val trainUse = registerUse("train_use") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     self.activator = activator
 
     if (self.hasSpawnFlag(TRAIN_START_ON)) {
@@ -358,6 +359,7 @@ fun miscFlyingShip(self: GameEntity, game: GameExportsImpl, model: String) {
 }
 
 private val miscFlyingShipUse = registerUse("misc_viper_use") { self, other, activator, game ->
+    if (activator == null || (other == null && self.classname.equals("misc_viper", ignoreCase = true))) return@registerUse
     self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
     self.use = trainUse
     trainUse.use(self, other, activator, game)

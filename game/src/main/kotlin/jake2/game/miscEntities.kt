@@ -48,6 +48,7 @@ fun miscExplobox(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val miscExploboxDelayedExplode = registerDie("barrel_delay") { self, _, attacker, _, _, game ->
+    if (attacker == null) return@registerDie
     self.takedamage = Defines.DAMAGE_NO
     self.think.nextTime = game.level.time + 2 * Defines.FRAMETIME
     self.think.action = miscExploboxExplode
@@ -127,10 +128,18 @@ fun miscBlackhole(self: GameEntity, game: GameExportsImpl) {
     Math3D.VectorSet(self.maxs, 64f, 64f, 8f)
     self.s.modelindex = game.gameImports.modelindex("models/objects/black/tris.md2")
     self.s.renderfx = Defines.RF_TRANSLUCENT
+    self.think.prethink = miscBlackholeTransparent
     self.use = miscBlackholeDisappear
     self.think.action = miscBlackholeThink
     self.think.nextTime = game.level.time + 2 * Defines.FRAMETIME
     game.gameImports.linkentity(self)
+}
+
+private val miscBlackholeTransparent = registerThink("misc_blackhole_transparent") { self, game ->
+    self.s.renderfx = Defines.RF_TRANSLUCENT or Defines.RF_NOSHADOW
+    self.think.prethink = null
+    game.gameImports.linkentity(self)
+    true
 }
 
 private val miscBlackholeThink = registerThink("misc_blackhole_think") { self, game ->
@@ -192,7 +201,7 @@ fun miscGibHead(self: GameEntity, game: GameExportsImpl) {
 
 private fun initGib(ent: GameEntity, game: GameExportsImpl, model: String) {
     game.gameImports.setmodel(ent, "models/objects/gibs/$model/tris.md2")
-    ent.solid = Defines.SOLID_NOT
+    ent.solid = Defines.SOLID_BBOX
     ent.s.effects = ent.s.effects or Defines.EF_GIB
     ent.takedamage = Defines.DAMAGE_YES
     ent.die = dieFreeEntity
@@ -282,7 +291,7 @@ private val miscDeadSoldierDieAdapter = registerDie("misc_deadsoldier_die") { se
         return@registerDie
 
     game.gameImports.sound(self, Defines.CHAN_BODY, game.gameImports.soundindex("misc/udeath.wav"), 1f, Defines.ATTN_NORM.toFloat(), 0f)
-    repeat(3) {
+    repeat(4) {
         GameMisc.ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
     }
     GameMisc.ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GameDefines.GIB_ORGANIC, game)
@@ -306,7 +315,8 @@ fun miscViperBomb(self: GameEntity, game: GameExportsImpl) {
     game.gameImports.linkentity(self)
 }
 
-private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, other, activator, game ->
+private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     self.solid = Defines.SOLID_BBOX
     self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
     self.s.effects = self.s.effects or Defines.EF_ROCKET

@@ -207,6 +207,7 @@ public class Defines {
 	public final static int RF_SHELL_RED = 1024;
 	public final static int RF_SHELL_GREEN = 2048;
 	public final static int RF_SHELL_BLUE = 4096;
+	public final static int RF_NOSHADOW = 8192; // Yamagi render flag
 
 	//ROGUE
 	public final static int RF_IR_VISIBLE = 0x00008000; // 32768 
