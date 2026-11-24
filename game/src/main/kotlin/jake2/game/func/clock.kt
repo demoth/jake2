@@ -56,6 +56,7 @@ fun funcClock(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val clockThink = registerThink("func_clock_think") { self, game ->
+    // enemy here is just the target entity
     val display = self.enemy?.takeIf { it.inuse && it.classname == "target_string" }
         ?: GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)?.o
             ?.takeIf { it.classname == "target_string" }

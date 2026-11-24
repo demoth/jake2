@@ -262,6 +262,8 @@ public class GameExportsImpl implements GameExports {
             GameEntity slot = g_edicts[i];
             if (slot.inuse)
                 continue;
+            // the first couple seconds of server time can involve a lot of
+            // freeing and allocating, so relax the replacement policy
             if (slot.freetime < 2 || level.time - slot.freetime > 0.5)
                 break;
             if (recentSlot < 0)
