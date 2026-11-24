@@ -523,7 +523,10 @@ fun targetString(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val targetStringUse = registerUse("target_string_use") { self, _, _, _ ->
-    val length = self.message.length
+    showTargetString(self, self.message)
+}
+
+internal fun showTargetString(self: GameEntity, text: String) {
     var e = self.teammaster
     while (e != null && e.inuse) {
         if (e.count <= 0) {
@@ -531,12 +534,12 @@ private val targetStringUse = registerUse("target_string_use") { self, _, _, _ -
             continue
         }
         val index = e.count - 1
-        if (index >= length) {
+        if (index >= text.length) {
             e.s.frame = 12
             e = e.teamchain
             continue
         }
-        e.s.frame = when (val c = self.message[index]) {
+        e.s.frame = when (val c = text[index]) {
             in '0'..'9' -> c.code - '0'.code
             '-' -> 10
             ':' -> 11

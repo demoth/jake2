@@ -6,7 +6,8 @@ import jake2.game.*
 import jake2.game.adapters.SuperAdapter.Companion.registerThink
 import jake2.game.adapters.SuperAdapter.Companion.registerUse
 import jake2.qcommon.util.Lib
-import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Locale
 
 /**
  * QUAKED func_clock (0 0 1) (-8 -8 -8) (8 8 8)
@@ -36,18 +37,17 @@ fun funcClock(self: GameEntity, game: GameExportsImpl) {
         return
     }
 
-    if (self.hasSpawnFlag(TIMER_DOWN) && self.count == 0) {
+    if (self.hasSpawnFlag(TIMER_DOWN) && self.count <= 0) {
         Com.Warn(GAME, "${self.classname} with no count at ${Lib.vtos(self.s.origin)}")
         game.freeEntity(self)
         return
     }
 
-    if (self.hasSpawnFlag(TIMER_UP) && self.count == 0)
+    if (self.hasSpawnFlag(TIMER_UP) && self.count <= 0)
         self.count = 60 * 60
 
     clockReset(self)
 
-    self.message = ""
     self.think.action = clockThink
     if (self.hasSpawnFlag(START_OFF))
         self.use = clockUse
@@ -56,31 +56,27 @@ fun funcClock(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val clockThink = registerThink("func_clock_think") { self, game ->
-    // enemy here is just the target entity
-    if (self.enemy == null) {
-        val es = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)
-        if (es != null)
-            self.enemy = es.o
-        if (self.enemy == null)
-            return@registerThink true
+    val display = self.enemy?.takeIf { it.inuse && it.classname == "target_string" }
+        ?: GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)?.o
+            ?.takeIf { it.classname == "target_string" }
+    self.enemy = display
+    if (display != null) {
+        val text = if (self.hasSpawnFlag(TIMER_UP) || self.hasSpawnFlag(TIMER_DOWN)) {
+            formatCounter(self.style, self.health)
+        } else {
+            formatCounter(2, LocalTime.now().toSecondOfDay())
+        }
+        showTargetString(display, text)
     }
 
     if (self.hasSpawnFlag(TIMER_UP)) {
-        clockFormatCountDown(self)
         self.health++
     } else if (self.hasSpawnFlag(TIMER_DOWN)) {
-        clockFormatCountDown(self)
         self.health--
-    } else {
-        val now = LocalDateTime.now()
-        self.message = "${now.hour}:${now.minute}:${now.second}"
     }
 
-    self.enemy.message = self.message
-    self.enemy.use.use(self.enemy, self, self, game)
-
-    if (self.hasSpawnFlag(TIMER_UP) && self.health > self.wait
-                || self.hasSpawnFlag(TIMER_DOWN) && self.health < self.wait) {
+    if (self.hasSpawnFlag(TIMER_UP) && self.health > self.count
+                || self.hasSpawnFlag(TIMER_DOWN) && self.health < 0) {
         if (self.pathtarget != null) {
             val prevTarget = self.target
             val prevMessage = self.message
@@ -91,7 +87,8 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
             self.message = prevMessage
         }
         if (!self.hasSpawnFlag(MULTI_USE)) {
-            // todo: free entity
+            self.think.action = GameUtil.G_FreeEdictA
+            self.think.nextTime = game.level.time + 1
             return@registerThink true
         }
         clockReset(self)
@@ -105,7 +102,7 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
 }
 
 private val clockUse = registerUse("func_clock_use") { self, other, activator, game ->
-    if (self.hasSpawnFlag(MULTI_USE))
+    if (!self.hasSpawnFlag(MULTI_USE))
         self.use = null
 
     if (self.activator != null)
@@ -115,29 +112,18 @@ private val clockUse = registerUse("func_clock_use") { self, other, activator, g
 
 }
 
-// don't let field width of any clock messages change, or it
-// could cause an overwrite after a game load
 private fun clockReset(self: GameEntity) {
     self.activator = null
     if (self.hasSpawnFlag(TIMER_UP)) {
         self.health = 0
-        self.wait = self.count.toFloat()
     } else if (self.hasSpawnFlag(TIMER_DOWN)) {
         self.health = self.count
-        self.wait = 0f
     }
 }
 
-private fun clockFormatCountDown(self: GameEntity) {
-    if (self.style == 0) {
-        self.message = "" + self.health
-        return
-    }
-    if (self.style == 1) {
-        self.message = "${self.health / 60}:${self.health % 60}"
-        return
-    }
-    if (self.style == 2) {
-        self.message = "${self.health / 3600}:${(self.health - self.health / 3600 * 3600) / 60}:${self.health % 60}"
-    }
+private fun formatCounter(style: Int, seconds: Int): String = when (style) {
+    0 -> "%2d".format(Locale.ROOT, seconds)
+    1 -> "%2d:%02d".format(Locale.ROOT, seconds / 60, seconds % 60)
+    2 -> "%2d:%02d:%02d".format(Locale.ROOT, seconds / 3600, seconds / 60 % 60, seconds % 60)
+    else -> ""
 }

@@ -48,6 +48,7 @@ fun funcTimer(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val timerUse = registerUse("func_timer_use") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     self.activator = activator
 
     // if on, turn it off
