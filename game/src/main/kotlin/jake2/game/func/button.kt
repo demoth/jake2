@@ -83,6 +83,7 @@ fun funcButton(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val buttonUse = registerUse("button_use") { self, other, activator, game ->
+    if (activator == null) return@registerUse
     self.activator = activator
     buttonFire(self, game)
 }
