@@ -3,7 +3,6 @@ package jake2.game
 import jake2.game.components.Medkit
 import jake2.game.components.addComponent
 import jake2.game.items.GameItems
-import jake2.qcommon.Defines
 
 /*
 * QUAKED item_health (.3 .3 1) (-16 -16 -16) (16 16 16)
@@ -35,11 +34,6 @@ fun itemHealthMega(self: GameEntity, game: GameExportsImpl) {
 
 
 private fun spawnHealth(self: GameEntity, game: GameExportsImpl, model: String, sound: String, amount: Int, ignoreHealth: Boolean = false, timed: Boolean = false) {
-    if (game.gameCvars.dmflags.typedValue and Defines.DF_NO_HEALTH != 0) {
-        game.freeEntity(self)
-        return
-    }
-
     self.addComponent(Medkit(amount, game.gameImports.soundindex(sound), ignoreHealth, timed))
     self.model = model
 
