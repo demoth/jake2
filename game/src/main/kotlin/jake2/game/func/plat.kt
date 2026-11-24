@@ -132,8 +132,10 @@ private val platBlocked = registerBlocked("plat_blocked") { self, obstacle, game
             GameDefines.MOD_CRUSH, gameExports
         )
         // if it's still there, nuke it
-        if (obstacle.inuse)
+        if (obstacle.inuse) {
+            Math3D.VectorMA(obstacle.absmin, 0.5f, obstacle.size, obstacle.s.origin)
             GameMisc.BecomeExplosion1(obstacle, gameExports)
+        }
         return@registerBlocked
     }
 

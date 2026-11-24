@@ -82,8 +82,10 @@ private val trainBlocked = registerBlocked("train_blocked") { self, obstacle, ga
             GameDefines.MOD_CRUSH, game
         )
         // if it's still there, nuke it
-        if (obstacle.inuse)
+        if (obstacle.inuse) {
+            Math3D.VectorMA(obstacle.absmin, 0.5f, obstacle.size, obstacle.s.origin)
             GameMisc.BecomeExplosion1(obstacle, game)
+        }
         return@registerBlocked
     }
 
