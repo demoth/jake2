@@ -26,6 +26,7 @@ import kotlin.math.abs
  * "wait" wait before returning (-1 default, -1 = TOGGLE)
  * "lip" lip remaining at end of move (0 default)
  * "sounds" (yes, these need to be changed) 0) no sound 1) water 2) lava
+ * In the original game, both 1 and 2 play the same water movement sounds.
  *
  * Note: func_water has a classname `func_door`
  */
@@ -52,9 +53,10 @@ fun funcWater(self: GameEntity, game: GameExportsImpl) {
     if (self.wait == 0f)
         self.wait = -1f
 
+    val playMovementSounds = self.sounds in 1..2
     self.addComponent(MoveInfo(
-        sound_start = if (self.sounds != 0) game.gameImports.soundindex("world/mov_watr.wav") else 0,
-        sound_end = if (self.sounds != 0) game.gameImports.soundindex("world/stp_watr.wav") else 0,
+        sound_start = if (playMovementSounds) game.gameImports.soundindex("world/mov_watr.wav") else 0,
+        sound_end = if (playMovementSounds) game.gameImports.soundindex("world/stp_watr.wav") else 0,
         distance = distance,
         start_origin = Vector3f(self.pos1),
         start_angles = Vector3f(self.s.angles),
