@@ -109,6 +109,7 @@ fun targetExplosion(self: GameEntity, game: GameExportsImpl) {
 
 private val targetExplosionUse = registerUse("use_target_explosion") { self, _, activator, game ->
     self.activator = activator
+    if (activator == null) return@registerUse
 
     if (self.delay != 0f) {
         self.think.action = targetExplosionExplode
@@ -147,7 +148,7 @@ fun targetSecret(self: GameEntity, game: GameExportsImpl) {
     game.level.total_secrets++
 
     // map bug hack
-    if ("mine3" == game.level.mapname
+    if ("mine3".equals(game.level.mapname, ignoreCase = true)
         && self.s.origin[0] == 280f
         && self.s.origin[1] == -2048f
         && self.s.origin[2] == -624f
@@ -156,7 +157,7 @@ fun targetSecret(self: GameEntity, game: GameExportsImpl) {
     }
 }
 
-private val targetSecretUse = registerUse("use_target_explosion") { self, _, activator, game ->
+private val targetSecretUse = registerUse("use_target_secret") { self, _, activator, game ->
     game.gameImports.sound(self, Defines.CHAN_VOICE, self.noise_index, 1f, Defines.ATTN_NORM.toFloat(), 0f)
 
     game.level.found_secrets++
@@ -211,6 +212,7 @@ fun targetSplash(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val targetSplashUse = registerUse("use_target_splash") { self, _, activator, gameExports ->
+    if (activator == null) return@registerUse
     gameExports.gameImports.multicastMessage(
         self.s.origin,
         SplashTEMessage(Defines.TE_SPLASH, self.count, self.s.origin, self.movedir, self.sounds),
@@ -240,6 +242,11 @@ private val targetSplashUse = registerUse("use_target_splash") { self, _, activa
  * should be moving otherwise it will just be dropped
  */
 fun targetSpawner(self: GameEntity, game: GameExportsImpl) {
+    // Lower the stock factory spawn point to match the corrected floor position.
+    if ("fact2".equals(game.level.mapname, ignoreCase = true) &&
+        self.s.origin.contentEquals(floatArrayOf(-1504f, 512f, 72f))) {
+        self.s.origin[2] = 64f
+    }
     self.use = targetSpawnerUse
     self.svflags = Defines.SVF_NOCLIENT
     if (self.speed != 0f) {
@@ -269,8 +276,6 @@ private val targetSpawnerUse = registerUse("use_target_spawner") { self, _, _, g
  *
  * dmg default is 15 speed default is 1000
  */
-private const val NO_TRAIL = 1
-private const val NO_EFFECTS = 2
 fun targetBlaster(self: GameEntity, game: GameExportsImpl) {
     self.use = targetBlasterUse
     GameBase.G_SetMovedir(self.s.angles, self.movedir)
@@ -284,18 +289,9 @@ fun targetBlaster(self: GameEntity, game: GameExportsImpl) {
 
 private val targetBlasterUse = registerUse("use_target_blaster") { self, _, _, game ->
 
-    // fixme
-    val effect: Int = if (self.hasSpawnFlag(NO_EFFECTS))
-        0
-    else if (self.hasSpawnFlag(NO_TRAIL))
-        Defines.EF_HYPERBLASTER
-    else
-        Defines.EF_BLASTER
-
     GameWeapon.fire_blaster(
         self, self.s.origin, self.movedir, self.dmg, self.speed.toInt(),
-        Defines.EF_BLASTER, 
-        self.hasSpawnFlag(NO_TRAIL), // fixed?
+        Defines.EF_BLASTER, false,
         game
     )
 
@@ -329,6 +325,7 @@ fun targetEarthquake(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val targetEarthquakeUse = registerUse("target_earthquake_use") { self, other, activator, game ->
+    if (activator == null) return@registerUse
     val earthquake: Earthquake = self.getComponent() ?: return@registerUse
     earthquake.stopTime = game.level.time + earthquake.duration
     self.think.nextTime = game.level.time + Defines.FRAMETIME
@@ -387,11 +384,31 @@ fun targetHelp(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val targetHelpUse = registerUse("Use_Target_Help") { self, _, _, game ->
-    if (self.hasSpawnFlag(HELP1))
-        game.game.helpmessage1 = self.message
-    else
-        game.game.helpmessage2 = self.message
+    // During map preload the saved level can still replace this entity.
+    if (game.level.time > HELP_STARTUP_DELAY) {
+        applyHelp(self, game)
+    } else {
+        self.think.action = targetHelpThink
+        self.think.nextTime = HELP_STARTUP_DELAY
+    }
+}
 
+private const val HELP_STARTUP_DELAY = 0.3f
+
+private val targetHelpThink = registerThink("target_help_think") { self, game ->
+    applyHelp(self, game)
+    self.think.action = null
+    true
+}
+
+private fun applyHelp(self: GameEntity, game: GameExportsImpl) {
+    if (self.hasSpawnFlag(HELP1)) {
+        if (game.game.helpmessage1 == self.message) return
+        game.game.helpmessage1 = self.message
+    } else {
+        if (game.game.helpmessage2 == self.message) return
+        game.game.helpmessage2 = self.message
+    }
     game.game.helpchanged++
 }
 
@@ -505,8 +522,8 @@ fun targetString(self: GameEntity, game: GameExportsImpl) {
 private val targetStringUse = registerUse("target_string_use") { self, _, _, _ ->
     val length = self.message.length
     var e = self.teammaster
-    while (e != null) {
-        if (e.count == 0) {
+    while (e != null && e.inuse) {
+        if (e.count <= 0) {
             e = e.teamchain
             continue
         }
@@ -540,7 +557,7 @@ fun targetChangelevel(self: GameEntity, game: GameExportsImpl) {
     }
 
     // ugly hack because *SOMEBODY* screwed up their map
-    if(self.map == "fact3" && game.level.mapname == "fact1")
+    if ("fact3".equals(self.map, ignoreCase = true) && "fact1".equals(game.level.mapname, ignoreCase = true))
         self.map = "fact3\$secret1"
 
     self.use = targetChangelevelUse
@@ -548,7 +565,7 @@ fun targetChangelevel(self: GameEntity, game: GameExportsImpl) {
 }
 
 private val targetChangelevelUse = registerUse("use_target_changelevel") { self, other, activator, game ->
-    if (game.level.intermissiontime != 0f)
+    if (other == null || game.level.intermissiontime != 0f)
         return@registerUse  // already activated
 
 
@@ -562,7 +579,7 @@ private val targetChangelevelUse = registerUse("use_target_changelevel") { self,
         && game.gameCvars.dmflags.typedValue and Defines.DF_ALLOW_EXIT == 0 && other !== game.g_edicts[0] /* world */) {
         GameCombat.T_Damage(
             other, self, self, Globals.vec3_origin,
-            other!!.s.origin, Globals.vec3_origin,
+            other.s.origin, Globals.vec3_origin,
             10 * other.max_health, 1000, 0, GameDefines.MOD_EXIT, game
         )
         return@registerUse
@@ -600,8 +617,10 @@ fun targetCrosslevelTrigger(self: GameEntity, game: GameExportsImpl) {
     self.use = targetCrosslevelTriggerUse
 }
 
-private val targetCrosslevelTriggerUse = registerUse("trigger_crosslevel_trigger_use") { self, _, _, game ->
+private val targetCrosslevelTriggerUse = registerUse("trigger_crosslevel_trigger_use") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     game.game.serverflags = game.game.serverflags or self.spawnflags
+    GameUtil.G_UseTargets(self, activator, game)
     game.freeEntity(self)
 }
 
@@ -718,7 +737,8 @@ private val laserInit = registerThink("target_laser_start") { self, game ->
     true
 }
 
-private val laserUse = registerUse("target_laser_use") { self, other, activator, game ->
+private val laserUse = registerUse("target_laser_use") { self, _, activator, game ->
+    if (activator == null) return@registerUse
     self.activator = activator
     if (self.hasSpawnFlag(START_ON))
         laserOff(self)
@@ -774,7 +794,7 @@ private val laserThink = registerThink("target_laser_think") { self, game ->
             ignore,
             Defines.CONTENTS_SOLID or Defines.CONTENTS_MONSTER or Defines.CONTENTS_DEADMONSTER
         )
-        val target = tr.ent as GameEntity
+        val target = tr.ent as GameEntity? ?: break
 
         // hurt it if we can
         if (target.takedamage != 0 && 0 == target.flags and GameDefines.FL_IMMUNE_LASER)

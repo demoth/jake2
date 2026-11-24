@@ -63,7 +63,9 @@ public class GameWeapon {
 
             if (other.takedamage != 0) {
                 int mod;
-                if ((self.spawnflags & 1) != 0)
+                if ("target_blaster".equalsIgnoreCase(self.getOwner().classname))
+                    mod = GameDefines.MOD_TARGET_BLASTER;
+                else if ((self.spawnflags & 1) != 0)
                     mod = GameDefines.MOD_HYPERBLASTER;
                 else
                     mod = GameDefines.MOD_BLASTER;

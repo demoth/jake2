@@ -15,32 +15,29 @@ class TargetLightrampBehaviorTest {
             if (num == Defines.CS_LIGHTS + 33) writes.add(game.level.framenum to string)
         }
     }
-    private val game: GameExportsImpl = GameExportsImpl(imports)
+    private val scenario = EntityScenario(imports)
+    private val game: GameExportsImpl = scenario.game
 
     private fun spawnRamp(toggle: Boolean = false): GameEntity {
-        val light = game.G_Spawn().apply {
-            classname = "light"
+        scenario.spawn("light") {
             targetname = "t149"
             style = 33
         }
-        GameSpawn.ED_CallSpawn(light, game)
-        val ramp = game.G_Spawn().apply {
-            classname = "target_lightramp"
+        val ramp = scenario.spawn("target_lightramp") {
             targetname = "t2"
             target = "t149"
             message = "az"
             speed = 2f
             spawnflags = if (toggle) 1 else 0
         }
-        GameSpawn.ED_CallSpawn(ramp, game)
         writes.clear()
-        return game.G_Spawn().apply { target = "t2" }
+        return ramp
     }
 
-    private fun fireAndObserve(source: GameEntity, styles: String) {
+    private fun fireAndObserve(ramp: GameEntity, styles: String) {
         val start = game.level.framenum
         writes.clear()
-        GameUtil.G_UseTargets(source, source, game)
+        scenario.fire(ramp)
         repeat(25) { game.G_RunFrame() }
         assertEquals(styles.mapIndexed { frame, style -> start + frame to style.toString() }, writes)
     }
@@ -52,22 +49,22 @@ class TargetLightrampBehaviorTest {
 
     @Test
     fun delayedActivation() {
-        val source = spawnRamp()
+        val ramp = spawnRamp()
         repeat(30) { game.G_RunFrame() }
-        fireAndObserve(source, forward)
+        fireAndObserve(ramp, forward)
     }
 
     @Test
     fun toggleReversesOnNextUse() {
-        val source = spawnRamp(toggle = true)
-        fireAndObserve(source, forward)
-        fireAndObserve(source, reverse)
+        val ramp = spawnRamp(toggle = true)
+        fireAndObserve(ramp, forward)
+        fireAndObserve(ramp, reverse)
     }
 
     @Test
     fun midRampLevelLoadResumesAtTheNextFrame(@TempDir directory: Path) {
-        val source = spawnRamp()
-        GameUtil.G_UseTargets(source, source, game)
+        val ramp = spawnRamp()
+        scenario.fire(ramp)
         repeat(10) { game.G_RunFrame() }
         val originalRoot = EngineWriteRoot.path()
         try {
