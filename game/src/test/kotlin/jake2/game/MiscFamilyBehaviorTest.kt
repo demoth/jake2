@@ -16,6 +16,16 @@ class MiscFamilyBehaviorTest {
     private val game = scenario.game
 
     @Test
+    fun easterTankStartsAnimatingTwoFramesAfterSpawn() {
+        val tank = scenario.spawn("misc_eastertank")
+        assertEquals(254, tank.s.frame)
+        game.G_RunFrame()
+        assertEquals(254, tank.s.frame)
+        game.G_RunFrame()
+        assertEquals(255, tank.s.frame)
+    }
+
+    @Test
     fun teleporterMovesThePlayerAboveItsDestinationAndEmitsBothEvents() {
         val destination = scenario.spawn("misc_teleporter_dest") {
             targetname = "exit"

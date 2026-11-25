@@ -1225,50 +1225,46 @@ public class M_Supertank {
      * QUAKED monster_supertank (1 .5 0) (-64 -64 0) (64 64 72) Ambush
      * Trigger_Spawn Sight
      */
-    public static EntThinkAdapter SP_monster_supertank = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_supertank"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return true;
+    public static void SP_monster_supertank(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            sound_pain1 = gameExports.gameImports.soundindex("bosstank/btkpain1.wav");
-            sound_pain2 = gameExports.gameImports.soundindex("bosstank/btkpain2.wav");
-            sound_pain3 = gameExports.gameImports.soundindex("bosstank/btkpain3.wav");
-            sound_death = gameExports.gameImports.soundindex("bosstank/btkdeth1.wav");
-            sound_search1 = gameExports.gameImports.soundindex("bosstank/btkunqv1.wav");
-            sound_search2 = gameExports.gameImports.soundindex("bosstank/btkunqv2.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("bosstank/btkpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("bosstank/btkpain2.wav");
+        sound_pain3 = gameExports.gameImports.soundindex("bosstank/btkpain3.wav");
+        sound_death = gameExports.gameImports.soundindex("bosstank/btkdeth1.wav");
+        sound_search1 = gameExports.gameImports.soundindex("bosstank/btkunqv1.wav");
+        sound_search2 = gameExports.gameImports.soundindex("bosstank/btkunqv2.wav");
 
-            //	self.s.sound = gi.soundindex ("bosstank/btkengn1.wav");
-            tread_sound = gameExports.gameImports.soundindex("bosstank/btkengn1.wav");
+        //	self.s.sound = gi.soundindex ("bosstank/btkengn1.wav");
+        tread_sound = gameExports.gameImports.soundindex("bosstank/btkengn1.wav");
 
-            self.movetype = GameDefines.MOVETYPE_STEP;
-            self.solid = Defines.SOLID_BBOX;
-            self.s.modelindex = gameExports.gameImports
-                    .modelindex("models/monsters/boss1/tris.md2");
-            Math3D.VectorSet(self.mins, -64, -64, 0);
-            Math3D.VectorSet(self.maxs, 64, 64, 112);
+        self.movetype = GameDefines.MOVETYPE_STEP;
+        self.solid = Defines.SOLID_BBOX;
+        self.s.modelindex = gameExports.gameImports
+                .modelindex("models/monsters/boss1/tris.md2");
+        Math3D.VectorSet(self.mins, -64, -64, 0);
+        Math3D.VectorSet(self.maxs, 64, 64, 112);
 
-            self.health = 1500;
-            self.gib_health = -500;
-            self.mass = 800;
+        self.health = 1500;
+        self.gib_health = -500;
+        self.mass = 800;
 
-            self.pain = supertank_pain;
-            self.die = supertank_die;
-            self.monsterinfo.stand = supertank_stand;
-            self.monsterinfo.walk = supertank_walk;
-            self.monsterinfo.run = supertank_run;
-            self.monsterinfo.dodge = null;
-            self.monsterinfo.attack = supertank_attack;
-            self.monsterinfo.search = supertank_search;
-            self.monsterinfo.melee = null;
-            self.monsterinfo.sight = null;
+        self.pain = supertank_pain;
+        self.die = supertank_die;
+        self.monsterinfo.stand = supertank_stand;
+        self.monsterinfo.walk = supertank_walk;
+        self.monsterinfo.run = supertank_run;
+        self.monsterinfo.dodge = null;
+        self.monsterinfo.attack = supertank_attack;
+        self.monsterinfo.search = supertank_search;
+        self.monsterinfo.melee = null;
+        self.monsterinfo.sight = null;
 
-            gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
-            self.monsterinfo.currentmove = supertank_move_stand;
-            self.monsterinfo.scale = MODEL_SCALE;
+        self.monsterinfo.currentmove = supertank_move_stand;
+        self.monsterinfo.scale = MODEL_SCALE;
 
-            GameAI.walkmonster_start(self, gameExports);
-            return true;
-        }
-    };
+        GameAI.walkmonster_start(self, gameExports);
+    }
 }

@@ -1414,113 +1414,96 @@ public class M_Soldier {
     // SPAWN
     //
 
-    static EntThinkAdapter SP_monster_soldier_x = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_soldier_x"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
+    private static void SP_monster_soldier_x(GameEntity self, GameExportsImpl gameExports) {
+        self.s.modelindex = gameExports.gameImports
+                .modelindex("models/monsters/soldier/tris.md2");
+        self.monsterinfo.scale = MODEL_SCALE;
+        Math3D.VectorSet(self.mins, -16, -16, -24);
+        Math3D.VectorSet(self.maxs, 16, 16, 32);
+        self.movetype = GameDefines.MOVETYPE_STEP;
+        self.solid = Defines.SOLID_BBOX;
 
-            self.s.modelindex = gameExports.gameImports
-                    .modelindex("models/monsters/soldier/tris.md2");
-            self.monsterinfo.scale = MODEL_SCALE;
-            Math3D.VectorSet(self.mins, -16, -16, -24);
-            Math3D.VectorSet(self.maxs, 16, 16, 32);
-            self.movetype = GameDefines.MOVETYPE_STEP;
-            self.solid = Defines.SOLID_BBOX;
+        sound_idle = gameExports.gameImports.soundindex("soldier/solidle1.wav");
+        sound_sight1 = gameExports.gameImports.soundindex("soldier/solsght1.wav");
+        sound_sight2 = gameExports.gameImports.soundindex("soldier/solsrch1.wav");
+        sound_cock = gameExports.gameImports.soundindex("infantry/infatck3.wav");
 
-            sound_idle = gameExports.gameImports.soundindex("soldier/solidle1.wav");
-            sound_sight1 = gameExports.gameImports.soundindex("soldier/solsght1.wav");
-            sound_sight2 = gameExports.gameImports.soundindex("soldier/solsrch1.wav");
-            sound_cock = gameExports.gameImports.soundindex("infantry/infatck3.wav");
+        self.mass = 100;
 
-            self.mass = 100;
+        self.pain = soldier_pain;
+        self.die = soldier_die;
 
-            self.pain = soldier_pain;
-            self.die = soldier_die;
+        self.monsterinfo.stand = soldier_stand;
+        self.monsterinfo.walk = soldier_walk;
+        self.monsterinfo.run = soldier_run;
+        self.monsterinfo.dodge = soldier_dodge;
+        self.monsterinfo.attack = soldier_attack;
+        self.monsterinfo.melee = null;
+        self.monsterinfo.sight = soldier_sight;
 
-            self.monsterinfo.stand = soldier_stand;
-            self.monsterinfo.walk = soldier_walk;
-            self.monsterinfo.run = soldier_run;
-            self.monsterinfo.dodge = soldier_dodge;
-            self.monsterinfo.attack = soldier_attack;
-            self.monsterinfo.melee = null;
-            self.monsterinfo.sight = soldier_sight;
+        gameExports.gameImports.linkentity(self);
 
-            gameExports.gameImports.linkentity(self);
+        self.monsterinfo.stand.think(self, gameExports);
 
-            self.monsterinfo.stand.think(self, gameExports);
-
-            GameAI.walkmonster_start(self, gameExports);
-            return true;
-        }
-    };
+        GameAI.walkmonster_start(self, gameExports);
+    }
 
     /*
      * QUAKED monster_soldier_light (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static EntThinkAdapter SP_monster_soldier_light = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_soldier_light"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return true;
+    public static void SP_monster_soldier_light(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            SP_monster_soldier_x.think(self, gameExports);
+        SP_monster_soldier_x(self, gameExports);
 
-            sound_pain_light = gameExports.gameImports.soundindex("soldier/solpain2.wav");
-            sound_death_light = gameExports.gameImports.soundindex("soldier/soldeth2.wav");
-            gameExports.gameImports.modelindex("models/objects/laser/tris.md2");
-            gameExports.gameImports.soundindex("misc/lasfly.wav");
-            gameExports.gameImports.soundindex("soldier/solatck2.wav");
+        sound_pain_light = gameExports.gameImports.soundindex("soldier/solpain2.wav");
+        sound_death_light = gameExports.gameImports.soundindex("soldier/soldeth2.wav");
+        gameExports.gameImports.modelindex("models/objects/laser/tris.md2");
+        gameExports.gameImports.soundindex("misc/lasfly.wav");
+        gameExports.gameImports.soundindex("soldier/solatck2.wav");
 
-            self.s.skinnum = 0;
-            self.health = 20;
-            self.gib_health = -30;
-            return true;
-        }
-    };
+        self.s.skinnum = 0;
+        self.health = 20;
+        self.gib_health = -30;
+    }
 
     /*
      * QUAKED monster_soldier (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
 
-    public static EntThinkAdapter SP_monster_soldier = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_soldier"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return true;
+    public static void SP_monster_soldier(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            SP_monster_soldier_x.think(self, gameExports);
+        SP_monster_soldier_x(self, gameExports);
 
-            sound_pain = gameExports.gameImports.soundindex("soldier/solpain1.wav");
-            sound_death = gameExports.gameImports.soundindex("soldier/soldeth1.wav");
-            gameExports.gameImports.soundindex("soldier/solatck1.wav");
+        sound_pain = gameExports.gameImports.soundindex("soldier/solpain1.wav");
+        sound_death = gameExports.gameImports.soundindex("soldier/soldeth1.wav");
+        gameExports.gameImports.soundindex("soldier/solatck1.wav");
 
-            self.s.skinnum = 2;
-            self.health = 30;
-            self.gib_health = -30;
-            return true;
-        }
-    };
+        self.s.skinnum = 2;
+        self.health = 30;
+        self.gib_health = -30;
+    }
 
     /**
      * QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static EntThinkAdapter SP_monster_soldier_ss = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_soldier_ss"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return true;
+    public static void SP_monster_soldier_ss(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            SP_monster_soldier_x.think(self, gameExports);
+        SP_monster_soldier_x(self, gameExports);
 
-            sound_pain_ss = gameExports.gameImports.soundindex("soldier/solpain3.wav");
-            sound_death_ss = gameExports.gameImports.soundindex("soldier/soldeth3.wav");
-            gameExports.gameImports.soundindex("soldier/solatck3.wav");
+        sound_pain_ss = gameExports.gameImports.soundindex("soldier/solpain3.wav");
+        sound_death_ss = gameExports.gameImports.soundindex("soldier/soldeth3.wav");
+        gameExports.gameImports.soundindex("soldier/solatck3.wav");
 
-            self.s.skinnum = 4;
-            self.health = 40;
-            self.gib_health = -30;
-            return true;
-        }
-    };
+        self.s.skinnum = 4;
+        self.health = 40;
+        self.gib_health = -30;
+    }
 
     static void soldier_fire(GameEntity self, int flash_number, GameExportsImpl gameExports) {
         float[] start = { 0, 0, 0 };

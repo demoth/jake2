@@ -1006,57 +1006,53 @@ public class M_Mutant {
      * QUAKED monster_mutant (1 .5 0) (-32 -32 -24) (32 32 32) Ambush
      * Trigger_Spawn Sight
      */
-    public static EntThinkAdapter SP_monster_mutant = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_mutant"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return false;
+    public static void SP_monster_mutant(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            sound_swing = gameExports.gameImports.soundindex("mutant/mutatck1.wav");
-            sound_hit = gameExports.gameImports.soundindex("mutant/mutatck2.wav");
-            sound_hit2 = gameExports.gameImports.soundindex("mutant/mutatck3.wav");
-            sound_death = gameExports.gameImports.soundindex("mutant/mutdeth1.wav");
-            sound_idle = gameExports.gameImports.soundindex("mutant/mutidle1.wav");
-            sound_pain1 = gameExports.gameImports.soundindex("mutant/mutpain1.wav");
-            sound_pain2 = gameExports.gameImports.soundindex("mutant/mutpain2.wav");
-            sound_sight = gameExports.gameImports.soundindex("mutant/mutsght1.wav");
-            sound_search = gameExports.gameImports.soundindex("mutant/mutsrch1.wav");
-            sound_step1 = gameExports.gameImports.soundindex("mutant/step1.wav");
-            sound_step2 = gameExports.gameImports.soundindex("mutant/step2.wav");
-            sound_step3 = gameExports.gameImports.soundindex("mutant/step3.wav");
-            sound_thud = gameExports.gameImports.soundindex("mutant/thud1.wav");
+        sound_swing = gameExports.gameImports.soundindex("mutant/mutatck1.wav");
+        sound_hit = gameExports.gameImports.soundindex("mutant/mutatck2.wav");
+        sound_hit2 = gameExports.gameImports.soundindex("mutant/mutatck3.wav");
+        sound_death = gameExports.gameImports.soundindex("mutant/mutdeth1.wav");
+        sound_idle = gameExports.gameImports.soundindex("mutant/mutidle1.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("mutant/mutpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("mutant/mutpain2.wav");
+        sound_sight = gameExports.gameImports.soundindex("mutant/mutsght1.wav");
+        sound_search = gameExports.gameImports.soundindex("mutant/mutsrch1.wav");
+        sound_step1 = gameExports.gameImports.soundindex("mutant/step1.wav");
+        sound_step2 = gameExports.gameImports.soundindex("mutant/step2.wav");
+        sound_step3 = gameExports.gameImports.soundindex("mutant/step3.wav");
+        sound_thud = gameExports.gameImports.soundindex("mutant/thud1.wav");
 
-            self.movetype = GameDefines.MOVETYPE_STEP;
-            self.solid = Defines.SOLID_BBOX;
-            self.s.modelindex = gameExports.gameImports
-                    .modelindex("models/monsters/mutant/tris.md2");
-            Math3D.VectorSet(self.mins, -32, -32, -24);
-            Math3D.VectorSet(self.maxs, 32, 32, 48);
+        self.movetype = GameDefines.MOVETYPE_STEP;
+        self.solid = Defines.SOLID_BBOX;
+        self.s.modelindex = gameExports.gameImports
+                .modelindex("models/monsters/mutant/tris.md2");
+        Math3D.VectorSet(self.mins, -32, -32, -24);
+        Math3D.VectorSet(self.maxs, 32, 32, 48);
 
-            self.health = 300;
-            self.gib_health = -120;
-            self.mass = 300;
+        self.health = 300;
+        self.gib_health = -120;
+        self.mass = 300;
 
-            self.pain = mutant_pain;
-            self.die = mutant_die;
+        self.pain = mutant_pain;
+        self.die = mutant_die;
 
-            self.monsterinfo.stand = mutant_stand;
-            self.monsterinfo.walk = mutant_walk;
-            self.monsterinfo.run = mutant_run;
-            self.monsterinfo.dodge = null;
-            self.monsterinfo.attack = mutant_jump;
-            self.monsterinfo.melee = mutant_melee;
-            self.monsterinfo.sight = mutant_sight;
-            self.monsterinfo.search = mutant_search;
-            self.monsterinfo.idle = mutant_idle;
-            self.monsterinfo.checkattack = mutant_checkattack;
+        self.monsterinfo.stand = mutant_stand;
+        self.monsterinfo.walk = mutant_walk;
+        self.monsterinfo.run = mutant_run;
+        self.monsterinfo.dodge = null;
+        self.monsterinfo.attack = mutant_jump;
+        self.monsterinfo.melee = mutant_melee;
+        self.monsterinfo.sight = mutant_sight;
+        self.monsterinfo.search = mutant_search;
+        self.monsterinfo.idle = mutant_idle;
+        self.monsterinfo.checkattack = mutant_checkattack;
 
-            gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
-            self.monsterinfo.currentmove = mutant_move_stand;
+        self.monsterinfo.currentmove = mutant_move_stand;
 
-            self.monsterinfo.scale = MODEL_SCALE;
-            GameAI.walkmonster_start(self, gameExports);
-            return true;
-        }
-    };
+        self.monsterinfo.scale = MODEL_SCALE;
+        GameAI.walkmonster_start(self, gameExports);
+    }
 }

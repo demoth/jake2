@@ -1468,67 +1468,63 @@ public class M_Tank {
      * QUAKED monster_tank_commander (1 .5 0) (-32 -32 -16) (32 32 72) Ambush
      * Trigger_Spawn Sight
      */
-    public static EntThinkAdapter SP_monster_tank = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_tank"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return true;
+    public static void SP_monster_tank(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            self.s.modelindex = gameExports.gameImports
-                    .modelindex("models/monsters/tank/tris.md2");
-            Math3D.VectorSet(self.mins, -32, -32, -16);
-            Math3D.VectorSet(self.maxs, 32, 32, 72);
-            self.movetype = GameDefines.MOVETYPE_STEP;
-            self.solid = Defines.SOLID_BBOX;
+        self.s.modelindex = gameExports.gameImports
+                .modelindex("models/monsters/tank/tris.md2");
+        Math3D.VectorSet(self.mins, -32, -32, -16);
+        Math3D.VectorSet(self.maxs, 32, 32, 72);
+        self.movetype = GameDefines.MOVETYPE_STEP;
+        self.solid = Defines.SOLID_BBOX;
 
-            sound_pain = gameExports.gameImports.soundindex("tank/tnkpain2.wav");
-            sound_thud = gameExports.gameImports.soundindex("tank/tnkdeth2.wav");
-            sound_idle = gameExports.gameImports.soundindex("tank/tnkidle1.wav");
-            sound_die = gameExports.gameImports.soundindex("tank/death.wav");
-            sound_step = gameExports.gameImports.soundindex("tank/step.wav");
-            sound_windup = gameExports.gameImports.soundindex("tank/tnkatck4.wav");
-            sound_strike = gameExports.gameImports.soundindex("tank/tnkatck5.wav");
-            sound_sight = gameExports.gameImports.soundindex("tank/sight1.wav");
+        sound_pain = gameExports.gameImports.soundindex("tank/tnkpain2.wav");
+        sound_thud = gameExports.gameImports.soundindex("tank/tnkdeth2.wav");
+        sound_idle = gameExports.gameImports.soundindex("tank/tnkidle1.wav");
+        sound_die = gameExports.gameImports.soundindex("tank/death.wav");
+        sound_step = gameExports.gameImports.soundindex("tank/step.wav");
+        sound_windup = gameExports.gameImports.soundindex("tank/tnkatck4.wav");
+        sound_strike = gameExports.gameImports.soundindex("tank/tnkatck5.wav");
+        sound_sight = gameExports.gameImports.soundindex("tank/sight1.wav");
 
-            gameExports.gameImports.soundindex("tank/tnkatck1.wav");
-            gameExports.gameImports.soundindex("tank/tnkatk2a.wav");
-            gameExports.gameImports.soundindex("tank/tnkatk2b.wav");
-            gameExports.gameImports.soundindex("tank/tnkatk2c.wav");
-            gameExports.gameImports.soundindex("tank/tnkatk2d.wav");
-            gameExports.gameImports.soundindex("tank/tnkatk2e.wav");
-            gameExports.gameImports.soundindex("tank/tnkatck3.wav");
+        gameExports.gameImports.soundindex("tank/tnkatck1.wav");
+        gameExports.gameImports.soundindex("tank/tnkatk2a.wav");
+        gameExports.gameImports.soundindex("tank/tnkatk2b.wav");
+        gameExports.gameImports.soundindex("tank/tnkatk2c.wav");
+        gameExports.gameImports.soundindex("tank/tnkatk2d.wav");
+        gameExports.gameImports.soundindex("tank/tnkatk2e.wav");
+        gameExports.gameImports.soundindex("tank/tnkatck3.wav");
 
-            if ("monster_tank_commander".equals(self.classname)) {
-                self.health = 1000;
-                self.gib_health = -225;
-            } else {
-                self.health = 750;
-                self.gib_health = -200;
-            }
-
-            self.mass = 500;
-
-            self.pain = tank_pain;
-            self.die = tank_die;
-            self.monsterinfo.stand = tank_stand;
-            self.monsterinfo.walk = tank_walk;
-            self.monsterinfo.run = tank_run;
-            self.monsterinfo.dodge = null;
-            self.monsterinfo.attack = tank_attack;
-            self.monsterinfo.melee = null;
-            self.monsterinfo.sight = tank_sight;
-            self.monsterinfo.idle = tank_idle;
-
-            gameExports.gameImports.linkentity(self);
-
-            self.monsterinfo.currentmove = tank_move_stand;
-            self.monsterinfo.scale = MODEL_SCALE;
-
-            GameAI.walkmonster_start(self, gameExports);
-
-            if (self.classname.compareTo("monster_tank_commander") == 0)
-                self.s.skinnum = 2;
-            return true;
+        if ("monster_tank_commander".equals(self.classname)) {
+            self.health = 1000;
+            self.gib_health = -225;
+        } else {
+            self.health = 750;
+            self.gib_health = -200;
         }
-    };
+
+        self.mass = 500;
+
+        self.pain = tank_pain;
+        self.die = tank_die;
+        self.monsterinfo.stand = tank_stand;
+        self.monsterinfo.walk = tank_walk;
+        self.monsterinfo.run = tank_run;
+        self.monsterinfo.dodge = null;
+        self.monsterinfo.attack = tank_attack;
+        self.monsterinfo.melee = null;
+        self.monsterinfo.sight = tank_sight;
+        self.monsterinfo.idle = tank_idle;
+
+        gameExports.gameImports.linkentity(self);
+
+        self.monsterinfo.currentmove = tank_move_stand;
+        self.monsterinfo.scale = MODEL_SCALE;
+
+        GameAI.walkmonster_start(self, gameExports);
+
+        if (self.classname.compareTo("monster_tank_commander") == 0)
+            self.s.skinnum = 2;
+    }
 
 }

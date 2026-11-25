@@ -22,7 +22,6 @@
 
 package jake2.game;
 
-import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.character.GameCharacterKt;
 import jake2.game.func.*;
 import jake2.game.items.GameItem;
@@ -86,142 +85,135 @@ public class GameSpawn {
      * print at user logon
      */
 
-    private static EntThinkAdapter SP_worldspawn = new EntThinkAdapter() {
-        public String getID() {
-            return "SP_worldspawn";
+    private static void SP_worldspawn(GameEntity ent, GameExportsImpl gameExports) {
+        ent.movetype = GameDefines.MOVETYPE_PUSH;
+        ent.solid = Defines.SOLID_BSP;
+        ent.inuse = true;
+        // since the world doesn't use G_Spawn()
+        ent.s.modelindex = 1;
+        // world model is always index 1
+        //---------------
+        // reserve some spots for dead player bodies for coop / deathmatch
+        PlayerClient.InitBodyQue(gameExports);
+        // set configstrings for items
+        GameItems.SetItemNames(gameExports);
+
+        if (ent.st.nextmap != null)
+            gameExports.level.nextmap = ent.st.nextmap;
+        // make some data visible to the server
+        if (ent.message != null && ent.message.length() > 0) {
+            gameExports.gameImports.configstring(Defines.CS_NAME, ent.message);
+            gameExports.level.level_name = ent.message;
+        } else
+            gameExports.level.level_name = gameExports.level.mapname;
+        if (ent.st.sky != null && ent.st.sky.length() > 0)
+            gameExports.gameImports.configstring(Defines.CS_SKY, ent.st.sky);
+        else
+            gameExports.gameImports.configstring(Defines.CS_SKY, "unit1_");
+        gameExports.gameImports.configstring(Defines.CS_SKYROTATE, ""
+                + ent.st.skyrotate);
+        gameExports.gameImports.configstring(Defines.CS_SKYAXIS, Lib
+                .vtos(ent.st.skyaxis));
+        gameExports.gameImports.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
+        gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
+                + (int) (gameExports.game.maxclients));
+        // status bar program
+        if (gameExports.gameCvars.deathmatch.getTypedValue())
+            gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
+        else
+            gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
+        //---------------
+        // help icon for statusbar
+        gameExports.gameImports.imageindex("i_help");
+        gameExports.level.pic_health = gameExports.gameImports.imageindex("i_health");
+        gameExports.gameImports.imageindex("help");
+        gameExports.gameImports.imageindex("field_3");
+        if (ent.st.gravity == null || ent.st.gravity.isBlank()) {
+            gameExports.gameCvars.sv_gravity.set(gameExports.gameCvars.sv_gravity.getDefaultValue());
+        } else {
+            gameExports.gameCvars.sv_gravity.setText(ent.st.gravity);
         }
 
-        public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-            ent.movetype = GameDefines.MOVETYPE_PUSH;
-            ent.solid = Defines.SOLID_BSP;
-            ent.inuse = true;
-            // since the world doesn't use G_Spawn()
-            ent.s.modelindex = 1;
-            // world model is always index 1
-            //---------------
-            // reserve some spots for dead player bodies for coop / deathmatch
-            PlayerClient.InitBodyQue(gameExports);
-            // set configstrings for items
-            GameItems.SetItemNames(gameExports);
+        // standing in lava / slime
+        gameExports.gameImports.soundindex("player/fry.wav");
 
-            if (ent.st.nextmap != null)
-                gameExports.level.nextmap = ent.st.nextmap;
-            // make some data visible to the server
-            if (ent.message != null && ent.message.length() > 0) {
-                gameExports.gameImports.configstring(Defines.CS_NAME, ent.message);
-                gameExports.level.level_name = ent.message;
-            } else
-                gameExports.level.level_name = gameExports.level.mapname;
-            if (ent.st.sky != null && ent.st.sky.length() > 0)
-                gameExports.gameImports.configstring(Defines.CS_SKY, ent.st.sky);
-            else
-                gameExports.gameImports.configstring(Defines.CS_SKY, "unit1_");
-            gameExports.gameImports.configstring(Defines.CS_SKYROTATE, ""
-                    + ent.st.skyrotate);
-            gameExports.gameImports.configstring(Defines.CS_SKYAXIS, Lib
-                    .vtos(ent.st.skyaxis));
-            gameExports.gameImports.configstring(Defines.CS_CDTRACK, "" + ent.sounds);
-            gameExports.gameImports.configstring(Defines.CS_MAXCLIENTS, ""
-                    + (int) (gameExports.game.maxclients));
-            // status bar program
-            if (gameExports.gameCvars.deathmatch.getTypedValue())
-                gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + dm_statusbar);
-            else
-                gameExports.gameImports.configstring(Defines.CS_STATUSBAR, "" + single_statusbar);
-            //---------------
-            // help icon for statusbar
-            gameExports.gameImports.imageindex("i_help");
-            gameExports.level.pic_health = gameExports.gameImports.imageindex("i_health");
-            gameExports.gameImports.imageindex("help");
-            gameExports.gameImports.imageindex("field_3");
-            if (ent.st.gravity == null || ent.st.gravity.isBlank()) {
-                gameExports.gameCvars.sv_gravity.set(gameExports.gameCvars.sv_gravity.getDefaultValue());
-            } else {
-                gameExports.gameCvars.sv_gravity.setText(ent.st.gravity);
-            }
+        // starter weapon
+        GameItems.PrecacheItem(GameItems.FindItem("Blaster", gameExports), gameExports);
 
-            // standing in lava / slime
-            gameExports.gameImports.soundindex("player/fry.wav");
-
-            // starter weapon
-            GameItems.PrecacheItem(GameItems.FindItem("Blaster", gameExports), gameExports);
-
-            gameExports.gameImports.soundindex("player/lava1.wav");
-            gameExports.gameImports.soundindex("player/lava2.wav");
-            gameExports.gameImports.soundindex("misc/pc_up.wav");
-            gameExports.gameImports.soundindex("misc/talk1.wav");
-            gameExports.gameImports.soundindex("misc/udeath.wav");
-            // gibs
-            gameExports.gameImports.soundindex("items/respawn1.wav");
-            // sexed sounds
-            gameExports.gameImports.soundindex("*death1.wav");
-            gameExports.gameImports.soundindex("*death2.wav");
-            gameExports.gameImports.soundindex("*death3.wav");
-            gameExports.gameImports.soundindex("*death4.wav");
-            gameExports.gameImports.soundindex("*fall1.wav");
-            gameExports.gameImports.soundindex("*fall2.wav");
-            gameExports.gameImports.soundindex("*gurp1.wav");
-            // drowning damage
-            gameExports.gameImports.soundindex("*gurp2.wav");
-            gameExports.gameImports.soundindex("*jump1.wav");
-            // player jump
-            gameExports.gameImports.soundindex("*pain25_1.wav");
-            gameExports.gameImports.soundindex("*pain25_2.wav");
-            gameExports.gameImports.soundindex("*pain50_1.wav");
-            gameExports.gameImports.soundindex("*pain50_2.wav");
-            gameExports.gameImports.soundindex("*pain75_1.wav");
-            gameExports.gameImports.soundindex("*pain75_2.wav");
-            gameExports.gameImports.soundindex("*pain100_1.wav");
-            gameExports.gameImports.soundindex("*pain100_2.wav");
-            // sexed models
-            // THIS ORDER MUST MATCH THE DEFINES IN g_local.h
-            // you can add more, max 15
-            gameExports.gameImports.modelindex("#w_blaster.md2");
-            gameExports.gameImports.modelindex("#w_shotgun.md2");
-            gameExports.gameImports.modelindex("#w_sshotgun.md2");
-            gameExports.gameImports.modelindex("#w_machinegun.md2");
-            gameExports.gameImports.modelindex("#w_chaingun.md2");
-            gameExports.gameImports.modelindex("#a_grenades.md2");
-            gameExports.gameImports.modelindex("#w_glauncher.md2");
-            gameExports.gameImports.modelindex("#w_rlauncher.md2");
-            gameExports.gameImports.modelindex("#w_hyperblaster.md2");
-            gameExports.gameImports.modelindex("#w_railgun.md2");
-            gameExports.gameImports.modelindex("#w_bfg.md2");
-            //-------------------
-            gameExports.gameImports.soundindex("player/gasp1.wav");
-            // gasping for air
-            gameExports.gameImports.soundindex("player/gasp2.wav");
-            // head breaking surface, not gasping
-            gameExports.gameImports.soundindex("player/watr_in.wav");
-            // feet hitting water
-            gameExports.gameImports.soundindex("player/watr_out.wav");
-            // feet leaving water
-            gameExports.gameImports.soundindex("player/watr_un.wav");
-            // head going underwater
-            gameExports.gameImports.soundindex("player/u_breath1.wav");
-            gameExports.gameImports.soundindex("player/u_breath2.wav");
-            gameExports.gameImports.soundindex("items/pkup.wav");
-            // bonus item pickup
-            gameExports.gameImports.soundindex("world/land.wav");
-            // landing thud
-            gameExports.gameImports.soundindex("misc/h2ohit1.wav");
-            // landing splash
-            gameExports.gameImports.soundindex("items/damage.wav");
-            gameExports.gameImports.soundindex("items/protect.wav");
-            gameExports.gameImports.soundindex("items/protect4.wav");
-            gameExports.gameImports.soundindex("weapons/noammo.wav");
-            gameExports.gameImports.soundindex("infantry/inflies1.wav");
-            gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2");
-            gameExports.gameImports.modelindex("models/objects/gibs/arm/tris.md2");
-            gameExports.gameImports.modelindex("models/objects/gibs/bone/tris.md2");
-            gameExports.gameImports.modelindex("models/objects/gibs/bone2/tris.md2");
-            gameExports.gameImports.modelindex("models/objects/gibs/chest/tris.md2");
-            gameExports.gameImports.modelindex("models/objects/gibs/skull/tris.md2");
-            gameExports.gameImports.modelindex("models/objects/gibs/head2/tris.md2");
-            defineLightStyles(gameExports);
-            return true;
-        }
-    };
+        gameExports.gameImports.soundindex("player/lava1.wav");
+        gameExports.gameImports.soundindex("player/lava2.wav");
+        gameExports.gameImports.soundindex("misc/pc_up.wav");
+        gameExports.gameImports.soundindex("misc/talk1.wav");
+        gameExports.gameImports.soundindex("misc/udeath.wav");
+        // gibs
+        gameExports.gameImports.soundindex("items/respawn1.wav");
+        // sexed sounds
+        gameExports.gameImports.soundindex("*death1.wav");
+        gameExports.gameImports.soundindex("*death2.wav");
+        gameExports.gameImports.soundindex("*death3.wav");
+        gameExports.gameImports.soundindex("*death4.wav");
+        gameExports.gameImports.soundindex("*fall1.wav");
+        gameExports.gameImports.soundindex("*fall2.wav");
+        gameExports.gameImports.soundindex("*gurp1.wav");
+        // drowning damage
+        gameExports.gameImports.soundindex("*gurp2.wav");
+        gameExports.gameImports.soundindex("*jump1.wav");
+        // player jump
+        gameExports.gameImports.soundindex("*pain25_1.wav");
+        gameExports.gameImports.soundindex("*pain25_2.wav");
+        gameExports.gameImports.soundindex("*pain50_1.wav");
+        gameExports.gameImports.soundindex("*pain50_2.wav");
+        gameExports.gameImports.soundindex("*pain75_1.wav");
+        gameExports.gameImports.soundindex("*pain75_2.wav");
+        gameExports.gameImports.soundindex("*pain100_1.wav");
+        gameExports.gameImports.soundindex("*pain100_2.wav");
+        // sexed models
+        // THIS ORDER MUST MATCH THE DEFINES IN g_local.h
+        // you can add more, max 15
+        gameExports.gameImports.modelindex("#w_blaster.md2");
+        gameExports.gameImports.modelindex("#w_shotgun.md2");
+        gameExports.gameImports.modelindex("#w_sshotgun.md2");
+        gameExports.gameImports.modelindex("#w_machinegun.md2");
+        gameExports.gameImports.modelindex("#w_chaingun.md2");
+        gameExports.gameImports.modelindex("#a_grenades.md2");
+        gameExports.gameImports.modelindex("#w_glauncher.md2");
+        gameExports.gameImports.modelindex("#w_rlauncher.md2");
+        gameExports.gameImports.modelindex("#w_hyperblaster.md2");
+        gameExports.gameImports.modelindex("#w_railgun.md2");
+        gameExports.gameImports.modelindex("#w_bfg.md2");
+        //-------------------
+        gameExports.gameImports.soundindex("player/gasp1.wav");
+        // gasping for air
+        gameExports.gameImports.soundindex("player/gasp2.wav");
+        // head breaking surface, not gasping
+        gameExports.gameImports.soundindex("player/watr_in.wav");
+        // feet hitting water
+        gameExports.gameImports.soundindex("player/watr_out.wav");
+        // feet leaving water
+        gameExports.gameImports.soundindex("player/watr_un.wav");
+        // head going underwater
+        gameExports.gameImports.soundindex("player/u_breath1.wav");
+        gameExports.gameImports.soundindex("player/u_breath2.wav");
+        gameExports.gameImports.soundindex("items/pkup.wav");
+        // bonus item pickup
+        gameExports.gameImports.soundindex("world/land.wav");
+        // landing thud
+        gameExports.gameImports.soundindex("misc/h2ohit1.wav");
+        // landing splash
+        gameExports.gameImports.soundindex("items/damage.wav");
+        gameExports.gameImports.soundindex("items/protect.wav");
+        gameExports.gameImports.soundindex("items/protect4.wav");
+        gameExports.gameImports.soundindex("weapons/noammo.wav");
+        gameExports.gameImports.soundindex("infantry/inflies1.wav");
+        gameExports.gameImports.modelindex("models/objects/gibs/sm_meat/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/gibs/arm/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/gibs/bone/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/gibs/bone2/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/gibs/chest/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/gibs/skull/tris.md2");
+        gameExports.gameImports.modelindex("models/objects/gibs/head2/tris.md2");
+        defineLightStyles(gameExports);
+    }
 
     /**
      * Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
@@ -258,10 +250,6 @@ public class GameSpawn {
 
     private static final Map<String, SpawnInterface> spawns;
 
-    private static void addSpawnAdapter(String id, EntThinkAdapter adapter) {
-        spawns.put(id, adapter::think);
-    }
-    
     static {
         spawns = new HashMap<>();
         spawns.put("new_monster", GameCharacterKt::spawnNewMonster);
@@ -325,7 +313,7 @@ public class GameSpawn {
         spawns.put("target_earthquake", TargetEntitiesKt::targetEarthquake);
         spawns.put("target_character", TargetEntitiesKt::targetCharacter);
         spawns.put("target_string", TargetEntitiesKt::targetString);
-        addSpawnAdapter("worldspawn", SP_worldspawn);
+        spawns.put("worldspawn", GameSpawn::SP_worldspawn);
         spawns.put("light", LightKt::light);
         spawns.put("light_mine1", LightKt::lightMine1);
         spawns.put("light_mine2", LightKt::lightMine2);
@@ -348,16 +336,7 @@ public class GameSpawn {
         spawns.put("misc_gib_arm", MiscEntitiesKt::miscGibArm);
         spawns.put("misc_gib_leg", MiscEntitiesKt::miscGibLeg);
         spawns.put("misc_gib_head", MiscEntitiesKt::miscGibHead);
-        addSpawnAdapter("misc_insane", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_insane";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Insane.SP_misc_insane(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_insane", M_Insane::SP_misc_insane);
         spawns.put("misc_deadsoldier", MiscEntitiesKt::miscDeadSoldier);
         spawns.put("misc_viper", (self, game) -> TrainKt.miscFlyingShip(self, game, "viper"));
         spawns.put("misc_strogg_ship", (self, game) -> TrainKt.miscFlyingShip(self, game, "strogg1"));
@@ -366,194 +345,32 @@ public class GameSpawn {
         spawns.put("misc_teleporter", MiscEntitiesKt::miscTeleporter);
         spawns.put("misc_teleporter_dest", MiscEntitiesKt::miscTeleporterDest);
         spawns.put("misc_blackhole", MiscEntitiesKt::miscBlackhole);
-        addSpawnAdapter("misc_eastertank", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_eastertank";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_eastertank(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_easterchick", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_easterchick";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_easterchick(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("misc_easterchick2", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_misc_easterchick2";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_misc_easterchick2(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_berserk", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_berserk";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Berserk.SP_monster_berserk(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_gladiator", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_gladiator";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Gladiator.SP_monster_gladiator(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_gunner", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_gunner";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Gunner.SP_monster_gunner(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_infantry", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_infantry";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Infantry.SP_monster_infantry(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_soldier_light", M_Soldier.SP_monster_soldier_light);
-        addSpawnAdapter("monster_soldier", M_Soldier.SP_monster_soldier);
-        addSpawnAdapter("monster_soldier_ss", M_Soldier.SP_monster_soldier_ss);
-        addSpawnAdapter("monster_tank", M_Tank.SP_monster_tank);
-        addSpawnAdapter("monster_tank_commander", M_Tank.SP_monster_tank);
-        addSpawnAdapter("monster_medic", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_medic";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Medic.SP_monster_medic(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_flipper", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_flipper";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Flipper.SP_monster_flipper(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_chick", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_chick";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Chick.SP_monster_chick(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_parasite", M_Parasite.SP_monster_parasite);
-        addSpawnAdapter("monster_flyer", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_flyer";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Flyer.SP_monster_flyer(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_brain", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_brain";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Brain.SP_monster_brain(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_floater", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_floater";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Float.SP_monster_floater(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_hover", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_hover";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Hover.SP_monster_hover(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_mutant", M_Mutant.SP_monster_mutant);
-        addSpawnAdapter("monster_supertank", M_Supertank.SP_monster_supertank);
-        addSpawnAdapter("monster_boss2", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_boss2";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Hornet.SP_monster_boss2(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_boss3_stand", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_boss3_stand";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Makron_Idle.SP_monster_boss3_stand(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_jorg", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_jorg";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                M_Makron_Jorg.SP_monster_jorg(ent, gameExports);
-                return true;
-            }
-        });
-        addSpawnAdapter("monster_commander_body", new EntThinkAdapter() {
-            public String getID() {
-                return "SP_monster_commander_body";
-            }
-
-            public boolean think(GameEntity ent, GameExportsImpl gameExports) {
-                GameMisc.SP_monster_commander_body(ent, gameExports);
-                return true;
-            }
-        });
+        spawns.put("misc_eastertank", GameMisc::SP_misc_eastertank);
+        spawns.put("misc_easterchick", GameMisc::SP_misc_easterchick);
+        spawns.put("misc_easterchick2", GameMisc::SP_misc_easterchick2);
+        spawns.put("monster_berserk", M_Berserk::SP_monster_berserk);
+        spawns.put("monster_gladiator", M_Gladiator::SP_monster_gladiator);
+        spawns.put("monster_gunner", M_Gunner::SP_monster_gunner);
+        spawns.put("monster_infantry", M_Infantry::SP_monster_infantry);
+        spawns.put("monster_soldier_light", M_Soldier::SP_monster_soldier_light);
+        spawns.put("monster_soldier", M_Soldier::SP_monster_soldier);
+        spawns.put("monster_soldier_ss", M_Soldier::SP_monster_soldier_ss);
+        spawns.put("monster_tank", M_Tank::SP_monster_tank);
+        spawns.put("monster_tank_commander", M_Tank::SP_monster_tank);
+        spawns.put("monster_medic", M_Medic::SP_monster_medic);
+        spawns.put("monster_flipper", M_Flipper::SP_monster_flipper);
+        spawns.put("monster_chick", M_Chick::SP_monster_chick);
+        spawns.put("monster_parasite", M_Parasite::SP_monster_parasite);
+        spawns.put("monster_flyer", M_Flyer::SP_monster_flyer);
+        spawns.put("monster_brain", M_Brain::SP_monster_brain);
+        spawns.put("monster_floater", M_Float::SP_monster_floater);
+        spawns.put("monster_hover", M_Hover::SP_monster_hover);
+        spawns.put("monster_mutant", M_Mutant::SP_monster_mutant);
+        spawns.put("monster_supertank", M_Supertank::SP_monster_supertank);
+        spawns.put("monster_boss2", M_Hornet::SP_monster_boss2);
+        spawns.put("monster_boss3_stand", M_Makron_Idle::SP_monster_boss3_stand);
+        spawns.put("monster_jorg", M_Makron_Jorg::SP_monster_jorg);
+        spawns.put("monster_commander_body", GameMisc::SP_monster_commander_body);
 
 
         spawns.put("turret_breach", TurretKt::turretBreach);

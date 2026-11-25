@@ -792,54 +792,49 @@ public class M_Parasite {
      * Trigger_Spawn Sight
      */
 
-    public static EntThinkAdapter SP_monster_parasite = new EntThinkAdapter() {
-    	public String getID(){ return "SP_monster_parasite"; }
-        public boolean think(GameEntity self, GameExportsImpl gameExports) {
-            if (gameExports.skipForDeathmatch(self)) return true;
+    public static void SP_monster_parasite(GameEntity self, GameExportsImpl gameExports) {
+        if (gameExports.skipForDeathmatch(self)) return;
 
-            sound_pain1 = gameExports.gameImports.soundindex("parasite/parpain1.wav");
-            sound_pain2 = gameExports.gameImports.soundindex("parasite/parpain2.wav");
-            sound_die = gameExports.gameImports.soundindex("parasite/pardeth1.wav");
-            sound_launch = gameExports.gameImports.soundindex("parasite/paratck1.wav");
-            sound_impact = gameExports.gameImports.soundindex("parasite/paratck2.wav");
-            sound_suck = gameExports.gameImports.soundindex("parasite/paratck3.wav");
-            sound_reelin = gameExports.gameImports.soundindex("parasite/paratck4.wav");
-            sound_sight = gameExports.gameImports.soundindex("parasite/parsght1.wav");
-            sound_tap = gameExports.gameImports.soundindex("parasite/paridle1.wav");
-            sound_scratch = gameExports.gameImports.soundindex("parasite/paridle2.wav");
-            sound_search = gameExports.gameImports.soundindex("parasite/parsrch1.wav");
+        sound_pain1 = gameExports.gameImports.soundindex("parasite/parpain1.wav");
+        sound_pain2 = gameExports.gameImports.soundindex("parasite/parpain2.wav");
+        sound_die = gameExports.gameImports.soundindex("parasite/pardeth1.wav");
+        sound_launch = gameExports.gameImports.soundindex("parasite/paratck1.wav");
+        sound_impact = gameExports.gameImports.soundindex("parasite/paratck2.wav");
+        sound_suck = gameExports.gameImports.soundindex("parasite/paratck3.wav");
+        sound_reelin = gameExports.gameImports.soundindex("parasite/paratck4.wav");
+        sound_sight = gameExports.gameImports.soundindex("parasite/parsght1.wav");
+        sound_tap = gameExports.gameImports.soundindex("parasite/paridle1.wav");
+        sound_scratch = gameExports.gameImports.soundindex("parasite/paridle2.wav");
+        sound_search = gameExports.gameImports.soundindex("parasite/parsrch1.wav");
 
-            self.s.modelindex = gameExports.gameImports
-                    .modelindex("models/monsters/parasite/tris.md2");
-            Math3D.VectorSet(self.mins, -16, -16, -24);
-            Math3D.VectorSet(self.maxs, 16, 16, 24);
-            self.movetype = GameDefines.MOVETYPE_STEP;
-            self.solid = Defines.SOLID_BBOX;
+        self.s.modelindex = gameExports.gameImports
+                .modelindex("models/monsters/parasite/tris.md2");
+        Math3D.VectorSet(self.mins, -16, -16, -24);
+        Math3D.VectorSet(self.maxs, 16, 16, 24);
+        self.movetype = GameDefines.MOVETYPE_STEP;
+        self.solid = Defines.SOLID_BBOX;
 
-            self.health = 175;
-            self.gib_health = -50;
-            self.mass = 250;
+        self.health = 175;
+        self.gib_health = -50;
+        self.mass = 250;
 
-            self.pain = parasite_pain;
-            self.die = parasite_die;
+        self.pain = parasite_pain;
+        self.die = parasite_die;
 
-            self.monsterinfo.stand = parasite_stand;
-            self.monsterinfo.walk = parasite_start_walk;
-            self.monsterinfo.run = parasite_start_run;
-            self.monsterinfo.attack = parasite_attack;
-            self.monsterinfo.sight = parasite_sight;
-            self.monsterinfo.idle = parasite_idle;
+        self.monsterinfo.stand = parasite_stand;
+        self.monsterinfo.walk = parasite_start_walk;
+        self.monsterinfo.run = parasite_start_run;
+        self.monsterinfo.attack = parasite_attack;
+        self.monsterinfo.sight = parasite_sight;
+        self.monsterinfo.idle = parasite_idle;
 
-            gameExports.gameImports.linkentity(self);
+        gameExports.gameImports.linkentity(self);
 
-            self.monsterinfo.currentmove = parasite_move_stand;
-            self.monsterinfo.scale = MODEL_SCALE;
+        self.monsterinfo.currentmove = parasite_move_stand;
+        self.monsterinfo.scale = MODEL_SCALE;
 
-            GameAI.walkmonster_start(self, gameExports);
-
-            return true;
-        }
-    };
+        GameAI.walkmonster_start(self, gameExports);
+    }
 
     static boolean parasite_drain_attack_ok(float[] start, float[] end) {
         float[] dir = { 0, 0, 0 }, angles = { 0, 0, 0 };
