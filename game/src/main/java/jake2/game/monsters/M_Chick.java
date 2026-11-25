@@ -24,6 +24,8 @@
 
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.*;
 import jake2.qcommon.Defines;
@@ -641,8 +643,7 @@ public class M_Chick {
 
     static int sound_search;
 
-    static EntThinkAdapter ChickMoan = new EntThinkAdapter() {
-    	public String getID() { return "ChickMoan"; }
+    static EntThinkAdapter ChickMoan = register(new EntThinkAdapter("ChickMoan") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
@@ -652,7 +653,7 @@ public class M_Chick {
                         Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_fidget[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -686,19 +687,17 @@ public class M_Chick {
             new mframe_t(GameAI.ai_stand, 0, null),
             new mframe_t(GameAI.ai_stand, 0, null) };
 
-    static EntThinkAdapter chick_stand = new EntThinkAdapter() {
-    	public String getID() { return "chick_stand"; }
+    static EntThinkAdapter chick_stand = register(new EntThinkAdapter("chick_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = chick_move_stand;
             return true;
         }
-    };
+    });
 
     static mmove_t chick_move_fidget = new mmove_t(FRAME_stand201,
             FRAME_stand230, chick_frames_fidget, chick_stand);
 
-    static EntThinkAdapter chick_fidget = new EntThinkAdapter() {
-    	public String getID() { return "chick_fidget"; }
+    static EntThinkAdapter chick_fidget = register(new EntThinkAdapter("chick_fidget") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
@@ -706,7 +705,7 @@ public class M_Chick {
                 self.monsterinfo.currentmove = chick_move_fidget;
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -743,8 +742,7 @@ public class M_Chick {
     static mmove_t chick_move_stand = new mmove_t(FRAME_stand101,
             FRAME_stand130, chick_frames_stand, null);
 
-    static EntThinkAdapter chick_run = new EntThinkAdapter() {
-    	public String getID() { return "chick_run"; }
+    static EntThinkAdapter chick_run = register(new EntThinkAdapter("chick_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0) {
                 self.monsterinfo.currentmove = chick_move_stand;
@@ -759,7 +757,7 @@ public class M_Chick {
             }
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_start_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 1, null),
@@ -806,13 +804,12 @@ public class M_Chick {
     static mmove_t chick_move_walk = new mmove_t(FRAME_walk11, FRAME_walk20,
             chick_frames_walk, null);
 
-    static EntThinkAdapter chick_walk = new EntThinkAdapter() {
-    	public String getID() { return "chick_walk"; }
+    static EntThinkAdapter chick_walk = register(new EntThinkAdapter("chick_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = chick_move_walk;
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_pain1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -860,8 +857,7 @@ public class M_Chick {
     static mmove_t chick_move_pain3 = new mmove_t(FRAME_pain301, FRAME_pain321,
             chick_frames_pain3, chick_run);
 
-    static EntPainAdapter chick_pain = new EntPainAdapter() {
-    	public String getID() { return "chick_pain"; }
+    static EntPainAdapter chick_pain = register(new EntPainAdapter("chick_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             float r;
 
@@ -895,10 +891,9 @@ public class M_Chick {
                 self.monsterinfo.currentmove = chick_move_pain3;
             return;
         }
-    };
+    });
 
-    static EntThinkAdapter chick_dead = new EntThinkAdapter() {
-    	public String getID() { return "chick_dead"; }
+    static EntThinkAdapter chick_dead = register(new EntThinkAdapter("chick_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, 0);
             Math3D.VectorSet(self.maxs, 16, 16, 16);
@@ -908,7 +903,7 @@ public class M_Chick {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_death2[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -6, null),
@@ -955,8 +950,7 @@ public class M_Chick {
     static mmove_t chick_move_death1 = new mmove_t(FRAME_death101,
             FRAME_death112, chick_frames_death1, chick_dead);
 
-    static EntDieAdapter chick_die = new EntDieAdapter() {
-    	public String getID() { return "chick_die"; }
+    static EntDieAdapter chick_die = register(new EntDieAdapter("chick_die") {
 
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
@@ -1000,10 +994,9 @@ public class M_Chick {
             }
         }
 
-    };
+    });
 
-    static EntThinkAdapter chick_duck_down = new EntThinkAdapter() {
-    	public String getID() { return "chick_duck_down"; }
+    static EntThinkAdapter chick_duck_down = register(new EntThinkAdapter("chick_duck_down") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
@@ -1014,10 +1007,9 @@ public class M_Chick {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter chick_duck_hold = new EntThinkAdapter() {
-    	public String getID() { return "chick_duck_hold"; }
+    static EntThinkAdapter chick_duck_hold = register(new EntThinkAdapter("chick_duck_hold") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
@@ -1025,10 +1017,9 @@ public class M_Chick {
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter chick_duck_up = new EntThinkAdapter() {
-    	public String getID() { return "chick_duck_up"; }
+    static EntThinkAdapter chick_duck_up = register(new EntThinkAdapter("chick_duck_up") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
@@ -1036,7 +1027,7 @@ public class M_Chick {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_duck[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, chick_duck_down),
@@ -1050,8 +1041,7 @@ public class M_Chick {
     static mmove_t chick_move_duck = new mmove_t(FRAME_duck01, FRAME_duck07,
             chick_frames_duck, chick_run);
 
-    static EntDodgeAdapter chick_dodge = new EntDodgeAdapter() {
-    	public String getID() { return "chick_dodge"; }
+    static EntDodgeAdapter chick_dodge = register(new EntDodgeAdapter("chick_dodge") {
         public void dodge(GameEntity self, GameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
@@ -1062,10 +1052,9 @@ public class M_Chick {
             self.monsterinfo.currentmove = chick_move_duck;
             return;
         }
-    };
+    });
 
-    static EntThinkAdapter ChickSlash = new EntThinkAdapter() {
-    	public String getID() { return "ChickSlash"; }
+    static EntThinkAdapter ChickSlash = register(new EntThinkAdapter("ChickSlash") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -1075,10 +1064,9 @@ public class M_Chick {
             GameWeapon.fire_hit(self, aim, (10 + (Lib.rand() % 6)), 100, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter ChickRocket = new EntThinkAdapter() {
-    	public String getID() { return "ChickRocket"; }
+    static EntThinkAdapter ChickRocket = register(new EntThinkAdapter("ChickRocket") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -1099,36 +1087,32 @@ public class M_Chick {
                     Defines.MZ2_CHICK_ROCKET_1, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter Chick_PreAttack1 = new EntThinkAdapter() {
-    	public String getID() { return "Chick_PreAttack1"; }
+    static EntThinkAdapter Chick_PreAttack1 = register(new EntThinkAdapter("Chick_PreAttack1") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                     sound_missile_prelaunch, 1, Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter ChickReload = new EntThinkAdapter() {
-    	public String getID() { return "ChickReload"; }
+    static EntThinkAdapter ChickReload = register(new EntThinkAdapter("ChickReload") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_missile_reload,
                     1, Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter chick_attack1 = new EntThinkAdapter() {
-    	public String getID() { return "chick_attack1"; }
+    static EntThinkAdapter chick_attack1 = register(new EntThinkAdapter("chick_attack1") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = chick_move_attack1;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter chick_rerocket = new EntThinkAdapter() {
-    	public String getID() { return "chick_rerocket"; }
+    static EntThinkAdapter chick_rerocket = register(new EntThinkAdapter("chick_rerocket") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.enemy.health > 0) {
                 if (GameUtil.range(self, self.enemy) > GameDefines.RANGE_MELEE)
@@ -1141,7 +1125,7 @@ public class M_Chick {
             self.monsterinfo.currentmove = chick_move_end_attack1;
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_start_attack1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, Chick_PreAttack1),
@@ -1190,8 +1174,7 @@ public class M_Chick {
     static mmove_t chick_move_end_attack1 = new mmove_t(FRAME_attak128,
             FRAME_attak132, chick_frames_end_attack1, chick_run);
 
-    static EntThinkAdapter chick_reslash = new EntThinkAdapter() {
-    	public String getID() { return "chick_reslash"; }
+    static EntThinkAdapter chick_reslash = register(new EntThinkAdapter("chick_reslash") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.enemy.health > 0) {
                 if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
@@ -1206,7 +1189,7 @@ public class M_Chick {
             self.monsterinfo.currentmove = chick_move_end_slash;
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_slash[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 1, null),
@@ -1231,13 +1214,12 @@ public class M_Chick {
     static mmove_t chick_move_end_slash = new mmove_t(FRAME_attak213,
             FRAME_attak216, chick_frames_end_slash, chick_run);
 
-    static EntThinkAdapter chick_slash = new EntThinkAdapter() {
-    	public String getID() { return "chick_slash"; }
+    static EntThinkAdapter chick_slash = register(new EntThinkAdapter("chick_slash") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = chick_move_slash;
             return true;
         }
-    };
+    });
 
     static mframe_t chick_frames_start_slash[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 1, null),
@@ -1247,30 +1229,27 @@ public class M_Chick {
     static mmove_t chick_move_start_slash = new mmove_t(FRAME_attak201,
             FRAME_attak203, chick_frames_start_slash, chick_slash);
 
-    static EntThinkAdapter chick_melee = new EntThinkAdapter() {
-    	public String getID() { return "chick_melee"; }
+    static EntThinkAdapter chick_melee = register(new EntThinkAdapter("chick_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = chick_move_start_slash;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter chick_attack = new EntThinkAdapter() {
-    	public String getID() { return "chick_attack"; }
+    static EntThinkAdapter chick_attack = register(new EntThinkAdapter("chick_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = chick_move_start_attack1;
             return true;
         }
-    };
+    });
 
-    static EntInteractAdapter chick_sight = new EntInteractAdapter() {
-    	public String getID() { return "chick_sight"; }
+    static EntInteractAdapter chick_sight = register(new EntInteractAdapter("chick_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     /*
      * QUAKED monster_chick (1 .5 0) (-16 -16 -24) (16 16 32) Ambush

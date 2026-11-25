@@ -56,7 +56,7 @@ data class MoveInfo(
         nextSpeed = next_speed,
         remainingDistance = remaining_distance,
         decelDistance = decel_distance,
-        endFuncId = endfunc?.iD
+        endFuncId = endfunc?.id
     )
 
     /**

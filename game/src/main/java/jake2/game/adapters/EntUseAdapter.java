@@ -28,5 +28,9 @@ import jake2.game.GameExportsImpl;
 
 public abstract class EntUseAdapter extends SuperAdapter
 {
+    protected EntUseAdapter(String id) {
+        super(id);
+    }
+
 	public abstract void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports);
 }

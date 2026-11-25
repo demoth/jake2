@@ -23,6 +23,8 @@
 // $Id: M_Actor.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.*;
 import jake2.qcommon.*;
@@ -1003,8 +1005,7 @@ public class M_Actor {
     static String actor_names[] = { "Hellrot", "Tokay", "Killme", "Disruptor",
             "Adrianator", "Rambear", "Titus", "Bitterman" };
 
-    static EntThinkAdapter actor_stand = new EntThinkAdapter() {
-        public String getID() { return "actor_stand";}
+    static EntThinkAdapter actor_stand = register(new EntThinkAdapter("actor_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = actor_move_stand;
 
@@ -1015,7 +1016,7 @@ public class M_Actor {
                                 - self.monsterinfo.currentmove.firstframe + 1));
             return true;
         }
-    };
+    });
 
     static mframe_t actor_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0f, null),
@@ -1078,13 +1079,12 @@ public class M_Actor {
     static mmove_t actor_move_walk = new mmove_t(FRAME_walk01, FRAME_walk08,
             actor_frames_walk, null);
 
-    static EntThinkAdapter actor_walk = new EntThinkAdapter() {
-        public String getID() { return "actor_walk";}
+    static EntThinkAdapter actor_walk = register(new EntThinkAdapter("actor_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = actor_move_walk;
             return true;
         }
-    };
+    });
 
     static mframe_t actor_frames_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 4, null),
@@ -1103,8 +1103,7 @@ public class M_Actor {
     static mmove_t actor_move_run = new mmove_t(FRAME_run02, FRAME_run07,
             actor_frames_run, null);
 
-    static EntThinkAdapter actor_run = new EntThinkAdapter() {
-        public String getID() { return "actor_run";}
+    static EntThinkAdapter actor_run = register(new EntThinkAdapter("actor_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.level.time < self.pain_debounce_time && (self.enemy == null)) {
                 if (self.movetarget != null)
@@ -1123,7 +1122,7 @@ public class M_Actor {
             return true;
 
         }
-    };
+    });
 
     static mframe_t actor_frames_pain1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -5, null),
@@ -1193,8 +1192,7 @@ public class M_Actor {
     static String messages[] = { "Watch it", "#$@*&", "Idiot",
             "Check your targets" };
 
-    static EntPainAdapter actor_pain = new EntPainAdapter() {
-        public String getID() { return "actor_pain";}
+    static EntPainAdapter actor_pain = register(new EntPainAdapter("actor_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             int n;
@@ -1237,10 +1235,9 @@ public class M_Actor {
             else
                 self.monsterinfo.currentmove = actor_move_pain3;
         }
-    };
+    });
 
-    static EntThinkAdapter actor_dead = new EntThinkAdapter() {
-        public String getID() { return "actor_dead";}
+    static EntThinkAdapter actor_dead = register(new EntThinkAdapter("actor_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -1250,7 +1247,7 @@ public class M_Actor {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t actor_frames_death1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -1282,8 +1279,7 @@ public class M_Actor {
     static mmove_t actor_move_death2 = new mmove_t(FRAME_death201,
             FRAME_death213, actor_frames_death2, actor_dead);
 
-    static EntDieAdapter actor_die = new EntDieAdapter() {
-        public String getID() { return "actor_die";}
+    static EntDieAdapter actor_die = register(new EntDieAdapter("actor_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
@@ -1319,10 +1315,9 @@ public class M_Actor {
             else
                 self.monsterinfo.currentmove = actor_move_death2;
         }
-    };
+    });
 
-    static EntThinkAdapter actor_fire = new EntThinkAdapter() {
-        public String getID() { return "actor_fire";}
+    static EntThinkAdapter actor_fire = register(new EntThinkAdapter("actor_fire") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             actorMachineGun(self, gameExports);
 
@@ -1333,7 +1328,7 @@ public class M_Actor {
 
             return true;
         }
-    };
+    });
 
     static mframe_t actor_frames_attack[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, -2, actor_fire),
@@ -1344,8 +1339,7 @@ public class M_Actor {
     static mmove_t actor_move_attack = new mmove_t(FRAME_attak01,
             FRAME_attak04, actor_frames_attack, actor_run);
 
-    static EntThinkAdapter actor_attack = new EntThinkAdapter() {
-        public String getID() { return "actor_attack";}
+    static EntThinkAdapter actor_attack = register(new EntThinkAdapter("actor_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             int n;
 
@@ -1356,10 +1350,9 @@ public class M_Actor {
 
             return true;
         }
-    };
+    });
 
-    static EntUseAdapter actor_use = new EntUseAdapter() {
-        public String getID() { return "actor_use";}
+    static EntUseAdapter actor_use = register(new EntUseAdapter("actor_use") {
         public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             float v[] = { 0, 0, 0 };
 
@@ -1381,7 +1374,7 @@ public class M_Actor {
             self.monsterinfo.walk.think(self, gameExports);
             self.target = null;
         }
-    };
+    });
 
     */
 /*
@@ -1399,8 +1392,7 @@ public class M_Actor {
      *//*
 
 
-    static EntTouchAdapter target_actor_touch = new EntTouchAdapter() {
-        public String getID() { return "target_actor_touch";}
+    static EntTouchAdapter target_actor_touch = register(new EntTouchAdapter("target_actor_touch") {
         public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             float v[] = { 0, 0, 0 };
@@ -1482,7 +1474,7 @@ public class M_Actor {
                 other.ideal_yaw = Math3D.vectoyaw(v);
             }
         }
-    };
+    });
 
     static void actorMachineGun(GameEntity self, GameExportsImpl gameExports) {
         float start[] = { 0, 0, 0 }, target[] = { 0, 0, 0 };

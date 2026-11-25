@@ -22,6 +22,8 @@
 
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
 import jake2.game.items.GameItem;
@@ -39,8 +41,7 @@ public class PlayerClient {
     /**
      * player_die. 
      */
-    static EntDieAdapter player_die = new EntDieAdapter() {
-    	public String getID() { return "player_die"; }
+    static EntDieAdapter player_die = register(new EntDieAdapter("player_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
 
@@ -138,16 +139,14 @@ public class PlayerClient {
     
             gameExports.gameImports.linkentity(self);
         }
-    };
+    });
 
     // player pain is handled at the end of the frame in P_DamageFeedback
-    static EntPainAdapter player_pain = new EntPainAdapter() {
-    	public String getID() { return "player_pain"; }
+    static EntPainAdapter player_pain = register(new EntPainAdapter("player_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
         }
-    };
-    static EntDieAdapter body_die = new EntDieAdapter() {
-    	public String getID() { return "body_die"; }
+    });
+    static EntDieAdapter body_die = register(new EntDieAdapter("body_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
     
@@ -164,7 +163,7 @@ public class PlayerClient {
                 self.takedamage = Defines.DAMAGE_NO;
             }
         }
-    };
+    });
 
 
     public static void ClientObituary(GameEntity self,

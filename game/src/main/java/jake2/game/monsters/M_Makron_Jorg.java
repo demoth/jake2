@@ -22,6 +22,8 @@
 // $Id: M_Boss31.java,v 1.6 2009-12-13 19:18:03 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
@@ -453,8 +455,7 @@ public class M_Makron_Jorg {
      * think(GameEntity self) { return true; } };
      */
 
-    static EntThinkAdapter jorg_search = new EntThinkAdapter() {
-    	public String getID() { return "jorg_search"; }
+    static EntThinkAdapter jorg_search = register(new EntThinkAdapter("jorg_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float r;
 
@@ -471,54 +472,48 @@ public class M_Makron_Jorg {
                         Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_idle = new EntThinkAdapter() {
-    	public String getID() { return "jorg_idle"; }
+    static EntThinkAdapter jorg_idle = register(new EntThinkAdapter("jorg_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_death_hit = new EntThinkAdapter() {
-    	public String getID() { return "jorg_death_hit"; }
+    static EntThinkAdapter jorg_death_hit = register(new EntThinkAdapter("jorg_death_hit") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_death_hit, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_step_left = new EntThinkAdapter() {
-    	public String getID() { return "jorg_step_left"; }
+    static EntThinkAdapter jorg_step_left = register(new EntThinkAdapter("jorg_step_left") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_left, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_step_right = new EntThinkAdapter() {
-    	public String getID() { return "jorg_step_right"; }
+    static EntThinkAdapter jorg_step_right = register(new EntThinkAdapter("jorg_step_right") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_step_right, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_stand = new EntThinkAdapter() {
-    	public String getID() { return "jorg_stand"; }
+    static EntThinkAdapter jorg_stand = register(new EntThinkAdapter("jorg_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_stand;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_reattack1 = new EntThinkAdapter() {
-    	public String getID() { return "jorg_reattack1"; }
+    static EntThinkAdapter jorg_reattack1 = register(new EntThinkAdapter("jorg_reattack1") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() < 0.9)
@@ -533,18 +528,16 @@ public class M_Makron_Jorg {
             }
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_attack1 = new EntThinkAdapter() {
-    	public String getID() { return "jorg_attack1"; }
+    static EntThinkAdapter jorg_attack1 = register(new EntThinkAdapter("jorg_attack1") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_attack1;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter jorg_pain = new EntPainAdapter() {
-    	public String getID() { return "jorg_pain"; }
+    static EntPainAdapter jorg_pain = register(new EntPainAdapter("jorg_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -601,10 +594,9 @@ public class M_Makron_Jorg {
             }
 
         }
-    };
+    });
 
-    static EntThinkAdapter jorgBFG = new EntThinkAdapter() {
-    	public String getID() { return "jorgBFG"; }
+    static EntThinkAdapter jorgBFG = register(new EntThinkAdapter("jorgBFG") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
 
@@ -632,10 +624,9 @@ public class M_Makron_Jorg {
                     Defines.MZ2_JORG_BFG_1, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_firebullet_right = new EntThinkAdapter() {
-    	public String getID() { return "jorg_firebullet_right"; }
+    static EntThinkAdapter jorg_firebullet_right = register(new EntThinkAdapter("jorg_firebullet_right") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
@@ -660,10 +651,9 @@ public class M_Makron_Jorg {
                     Defines.MZ2_JORG_MACHINEGUN_R1, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_firebullet_left = new EntThinkAdapter() {
-    	public String getID() { return "jorg_firebullet_left"; }
+    static EntThinkAdapter jorg_firebullet_left = register(new EntThinkAdapter("jorg_firebullet_left") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
@@ -688,19 +678,17 @@ public class M_Makron_Jorg {
                     Defines.MZ2_JORG_MACHINEGUN_L1, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_firebullet = new EntThinkAdapter() {
-    	public String getID() { return "jorg_firebullet"; }
+    static EntThinkAdapter jorg_firebullet = register(new EntThinkAdapter("jorg_firebullet") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             jorg_firebullet_left.think(self, gameExports);
             jorg_firebullet_right.think(self, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_attack = new EntThinkAdapter() {
-    	public String getID() { return "jorg_attack"; }
+    static EntThinkAdapter jorg_attack = register(new EntThinkAdapter("jorg_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range = 0;
@@ -720,11 +708,10 @@ public class M_Makron_Jorg {
             }
             return true;
         }
-    };
+    });
 
     /** Was disabled. RST. */
-    static EntThinkAdapter jorg_dead = new EntThinkAdapter() {
-    	public String getID() { return "jorg_dead"; }
+    static EntThinkAdapter jorg_dead = register(new EntThinkAdapter("jorg_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * edict_t tempent;
@@ -744,10 +731,9 @@ public class M_Makron_Jorg {
              */
             return true;
         }
-    };
+    });
 
-    static EntDieAdapter jorg_die = new EntDieAdapter() {
-    	public String getID() { return "jorg_die"; }
+    static EntDieAdapter jorg_die = register(new EntDieAdapter("jorg_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
@@ -759,10 +745,9 @@ public class M_Makron_Jorg {
             self.monsterinfo.currentmove = jorg_move_death;
             return;
         }
-    };
+    });
 
-    static EntThinkAdapter Jorg_CheckAttack = new EntThinkAdapter() {
-    	public String getID() { return "Jorg_CheckAttack"; }
+    static EntThinkAdapter Jorg_CheckAttack = register(new EntThinkAdapter("Jorg_CheckAttack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
@@ -842,7 +827,7 @@ public class M_Makron_Jorg {
 
             return false;
         }
-    };
+    });
 
     //
     //	   stand
@@ -973,16 +958,14 @@ public class M_Makron_Jorg {
     static mmove_t jorg_move_end_walk = new mmove_t(FRAME_walk20, FRAME_walk25,
             jorg_frames_end_walk, null);
 
-    static EntThinkAdapter jorg_walk = new EntThinkAdapter() {
-    	public String getID() { return "jorg_walk"; }
+    static EntThinkAdapter jorg_walk = register(new EntThinkAdapter("jorg_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = jorg_move_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter jorg_run = new EntThinkAdapter() {
-    	public String getID() { return "jorg_run"; }
+    static EntThinkAdapter jorg_run = register(new EntThinkAdapter("jorg_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = jorg_move_stand;
@@ -990,7 +973,7 @@ public class M_Makron_Jorg {
                 self.monsterinfo.currentmove = jorg_move_run;
             return true;
         }
-    };
+    });
 
     static mframe_t jorg_frames_pain3[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -28, null),

@@ -91,6 +91,7 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.monsters.M_Tank",
                     "jake2.game.items.GameItems",
                     // Kotlin callbacks must exist before restoring saved entity behavior.
+                    "jake2.game.character.GameCharacterKt",
                     "jake2.game.LightKt",
                     "jake2.game.TriggersKt",
                     "jake2.game.PathKt",

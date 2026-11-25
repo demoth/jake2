@@ -670,7 +670,7 @@ object LevelSaveSnapshots {
         return edicts[index]
     }
 
-    private fun adapterId(adapter: SuperAdapter?): String? = adapter?.iD
+    private fun adapterId(adapter: SuperAdapter?): String? = adapter?.id
 
     private fun thinkAdapter(id: String?): EntThinkAdapter? = resolveAdapter(id)
     private fun blockedAdapter(id: String?): EntBlockedAdapter? = resolveAdapter(id)

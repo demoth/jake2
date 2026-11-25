@@ -28,6 +28,10 @@ import jake2.game.GameExportsImpl;
 import jake2.game.items.GameItem;
 
 public abstract class ItemDropAdapter extends SuperAdapter {
+    protected ItemDropAdapter(String id) {
+        super(id);
+    }
+
     public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
     }
 }

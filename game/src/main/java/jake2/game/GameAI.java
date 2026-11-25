@@ -24,6 +24,8 @@
 
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.qcommon.Com;
 import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.game.adapters.AIAdapter;
@@ -278,8 +280,7 @@ public class GameAI {
     }
 
     
-    public static EntThinkAdapter walkmonster_start_go = new EntThinkAdapter() {
-        public String getID() { return "walkmonster_start_go"; }
+    public static EntThinkAdapter walkmonster_start_go = register(new EntThinkAdapter("walkmonster_start_go") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if (0 == (self.spawnflags & 2) && gameExports.level.time < 1) {
@@ -301,15 +302,14 @@ public class GameAI {
                 Monster.monster_triggered_start.think(self, gameExports);
             return true;
         }
-    };
+    });
 
     public static void walkmonster_start(GameEntity self, GameExportsImpl gameExports) {
         self.think.action = walkmonster_start_go;
         Monster.monster_start(self, gameExports);
     }
 
-    public static EntThinkAdapter flymonster_start_go = new EntThinkAdapter() {
-        public String getID() { return "flymonster_start_go";}
+    public static EntThinkAdapter flymonster_start_go = register(new EntThinkAdapter("flymonster_start_go") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (!M.M_walkmove(self, 0, 0, gameExports))
                 Com.Warn(GAME, self.classname + " in solid at "
@@ -325,20 +325,18 @@ public class GameAI {
                 Monster.monster_triggered_start.think(self, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter flymonster_start = new EntThinkAdapter() {
-        public String getID() { return "flymonster_start";}        
+    public static EntThinkAdapter flymonster_start = register(new EntThinkAdapter("flymonster_start") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_FLY;
             self.think.action = flymonster_start_go;
             Monster.monster_start(self, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter swimmonster_start_go = new EntThinkAdapter() {
-        public String getID() { return "swimmonster_start_go";}
+    public static EntThinkAdapter swimmonster_start_go = register(new EntThinkAdapter("swimmonster_start_go") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (0 == self.yaw_speed)
                 self.yaw_speed = 20;
@@ -350,25 +348,23 @@ public class GameAI {
                 Monster.monster_triggered_start.think(self, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter swimmonster_start = new EntThinkAdapter() {
-        public String getID() { return "swimmonster_start";}
+    public static EntThinkAdapter swimmonster_start = register(new EntThinkAdapter("swimmonster_start") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.flags |= GameDefines.FL_SWIM;
             self.think.action = swimmonster_start_go;
             Monster.monster_start(self, gameExports);
             return true;
         }
-    };
+    });
 
     
     /**
      * Don't move, but turn towards ideal_yaw Distance is for slight position
      * adjustments needed by the animations 
      */
-    public static AIAdapter ai_turn = new AIAdapter() {
-        public String getID() { return "ai_turn";}
+    public static AIAdapter ai_turn = register(new AIAdapter("ai_turn") {
         public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
 
             if (dist != 0)
@@ -379,26 +375,24 @@ public class GameAI {
 
             M.rotateToIdealYaw(self);
         }
-    };
+    });
 
     
     /**
      * Move the specified distance at current facing. This replaces the QC
      * functions: ai_forward, ai_back, ai_pain, and ai_painforward
      */
-    public static AIAdapter ai_move = new AIAdapter() {
-        public String getID() { return "ai_move";}
+    public static AIAdapter ai_move = register(new AIAdapter("ai_move") {
         public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
         }
-    };
+    });
 
     
     /**
      * The monster is walking it's beat.
      */
-    public static AIAdapter ai_walk = new AIAdapter() {
-        public String getID() { return "ai_walk";}
+    public static AIAdapter ai_walk = register(new AIAdapter("ai_walk") {
         public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             M.M_MoveToGoal(self, dist, gameExports);
 
@@ -416,15 +410,14 @@ public class GameAI {
                 }
             }
         }
-    };
+    });
 
     
     /**
      * Used for standing around and looking for players Distance is for slight
      * position adjustments needed by the animations. 
      */
-    public static AIAdapter ai_stand = new AIAdapter() {
-        public String getID() { return "ai_stand";}
+    public static AIAdapter ai_stand = register(new AIAdapter("ai_stand") {
         public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
@@ -465,14 +458,13 @@ public class GameAI {
                 }
             }
         }
-    };
+    });
 
     /**
      * Turns towards target and advances Use this call with a distnace of 0 to
      * replace ai_face.
      */
-    public static AIAdapter ai_charge = new AIAdapter() {
-        public String getID() { return "ai_charge";}
+    public static AIAdapter ai_charge = register(new AIAdapter("ai_charge") {
         public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
 
@@ -483,14 +475,13 @@ public class GameAI {
             if (dist != 0)
                 M.M_walkmove(self, self.s.angles[Defines.YAW], dist, gameExports);
         }
-    };
+    });
 
     
     /**
      * The monster has an enemy it is trying to kill.
      */
-    public static AIAdapter ai_run = new AIAdapter() {
-        public String getID() { return "ai_run";}
+    public static AIAdapter ai_run = register(new AIAdapter("ai_run") {
         public void ai(GameEntity self, float dist, GameExportsImpl gameExports) {
             float[] v = { 0, 0, 0 };
             float[] v_forward = { 0, 0, 0 }, v_right = { 0, 0, 0 };
@@ -692,6 +683,6 @@ public class GameAI {
             if (self != null)
                 self.goalentity = save;
         }
-    };
+    });
 
 }

@@ -28,5 +28,9 @@ import jake2.game.GameExportsImpl;
 
 public abstract class EntPainAdapter extends SuperAdapter
 {
+    protected EntPainAdapter(String id) {
+        super(id);
+    }
+
 	public abstract void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports);
 }

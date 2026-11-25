@@ -22,6 +22,8 @@
 
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.adapters.EntInteractAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.ItemDropAdapter;
@@ -38,8 +40,7 @@ import jake2.qcommon.util.Math3D;
 
 public class PlayerWeapon {
 
-    public static EntThinkAdapter Weapon_Grenade = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Grenade"; }
+    public static EntThinkAdapter Weapon_Grenade = register(new EntThinkAdapter("Weapon_Grenade") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             GamePlayerInfo client = ent.getClient();
@@ -141,7 +142,7 @@ public class PlayerWeapon {
             }
             return true;
         }
-    };
+    });
 
     /*
      * ======================================================================
@@ -151,8 +152,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static EntThinkAdapter weapon_grenadelauncher_fire = new EntThinkAdapter() {
-    	public String getID() { return "weapon_grenadelauncher_fire"; }
+    public static EntThinkAdapter weapon_grenadelauncher_fire = register(new EntThinkAdapter("weapon_grenadelauncher_fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             float[] offset = { 0, 0, 0 };
@@ -187,10 +187,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_GrenadeLauncher = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_GrenadeLauncher"; }
+    public static EntThinkAdapter Weapon_GrenadeLauncher = register(new EntThinkAdapter("Weapon_GrenadeLauncher") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -201,7 +200,7 @@ public class PlayerWeapon {
                     weapon_grenadelauncher_fire, gameExports);
             return true;
         }
-    };
+    });
 
     /*
      * ======================================================================
@@ -211,8 +210,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static EntThinkAdapter Weapon_RocketLauncher_Fire = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_RocketLauncher_Fire"; }
+    public static EntThinkAdapter Weapon_RocketLauncher_Fire = register(new EntThinkAdapter("Weapon_RocketLauncher_Fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -254,10 +252,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_RocketLauncher = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_RocketLauncher"; }
+    public static EntThinkAdapter Weapon_RocketLauncher = register(new EntThinkAdapter("Weapon_RocketLauncher") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -268,10 +265,9 @@ public class PlayerWeapon {
                     Weapon_RocketLauncher_Fire, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_Blaster_Fire = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Blaster_Fire"; }
+    public static EntThinkAdapter Weapon_Blaster_Fire = register(new EntThinkAdapter("Weapon_Blaster_Fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -286,10 +282,9 @@ public class PlayerWeapon {
             ent.getClient().getPlayerState().gunframe++;
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_Blaster = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Blaster"; }
+    public static EntThinkAdapter Weapon_Blaster = register(new EntThinkAdapter("Weapon_Blaster") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -300,10 +295,9 @@ public class PlayerWeapon {
                     Weapon_Blaster_Fire, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_HyperBlaster_Fire = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_HyperBlaster_Fire"; }
+    public static EntThinkAdapter Weapon_HyperBlaster_Fire = register(new EntThinkAdapter("Weapon_HyperBlaster_Fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             float rotation;
@@ -372,10 +366,9 @@ public class PlayerWeapon {
             return true;
 
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_HyperBlaster = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_HyperBlaster"; }
+    public static EntThinkAdapter Weapon_HyperBlaster = register(new EntThinkAdapter("Weapon_HyperBlaster") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
             int pause_frames[] = { 0 };
@@ -385,10 +378,9 @@ public class PlayerWeapon {
                     Weapon_HyperBlaster_Fire, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_Machinegun = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Machinegun"; }
+    public static EntThinkAdapter Weapon_Machinegun = register(new EntThinkAdapter("Weapon_Machinegun") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
             int pause_frames[] = { 23, 45, 0 };
@@ -398,10 +390,9 @@ public class PlayerWeapon {
                     Machinegun_Fire, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_Chaingun = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Chaingun"; }
+    public static EntThinkAdapter Weapon_Chaingun = register(new EntThinkAdapter("Weapon_Chaingun") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
             int pause_frames[] = { 38, 43, 51, 61, 0 };
@@ -412,7 +403,7 @@ public class PlayerWeapon {
                     Chaingun_Fire, gameExports);
             return true;
         }
-    };
+    });
 
     /*
      * ======================================================================
@@ -422,8 +413,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static EntThinkAdapter weapon_shotgun_fire = new EntThinkAdapter() {
-    	public String getID() { return "weapon_shotgun_fire"; }
+    public static EntThinkAdapter weapon_shotgun_fire = register(new EntThinkAdapter("weapon_shotgun_fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -473,10 +463,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_Shotgun = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Shotgun"; }
+    public static EntThinkAdapter Weapon_Shotgun = register(new EntThinkAdapter("Weapon_Shotgun") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             int pause_frames[] = { 22, 28, 34, 0 };
             int fire_frames[] = { 8, 9, 0 };
@@ -485,10 +474,9 @@ public class PlayerWeapon {
                     weapon_shotgun_fire, gameExports);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter weapon_supershotgun_fire = new EntThinkAdapter() {
-    	public String getID() { return "weapon_supershotgun_fire"; }
+    public static EntThinkAdapter weapon_supershotgun_fire = register(new EntThinkAdapter("weapon_supershotgun_fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -539,10 +527,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_SuperShotgun = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_SuperShotgun"; }
+    public static EntThinkAdapter Weapon_SuperShotgun = register(new EntThinkAdapter("Weapon_SuperShotgun") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
             int pause_frames[] = { 29, 42, 57, 0 };
@@ -552,7 +539,7 @@ public class PlayerWeapon {
                     weapon_supershotgun_fire, gameExports);
             return true;
         }
-    };
+    });
 
     /*
      * ======================================================================
@@ -561,8 +548,7 @@ public class PlayerWeapon {
      * 
      * ======================================================================
      */
-    public static EntThinkAdapter weapon_railgun_fire = new EntThinkAdapter() {
-    	public String getID() { return "weapon_railgun_fire"; }
+    public static EntThinkAdapter weapon_railgun_fire = register(new EntThinkAdapter("weapon_railgun_fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -607,10 +593,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_Railgun = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_Railgun"; }
+    public static EntThinkAdapter Weapon_Railgun = register(new EntThinkAdapter("Weapon_Railgun") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -620,7 +605,7 @@ public class PlayerWeapon {
                     weapon_railgun_fire, gameExports);
             return true;
         }
-    };
+    });
 
     /*
      * ======================================================================
@@ -630,8 +615,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static EntThinkAdapter weapon_bfg_fire = new EntThinkAdapter() {
-    	public String getID() { return "weapon_bfg_fire"; }
+    public static EntThinkAdapter weapon_bfg_fire = register(new EntThinkAdapter("weapon_bfg_fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -688,10 +672,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Weapon_BFG = new EntThinkAdapter() {
-    	public String getID() { return "Weapon_BFG"; }
+    public static EntThinkAdapter Weapon_BFG = register(new EntThinkAdapter("Weapon_BFG") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             int[] pause_frames = { 39, 45, 50, 55, 0 };
             int[] fire_frames = { 9, 17, 0 };
@@ -700,7 +683,7 @@ public class PlayerWeapon {
                     weapon_bfg_fire, gameExports);
             return true;
         }
-    };
+    });
 
 
     /*
@@ -710,8 +693,7 @@ public class PlayerWeapon {
      * Make the weapon ready if there is ammo 
      * ================
      */
-    public static ItemUseAdapter Use_Weapon = new ItemUseAdapter() {
-    	public String getID() { return "Use_Weapon"; }
+    public static ItemUseAdapter Use_Weapon = register(new ItemUseAdapter("Use_Weapon") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int ammo_index;
@@ -746,7 +728,7 @@ public class PlayerWeapon {
             // change to this weapon when down
             client.newweapon = item;
         }
-    };
+    });
 
     /*
      * ================ 
@@ -754,10 +736,7 @@ public class PlayerWeapon {
      * ================
      */
 
-    public static ItemDropAdapter Drop_Weapon = new ItemDropAdapter() {
-        public String getID() {
-            return "Drop_Weapon";
-        }
+    public static ItemDropAdapter Drop_Weapon = register(new ItemDropAdapter("Drop_Weapon") {
 
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
@@ -778,7 +757,7 @@ public class PlayerWeapon {
             GameItems.Drop_Item(ent, item, gameExports);
             client.pers.inventory[index]--;
         }
-    };
+    });
 
     /*
      * ======================================================================
@@ -788,8 +767,7 @@ public class PlayerWeapon {
      * ======================================================================
      */
 
-    public static EntThinkAdapter Machinegun_Fire = new EntThinkAdapter() {
-    	public String getID() { return "Machinegun_Fire"; }
+    public static EntThinkAdapter Machinegun_Fire = register(new EntThinkAdapter("Machinegun_Fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -875,10 +853,9 @@ public class PlayerWeapon {
             }
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter Chaingun_Fire = new EntThinkAdapter() {
-    	public String getID() { return "Chaingun_Fire"; }
+    public static EntThinkAdapter Chaingun_Fire = register(new EntThinkAdapter("Chaingun_Fire") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
 
@@ -993,10 +970,9 @@ public class PlayerWeapon {
 
             return true;
         }
-    };
+    });
 
-    public static EntInteractAdapter Pickup_Weapon = new EntInteractAdapter() {
-    	public String getID() { return "Pickup_Weapon"; }
+    public static EntInteractAdapter Pickup_Weapon = register(new EntInteractAdapter("Pickup_Weapon") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             int index;
             GameItem ammo;
@@ -1044,7 +1020,7 @@ public class PlayerWeapon {
     
             return true;
         }
-    };
+    });
 
     public static void P_ProjectSource(GamePlayerInfo client, float[] point,
                                        float[] distance, float[] forward, float[] right, float[] result) {

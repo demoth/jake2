@@ -28,5 +28,9 @@ import jake2.game.GameEntity;
 
 public abstract class EntDodgeAdapter extends SuperAdapter
 {
+    protected EntDodgeAdapter(String id) {
+        super(id);
+    }
+
 	public abstract void dodge(GameEntity self, GameEntity other, float eta, GameExportsImpl gameExports);
 }

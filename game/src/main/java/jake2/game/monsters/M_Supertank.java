@@ -22,6 +22,8 @@
 // $Id: M_Supertank.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
@@ -561,17 +563,15 @@ public class M_Supertank {
 
     static int tread_sound;
 
-    static EntThinkAdapter TreadSound = new EntThinkAdapter() {
-    	public String getID(){ return "TreadSound"; }
+    static EntThinkAdapter TreadSound = register(new EntThinkAdapter("TreadSound") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, tread_sound, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter supertank_search = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_search"; }
+    static EntThinkAdapter supertank_search = register(new EntThinkAdapter("supertank_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
@@ -581,12 +581,11 @@ public class M_Supertank {
                         Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     // should be initialized before supertank_frames_death1
     /** Common Boss explode animation. */
-    public static EntThinkAdapter BossExplode = new EntThinkAdapter() {
-        public String getID(){ return "BossExplode"; }
+    public static EntThinkAdapter BossExplode = register(new EntThinkAdapter("BossExplode") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] org = { 0, 0, 0 };
 
@@ -649,7 +648,7 @@ public class M_Supertank {
             self.think.nextTime = gameExports.level.time + 0.1f;
             return true;
         }
-    };
+    });
 
     //
     // stand
@@ -720,13 +719,12 @@ public class M_Supertank {
     static mmove_t supertank_move_stand = new mmove_t(FRAME_stand_1,
             FRAME_stand_60, supertank_frames_stand, null);
 
-    static EntThinkAdapter supertank_stand = new EntThinkAdapter() {
-    	public String getID() { return "supertank_stand"; }
+    static EntThinkAdapter supertank_stand = register(new EntThinkAdapter("supertank_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = supertank_move_stand;
             return true;
         }
-    };
+    });
 
     static mframe_t supertank_frames_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 12, TreadSound),
@@ -778,24 +776,21 @@ public class M_Supertank {
     static mmove_t supertank_move_forward = new mmove_t(FRAME_forwrd_1,
             FRAME_forwrd_18, supertank_frames_forward, null);
 
-    static EntThinkAdapter supertank_forward = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_forward"; }
+    static EntThinkAdapter supertank_forward = register(new EntThinkAdapter("supertank_forward") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = supertank_move_forward;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter supertank_walk = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_walk"; }
+    static EntThinkAdapter supertank_walk = register(new EntThinkAdapter("supertank_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = supertank_move_forward;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter supertank_run = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_run"; }
+    static EntThinkAdapter supertank_run = register(new EntThinkAdapter("supertank_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = supertank_move_stand;
@@ -803,13 +798,12 @@ public class M_Supertank {
                 self.monsterinfo.currentmove = supertank_move_run;
             return true;
         }
-    };
+    });
 
     //
     // death
     //
-    static EntThinkAdapter supertank_dead = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_dead"; }
+    static EntThinkAdapter supertank_dead = register(new EntThinkAdapter("supertank_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -60, -60, 0);
             Math3D.VectorSet(self.maxs, 60, 60, 72);
@@ -819,10 +813,9 @@ public class M_Supertank {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter supertankRocket = new EntThinkAdapter() {
-    	public String getID(){ return "supertankRocket"; }
+    static EntThinkAdapter supertankRocket = register(new EntThinkAdapter("supertankRocket") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -853,10 +846,9 @@ public class M_Supertank {
                             flash_number, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter supertankMachineGun = new EntThinkAdapter() {
-    	public String getID(){ return "supertankMachineGun"; }
+    static EntThinkAdapter supertankMachineGun = register(new EntThinkAdapter("supertankMachineGun") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] dir = { 0, 0, 0 };
             float[] vec = { 0, 0, 0 };
@@ -890,10 +882,9 @@ public class M_Supertank {
                     GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter supertank_attack = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_attack"; }
+    static EntThinkAdapter supertank_attack = register(new EntThinkAdapter("supertank_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
             float range;
@@ -917,7 +908,7 @@ public class M_Supertank {
             }
             return true;
         }
-    };
+    });
 
     static mframe_t supertank_frames_turn_right[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, TreadSound),
@@ -1119,8 +1110,7 @@ public class M_Supertank {
     static mmove_t supertank_move_attack2 = new mmove_t(FRAME_attak2_1,
             FRAME_attak2_27, supertank_frames_attack2, supertank_run);
 
-    static EntThinkAdapter supertank_reattack1 = new EntThinkAdapter() {
-    	public String getID(){ return "supertank_reattack1"; }
+    static EntThinkAdapter supertank_reattack1 = register(new EntThinkAdapter("supertank_reattack1") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() < 0.9)
@@ -1131,7 +1121,7 @@ public class M_Supertank {
                 self.monsterinfo.currentmove = supertank_move_end_attack1;
             return true;
         }
-    };
+    });
 
     static mframe_t supertank_frames_attack1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, supertankMachineGun),
@@ -1163,8 +1153,7 @@ public class M_Supertank {
     static mmove_t supertank_move_end_attack1 = new mmove_t(FRAME_attak1_7,
             FRAME_attak1_20, supertank_frames_end_attack1, supertank_run);
 
-    static EntPainAdapter supertank_pain = new EntPainAdapter() {
-    	public String getID(){ return "supertank_pain"; }
+    static EntPainAdapter supertank_pain = register(new EntPainAdapter("supertank_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -1202,10 +1191,9 @@ public class M_Supertank {
                 self.monsterinfo.currentmove = supertank_move_pain3;
             }
         }
-    };
+    });
 
-    static EntDieAdapter supertank_die = new EntDieAdapter() {
-    	public String getID(){ return "supertank_die"; }
+    static EntDieAdapter supertank_die = register(new EntDieAdapter("supertank_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
@@ -1215,7 +1203,7 @@ public class M_Supertank {
             self.count = 0;
             self.monsterinfo.currentmove = supertank_move_death;
         }
-    };
+    });
 
     //
     // monster_supertank

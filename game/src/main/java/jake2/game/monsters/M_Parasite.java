@@ -22,6 +22,8 @@
 // $Id: M_Parasite.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -299,103 +301,91 @@ public class M_Parasite {
 
     static int sound_search;
 
-    static EntThinkAdapter parasite_launch = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_launch"; }
+    static EntThinkAdapter parasite_launch = register(new EntThinkAdapter("parasite_launch") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_launch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_reel_in = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_reel_in"; }
+    static EntThinkAdapter parasite_reel_in = register(new EntThinkAdapter("parasite_reel_in") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_reelin, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntInteractAdapter parasite_sight = new EntInteractAdapter() {
-    	public String getID(){ return "parasite_sight"; }
+    static EntInteractAdapter parasite_sight = register(new EntInteractAdapter("parasite_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_tap = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_tap"; }
+    static EntThinkAdapter parasite_tap = register(new EntThinkAdapter("parasite_tap") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_tap, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_scratch = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_scratch"; }
+    static EntThinkAdapter parasite_scratch = register(new EntThinkAdapter("parasite_scratch") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_scratch, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_search = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_search"; }
+    static EntThinkAdapter parasite_search = register(new EntThinkAdapter("parasite_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_search, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_start_walk = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_start_walk"; }
+    static EntThinkAdapter parasite_start_walk = register(new EntThinkAdapter("parasite_start_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_start_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_walk = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_walk"; }
+    static EntThinkAdapter parasite_walk = register(new EntThinkAdapter("parasite_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_stand = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_stand"; }
+    static EntThinkAdapter parasite_stand = register(new EntThinkAdapter("parasite_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_stand;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_end_fidget = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_end_fidget"; }
+    static EntThinkAdapter parasite_end_fidget = register(new EntThinkAdapter("parasite_end_fidget") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_end_fidget;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_do_fidget = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_do_fidget"; }
+    static EntThinkAdapter parasite_do_fidget = register(new EntThinkAdapter("parasite_do_fidget") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_fidget;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_refidget = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_refidget"; }
+    static EntThinkAdapter parasite_refidget = register(new EntThinkAdapter("parasite_refidget") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() <= 0.8)
                 self.monsterinfo.currentmove = parasite_move_fidget;
@@ -403,18 +393,16 @@ public class M_Parasite {
                 self.monsterinfo.currentmove = parasite_move_end_fidget;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_idle = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_idle"; }
+    static EntThinkAdapter parasite_idle = register(new EntThinkAdapter("parasite_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = parasite_move_start_fidget;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_start_run = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_start_run"; }
+    static EntThinkAdapter parasite_start_run = register(new EntThinkAdapter("parasite_start_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = parasite_move_stand;
@@ -422,10 +410,9 @@ public class M_Parasite {
                 self.monsterinfo.currentmove = parasite_move_start_run;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_run = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_run"; }
+    static EntThinkAdapter parasite_run = register(new EntThinkAdapter("parasite_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = parasite_move_stand;
@@ -433,7 +420,7 @@ public class M_Parasite {
                 self.monsterinfo.currentmove = parasite_move_run;
             return true;
         }
-    };
+    });
 
     static mframe_t parasite_frames_start_fidget[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -566,8 +553,7 @@ public class M_Parasite {
     static mmove_t parasite_move_pain1 = new mmove_t(FRAME_pain101,
             FRAME_pain111, parasite_frames_pain1, parasite_start_run);
 
-    static EntPainAdapter parasite_pain = new EntPainAdapter() {
-    	public String getID(){ return "parasite_pain"; }
+    static EntPainAdapter parasite_pain = register(new EntPainAdapter("parasite_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -589,10 +575,9 @@ public class M_Parasite {
 
             self.monsterinfo.currentmove = parasite_move_pain1;
         }
-    };
+    });
 
-    static EntThinkAdapter parasite_drain_attack = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_drain_attack"; }
+    static EntThinkAdapter parasite_drain_attack = register(new EntThinkAdapter("parasite_drain_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] offset = { 0, 0, 0 }, start = { 0, 0, 0 }, f = { 0, 0, 0 }, r = {
                     0, 0, 0 }, end = { 0, 0, 0 }, dir = { 0, 0, 0 };
@@ -638,7 +623,7 @@ public class M_Parasite {
                     DamageFlags.DAMAGE_NO_KNOCKBACK, GameDefines.MOD_UNKNOWN, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t parasite_frames_drain[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, parasite_launch),
@@ -706,8 +691,7 @@ public class M_Parasite {
      * === Break Stuff Ends ===
      */
 
-    static EntThinkAdapter parasite_attack = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_attack"; }
+    static EntThinkAdapter parasite_attack = register(new EntThinkAdapter("parasite_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //	if (random() <= 0.2)
             //		self.monsterinfo.currentmove = &parasite_move_break;
@@ -715,14 +699,13 @@ public class M_Parasite {
             self.monsterinfo.currentmove = parasite_move_drain;
             return true;
         }
-    };
+    });
 
     /*
      * === Death Stuff Starts ===
      */
 
-    static EntThinkAdapter parasite_dead = new EntThinkAdapter() {
-    	public String getID(){ return "parasite_dead"; }
+    static EntThinkAdapter parasite_dead = register(new EntThinkAdapter("parasite_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -732,7 +715,7 @@ public class M_Parasite {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t parasite_frames_death[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -746,8 +729,7 @@ public class M_Parasite {
     static mmove_t parasite_move_death = new mmove_t(FRAME_death101,
             FRAME_death107, parasite_frames_death, parasite_dead);
 
-    static EntDieAdapter parasite_die = new EntDieAdapter() {
-    	public String getID(){ return "parasite_die"; }
+    static EntDieAdapter parasite_die = register(new EntDieAdapter("parasite_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
@@ -781,7 +763,7 @@ public class M_Parasite {
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.currentmove = parasite_move_death;
         }
-    };
+    });
 
     /*
      * === End Death Stuff ===

@@ -24,6 +24,8 @@
 
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntUseAdapter;
 import jake2.game.items.GameItems;
@@ -463,25 +465,22 @@ public class GameUtil {
         self.monsterinfo.run.think(self, gameExports);
     }
 
-    private static EntThinkAdapter Think_Delay = new EntThinkAdapter() {
-    	public String getID() { return "Think_Delay"; }
+    private static final EntThinkAdapter Think_Delay = register(new EntThinkAdapter("Think_Delay") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             G_UseTargets(ent, ent.activator, gameExports);
             gameExports.freeEntity(ent);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter G_FreeEdictA = new EntThinkAdapter() {
-    	public String getID() { return "G_FreeEdictA"; }
+    public static EntThinkAdapter G_FreeEdictA = register(new EntThinkAdapter("G_FreeEdictA") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             gameExports.freeEntity(ent);
             return false;
         }
-    };
+    });
 
-    public static EntThinkAdapter M_CheckAttack = new EntThinkAdapter() {
-    	public String getID() { return "M_CheckAttack"; }
+    public static EntThinkAdapter M_CheckAttack = register(new EntThinkAdapter("M_CheckAttack") {
 
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 };
@@ -565,10 +564,9 @@ public class GameUtil {
             return false;
 
         }
-    };
+    });
 
-    static EntUseAdapter monster_use = new EntUseAdapter() {
-    	public String getID() { return "monster_use"; }
+    static EntUseAdapter monster_use = register(new EntUseAdapter("monster_use") {
         public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             if (self.enemy != null)
                 return;
@@ -585,5 +583,5 @@ public class GameUtil {
             self.enemy = activator;
             FoundTarget(self, gameExports);
         }
-    };
+    });
 }

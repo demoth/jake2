@@ -157,6 +157,9 @@
       "type": "jake2.game.items.GameItems"
     },
     {
+      "type": "jake2.game.character.GameCharacterKt"
+    },
+    {
       "type": "jake2.game.LightKt"
     },
     {

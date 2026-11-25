@@ -22,6 +22,8 @@
 // $Id: M_Mutant.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.*;
 import jake2.qcommon.Defines;
@@ -363,8 +365,7 @@ public class M_Mutant {
     //
     //	SOUNDS
     //
-    static EntThinkAdapter mutant_step = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_step"; }
+    static EntThinkAdapter mutant_step = register(new EntThinkAdapter("mutant_step") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             int n;
             n = (Lib.rand() + 1) % 3;
@@ -379,34 +380,31 @@ public class M_Mutant {
                         Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntInteractAdapter mutant_sight = new EntInteractAdapter() {
-    	public String getID(){ return "mutant_sight"; }
+    static EntInteractAdapter mutant_sight = register(new EntInteractAdapter("mutant_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_search = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_search"; }
+    static EntThinkAdapter mutant_search = register(new EntThinkAdapter("mutant_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_swing = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_swing"; }
+    static EntThinkAdapter mutant_swing = register(new EntThinkAdapter("mutant_swing") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_swing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     //
     //	STAND
@@ -478,26 +476,24 @@ public class M_Mutant {
     static mmove_t mutant_move_stand = new mmove_t(FRAME_stand101,
             FRAME_stand151, mutant_frames_stand, null);
 
-    static EntThinkAdapter mutant_stand = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_stand"; }
+    static EntThinkAdapter mutant_stand = register(new EntThinkAdapter("mutant_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_stand;
             return true;
         }
-    };
+    });
 
     //
     //	IDLE
     //
 
-    static EntThinkAdapter mutant_idle_loop = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_idle_loop"; }
+    static EntThinkAdapter mutant_idle_loop = register(new EntThinkAdapter("mutant_idle_loop") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.75)
                 self.monsterinfo.nextframe = FRAME_stand155;
             return true;
         }
-    };
+    });
 
     static mframe_t mutant_frames_idle[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -519,15 +515,14 @@ public class M_Mutant {
     static mmove_t mutant_move_idle = new mmove_t(FRAME_stand152,
             FRAME_stand164, mutant_frames_idle, mutant_stand);
 
-    static EntThinkAdapter mutant_idle = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_idle"; }
+    static EntThinkAdapter mutant_idle = register(new EntThinkAdapter("mutant_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_idle;
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
     //
     //	WALK
@@ -550,13 +545,12 @@ public class M_Mutant {
     static mmove_t mutant_move_walk = new mmove_t(FRAME_walk05, FRAME_walk16,
             mutant_frames_walk, null);
 
-    static EntThinkAdapter mutant_walk_loop = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_walk_loop"; }
+    static EntThinkAdapter mutant_walk_loop = register(new EntThinkAdapter("mutant_walk_loop") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_walk;
             return true;
         }
-    };
+    });
 
     static mframe_t mutant_frames_start_walk[] = new mframe_t[] {
             new mframe_t(GameAI.ai_walk, 5, null),
@@ -567,13 +561,12 @@ public class M_Mutant {
     static mmove_t mutant_move_start_walk = new mmove_t(FRAME_walk01,
             FRAME_walk04, mutant_frames_start_walk, mutant_walk_loop);
 
-    static EntThinkAdapter mutant_walk = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_walk"; }
+    static EntThinkAdapter mutant_walk = register(new EntThinkAdapter("mutant_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_start_walk;
             return true;
         }
-    };
+    });
 
     //
     //	RUN
@@ -590,8 +583,7 @@ public class M_Mutant {
     static mmove_t mutant_move_run = new mmove_t(FRAME_run03, FRAME_run08,
             mutant_frames_run, null);
 
-    static EntThinkAdapter mutant_run = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_run"; }
+    static EntThinkAdapter mutant_run = register(new EntThinkAdapter("mutant_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = mutant_move_stand;
@@ -600,14 +592,13 @@ public class M_Mutant {
 
             return true;
         }
-    };
+    });
 
     //
     //	MELEE
     //
 
-    static EntThinkAdapter mutant_hit_left = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_hit_left"; }
+    static EntThinkAdapter mutant_hit_left = register(new EntThinkAdapter("mutant_hit_left") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -620,10 +611,9 @@ public class M_Mutant {
                         Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_hit_right = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_hit_right"; }
+    static EntThinkAdapter mutant_hit_right = register(new EntThinkAdapter("mutant_hit_right") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -636,10 +626,9 @@ public class M_Mutant {
                         Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_check_refire = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_check_refire"; }
+    static EntThinkAdapter mutant_check_refire = register(new EntThinkAdapter("mutant_check_refire") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (null == self.enemy || !self.enemy.inuse
                     || self.enemy.health <= 0)
@@ -650,7 +639,7 @@ public class M_Mutant {
                 self.monsterinfo.nextframe = FRAME_attack09;
             return true;
         }
-    };
+    });
 
     static mframe_t mutant_frames_attack[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -664,20 +653,18 @@ public class M_Mutant {
     static mmove_t mutant_move_attack = new mmove_t(FRAME_attack09,
             FRAME_attack15, mutant_frames_attack, mutant_run);
 
-    static EntThinkAdapter mutant_melee = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_melee"; }
+    static EntThinkAdapter mutant_melee = register(new EntThinkAdapter("mutant_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = mutant_move_attack;
             return true;
         }
-    };
+    });
 
     //
     //	ATTACK
     //
 
-    static EntTouchAdapter mutant_jump_touch = new EntTouchAdapter() {
-    	public String getID(){ return "mutant_jump_touch"; }
+    static EntTouchAdapter mutant_jump_touch = register(new EntTouchAdapter("mutant_jump_touch") {
 
         public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
@@ -711,10 +698,9 @@ public class M_Mutant {
 
             self.touch = null;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_jump_takeoff = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_jump_takeoff"; }
+    static EntThinkAdapter mutant_jump_takeoff = register(new EntThinkAdapter("mutant_jump_takeoff") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] forward = { 0, 0, 0 };
@@ -731,10 +717,9 @@ public class M_Mutant {
             self.touch = mutant_jump_touch;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_check_landing = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_check_landing"; }
+    static EntThinkAdapter mutant_check_landing = register(new EntThinkAdapter("mutant_check_landing") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.groundentity != null) {
                 gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_thud, 1,
@@ -750,7 +735,7 @@ public class M_Mutant {
                 self.monsterinfo.nextframe = FRAME_attack05;
             return true;
         }
-    };
+    });
 
     static mframe_t mutant_frames_jump[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -765,30 +750,27 @@ public class M_Mutant {
     static mmove_t mutant_move_jump = new mmove_t(FRAME_attack01,
             FRAME_attack08, mutant_frames_jump, mutant_run);
 
-    static EntThinkAdapter mutant_jump = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_jump"; }
+    static EntThinkAdapter mutant_jump = register(new EntThinkAdapter("mutant_jump") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = mutant_move_jump;
             return true;
         }
-    };
+    });
 
     //
     //	CHECKATTACK
     //
-    static EntThinkAdapter mutant_check_melee = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_check_melee"; }
+    static EntThinkAdapter mutant_check_melee = register(new EntThinkAdapter("mutant_check_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 return true;
             return false;
 
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_check_jump = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_check_jump"; }
+    static EntThinkAdapter mutant_check_jump = register(new EntThinkAdapter("mutant_check_jump") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] v = { 0, 0, 0 };
@@ -814,10 +796,9 @@ public class M_Mutant {
 
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter mutant_checkattack = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_checkattack"; }
+    static EntThinkAdapter mutant_checkattack = register(new EntThinkAdapter("mutant_checkattack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if (null == self.enemy || self.enemy.health <= 0)
@@ -836,7 +817,7 @@ public class M_Mutant {
 
             return false;
         }
-    };
+    });
 
     //
     //	PAIN
@@ -879,8 +860,7 @@ public class M_Mutant {
     static mmove_t mutant_move_pain3 = new mmove_t(FRAME_pain301,
             FRAME_pain311, mutant_frames_pain3, mutant_run);
 
-    static EntPainAdapter mutant_pain = new EntPainAdapter() {
-    	public String getID(){ return "mutant_pain"; }
+    static EntPainAdapter mutant_pain = register(new EntPainAdapter("mutant_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             float r;
 
@@ -910,13 +890,12 @@ public class M_Mutant {
                 self.monsterinfo.currentmove = mutant_move_pain3;
             }
         }
-    };
+    });
 
     //
     //	DEATH
     //
-    static EntThinkAdapter mutant_dead = new EntThinkAdapter() {
-    	public String getID(){ return "mutant_dead"; }
+    static EntThinkAdapter mutant_dead = register(new EntThinkAdapter("mutant_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -927,7 +906,7 @@ public class M_Mutant {
             M.M_FlyCheck.think(self, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t mutant_frames_death1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -958,8 +937,7 @@ public class M_Mutant {
     static mmove_t mutant_move_death2 = new mmove_t(FRAME_death201,
             FRAME_death210, mutant_frames_death2, mutant_dead);
 
-    static EntDieAdapter mutant_die = new EntDieAdapter() {
-    	public String getID(){ return "mutant_die"; }
+    static EntDieAdapter mutant_die = register(new EntDieAdapter("mutant_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
@@ -996,7 +974,7 @@ public class M_Mutant {
             else
                 self.monsterinfo.currentmove = mutant_move_death2;
         }
-    };
+    });
 
     //
     //	SPAWN

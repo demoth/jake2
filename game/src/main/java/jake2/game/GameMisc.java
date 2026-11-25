@@ -22,6 +22,8 @@
 // $Id: GameMisc.java,v 1.7 2006-01-21 21:53:32 salomo Exp $
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntTouchAdapter;
@@ -299,8 +301,7 @@ public class GameMisc {
      * QUAKED misc_eastertank (1 .5 0) (-32 -32 -16) (32 32 32)
      */
 
-    private static EntThinkAdapter misc_eastertank_think = new EntThinkAdapter() {
-        public String getID() { return "misc_eastertank_think";}
+    private static final EntThinkAdapter misc_eastertank_think = register(new EntThinkAdapter("misc_eastertank_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 293)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -310,14 +311,13 @@ public class GameMisc {
             }
             return true;
         }
-    };
+    });
 
     /*
      * QUAKED misc_easterchick (1 .5 0) (-32 -32 0) (32 32 32)
      */
 
-    private static EntThinkAdapter misc_easterchick_think = new EntThinkAdapter() {
-        public String getID() { return "misc_easterchick_think";}
+    private static final EntThinkAdapter misc_easterchick_think = register(new EntThinkAdapter("misc_easterchick_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 247)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -327,13 +327,12 @@ public class GameMisc {
             }
             return true;
         }
-    };
+    });
 
     /*
      * QUAKED misc_easterchick2 (1 .5 0) (-32 -32 0) (32 32 32)
      */
-    private static EntThinkAdapter misc_easterchick2_think = new EntThinkAdapter() {
-        public String getID() { return "misc_easterchick2_think";}
+    private static final EntThinkAdapter misc_easterchick2_think = register(new EntThinkAdapter("misc_easterchick2_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 287)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -343,7 +342,7 @@ public class GameMisc {
             }
             return true;
         }
-    };
+    });
 
     /*
      * QUAKED monster_commander_body (1 .5 0) (-32 -32 0) (32 32 48) Not really
@@ -351,8 +350,7 @@ public class GameMisc {
      * a item_commander_head that has this as it's target.
      */
 
-    private static EntThinkAdapter commander_body_think = new EntThinkAdapter() {
-        public String getID() { return "commander_body_think";}
+    private static final EntThinkAdapter commander_body_think = register(new EntThinkAdapter("commander_body_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (++self.s.frame < 24)
                 self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -364,30 +362,27 @@ public class GameMisc {
                         .soundindex("tank/thud.wav"), 1, Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    private static EntUseAdapter commander_body_use = new EntUseAdapter() {
-        public String getID() { return "commander_body_use";}
+    private static final EntUseAdapter commander_body_use = register(new EntUseAdapter("commander_body_use") {
         public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             self.think.action = commander_body_think;
             self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, gameExports.gameImports
                     .soundindex("tank/pain.wav"), 1, Defines.ATTN_NORM, 0);
         }
-    };
+    });
 
-    private static EntThinkAdapter commander_body_drop = new EntThinkAdapter() {
-        public String getID() { return "commander_body_group";}
+    private static final EntThinkAdapter commander_body_drop = register(new EntThinkAdapter("commander_body_group") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.movetype = GameDefines.MOVETYPE_TOSS;
             self.s.origin[2] += 2;
             return true;
         }
-    };
+    });
 
 
-    private static EntThinkAdapter gib_think = new EntThinkAdapter() {
-        public String getID() { return "gib_think";}
+    private static final EntThinkAdapter gib_think = register(new EntThinkAdapter("gib_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.s.frame++;
             self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -399,10 +394,9 @@ public class GameMisc {
             }
             return true;
         }
-    };
+    });
 
-    private static EntTouchAdapter gib_touch = new EntTouchAdapter() {
-        public String getID() { return "gib_touch";}
+    private static final EntTouchAdapter gib_touch = register(new EntTouchAdapter("gib_touch") {
         public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             float[] normal_angles = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -427,23 +421,21 @@ public class GameMisc {
                 }
             }
         }
-    };
+    });
 
-    private static EntDieAdapter gib_die = new EntDieAdapter() {
-        public String getID() { return "gib_die";}
+    private static final EntDieAdapter gib_die = register(new EntDieAdapter("gib_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
         }
-    };
+    });
 
     /**
      * Debris
      */
-    private static EntDieAdapter debris_die = new EntDieAdapter() {
-        public String getID() { return "debris_die";}
+    private static final EntDieAdapter debris_die = register(new EntDieAdapter("debris_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.freeEntity(self);
         }
-    };
+    });
 }

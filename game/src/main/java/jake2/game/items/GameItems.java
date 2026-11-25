@@ -23,6 +23,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game.items;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 
 import jake2.qcommon.Com;
 import static jake2.qcommon.Com.LogSubsystem.GAME;
@@ -64,10 +66,7 @@ public class GameItems {
     );
 
 
-    private static EntThinkAdapter DoRespawn = new EntThinkAdapter() {
-        public String getID() {
-            return "do_respawn";
-        }
+    private static final EntThinkAdapter DoRespawn = register(new EntThinkAdapter("do_respawn") {
 
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             if (ent.team != null) {
@@ -96,9 +95,8 @@ public class GameItems {
     
             return false;
         }
-    };
-    static EntInteractAdapter Pickup_Pack = new EntInteractAdapter() {
-        public String getID() { return "pickup_pack";}
+    });
+    static EntInteractAdapter Pickup_Pack = register(new EntInteractAdapter("pickup_pack") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
 
             GameItem item;
@@ -172,10 +170,9 @@ public class GameItems {
     
             return true;
         }
-    };
+    });
 
-    private static EntThinkAdapter MegaHealth_think = new EntThinkAdapter() {
-    	public String getID() { return "MegaHealth_think"; }
+    private static final EntThinkAdapter MegaHealth_think = register(new EntThinkAdapter("MegaHealth_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.getOwner().health > self.getOwner().max_health) {
                 self.think.nextTime = gameExports.level.time + 1;
@@ -191,10 +188,9 @@ public class GameItems {
 
             return false;
         }
-    };
+    });
 
-    final static EntInteractAdapter Pickup_Health = new EntInteractAdapter() {
-        public String getID() { return "pickup_health";}
+    final static EntInteractAdapter Pickup_Health = register(new EntInteractAdapter("pickup_health") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl game) {
             Medkit medkit = (Medkit) self.components.get(Medkit.class.getName());
 
@@ -229,9 +225,8 @@ public class GameItems {
             return true;
         }
     
-    };
-    public static EntTouchAdapter Touch_Item = new EntTouchAdapter() {
-        public String getID() { return "touch_item";}
+    });
+    public static EntTouchAdapter Touch_Item = register(new EntTouchAdapter("touch_item") {
         public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             boolean taken;
@@ -290,9 +285,8 @@ public class GameItems {
                     gameExports.freeEntity(ent);
             }
         }
-    };
-    private static EntTouchAdapter drop_temp_touch = new EntTouchAdapter() {
-        public String getID() { return "drop_temp_touch";}
+    });
+    private static final EntTouchAdapter drop_temp_touch = register(new EntTouchAdapter("drop_temp_touch") {
         public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             if (other == ent.getOwner())
@@ -300,9 +294,8 @@ public class GameItems {
     
             Touch_Item.touch(ent, other, plane, surf, gameExports);
         }
-    };
-    private static EntThinkAdapter drop_make_touchable = new EntThinkAdapter() {
-        public String getID() { return "drop_make_touchable";}
+    });
+    private static final EntThinkAdapter drop_make_touchable = register(new EntThinkAdapter("drop_make_touchable") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             ent.touch = Touch_Item;
             if (gameExports.gameCvars.deathmatch.getTypedValue()) {
@@ -311,11 +304,8 @@ public class GameItems {
             }
             return false;
         }
-    };
-    static ItemUseAdapter Use_Quad = new ItemUseAdapter() {
-        public String getID() {
-            return "use_quad";
-        }
+    });
+    static ItemUseAdapter Use_Quad = register(new ItemUseAdapter("use_quad") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int timeout;
@@ -339,12 +329,9 @@ public class GameItems {
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
-    };
+    });
     
-    static ItemUseAdapter Use_Invulnerability = new ItemUseAdapter() {
-        public String getID() {
-            return "use_invulnerability";
-        }
+    static ItemUseAdapter Use_Invulnerability = register(new ItemUseAdapter("use_invulnerability") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             GamePlayerInfo client = ent.getClient();
@@ -359,11 +346,8 @@ public class GameItems {
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/protect.wav"), 1, Defines.ATTN_NORM, 0);
         }
-    };
-    static ItemUseAdapter Use_Breather = new ItemUseAdapter() {
-        public String getID() {
-            return "use_breather";
-        }
+    });
+    static ItemUseAdapter Use_Breather = register(new ItemUseAdapter("use_breather") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             GamePlayerInfo client = ent.getClient();
@@ -379,11 +363,8 @@ public class GameItems {
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
-    };
-    static ItemUseAdapter Use_Envirosuit = new ItemUseAdapter() {
-        public String getID() {
-            return "use_envirosuit";
-        }
+    });
+    static ItemUseAdapter Use_Envirosuit = register(new ItemUseAdapter("use_envirosuit") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             GamePlayerInfo client = ent.getClient();
@@ -398,11 +379,8 @@ public class GameItems {
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
-    };
-    static ItemUseAdapter Use_Silencer = new ItemUseAdapter() {
-        public String getID() {
-            return "use_silencer";
-        }
+    });
+    static ItemUseAdapter Use_Silencer = register(new ItemUseAdapter("use_silencer") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
 
@@ -414,9 +392,8 @@ public class GameItems {
             gameExports.gameImports.sound(ent, Defines.CHAN_ITEM, gameExports.gameImports
                     .soundindex("items/damage.wav"), 1, Defines.ATTN_NORM, 0);
         }
-    };
-    static EntInteractAdapter Pickup_Key = new EntInteractAdapter() {
-        public String getID() { return "pickup_key";}
+    });
+    static EntInteractAdapter Pickup_Key = register(new EntInteractAdapter("pickup_key") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             GamePlayerInfo client = other.getClient();
             if (gameExports.gameCvars.coop.getTypedValue()) {
@@ -435,9 +412,8 @@ public class GameItems {
             client.pers.inventory[ent.item.index]++;
             return true;
         }
-    };
-    static EntInteractAdapter Pickup_Ammo = new EntInteractAdapter() {
-        public String getID() { return "pickup_ammo";}
+    });
+    static EntInteractAdapter Pickup_Ammo = register(new EntInteractAdapter("pickup_ammo") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             int oldcount;
             int count;
@@ -469,9 +445,8 @@ public class GameItems {
                 SetRespawn(ent, 30, gameExports);
             return true;
         }
-    };
-    static EntInteractAdapter Pickup_Armor = new EntInteractAdapter() {
-        public String getID() { return "pickup_armor";}
+    });
+    static EntInteractAdapter Pickup_Armor = register(new EntInteractAdapter("pickup_armor") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             gitem_armor_t oldinfo;
             int newcount;
@@ -549,9 +524,8 @@ public class GameItems {
     
             return true;
         }
-    };
-    static EntInteractAdapter Pickup_PowerArmor = new EntInteractAdapter() {
-        public String getID() { return "pickup_powerarmor";}
+    });
+    static EntInteractAdapter Pickup_PowerArmor = register(new EntInteractAdapter("pickup_powerarmor") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
     
             int quantity;
@@ -570,9 +544,8 @@ public class GameItems {
             }
             return true;
         }
-    };
-    static EntInteractAdapter Pickup_Powerup = new EntInteractAdapter() {
-        public String getID() { return "pickup_powerup";}
+    });
+    static EntInteractAdapter Pickup_Powerup = register(new EntInteractAdapter("pickup_powerup") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             int quantity;
 
@@ -604,9 +577,8 @@ public class GameItems {
     
             return true;
         }
-    };
-    static EntInteractAdapter Pickup_Adrenaline = new EntInteractAdapter() {
-        public String getID() { return "pickup_adrenaline";}
+    });
+    static EntInteractAdapter Pickup_Adrenaline = register(new EntInteractAdapter("pickup_adrenaline") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             if (!gameExports.gameCvars.deathmatch.getTypedValue())
                 other.max_health += 1;
@@ -621,9 +593,8 @@ public class GameItems {
             return true;
     
         }
-    };
-    static EntInteractAdapter Pickup_AncientHead = new EntInteractAdapter() {
-        public String getID() { return "pickup_ancienthead";}
+    });
+    static EntInteractAdapter Pickup_AncientHead = register(new EntInteractAdapter("pickup_ancienthead") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             other.max_health += 2;
     
@@ -633,9 +604,8 @@ public class GameItems {
     
             return true;
         }
-    };
-    static EntInteractAdapter Pickup_Bandolier = new EntInteractAdapter() {
-        public String getID() { return "pickup_bandolier";}
+    });
+    static EntInteractAdapter Pickup_Bandolier = register(new EntInteractAdapter("pickup_bandolier") {
         public boolean interact(GameEntity ent, GameEntity other, GameExportsImpl gameExports) {
             GameItem item;
             int index;
@@ -673,11 +643,8 @@ public class GameItems {
             return true;
     
         }
-    };
-    static ItemDropAdapter Drop_Ammo = new ItemDropAdapter() {
-        public String getID() {
-            return "drop_ammo";
-        }
+    });
+    static ItemDropAdapter Drop_Ammo = register(new ItemDropAdapter("drop_ammo") {
 
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             int index;
@@ -703,11 +670,8 @@ public class GameItems {
             client.pers.inventory[index] -= dropped.count;
             ValidateSelectedItem(ent, gameExports);
         }
-    };
-    static ItemDropAdapter Drop_General = new ItemDropAdapter() {
-        public String getID() {
-            return "drop_general";
-        }
+    });
+    static ItemDropAdapter Drop_General = register(new ItemDropAdapter("drop_general") {
 
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             Drop_Item(ent, item, gameExports);
@@ -715,12 +679,9 @@ public class GameItems {
             client.pers.inventory[item.index]--;
             ValidateSelectedItem(ent, gameExports);
         }
-    };
+    });
     
-    static ItemDropAdapter Drop_PowerArmor = new ItemDropAdapter() {
-        public String getID() {
-            return "drop_powerarmor";
-        }
+    static ItemDropAdapter Drop_PowerArmor = register(new ItemDropAdapter("drop_powerarmor") {
 
         public void drop(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
             GamePlayerInfo client = ent.getClient();
@@ -729,10 +690,9 @@ public class GameItems {
                 Use_PowerArmor.use(ent, item, gameExports);
             Drop_General.drop(ent, item, gameExports);
         }
-    };
+    });
     
-    private static EntThinkAdapter droptofloor = new EntThinkAdapter() {
-        public String getID() { return "drop_to_floor";}
+    private static final EntThinkAdapter droptofloor = register(new EntThinkAdapter("drop_to_floor") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             trace_t tr;
             float[] dest = { 0, 0, 0 };
@@ -797,11 +757,8 @@ public class GameItems {
             gameExports.gameImports.linkentity(ent);
             return true;
         }
-    };
-    static ItemUseAdapter Use_PowerArmor = new ItemUseAdapter() {
-        public String getID() {
-            return "use_powerarmor";
-        }
+    });
+    static ItemUseAdapter Use_PowerArmor = register(new ItemUseAdapter("use_powerarmor") {
 
         public void use(GameEntity ent, GameItem item, GameExportsImpl gameExports) {
 
@@ -826,9 +783,8 @@ public class GameItems {
                                 Defines.ATTN_NORM, 0);
             }
         }
-    };
-    private static EntUseAdapter Use_Item = new EntUseAdapter() {
-        public String getID() { return "use_item";}
+    });
+    private static final EntUseAdapter Use_Item = register(new EntUseAdapter("use_item") {
         public void use(GameEntity ent, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             ent.svflags &= ~Defines.SVF_NOCLIENT;
             ent.use = null;
@@ -843,7 +799,7 @@ public class GameItems {
 
             gameExports.gameImports.linkentity(ent);
         }
-    };
+    });
 
     /*
      * =============== GetItemByIndex ===============

@@ -28,6 +28,10 @@ import jake2.game.GameExportsImpl;
 
 public abstract class EntBlockedAdapter extends SuperAdapter
 {
+    protected EntBlockedAdapter(String id) {
+        super(id);
+    }
+
 	// move to moveinfo?
 	public abstract void blocked(GameEntity self, GameEntity obstacle, GameExportsImpl gameExports);
 }

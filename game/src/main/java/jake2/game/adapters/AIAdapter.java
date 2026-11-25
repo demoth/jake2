@@ -28,5 +28,9 @@ import jake2.game.GameExportsImpl;
 
 public abstract class AIAdapter extends SuperAdapter
 {
+    protected AIAdapter(String id) {
+        super(id);
+    }
+
 	public abstract void ai(GameEntity self, float dist, GameExportsImpl gameExports);
 }

@@ -22,6 +22,8 @@
 // $Id: M_Boss3.java,v 1.3 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.GameDefines;
 import jake2.game.GameEntity;
 import jake2.game.GameExportsImpl;
@@ -35,19 +37,15 @@ import jake2.qcommon.util.Math3D;
 // Boss3
 public class M_Makron_Idle {
 
-    static EntUseAdapter Use_Boss3 = new EntUseAdapter() {
-        public String getID() {
-            return "Use_Boss3";
-        }
+    static EntUseAdapter Use_Boss3 = register(new EntUseAdapter("Use_Boss3") {
 
         public void use(GameEntity ent, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             gameExports.gameImports.multicastMessage(ent.s.origin, new PointTEMessage(Defines.TE_BOSSTPORT, ent.s.origin), MulticastTypes.MULTICAST_PVS);
             gameExports.freeEntity(ent);
         }
-    };
+    });
 
-    static EntThinkAdapter Think_Boss3Stand = new EntThinkAdapter() {
-    	public String getID() { return "Think_Boss3Stand"; }
+    static EntThinkAdapter Think_Boss3Stand = register(new EntThinkAdapter("Think_Boss3Stand") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             if (ent.s.frame == M_Makron.FRAME_stand260)
                 ent.s.frame = M_Makron.FRAME_stand201;
@@ -57,7 +55,7 @@ public class M_Makron_Idle {
             return true;
         }
 
-    };
+    });
 
     /*
      * QUAKED monster_boss3_stand (1 .5 0) (-32 -32 0) (32 32 90)

@@ -22,6 +22,8 @@
 // $Id: M_Medic.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.*;
 import jake2.qcommon.Defines;
@@ -564,8 +566,7 @@ public class M_Medic {
         return best;
     }
 
-    static EntThinkAdapter medic_idle = new EntThinkAdapter() {
-    	public String getID(){ return "medic_idle"; }
+    static EntThinkAdapter medic_idle = register(new EntThinkAdapter("medic_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle1, 1,
@@ -580,10 +581,9 @@ public class M_Medic {
             }
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_search = new EntThinkAdapter() {
-    	public String getID(){ return "medic_search"; }
+    static EntThinkAdapter medic_search = register(new EntThinkAdapter("medic_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
@@ -601,16 +601,15 @@ public class M_Medic {
             }
             return true;
         }
-    };
+    });
 
-    static EntInteractAdapter medic_sight = new EntInteractAdapter() {
-    	public String getID(){ return "medic_sight"; }
+    static EntInteractAdapter medic_sight = register(new EntInteractAdapter("medic_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, medic_idle),
@@ -707,13 +706,12 @@ public class M_Medic {
     static mmove_t medic_move_stand = new mmove_t(FRAME_wait1, FRAME_wait90,
             medic_frames_stand, null);
 
-    static EntThinkAdapter medic_stand = new EntThinkAdapter() {
-    	public String getID(){ return "medic_stand"; }
+    static EntThinkAdapter medic_stand = register(new EntThinkAdapter("medic_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = medic_move_stand;
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_walk[] = new mframe_t[] {
             new mframe_t(GameAI.ai_walk, 6.2f, null),
@@ -732,13 +730,12 @@ public class M_Medic {
     static mmove_t medic_move_walk = new mmove_t(FRAME_walk1, FRAME_walk12,
             medic_frames_walk, null);
 
-    static EntThinkAdapter medic_walk = new EntThinkAdapter() {
-    	public String getID(){ return "medic_walk"; }
+    static EntThinkAdapter medic_walk = register(new EntThinkAdapter("medic_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = medic_move_walk;
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 18, null),
@@ -751,8 +748,7 @@ public class M_Medic {
     static mmove_t medic_move_run = new mmove_t(FRAME_run1, FRAME_run6,
             medic_frames_run, null);
 
-    static EntThinkAdapter medic_run = new EntThinkAdapter() {
-    	public String getID(){ return "medic_run"; }
+    static EntThinkAdapter medic_run = register(new EntThinkAdapter("medic_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (0 == (self.monsterinfo.aiflags & GameDefines.AI_MEDIC)) {
 
@@ -773,7 +769,7 @@ public class M_Medic {
                 self.monsterinfo.currentmove = medic_move_run;
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_pain1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -808,8 +804,7 @@ public class M_Medic {
     static mmove_t medic_move_pain2 = new mmove_t(FRAME_painb1, FRAME_painb15,
             medic_frames_pain2, medic_run);
 
-    static EntPainAdapter medic_pain = new EntPainAdapter() {
-    	public String getID(){ return "medic_pain"; }
+    static EntPainAdapter medic_pain = register(new EntPainAdapter("medic_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             if (self.health < (self.max_health / 2))
@@ -833,10 +828,9 @@ public class M_Medic {
                         Defines.ATTN_NORM, 0);
             }
         }
-    };
+    });
 
-    static EntThinkAdapter medic_fire_blaster = new EntThinkAdapter() {
-    	public String getID(){ return "medic_fire_blaster"; }
+    static EntThinkAdapter medic_fire_blaster = register(new EntThinkAdapter("medic_fire_blaster") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -868,10 +862,9 @@ public class M_Medic {
                     Defines.MZ2_MEDIC_BLASTER_1, effect, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_dead = new EntThinkAdapter() {
-    	public String getID(){ return "medic_dead"; }
+    static EntThinkAdapter medic_dead = register(new EntThinkAdapter("medic_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -881,7 +874,7 @@ public class M_Medic {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_death[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -918,8 +911,7 @@ public class M_Medic {
     static mmove_t medic_move_death = new mmove_t(FRAME_death1, FRAME_death30,
             medic_frames_death, medic_dead);
 
-    static EntDieAdapter medic_die = new EntDieAdapter() {
-    	public String getID(){ return "medic_die"; }
+    static EntDieAdapter medic_die = register(new EntDieAdapter("medic_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
 
@@ -959,10 +951,9 @@ public class M_Medic {
 
             self.monsterinfo.currentmove = medic_move_death;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_duck_down = new EntThinkAdapter() {
-    	public String getID(){ return "medic_duck_down"; }
+    static EntThinkAdapter medic_duck_down = register(new EntThinkAdapter("medic_duck_down") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
@@ -973,10 +964,9 @@ public class M_Medic {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_duck_hold = new EntThinkAdapter() {
-    	public String getID(){ return "medic_duck_hold"; }
+    static EntThinkAdapter medic_duck_hold = register(new EntThinkAdapter("medic_duck_hold") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
@@ -984,10 +974,9 @@ public class M_Medic {
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_duck_up = new EntThinkAdapter() {
-    	public String getID(){ return "medic_duck_up"; }
+    static EntThinkAdapter medic_duck_up = register(new EntThinkAdapter("medic_duck_up") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
@@ -995,7 +984,7 @@ public class M_Medic {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_duck[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -1, null),
@@ -1018,8 +1007,7 @@ public class M_Medic {
     static mmove_t medic_move_duck = new mmove_t(FRAME_duck1, FRAME_duck16,
             medic_frames_duck, medic_run);
 
-    static EntDodgeAdapter medic_dodge = new EntDodgeAdapter() {
-    	public String getID(){ return "medic_dodge"; }
+    static EntDodgeAdapter medic_dodge = register(new EntDodgeAdapter("medic_dodge") {
         public void dodge(GameEntity self, GameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
@@ -1029,7 +1017,7 @@ public class M_Medic {
 
             self.monsterinfo.currentmove = medic_move_duck;
         }
-    };
+    });
 
     static mframe_t medic_frames_attackHyperBlaster[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -1052,15 +1040,14 @@ public class M_Medic {
     static mmove_t medic_move_attackHyperBlaster = new mmove_t(FRAME_attack15,
             FRAME_attack30, medic_frames_attackHyperBlaster, medic_run);
 
-    static EntThinkAdapter medic_continue = new EntThinkAdapter() {
-    	public String getID(){ return "medic_continue"; }
+    static EntThinkAdapter medic_continue = register(new EntThinkAdapter("medic_continue") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.visible(self, self.enemy, gameExports))
                 if (Lib.random() <= 0.95)
                     self.monsterinfo.currentmove = medic_move_attackHyperBlaster;
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_attackBlaster[] = {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -1085,14 +1072,13 @@ public class M_Medic {
     static mmove_t medic_move_attackBlaster = new mmove_t(FRAME_attack1,
             FRAME_attack14, medic_frames_attackBlaster, medic_run);
 
-    static EntThinkAdapter medic_hook_launch = new EntThinkAdapter() {
-    	public String getID(){ return "medic_hook_launch"; }
+    static EntThinkAdapter medic_hook_launch = register(new EntThinkAdapter("medic_hook_launch") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_launch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static float medic_cable_offsets[][] = { { 45.0f, -9.2f, 15.5f },
             { 48.4f, -9.7f, 15.2f }, { 47.8f, -9.8f, 15.8f },
@@ -1101,8 +1087,7 @@ public class M_Medic {
             { 34.3f, -18.4f, 10.7f }, { 32.7f, -19.7f, 10.4f },
             { 32.7f, -19.7f, 10.4f } };
 
-    static EntThinkAdapter medic_cable_attack = new EntThinkAdapter() {
-    	public String getID(){ return "medic_cable_attack"; }
+    static EntThinkAdapter medic_cable_attack = register(new EntThinkAdapter("medic_cable_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] offset = { 0, 0, 0 }, start = { 0, 0, 0 }, end = { 0, 0, 0 }, f = {
                     0, 0, 0 }, r = { 0, 0, 0 };
@@ -1175,17 +1160,16 @@ public class M_Medic {
             gameExports.gameImports.multicastMessage(self.s.origin, new BeamTEMessage(Defines.TE_MEDIC_CABLE_ATTACK, self.index, start, end), MulticastTypes.MULTICAST_PVS);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_hook_retract = new EntThinkAdapter() {
-    	public String getID(){ return "medic_hook_retract"; }
+    static EntThinkAdapter medic_hook_retract = register(new EntThinkAdapter("medic_hook_retract") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_hook_retract, 1,
                     Defines.ATTN_NORM, 0);
             self.enemy.monsterinfo.aiflags &= ~GameDefines.AI_RESURRECTING;
             return true;
         }
-    };
+    });
 
     static mframe_t medic_frames_attackCable[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 2, null),
@@ -1220,8 +1204,7 @@ public class M_Medic {
     static mmove_t medic_move_attackCable = new mmove_t(FRAME_attack33,
             FRAME_attack60, medic_frames_attackCable, medic_run);
 
-    static EntThinkAdapter medic_attack = new EntThinkAdapter() {
-    	public String getID(){ return "medic_attack"; }
+    static EntThinkAdapter medic_attack = register(new EntThinkAdapter("medic_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0)
                 self.monsterinfo.currentmove = medic_move_attackCable;
@@ -1229,10 +1212,9 @@ public class M_Medic {
                 self.monsterinfo.currentmove = medic_move_attackBlaster;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter medic_checkattack = new EntThinkAdapter() {
-    	public String getID(){ return "medic_checkattack"; }
+    static EntThinkAdapter medic_checkattack = register(new EntThinkAdapter("medic_checkattack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_MEDIC) != 0) {
                 medic_attack.think(self, gameExports);
@@ -1242,7 +1224,7 @@ public class M_Medic {
             return GameUtil.M_CheckAttack.think(self, gameExports);
 
         }
-    };
+    });
 
     /*
      * QUAKED monster_medic (1 .5 0) (-16 -16 -24) (16 16 32) Ambush

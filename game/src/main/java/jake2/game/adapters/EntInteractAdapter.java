@@ -28,5 +28,9 @@ import jake2.game.GameExportsImpl;
 
 public abstract class EntInteractAdapter extends SuperAdapter
 {
+    protected EntInteractAdapter(String id) {
+        super(id);
+    }
+
 	public abstract boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports);
 }

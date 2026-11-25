@@ -202,6 +202,17 @@ class GameCharacter(
 
 }
 
+private val newMonsterThink = registerThink("new_monster_think") { self, game ->
+    // YES! new good stuff
+    self.controller.run()
+    self.character.update(Defines.FRAMETIME)
+
+    // leftovers
+    self.s.frame = self.character.currentFrame
+    self.think.nextTime = game.level.time + Defines.FRAMETIME
+    true
+}
+
 fun spawnNewMonster(self: GameEntity, game: GameExportsImpl) {
 
     val entity = game.G_Spawn()
@@ -247,17 +258,7 @@ fun spawnNewMonster(self: GameEntity, game: GameExportsImpl) {
 
     self.think = ThinkComponent().apply {
         nextTime = game.level.time + Defines.FRAMETIME
-        // fixme: register think should be called before level loading (due to de/serialization)
-        action = registerThink("new_monster_think") { self, game ->
-            // YES! new good stuff
-            self.controller.run()
-            self.character.update(Defines.FRAMETIME)
-
-            // leftovers
-            self.s.frame = self.character.currentFrame
-            self.think.nextTime = game.level.time + Defines.FRAMETIME
-            true
-        }
+        action = newMonsterThink
     }
 
     game.gameImports.linkentity(entity)

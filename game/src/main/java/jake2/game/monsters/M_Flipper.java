@@ -22,6 +22,8 @@
 // $Id: M_Flipper.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -379,13 +381,12 @@ public class M_Flipper {
     static mmove_t flipper_move_stand = new mmove_t(FRAME_flphor01,
             FRAME_flphor01, flipper_frames_stand, null);
 
-    static EntThinkAdapter flipper_stand = new EntThinkAdapter() {
-    	public String getID() { return "flipper_stand"; }
+    static EntThinkAdapter flipper_stand = register(new EntThinkAdapter("flipper_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_stand;
             return true;
         }
-    };
+    });
 
     public final static int FLIPPER_RUN_SPEED = 24;
 
@@ -423,13 +424,12 @@ public class M_Flipper {
     static mmove_t flipper_move_run_loop = new mmove_t(FRAME_flpver06,
             FRAME_flpver29, flipper_frames_run, null);
 
-    static EntThinkAdapter flipper_run_loop = new EntThinkAdapter() {
-    	public String getID() { return "flipper_run_loop"; }
+    static EntThinkAdapter flipper_run_loop = register(new EntThinkAdapter("flipper_run_loop") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_run_loop;
             return true;
         }
-    };
+    });
 
     static mframe_t flipper_frames_run_start[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 8, null),
@@ -442,13 +442,12 @@ public class M_Flipper {
     static mmove_t flipper_move_run_start = new mmove_t(FRAME_flpver01,
             FRAME_flpver06, flipper_frames_run_start, flipper_run_loop);
 
-    static EntThinkAdapter flipper_run = new EntThinkAdapter() {
-    	public String getID() { return "flipper_run"; }
+    static EntThinkAdapter flipper_run = register(new EntThinkAdapter("flipper_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_run_start;
             return true;
         }
-    };
+    });
 
     /* Standard Swimming */
     static mframe_t flipper_frames_walk[] = new mframe_t[] {
@@ -480,13 +479,12 @@ public class M_Flipper {
     static mmove_t flipper_move_walk = new mmove_t(FRAME_flphor01,
             FRAME_flphor24, flipper_frames_walk, null);
 
-    static EntThinkAdapter flipper_walk = new EntThinkAdapter() {
-    	public String getID() { return "flipper_walk"; }
+    static EntThinkAdapter flipper_walk = register(new EntThinkAdapter("flipper_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_walk;
             return true;
         }
-    };
+    });
 
     static mframe_t flipper_frames_start_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 8, null),
@@ -498,13 +496,12 @@ public class M_Flipper {
     static mmove_t flipper_move_start_run = new mmove_t(FRAME_flphor01,
             FRAME_flphor05, flipper_frames_start_run, null);
 
-    static EntThinkAdapter flipper_start_run = new EntThinkAdapter() {
-    	public String getID() { return "flipper_start_run"; }
+    static EntThinkAdapter flipper_start_run = register(new EntThinkAdapter("flipper_start_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_start_run;
             return true;
         }
-    };
+    });
 
     static mframe_t flipper_frames_pain2[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -526,8 +523,7 @@ public class M_Flipper {
     static mmove_t flipper_move_pain1 = new mmove_t(FRAME_flppn201,
             FRAME_flppn205, flipper_frames_pain1, flipper_run);
 
-    static EntThinkAdapter flipper_bite = new EntThinkAdapter() {
-    	public String getID() { return "flipper_bite"; }
+    static EntThinkAdapter flipper_bite = register(new EntThinkAdapter("flipper_bite") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -535,17 +531,16 @@ public class M_Flipper {
             GameWeapon.fire_hit(self, aim, 5, 0, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flipper_preattack = new EntThinkAdapter() {
-    	public String getID() { return "flipper_preattack"; }
+    static EntThinkAdapter flipper_preattack = register(new EntThinkAdapter("flipper_preattack") {
 
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_chomp, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t flipper_frames_attack[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, flipper_preattack),
@@ -572,16 +567,14 @@ public class M_Flipper {
     static mmove_t flipper_move_attack = new mmove_t(FRAME_flpbit01,
             FRAME_flpbit20, flipper_frames_attack, flipper_run);
 
-    static EntThinkAdapter flipper_melee = new EntThinkAdapter() {
-    	public String getID() { return "flipper_melee"; }
+    static EntThinkAdapter flipper_melee = register(new EntThinkAdapter("flipper_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flipper_move_attack;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter flipper_pain = new EntPainAdapter() {
-    	public String getID() { return "flipper_pain"; }
+    static EntPainAdapter flipper_pain = register(new EntPainAdapter("flipper_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
@@ -608,10 +601,9 @@ public class M_Flipper {
             }
             return;
         }
-    };
+    });
 
-    static EntThinkAdapter flipper_dead = new EntThinkAdapter() {
-    	public String getID() { return "flipper_dead"; }
+    static EntThinkAdapter flipper_dead = register(new EntThinkAdapter("flipper_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -621,7 +613,7 @@ public class M_Flipper {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t flipper_frames_death[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -684,17 +676,15 @@ public class M_Flipper {
     static mmove_t flipper_move_death = new mmove_t(FRAME_flpdth01,
             FRAME_flpdth56, flipper_frames_death, flipper_dead);
 
-    static EntInteractAdapter flipper_sight = new EntInteractAdapter() {
-    	public String getID() { return "flipper_sight"; }
+    static EntInteractAdapter flipper_sight = register(new EntInteractAdapter("flipper_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntDieAdapter flipper_die = new EntDieAdapter() {
-    	public String getID() { return "flipper_die"; }
+    static EntDieAdapter flipper_die = register(new EntDieAdapter("flipper_die") {
 
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
@@ -729,7 +719,7 @@ public class M_Flipper {
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.currentmove = flipper_move_death;
         }
-    };
+    });
 
     /*
      * QUAKED monster_flipper (1 .5 0) (-16 -16 -24) (16 16 32) Ambush

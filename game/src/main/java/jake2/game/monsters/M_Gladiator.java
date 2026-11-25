@@ -22,6 +22,8 @@
 // $Id: M_Gladiator.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -238,45 +240,41 @@ public class M_Gladiator {
 
     static int sound_sight;
 
-    static EntThinkAdapter gladiator_idle = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_idle"; }
+    static EntThinkAdapter gladiator_idle = register(new EntThinkAdapter("gladiator_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntInteractAdapter gladiator_sight = new EntInteractAdapter() {
-    	public String getID() { return "gladiator_sight"; }
+    static EntInteractAdapter gladiator_sight = register(new EntInteractAdapter("gladiator_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter gladiator_search = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_search"; }
+    static EntThinkAdapter gladiator_search = register(new EntThinkAdapter("gladiator_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter gladiator_cleaver_swing = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_cleaver_swing"; }
+    static EntThinkAdapter gladiator_cleaver_swing = register(new EntThinkAdapter("gladiator_cleaver_swing") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_cleaver_swing,
                     1, Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -290,14 +288,13 @@ public class M_Gladiator {
     static mmove_t gladiator_move_stand = new mmove_t(FRAME_stand1,
             FRAME_stand7, gladiator_frames_stand, null);
 
-    static EntThinkAdapter gladiator_stand = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_stand"; }
+    static EntThinkAdapter gladiator_stand = register(new EntThinkAdapter("gladiator_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = gladiator_move_stand;
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_walk[] = new mframe_t[] {
             new mframe_t(GameAI.ai_walk, 15, null),
@@ -320,15 +317,14 @@ public class M_Gladiator {
     static mmove_t gladiator_move_walk = new mmove_t(FRAME_walk1, FRAME_walk16,
             gladiator_frames_walk, null);
 
-    static EntThinkAdapter gladiator_walk = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_walk"; }
+    static EntThinkAdapter gladiator_walk = register(new EntThinkAdapter("gladiator_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = gladiator_move_walk;
 
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 23, null),
@@ -341,8 +337,7 @@ public class M_Gladiator {
     static mmove_t gladiator_move_run = new mmove_t(FRAME_run1, FRAME_run6,
             gladiator_frames_run, null);
 
-    static EntThinkAdapter gladiator_run = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_run"; }
+    static EntThinkAdapter gladiator_run = register(new EntThinkAdapter("gladiator_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
@@ -352,10 +347,9 @@ public class M_Gladiator {
 
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter GaldiatorMelee = new EntThinkAdapter() {
-    	public String getID() { return "GaldiatorMelee"; }
+    static EntThinkAdapter GaldiatorMelee = register(new EntThinkAdapter("GaldiatorMelee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] aim = { 0, 0, 0 };
@@ -369,7 +363,7 @@ public class M_Gladiator {
                         1, Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_attack_melee[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -393,17 +387,15 @@ public class M_Gladiator {
     static mmove_t gladiator_move_attack_melee = new mmove_t(FRAME_melee1,
             FRAME_melee17, gladiator_frames_attack_melee, gladiator_run);
 
-    static EntThinkAdapter gladiator_melee = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_melee"; }
+    static EntThinkAdapter gladiator_melee = register(new EntThinkAdapter("gladiator_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.monsterinfo.currentmove = gladiator_move_attack_melee;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter GladiatorGun = new EntThinkAdapter() {
-    	public String getID() { return "GladiatorGun"; }
+    static EntThinkAdapter GladiatorGun = register(new EntThinkAdapter("GladiatorGun") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float[] start = { 0, 0, 0 };
@@ -427,7 +419,7 @@ public class M_Gladiator {
 
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_attack_gun[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -443,8 +435,7 @@ public class M_Gladiator {
     static mmove_t gladiator_move_attack_gun = new mmove_t(FRAME_attack1,
             FRAME_attack9, gladiator_frames_attack_gun, gladiator_run);
 
-    static EntThinkAdapter gladiator_attack = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_attack"; }
+    static EntThinkAdapter gladiator_attack = register(new EntThinkAdapter("gladiator_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             float range;
@@ -465,7 +456,7 @@ public class M_Gladiator {
             self.monsterinfo.currentmove = gladiator_move_attack_gun;
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_pain[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -490,8 +481,7 @@ public class M_Gladiator {
     static mmove_t gladiator_move_pain_air = new mmove_t(FRAME_painup1,
             FRAME_painup7, gladiator_frames_pain_air, gladiator_run);
 
-    static EntPainAdapter gladiator_pain = new EntPainAdapter() {
-    	public String getID() { return "gladiator_pain"; }
+    static EntPainAdapter gladiator_pain = register(new EntPainAdapter("gladiator_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             if (self.health < (self.max_health / 2))
@@ -522,10 +512,9 @@ public class M_Gladiator {
                 self.monsterinfo.currentmove = gladiator_move_pain;
 
         }
-    };
+    });
 
-    static EntThinkAdapter gladiator_dead = new EntThinkAdapter() {
-    	public String getID() { return "gladiator_dead"; }
+    static EntThinkAdapter gladiator_dead = register(new EntThinkAdapter("gladiator_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             Math3D.VectorSet(self.mins, -16, -16, -24);
@@ -536,7 +525,7 @@ public class M_Gladiator {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t gladiator_frames_death[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -565,8 +554,7 @@ public class M_Gladiator {
     static mmove_t gladiator_move_death = new mmove_t(FRAME_death1,
             FRAME_death22, gladiator_frames_death, gladiator_dead);
 
-    static EntDieAdapter gladiator_die = new EntDieAdapter() {
-    	public String getID() { return "gladiator_die"; }
+    static EntDieAdapter gladiator_die = register(new EntDieAdapter("gladiator_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
@@ -602,7 +590,7 @@ public class M_Gladiator {
             self.monsterinfo.currentmove = gladiator_move_death;
 
         }
-    };
+    });
 
     /*
      * QUAKED monster_gladiator (1 .5 0) (-32 -32 -24) (32 32 64) Ambush

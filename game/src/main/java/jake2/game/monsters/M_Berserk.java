@@ -24,6 +24,8 @@
 
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -537,26 +539,23 @@ public class M_Berserk {
 
     static int sound_search;
 
-    static EntInteractAdapter berserk_sight = new EntInteractAdapter() {
-        public String getID() { return "berserk_sight";}
+    static EntInteractAdapter berserk_sight = register(new EntInteractAdapter("berserk_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter berserk_search = new EntThinkAdapter() {
-        public String getID() { return "berserk_search";}
+    static EntThinkAdapter berserk_search = register(new EntThinkAdapter("berserk_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter berserk_fidget = new EntThinkAdapter() {
-        public String getID() { return "berserk_fidget";}
+    static EntThinkAdapter berserk_fidget = register(new EntThinkAdapter("berserk_fidget") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 return true;
@@ -569,7 +568,7 @@ public class M_Berserk {
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t berserk_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, berserk_fidget),
@@ -581,13 +580,12 @@ public class M_Berserk {
     static mmove_t berserk_move_stand = new mmove_t(FRAME_stand1, FRAME_stand5,
             berserk_frames_stand, null);
 
-    static EntThinkAdapter berserk_stand = new EntThinkAdapter() {
-        public String getID() { return "berserk_stand";}
+    static EntThinkAdapter berserk_stand = register(new EntThinkAdapter("berserk_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = berserk_move_stand;
             return true;
         }
-    };
+    });
 
     static mframe_t berserk_frames_stand_fidget[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -631,13 +629,12 @@ public class M_Berserk {
     static mmove_t berserk_move_walk = new mmove_t(FRAME_walkc1, FRAME_walkc11,
             berserk_frames_walk, null);
 
-    static EntThinkAdapter berserk_walk = new EntThinkAdapter() {
-        public String getID() { return "berserk_walk";}
+    static EntThinkAdapter berserk_walk = register(new EntThinkAdapter("berserk_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = berserk_move_walk;
             return true;
         }
-    };
+    });
 
     /*
      * 
@@ -672,8 +669,7 @@ public class M_Berserk {
     static mmove_t berserk_move_run1 = new mmove_t(FRAME_run1, FRAME_run6,
             berserk_frames_run1, null);
 
-    static EntThinkAdapter berserk_run = new EntThinkAdapter() {
-        public String getID() { return "berserk_run";}
+    static EntThinkAdapter berserk_run = register(new EntThinkAdapter("berserk_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = berserk_move_stand;
@@ -681,10 +677,9 @@ public class M_Berserk {
                 self.monsterinfo.currentmove = berserk_move_run1;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter berserk_attack_spike = new EntThinkAdapter() {
-        public String getID() { return "berserk_attack_spike";}
+    static EntThinkAdapter berserk_attack_spike = register(new EntThinkAdapter("berserk_attack_spike") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { GameDefines.MELEE_DISTANCE, 0f, -24f };
 
@@ -693,16 +688,15 @@ public class M_Berserk {
 
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter berserk_swing = new EntThinkAdapter() {
-        public String getID() { return "berserk_swing";}
+    static EntThinkAdapter berserk_swing = register(new EntThinkAdapter("berserk_swing") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t berserk_frames_attack_spike[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -717,8 +711,7 @@ public class M_Berserk {
     static mmove_t berserk_move_attack_spike = new mmove_t(FRAME_att_c1,
             FRAME_att_c8, berserk_frames_attack_spike, berserk_run);
 
-    static EntThinkAdapter berserk_attack_club = new EntThinkAdapter() {
-        public String getID() { return "berserk_attack_club";}
+    static EntThinkAdapter berserk_attack_club = register(new EntThinkAdapter("berserk_attack_club") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float aim[] = { 0, 0, 0 };
 
@@ -728,7 +721,7 @@ public class M_Berserk {
 
             return true;
         }
-    };
+    });
 
     static mframe_t berserk_frames_attack_club[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -747,12 +740,11 @@ public class M_Berserk {
     static mmove_t berserk_move_attack_club = new mmove_t(FRAME_att_c9,
             FRAME_att_c20, berserk_frames_attack_club, berserk_run);
 
-    static EntThinkAdapter berserk_strike = new EntThinkAdapter() {
-        public String getID() { return "berserk_strike";}
+    static EntThinkAdapter berserk_strike = register(new EntThinkAdapter("berserk_strike") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             return true;
         }
-    };
+    });
 
     static mframe_t berserk_frames_attack_strike[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -773,8 +765,7 @@ public class M_Berserk {
     static mmove_t berserk_move_attack_strike = new mmove_t(FRAME_att_c21,
             FRAME_att_c34, berserk_frames_attack_strike, berserk_run);
 
-    static EntThinkAdapter berserk_melee = new EntThinkAdapter() {
-        public String getID() { return "berserk_melee";}
+    static EntThinkAdapter berserk_melee = register(new EntThinkAdapter("berserk_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((Lib.rand() % 2) == 0)
                 self.monsterinfo.currentmove = berserk_move_attack_spike;
@@ -782,7 +773,7 @@ public class M_Berserk {
                 self.monsterinfo.currentmove = berserk_move_attack_club;
             return true;
         }
-    };
+    });
 
     /*
      * void() berserk_atke1 =[ $r_attb1, berserk_atke2 ] {ai_run(9);}; void()
@@ -839,8 +830,7 @@ public class M_Berserk {
     static mmove_t berserk_move_pain2 = new mmove_t(FRAME_painb1,
             FRAME_painb20, berserk_frames_pain2, berserk_run);
 
-    static EntPainAdapter berserk_pain = new EntPainAdapter() {
-        public String getID() { return "berserk_pain";}
+    static EntPainAdapter berserk_pain = register(new EntPainAdapter("berserk_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -860,10 +850,9 @@ public class M_Berserk {
             else
                 self.monsterinfo.currentmove = berserk_move_pain2;
         }
-    };
+    });
 
-    static EntThinkAdapter berserk_dead = new EntThinkAdapter() {
-        public String getID() { return "berserk_dead";}
+    static EntThinkAdapter berserk_dead = register(new EntThinkAdapter("berserk_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -873,7 +862,7 @@ public class M_Berserk {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t berserk_frames_death1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -906,8 +895,7 @@ public class M_Berserk {
     static mmove_t berserk_move_death2 = new mmove_t(FRAME_deathc1,
             FRAME_deathc8, berserk_frames_death2, berserk_dead);
 
-    static EntDieAdapter berserk_die = new EntDieAdapter() {
-        public String getID() { return "berserk_die";}
+    static EntDieAdapter berserk_die = register(new EntDieAdapter("berserk_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float point[], GameExportsImpl gameExports) {
             int n;
@@ -943,7 +931,7 @@ public class M_Berserk {
             else
                 self.monsterinfo.currentmove = berserk_move_death2;
         }
-    };
+    });
 
     /*
      * QUAKED monster_berserk (1 .5 0) (-16 -16 -24) (16 16 32) Ambush

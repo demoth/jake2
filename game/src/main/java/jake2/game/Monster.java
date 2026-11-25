@@ -22,6 +22,8 @@
 
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.qcommon.Com;
 import static jake2.qcommon.Com.LogSubsystem.GAME;
 import jake2.game.adapters.EntThinkAdapter;
@@ -247,8 +249,7 @@ public class Monster {
         self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
     }
 
-    public static EntThinkAdapter monster_think = new EntThinkAdapter() {
-        public String getID() { return "monster_think";}
+    public static EntThinkAdapter monster_think = register(new EntThinkAdapter("monster_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             M.M_MoveFrame(self, gameExports);
@@ -261,10 +262,9 @@ public class Monster {
             M.M_SetEffects(self, gameExports.level.time);
             return true;
         }
-    };
+    });
 
-    public static EntThinkAdapter monster_triggered_spawn = new EntThinkAdapter() {
-        public String getID() { return "monster_trigger_spawn";}
+    public static EntThinkAdapter monster_triggered_spawn = register(new EntThinkAdapter("monster_trigger_spawn") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             self.s.origin[2] += 1;
@@ -286,12 +286,11 @@ public class Monster {
             }
             return true;
         }
-    };
+    });
 
     //	we have a one frame delay here so we don't telefrag the guy who activated
     // us
-    public static EntUseAdapter monster_triggered_spawn_use = new EntUseAdapter() {
-        public String getID() { return "monster_trigger_spawn_use";}
+    public static EntUseAdapter monster_triggered_spawn_use = register(new EntUseAdapter("monster_trigger_spawn_use") {
         public void use(GameEntity self, GameEntity other, GameEntity activator, GameExportsImpl gameExports) {
             self.think.action = monster_triggered_spawn;
             self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
@@ -299,10 +298,9 @@ public class Monster {
                 self.enemy = activator;
             self.use = GameUtil.monster_use;
         }
-    };
+    });
 
-    public static EntThinkAdapter monster_triggered_start = new EntThinkAdapter() {
-        public String getID() { return "monster_triggered_start";}
+    public static EntThinkAdapter monster_triggered_start = register(new EntThinkAdapter("monster_triggered_start") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.solid = Defines.SOLID_NOT;
             self.movetype = GameDefines.MOVETYPE_NONE;
@@ -311,5 +309,5 @@ public class Monster {
             self.use = monster_triggered_spawn_use;
             return true;
         }
-    };
+    });
 }

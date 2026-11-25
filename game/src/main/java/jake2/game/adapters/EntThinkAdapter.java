@@ -28,5 +28,9 @@ import jake2.game.GameExportsImpl;
 
 public abstract class EntThinkAdapter extends SuperAdapter
 {
+    protected EntThinkAdapter(String id) {
+        super(id);
+    }
+
 	public abstract boolean think(GameEntity self, GameExportsImpl gameExports);
 }

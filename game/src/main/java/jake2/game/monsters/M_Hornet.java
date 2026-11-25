@@ -22,6 +22,8 @@
 // $Id: M_Boss2.java,v 1.6 2009-12-13 19:18:04 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
@@ -409,16 +411,14 @@ public class M_Hornet {
 
     static int sound_search1;
 
-    static EntThinkAdapter boss2_stand = new EntThinkAdapter() {
-    	public String getID() { return "boss2_stand"; }
+    static EntThinkAdapter boss2_stand = register(new EntThinkAdapter("boss2_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = boss2_move_stand;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_run = new EntThinkAdapter() {
-    	public String getID() { return "boss2_run"; }
+    static EntThinkAdapter boss2_run = register(new EntThinkAdapter("boss2_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = boss2_move_stand;
@@ -426,20 +426,18 @@ public class M_Hornet {
                 self.monsterinfo.currentmove = boss2_move_run;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_walk = new EntThinkAdapter() {
-    	public String getID() { return "boss2_walk"; }
+    static EntThinkAdapter boss2_walk = register(new EntThinkAdapter("boss2_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = boss2_move_stand;
 
             self.monsterinfo.currentmove = boss2_move_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_attack = new EntThinkAdapter() {
-    	public String getID() { return "boss2_attack"; }
+    static EntThinkAdapter boss2_attack = register(new EntThinkAdapter("boss2_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] vec = { 0, 0, 0 };
 
@@ -458,18 +456,16 @@ public class M_Hornet {
             }
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_attack_mg = new EntThinkAdapter() {
-    	public String getID() { return "boss2_attack_mg"; }
+    static EntThinkAdapter boss2_attack_mg = register(new EntThinkAdapter("boss2_attack_mg") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = boss2_move_attack_mg;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_reattack_mg = new EntThinkAdapter() {
-    	public String getID() { return "boss2_reattack_mg"; }
+    static EntThinkAdapter boss2_reattack_mg = register(new EntThinkAdapter("boss2_reattack_mg") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.infront(self, self.enemy))
                 if (Lib.random() <= 0.7)
@@ -480,10 +476,9 @@ public class M_Hornet {
                 self.monsterinfo.currentmove = boss2_move_attack_post_mg;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter boss2_pain = new EntPainAdapter() {
-    	public String getID() { return "boss2_pain"; }
+    static EntPainAdapter boss2_pain = register(new EntPainAdapter("boss2_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -507,10 +502,9 @@ public class M_Hornet {
                 self.monsterinfo.currentmove = boss2_move_pain_heavy;
             }
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_dead = new EntThinkAdapter() {
-    	public String getID() { return "boss2_dead"; }
+    static EntThinkAdapter boss2_dead = register(new EntThinkAdapter("boss2_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -56, -56, 0);
             Math3D.VectorSet(self.maxs, 56, 56, 80);
@@ -520,10 +514,9 @@ public class M_Hornet {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntDieAdapter boss2_die = new EntDieAdapter() {
-    	public String getID() { return "boss2_die"; }
+    static EntDieAdapter boss2_die = register(new EntDieAdapter("boss2_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_death, 1,
@@ -534,10 +527,9 @@ public class M_Hornet {
             self.monsterinfo.currentmove = boss2_move_death;
 
         }
-    };
+    });
 
-    static EntThinkAdapter Boss2_CheckAttack = new EntThinkAdapter() {
-    	public String getID() { return "Boss2_CheckAttack"; }
+    static EntThinkAdapter Boss2_CheckAttack = register(new EntThinkAdapter("Boss2_CheckAttack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] spot1 = { 0, 0, 0 }, spot2 = { 0, 0, 0 };
             float[] temp = { 0, 0, 0 };
@@ -617,20 +609,18 @@ public class M_Hornet {
 
             return false;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_search = new EntThinkAdapter() {
-    	public String getID() { return "boss2_search"; }
+    static EntThinkAdapter boss2_search = register(new EntThinkAdapter("boss2_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
                         Defines.ATTN_NONE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter Boss2Rocket = new EntThinkAdapter() {
-    	public String getID() { return "Boss2Rocket"; }
+    static EntThinkAdapter Boss2Rocket = register(new EntThinkAdapter("Boss2Rocket") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] start = { 0, 0, 0 };
@@ -684,10 +674,9 @@ public class M_Hornet {
                     Defines.MZ2_BOSS2_ROCKET_4, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_firebullet_right = new EntThinkAdapter() {
-    	public String getID() { return "boss2_firebullet_right"; }
+    static EntThinkAdapter boss2_firebullet_right = register(new EntThinkAdapter("boss2_firebullet_right") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
@@ -713,10 +702,9 @@ public class M_Hornet {
 
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter boss2_firebullet_left = new EntThinkAdapter() {
-    	public String getID() { return "boss2_firebullet_left"; }
+    static EntThinkAdapter boss2_firebullet_left = register(new EntThinkAdapter("boss2_firebullet_left") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 }, target = { 0,
                     0, 0 };
@@ -743,10 +731,9 @@ public class M_Hornet {
 
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter Boss2MachineGun = new EntThinkAdapter() {
-    	public String getID() { return "Boss2MachineGun"; }
+    static EntThinkAdapter Boss2MachineGun = register(new EntThinkAdapter("Boss2MachineGun") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * RST: this was disabled ! float[] forward={0,0,0}, right={0,0,0};
@@ -768,7 +755,7 @@ public class M_Hornet {
             boss2_firebullet_right.think(self, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t boss2_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),

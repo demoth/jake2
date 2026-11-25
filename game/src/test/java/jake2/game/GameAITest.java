@@ -57,17 +57,13 @@ class GameAITest {
     }
 
     private static EntThinkAdapter callback(String attack, List<String> executed) {
-        return new EntThinkAdapter() {
+        return new EntThinkAdapter("test_" + attack) {
             @Override
             public boolean think(GameEntity self, GameExportsImpl game) {
                 executed.add(attack);
                 return true;
             }
 
-            @Override
-            public String getID() {
-                return "test_" + attack;
-            }
         };
     }
 }

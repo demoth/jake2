@@ -22,6 +22,8 @@
 // $Id: M_Insane.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntPainAdapter;
@@ -607,44 +609,39 @@ public class M_Insane {
 
     static int sound_scream[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-    static EntThinkAdapter insane_fist = new EntThinkAdapter() {
-    	public String getID() { return "insane_fist"; }
+    static EntThinkAdapter insane_fist = register(new EntThinkAdapter("insane_fist") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_fist, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_shake = new EntThinkAdapter() {
-    	public String getID() { return "insane_shake"; }
+    static EntThinkAdapter insane_shake = register(new EntThinkAdapter("insane_shake") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_shake, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_moan = new EntThinkAdapter() {
-    	public String getID() { return "insane_moan"; }
+    static EntThinkAdapter insane_moan = register(new EntThinkAdapter("insane_moan") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_moan, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_scream = new EntThinkAdapter() {
-    	public String getID() { return "insane_scream"; }
+    static EntThinkAdapter insane_scream = register(new EntThinkAdapter("insane_scream") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE,
                     sound_scream[Lib.rand() % 8], 1, Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_cross = new EntThinkAdapter() {
-    	public String getID() { return "insane_cross"; }
+    static EntThinkAdapter insane_cross = register(new EntThinkAdapter("insane_cross") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.8)
                 self.monsterinfo.currentmove = insane_move_cross;
@@ -652,10 +649,9 @@ public class M_Insane {
                 self.monsterinfo.currentmove = insane_move_struggle_cross;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_walk = new EntThinkAdapter() {
-    	public String getID() { return "insane_walk"; }
+    static EntThinkAdapter insane_walk = register(new EntThinkAdapter("insane_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
@@ -670,10 +666,9 @@ public class M_Insane {
                 self.monsterinfo.currentmove = insane_move_walk_insane;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_run = new EntThinkAdapter() {
-    	public String getID() { return "insane_run"; }
+    static EntThinkAdapter insane_run = register(new EntThinkAdapter("insane_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 16) != 0) // Hold Ground?
                 if (self.s.frame == FRAME_cr_pain10) {
@@ -688,10 +683,9 @@ public class M_Insane {
                 self.monsterinfo.currentmove = insane_move_run_insane;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter insane_pain = new EntPainAdapter() {
-    	public String getID() { return "insane_pain"; }
+    static EntPainAdapter insane_pain = register(new EntPainAdapter("insane_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int l, r;
 
@@ -731,18 +725,16 @@ public class M_Insane {
             } else
                 self.monsterinfo.currentmove = insane_move_stand_pain;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_onground = new EntThinkAdapter() {
-    	public String getID() { return "insane_onground"; }
+    static EntThinkAdapter insane_onground = register(new EntThinkAdapter("insane_onground") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = insane_move_down;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_checkdown = new EntThinkAdapter() {
-    	public String getID() { return "insane_checkdown"; }
+    static EntThinkAdapter insane_checkdown = register(new EntThinkAdapter("insane_checkdown") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //			if ( (self.s.frame == FRAME_stand94) || (self.s.frame ==
             // FRAME_stand65) )
@@ -755,10 +747,9 @@ public class M_Insane {
                     self.monsterinfo.currentmove = insane_move_jumpdown;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_checkup = new EntThinkAdapter() {
-    	public String getID() { return "insane_checkup"; }
+    static EntThinkAdapter insane_checkup = register(new EntThinkAdapter("insane_checkup") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //			If Hold_Ground and Crawl are set
             if ((self.spawnflags & 4) != 0 && (self.spawnflags & 16) != 0)
@@ -767,10 +758,9 @@ public class M_Insane {
                 self.monsterinfo.currentmove = insane_move_downtoup;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_stand = new EntThinkAdapter() {
-    	public String getID() { return "insane_stand"; }
+    static EntThinkAdapter insane_stand = register(new EntThinkAdapter("insane_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 8) != 0) // If crucified
             {
@@ -786,10 +776,9 @@ public class M_Insane {
                 self.monsterinfo.currentmove = insane_move_stand_insane;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter insane_dead = new EntThinkAdapter() {
-    	public String getID() { return "insane_dead"; }
+    static EntThinkAdapter insane_dead = register(new EntThinkAdapter("insane_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.spawnflags & 8) != 0) {
                 self.flags |= GameDefines.FL_FLY;
@@ -803,10 +792,9 @@ public class M_Insane {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntDieAdapter insane_die = new EntDieAdapter() {
-    	public String getID() { return "insane_die"; }
+    static EntDieAdapter insane_die = register(new EntDieAdapter("insane_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
@@ -850,7 +838,7 @@ public class M_Insane {
             }
         }
 
-    };
+    });
 
     static mframe_t insane_frames_stand_normal[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),

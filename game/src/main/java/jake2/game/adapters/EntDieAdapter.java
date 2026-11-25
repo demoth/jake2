@@ -30,5 +30,9 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class EntDieAdapter extends SuperAdapter
 {
+    protected EntDieAdapter(String id) {
+        super(id);
+    }
+
 	public abstract void die(@NotNull GameEntity self, GameEntity inflictor, GameEntity attacker, int damage, @Nullable float[] point, @NotNull GameExportsImpl gameExports);
 }

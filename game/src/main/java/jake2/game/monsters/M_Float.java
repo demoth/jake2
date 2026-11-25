@@ -22,6 +22,8 @@
 // $Id: M_Float.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -551,26 +553,23 @@ public class M_Float {
 
     static int sound_sight;
 
-    static EntInteractAdapter floater_sight = new EntInteractAdapter() {
-    	public String getID() { return "floater_sight"; }
+    static EntInteractAdapter floater_sight = register(new EntInteractAdapter("floater_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter floater_idle = new EntThinkAdapter() {
-    	public String getID() { return "floater_idle"; }
+    static EntThinkAdapter floater_idle = register(new EntThinkAdapter("floater_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter floater_fire_blaster = new EntThinkAdapter() {
-    	public String getID() { return "floater_fire_blaster"; }
+    static EntThinkAdapter floater_fire_blaster = register(new EntThinkAdapter("floater_fire_blaster") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -597,7 +596,7 @@ public class M_Float {
 
             return true;
         }
-    };
+    });
 
     static mframe_t floater_frames_stand1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -713,8 +712,7 @@ public class M_Float {
     static mmove_t floater_move_stand2 = new mmove_t(FRAME_stand201,
             FRAME_stand252, floater_frames_stand2, null);
 
-    static EntThinkAdapter floater_stand = new EntThinkAdapter() {
-    	public String getID() { return "floater_stand"; }
+    static EntThinkAdapter floater_stand = register(new EntThinkAdapter("floater_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() <= 0.5)
                 self.monsterinfo.currentmove = floater_move_stand1;
@@ -722,7 +720,7 @@ public class M_Float {
                 self.monsterinfo.currentmove = floater_move_stand2;
             return true;
         }
-    };
+    });
 
     static mframe_t floater_frames_activate[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -759,8 +757,7 @@ public class M_Float {
     static mmove_t floater_move_activate = new mmove_t(FRAME_actvat01,
             FRAME_actvat31, floater_frames_activate, null);
 
-    static EntThinkAdapter floater_run = new EntThinkAdapter() {
-    	public String getID() { return "floater_run"; }
+    static EntThinkAdapter floater_run = register(new EntThinkAdapter("floater_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
@@ -770,7 +767,7 @@ public class M_Float {
 
             return true;
         }
-    };
+    });
 
     static mframe_t floater_frames_attack1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null), // Blaster attack)
@@ -796,8 +793,7 @@ public class M_Float {
 
     static float[] aim = { GameDefines.MELEE_DISTANCE, 0, 0 };
 
-    static EntThinkAdapter floater_wham = new EntThinkAdapter() {
-    	public String getID() { return "floater_wham"; }
+    static EntThinkAdapter floater_wham = register(new EntThinkAdapter("floater_wham") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_attack3, 1,
@@ -805,7 +801,7 @@ public class M_Float {
             GameWeapon.fire_hit(self, aim, 5 + Lib.rand() % 6, -50, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t floater_frames_attack2[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null), // Claws
@@ -839,8 +835,7 @@ public class M_Float {
     static mmove_t floater_move_attack2 = new mmove_t(FRAME_attak201,
             FRAME_attak225, floater_frames_attack2, floater_run);
 
-    static EntThinkAdapter floater_zap = new EntThinkAdapter() {
-    	public String getID() { return "floater_zap"; }
+    static EntThinkAdapter floater_zap = register(new EntThinkAdapter("floater_zap") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
             float[] origin = { 0, 0, 0 };
@@ -869,7 +864,7 @@ public class M_Float {
                     DamageFlags.DAMAGE_ENERGY, GameDefines.MOD_UNKNOWN, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t floater_frames_attack3[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -927,8 +922,7 @@ public class M_Float {
             new mframe_t(GameAI.ai_move, 0, null),
             new mframe_t(GameAI.ai_move, 0, null) };
 
-    static EntThinkAdapter floater_dead = new EntThinkAdapter() {
-    	public String getID() { return "floater_dead"; }
+    static EntThinkAdapter floater_dead = register(new EntThinkAdapter("floater_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -938,7 +932,7 @@ public class M_Float {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mmove_t floater_move_death = new mmove_t(FRAME_death01,
             FRAME_death13, floater_frames_death, floater_dead);
@@ -1099,24 +1093,21 @@ public class M_Float {
     static mmove_t floater_move_run = new mmove_t(FRAME_stand101,
             FRAME_stand152, floater_frames_run, null);
 
-    static EntThinkAdapter floater_walk = new EntThinkAdapter() {
-    	public String getID() { return "floater_walk"; }
+    static EntThinkAdapter floater_walk = register(new EntThinkAdapter("floater_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = floater_move_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter floater_attack = new EntThinkAdapter() {
-    	public String getID() { return "floater_attack"; }
+    static EntThinkAdapter floater_attack = register(new EntThinkAdapter("floater_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = floater_move_attack1;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter floater_melee = new EntThinkAdapter() {
-    	public String getID() { return "floater_melee"; }
+    static EntThinkAdapter floater_melee = register(new EntThinkAdapter("floater_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if (Lib.random() < 0.5)
@@ -1125,10 +1116,9 @@ public class M_Float {
                 self.monsterinfo.currentmove = floater_move_attack2;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter floater_pain = new EntPainAdapter() {
-    	public String getID() { return "floater_pain"; }
+    static EntPainAdapter floater_pain = register(new EntPainAdapter("floater_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
@@ -1154,10 +1144,9 @@ public class M_Float {
             }
             return;
         }
-    };
+    });
 
-    static EntDieAdapter floater_die = new EntDieAdapter() {
-    	public String getID() { return "floater_die"; }
+    static EntDieAdapter floater_die = register(new EntDieAdapter("floater_die") {
 
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
@@ -1166,7 +1155,7 @@ public class M_Float {
             GameMisc.BecomeExplosion1(self, gameExports);
 
         }
-    };
+    });
 
     /*
      * QUAKED monster_floater (1 .5 0) (-16 -16 -24) (16 16 32) Ambush

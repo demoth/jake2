@@ -22,6 +22,8 @@
 // $Id: M_Flyer.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -365,32 +367,29 @@ public class M_Flyer {
 
     static int sound_die;
 
-    public static EntInteractAdapter flyer_sight = new EntInteractAdapter() {
-    	public String getID() { return "flyer_sight"; }
+    public static EntInteractAdapter flyer_sight = register(new EntInteractAdapter("flyer_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_idle = new EntThinkAdapter() {
-    	public String getID() { return "flyer_idle"; }
+    static EntThinkAdapter flyer_idle = register(new EntThinkAdapter("flyer_idle") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_pop_blades = new EntThinkAdapter() {
-    	public String getID() { return "flyer_pop_blades"; }
+    static EntThinkAdapter flyer_pop_blades = register(new EntThinkAdapter("flyer_pop_blades") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sproing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t flyer_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),
@@ -542,8 +541,7 @@ public class M_Flyer {
     static mmove_t flyer_move_run = new mmove_t(FRAME_stand01, FRAME_stand45,
             flyer_frames_run, null);
 
-    static EntThinkAdapter flyer_run = new EntThinkAdapter() {
-    	public String getID() { return "flyer_run"; }
+    static EntThinkAdapter flyer_run = register(new EntThinkAdapter("flyer_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = flyer_move_stand;
@@ -551,26 +549,23 @@ public class M_Flyer {
                 self.monsterinfo.currentmove = flyer_move_run;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_walk = new EntThinkAdapter() {
-    	public String getID() { return "flyer_walk"; }
+    static EntThinkAdapter flyer_walk = register(new EntThinkAdapter("flyer_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_stand = new EntThinkAdapter() {
-    	public String getID() { return "flyer_stand"; }
+    static EntThinkAdapter flyer_stand = register(new EntThinkAdapter("flyer_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_stand;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_nextmove = new EntThinkAdapter() {
-    	public String getID() { return "flyer_nextmove"; }
+    static EntThinkAdapter flyer_nextmove = register(new EntThinkAdapter("flyer_nextmove") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (nextmove == ACTION_attack1)
                 self.monsterinfo.currentmove = flyer_move_start_melee;
@@ -580,7 +575,7 @@ public class M_Flyer {
                 self.monsterinfo.currentmove = flyer_move_run;
             return true;
         }
-    };
+    });
 
     static mframe_t flyer_frames_start[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -605,21 +600,19 @@ public class M_Flyer {
     static mmove_t flyer_move_stop = new mmove_t(FRAME_stop01, FRAME_stop07,
             flyer_frames_stop, null);
 
-    static EntThinkAdapter flyer_stop = new EntThinkAdapter() {
-    	public String getID() { return "flyer_stop"; }
+    static EntThinkAdapter flyer_stop = register(new EntThinkAdapter("flyer_stop") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_stop;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_start = new EntThinkAdapter() {
-    	public String getID() { return "flyer_start"; }
+    static EntThinkAdapter flyer_start = register(new EntThinkAdapter("flyer_start") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = flyer_move_start;
             return true;
         }
-    };
+    });
 
     static mframe_t flyer_frames_rollright[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, 0, null),
@@ -717,21 +710,19 @@ public class M_Flyer {
     static mmove_t flyer_move_bankleft = new mmove_t(FRAME_bankl01,
             FRAME_bankl07, flyer_frames_bankleft, null);
 
-    static EntThinkAdapter flyer_fireleft = new EntThinkAdapter() {
-    	public String getID() { return "flyer_fireleft"; }
+    static EntThinkAdapter flyer_fireleft = register(new EntThinkAdapter("flyer_fireleft") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             flyer_fire(self, Defines.MZ2_FLYER_BLASTER_1, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_fireright = new EntThinkAdapter() {
-    	public String getID() { return "flyer_fireright"; }
+    static EntThinkAdapter flyer_fireright = register(new EntThinkAdapter("flyer_fireright") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             flyer_fire(self, Defines.MZ2_FLYER_BLASTER_2, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t flyer_frames_attack2[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, null),
@@ -756,8 +747,7 @@ public class M_Flyer {
     static mmove_t flyer_move_attack2 = new mmove_t(FRAME_attak201,
             FRAME_attak217, flyer_frames_attack2, flyer_run);
 
-    static EntThinkAdapter flyer_slash_left = new EntThinkAdapter() {
-    	public String getID() { return "flyer_slash_left"; }
+    static EntThinkAdapter flyer_slash_left = register(new EntThinkAdapter("flyer_slash_left") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -767,10 +757,9 @@ public class M_Flyer {
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_slash_right = new EntThinkAdapter() {
-    	public String getID() { return "flyer_slash_right"; }
+    static EntThinkAdapter flyer_slash_right = register(new EntThinkAdapter("flyer_slash_right") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -780,10 +769,9 @@ public class M_Flyer {
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_loop_melee = new EntThinkAdapter() {
-    	public String getID() { return "flyer_loop_melee"; }
+    static EntThinkAdapter flyer_loop_melee = register(new EntThinkAdapter("flyer_loop_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * if (random() <= 0.5) self.monsterinfo.currentmove =
@@ -792,7 +780,7 @@ public class M_Flyer {
             self.monsterinfo.currentmove = flyer_move_loop_melee;
             return true;
         }
-    };
+    });
 
     static mframe_t flyer_frames_start_melee[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 0, flyer_pop_blades),
@@ -831,8 +819,7 @@ public class M_Flyer {
 
     };
 
-    static EntThinkAdapter flyer_check_melee = new EntThinkAdapter() {
-    	public String getID() { return "flyer_check_melee"; }
+    static EntThinkAdapter flyer_check_melee = register(new EntThinkAdapter("flyer_check_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 if (Lib.random() <= 0.8)
@@ -843,13 +830,12 @@ public class M_Flyer {
                 self.monsterinfo.currentmove = flyer_move_end_melee;
             return true;
         }
-    };
+    });
 
     static mmove_t flyer_move_loop_melee = new mmove_t(FRAME_attak107,
             FRAME_attak118, flyer_frames_loop_melee, flyer_check_melee);
 
-    static EntThinkAdapter flyer_attack = new EntThinkAdapter() {
-    	public String getID() { return "flyer_attack"; }
+    static EntThinkAdapter flyer_attack = register(new EntThinkAdapter("flyer_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             /*
              * if (random() <= 0.5) self.monsterinfo.currentmove =
@@ -859,29 +845,26 @@ public class M_Flyer {
 
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_setstart = new EntThinkAdapter() {
-    	public String getID() { return "flyer_setstart"; }
+    static EntThinkAdapter flyer_setstart = register(new EntThinkAdapter("flyer_setstart") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             nextmove = ACTION_run;
             self.monsterinfo.currentmove = flyer_move_start;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter flyer_melee = new EntThinkAdapter() {
-    	public String getID() { return "flyer_melee"; }
+    static EntThinkAdapter flyer_melee = register(new EntThinkAdapter("flyer_melee") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             //			flyer.nextmove = ACTION_attack1;
             //	 self.monsterinfo.currentmove = flyer_move_stop;
             self.monsterinfo.currentmove = flyer_move_start_melee;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter flyer_pain = new EntPainAdapter() {
-    	public String getID() { return "flyer_pain"; }
+    static EntPainAdapter flyer_pain = register(new EntPainAdapter("flyer_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             int n;
 
@@ -911,17 +894,16 @@ public class M_Flyer {
             }
 
         }
-    };
+    });
 
-    static EntDieAdapter flyer_die = new EntDieAdapter() {
-    	public String getID() { return "flyer_die"; }
+    static EntDieAdapter flyer_die = register(new EntDieAdapter("flyer_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_die, 1,
                     Defines.ATTN_NORM, 0);
             GameMisc.BecomeExplosion1(self, gameExports);
         }
-    };
+    });
 
     static void flyer_fire(GameEntity self, int flash_number, GameExportsImpl gameExports) {
         float[] start = { 0, 0, 0 };

@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.adapters.EntTouchAdapter;
 import jake2.qcommon.*;
@@ -35,8 +37,7 @@ import jake2.qcommon.util.Math3D;
 
 public class GameWeapon {
 
-    static EntTouchAdapter blaster_touch = new EntTouchAdapter() {
-    	public String getID() { return "blaster_touch"; }
+    static EntTouchAdapter blaster_touch = register(new EntTouchAdapter("blaster_touch") {
     
         public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
@@ -92,7 +93,7 @@ public class GameWeapon {
     
             gameExports.freeEntity(self);
         }
-    };
+    });
 
     public static String buildEntityInfo(GameEntity other) {
         final StringBuilder result = new StringBuilder("Classname: " + other.classname);
@@ -117,8 +118,7 @@ public class GameWeapon {
         }
     }
 
-    static EntThinkAdapter Grenade_Explode = new EntThinkAdapter() {
-    	public String getID() { return "Grenade_Explode"; }
+    static EntThinkAdapter Grenade_Explode = register(new EntThinkAdapter("Grenade_Explode") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
             int mod;
@@ -175,9 +175,8 @@ public class GameWeapon {
             gameExports.freeEntity(ent);
             return true;
         }
-    };
-    static EntTouchAdapter Grenade_Touch = new EntTouchAdapter() {
-    	public String getID() { return "Grenade_Touch"; }
+    });
+    static EntTouchAdapter Grenade_Touch = register(new EntTouchAdapter("Grenade_Touch") {
         public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             if (other == ent.getOwner())
@@ -209,15 +208,14 @@ public class GameWeapon {
             ent.enemy = other;
             Grenade_Explode.think(ent, gameExports);
         }
-    };
+    });
     
     /*
      * ================= 
      * fire_rocket 
      * =================
      */
-    static EntTouchAdapter rocket_touch = new EntTouchAdapter() {
-    	public String  getID() { return "rocket_touch"; }
+    static EntTouchAdapter rocket_touch = register(new EntTouchAdapter("rocket_touch") {
         public void touch(GameEntity ent, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             float[] origin = { 0, 0, 0 };
@@ -270,14 +268,13 @@ public class GameWeapon {
     
             gameExports.freeEntity(ent);
         }
-    };
+    });
     /*
      * ================= 
      * fire_bfg 
      * =================
      */
-    static EntThinkAdapter bfg_explode = new EntThinkAdapter() {
-    	public String getID() { return "bfg_explode"; }
+    static EntThinkAdapter bfg_explode = register(new EntThinkAdapter("bfg_explode") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float points;
             float[] v = { 0, 0, 0 };
@@ -324,10 +321,9 @@ public class GameWeapon {
             return true;
     
         }
-    };
+    });
     
-    static EntTouchAdapter bfg_touch = new EntTouchAdapter() {
-    	public String getID() { return "bfg_touch"; }
+    static EntTouchAdapter bfg_touch = register(new EntTouchAdapter("bfg_touch") {
         public void touch(GameEntity self, GameEntity other, cplane_t plane,
                           csurface_t surf, GameExportsImpl gameExports) {
             if (other == self.getOwner())
@@ -368,10 +364,9 @@ public class GameWeapon {
     
             gameExports.gameImports.multicastMessage(self.s.origin, new PointTEMessage(Defines.TE_BFG_BIGEXPLOSION, self.s.origin), MulticastTypes.MULTICAST_PVS);
         }
-    };
+    });
     
-    static EntThinkAdapter bfg_think = new EntThinkAdapter() {
-    	public String getID() { return "bfg_think"; }
+    static EntThinkAdapter bfg_think = register(new EntThinkAdapter("bfg_think") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] point = { 0, 0, 0 };
             float[] dir = { 0, 0, 0 };
@@ -446,7 +441,7 @@ public class GameWeapon {
             self.think.nextTime = gameExports.level.time + Defines.FRAMETIME;
             return true;
         }
-    };
+    });
 
     /*
      * ================= 

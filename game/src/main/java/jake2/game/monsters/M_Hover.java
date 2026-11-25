@@ -22,6 +22,8 @@
 // $Id: M_Hover.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.EntDieAdapter;
 import jake2.game.adapters.EntInteractAdapter;
@@ -462,8 +464,7 @@ public class M_Hover {
 
     static int sound_search2;
 
-    static EntThinkAdapter hover_reattack = new EntThinkAdapter() {
-    	public String getID() { return "hover_reattack"; }
+    static EntThinkAdapter hover_reattack = register(new EntThinkAdapter("hover_reattack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.enemy.health > 0)
                 if (GameUtil.visible(self, self.enemy, gameExports))
@@ -474,10 +475,9 @@ public class M_Hover {
             self.monsterinfo.currentmove = hover_move_end_attack;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_fire_blaster = new EntThinkAdapter() {
-    	public String getID() { return "hover_fire_blaster"; }
+    static EntThinkAdapter hover_fire_blaster = register(new EntThinkAdapter("hover_fire_blaster") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -503,18 +503,16 @@ public class M_Hover {
                     Defines.MZ2_HOVER_BLASTER_1, effect, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_stand = new EntThinkAdapter() {
-    	public String getID() { return "hover_stand"; }
+    static EntThinkAdapter hover_stand = register(new EntThinkAdapter("hover_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = hover_move_stand;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_run = new EntThinkAdapter() {
-    	public String getID() { return "hover_run"; }
+    static EntThinkAdapter hover_run = register(new EntThinkAdapter("hover_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = hover_move_stand;
@@ -522,34 +520,30 @@ public class M_Hover {
                 self.monsterinfo.currentmove = hover_move_run;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_walk = new EntThinkAdapter() {
-    	public String getID() { return "hover_walk"; }
+    static EntThinkAdapter hover_walk = register(new EntThinkAdapter("hover_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = hover_move_walk;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_start_attack = new EntThinkAdapter() {
-    	public String getID() { return "hover_start_attack"; }
+    static EntThinkAdapter hover_start_attack = register(new EntThinkAdapter("hover_start_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = hover_move_start_attack;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_attack = new EntThinkAdapter() {
-    	public String getID() { return "hover_attack"; }
+    static EntThinkAdapter hover_attack = register(new EntThinkAdapter("hover_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = hover_move_attack1;
             return true;
         }
-    };
+    });
 
-    static EntPainAdapter hover_pain = new EntPainAdapter() {
-    	public String getID() { return "hover_pain"; }
+    static EntPainAdapter hover_pain = register(new EntPainAdapter("hover_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
             if (self.health < (self.max_health / 2))
                 self.s.skinnum = 1;
@@ -578,10 +572,9 @@ public class M_Hover {
                 self.monsterinfo.currentmove = hover_move_pain1;
             }
         }
-    };
+    });
 
-    static EntThinkAdapter hover_deadthink = new EntThinkAdapter() {
-    	public String getID() { return "hover_deadthink"; }
+    static EntThinkAdapter hover_deadthink = register(new EntThinkAdapter("hover_deadthink") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (null == self.groundentity
                     && gameExports.level.time < self.timestamp) {
@@ -591,10 +584,9 @@ public class M_Hover {
             GameMisc.BecomeExplosion1(self, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_dead = new EntThinkAdapter() {
-    	public String getID() { return "hover_dead"; }
+    static EntThinkAdapter hover_dead = register(new EntThinkAdapter("hover_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -605,10 +597,9 @@ public class M_Hover {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntDieAdapter hover_die = new EntDieAdapter() {
-    	public String getID() { return "hover_die"; }
+    static EntDieAdapter hover_die = register(new EntDieAdapter("hover_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
             int n;
@@ -646,19 +637,17 @@ public class M_Hover {
             self.takedamage = Defines.DAMAGE_YES;
             self.monsterinfo.currentmove = hover_move_death1;
         }
-    };
+    });
 
-    static EntInteractAdapter hover_sight = new EntInteractAdapter() {
-    	public String getID() { return "hover_sight"; }
+    static EntInteractAdapter hover_sight = register(new EntInteractAdapter("hover_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter hover_search = new EntThinkAdapter() {
-    	public String getID() { return "hover_search"; }
+    static EntThinkAdapter hover_search = register(new EntThinkAdapter("hover_search") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (Lib.random() < 0.5)
                 gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_search1, 1,
@@ -668,7 +657,7 @@ public class M_Hover {
                         Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t hover_frames_stand[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 0, null),

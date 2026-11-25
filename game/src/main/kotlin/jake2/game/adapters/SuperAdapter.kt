@@ -24,6 +24,7 @@ import jake2.game.GameEntity
 import jake2.game.GameExportsImpl
 import jake2.qcommon.cplane_t
 import jake2.qcommon.csurface_t
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * There are many fields in the [GameEntity] class. Some of them represent state - like 'health', 'damage' etc,
@@ -33,59 +34,52 @@ import jake2.qcommon.csurface_t
  *
  * The purpose of all Adapter registration is to store and restore such behavioural edict fields.
  */
-abstract class SuperAdapter {
+abstract class SuperAdapter(val id: String) {
     init {
-        register(iD, this)
+        require(id.isNotBlank()) { "Callback ID must not be blank" }
     }
 
-    abstract val iD: String
-
     override fun toString(): String {
-        return "${this.javaClass.simpleName} '$iD'"
+        return "${this.javaClass.simpleName} '$id'"
     }
 
     override fun equals(other: Any?): Boolean {
         return if (other is SuperAdapter) {
-            iD == other.iD
+            id == other.id
         } else false
     }
 
+    override fun hashCode(): Int = id.hashCode()
+
     companion object {
-        fun register(id: String?, sa: SuperAdapter): String {
-            if (id.isNullOrBlank()) {
-                // TODO: exception
-                return "null"
+        private val adapters = ConcurrentHashMap<String, SuperAdapter>()
+
+        @JvmStatic
+        fun <T : SuperAdapter> register(adapter: T): T {
+            check(adapters.putIfAbsent(adapter.id, adapter) == null) {
+                "Duplicate callback ID: ${adapter.id}"
             }
-            adapters[id] = sa
-            return id
+            return adapter
         }
 
         fun registerThink(id: String, think: (self: GameEntity, game: GameExportsImpl) -> Boolean): EntThinkAdapter {
-            val adapter = object : EntThinkAdapter() {
+            return register(object : EntThinkAdapter(id) {
                 override fun think(self: GameEntity, game: GameExportsImpl): Boolean {
                     return think.invoke(self, game)
                 }
-
-                override val iD: String = id
-            }
-            register(id, adapter)
-            return adapter
+            })
         }
 
         fun registerBlocked(id: String, block: (self: GameEntity, obstacle: GameEntity, game: GameExportsImpl ) -> Unit): EntBlockedAdapter {
-            val adapter = object: EntBlockedAdapter() {
+            return register(object : EntBlockedAdapter(id) {
                 override fun blocked(self: GameEntity, obstacle: GameEntity, game: GameExportsImpl) {
                     block.invoke(self, obstacle, game)
                 }
-
-                override val iD: String = id
-            }
-            register(id, adapter)
-            return adapter
+            })
         }
 
         fun registerUse(id: String, use: (self: GameEntity, other: GameEntity?, activator: GameEntity?, game: GameExportsImpl) -> Unit): EntUseAdapter {
-            val adapter = object : EntUseAdapter() {
+            return register(object : EntUseAdapter(id) {
                 override fun use(
                     self: GameEntity,
                     other: GameEntity?,
@@ -94,15 +88,11 @@ abstract class SuperAdapter {
                 ) {
                     use.invoke(self, other, activator, gameExports)
                 }
-
-                override val iD = id
-            }
-            register(id, adapter)
-            return adapter
+            })
         }
 
         fun registerTouch(id: String, touch: (self: GameEntity, other: GameEntity, plane: cplane_t, surf: csurface_t?, game: GameExportsImpl) -> Unit): EntTouchAdapter {
-            val adapter = object : EntTouchAdapter() {
+            return register(object : EntTouchAdapter(id) {
                 override fun touch(
                     self: GameEntity,
                     other: GameEntity,
@@ -112,15 +102,11 @@ abstract class SuperAdapter {
                 ) {
                     touch.invoke(self, other, plane, surf, game)
                 }
-
-                override val iD = id
-            }
-            register(id, adapter)
-            return adapter
+            })
         }
 
         fun registerDie(id:String, die: (self: GameEntity, inflictor: GameEntity?, attacker: GameEntity?, damage: Int, point: FloatArray?, game: GameExportsImpl) -> Unit): EntDieAdapter {
-            val adapter = object : EntDieAdapter() {
+            return register(object : EntDieAdapter(id) {
                 override fun die(
                     self: GameEntity,
                     inflictor: GameEntity?,
@@ -131,15 +117,8 @@ abstract class SuperAdapter {
                 ) {
                     die.invoke(self, inflictor, attacker, damage, point, gameExports)
                 }
-
-                override val iD = id
-            }
-            register(id, adapter)
-            return adapter
+            })
         }
-
-        /** Adapter repository.  */
-        private val adapters: MutableMap<String, SuperAdapter> = HashMap()
 
         /**
          * Returns the adapter from the repository given by its ID.

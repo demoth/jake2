@@ -25,6 +25,8 @@
  */
 package jake2.game;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.adapters.EntThinkAdapter;
 import jake2.game.monsters.mmove_t;
 import jake2.qcommon.Defines;
@@ -361,8 +363,7 @@ public final class M {
         }
     }
 
-    public static EntThinkAdapter M_droptofloor = new EntThinkAdapter() {
-        public String getID() { return "m_drop_to_floor";}
+    public static EntThinkAdapter M_droptofloor = register(new EntThinkAdapter("m_drop_to_floor") {
         public boolean think(GameEntity ent, GameExportsImpl gameExports) {
             float[] end = { 0, 0, 0 };
             trace_t trace;
@@ -384,7 +385,7 @@ public final class M {
             setWaterLevel(ent, gameExports);
             return true;
         }
-    };
+    });
 
     public static void M_SetEffects(GameEntity ent, float time) {
         ent.s.effects &= ~(Defines.EF_COLOR_SHELL | Defines.EF_POWERSCREEN);
@@ -459,18 +460,16 @@ public final class M {
     }
 
     /** Stops the Flies. */
-    public static EntThinkAdapter M_FliesOff = new EntThinkAdapter() {
-        public String getID() { return "m_fliesoff";}
+    public static EntThinkAdapter M_FliesOff = register(new EntThinkAdapter("m_fliesoff") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.s.effects &= ~Defines.EF_FLIES;
             self.s.sound = 0;
             return true;
         }
-    };
+    });
 
     /** Starts the Flies as setting the animation flag in the entity. */
-    public static EntThinkAdapter M_FliesOn = new EntThinkAdapter() {
-        public String getID() { return "m_flies_on";}
+    public static EntThinkAdapter M_FliesOn = register(new EntThinkAdapter("m_flies_on") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (self.waterlevel != 0)
                 return true;
@@ -481,11 +480,10 @@ public final class M {
             self.think.nextTime = gameExports.level.time + 60;
             return true;
         }
-    };
+    });
 
     /** Adds some flies after a random time */
-    public static EntThinkAdapter M_FlyCheck = new EntThinkAdapter() {
-        public String getID() { return "m_fly_check";}
+    public static EntThinkAdapter M_FlyCheck = register(new EntThinkAdapter("m_fly_check") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
 
             if (self.waterlevel != 0)
@@ -499,5 +497,5 @@ public final class M {
                     * Globals.rnd.nextFloat();
             return true;
         }
-    };
+    });
 }

@@ -22,6 +22,8 @@
 // $Id: M_Infantry.java,v 1.4 2005-11-20 22:18:33 salomo Exp $
 package jake2.game.monsters;
 
+import static jake2.game.adapters.SuperAdapter.register;
+
 import jake2.game.*;
 import jake2.game.adapters.*;
 import jake2.qcommon.Defines;
@@ -498,13 +500,12 @@ public class M_Infantry {
     static mmove_t infantry_move_stand = new mmove_t(FRAME_stand50,
             FRAME_stand71, infantry_frames_stand, null);
 
-    public static EntThinkAdapter infantry_stand = new EntThinkAdapter() {
-    	public String getID() { return "infantry_stand"; }
+    public static EntThinkAdapter infantry_stand = register(new EntThinkAdapter("infantry_stand") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = infantry_move_stand;
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_fidget[] = new mframe_t[] {
             new mframe_t(GameAI.ai_stand, 1, null),
@@ -560,15 +561,14 @@ public class M_Infantry {
     static mmove_t infantry_move_fidget = new mmove_t(FRAME_stand01,
             FRAME_stand49, infantry_frames_fidget, infantry_stand);
 
-    static EntThinkAdapter infantry_fidget = new EntThinkAdapter() {
-    	public String getID() { return "infantry_fidget"; }
+    static EntThinkAdapter infantry_fidget = register(new EntThinkAdapter("infantry_fidget") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = infantry_move_fidget;
             gameExports.gameImports.sound(self, Defines.CHAN_VOICE, sound_idle, 1,
                     Defines.ATTN_IDLE, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_walk[] = new mframe_t[] {
             new mframe_t(GameAI.ai_walk, 5, null),
@@ -587,13 +587,12 @@ public class M_Infantry {
     static mmove_t infantry_move_walk = new mmove_t(FRAME_walk03, FRAME_walk14,
             infantry_frames_walk, null);
 
-    static EntThinkAdapter infantry_walk = new EntThinkAdapter() {
-    	public String getID() { return "infantry_walk"; }
+    static EntThinkAdapter infantry_walk = register(new EntThinkAdapter("infantry_walk") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.currentmove = infantry_move_walk;
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_run[] = new mframe_t[] {
             new mframe_t(GameAI.ai_run, 10, null),
@@ -608,8 +607,7 @@ public class M_Infantry {
     static mmove_t infantry_move_run = new mmove_t(FRAME_run01, FRAME_run08,
             infantry_frames_run, null);
 
-    static EntThinkAdapter infantry_run = new EntThinkAdapter() {
-    	public String getID() { return "infantry_run"; }
+    static EntThinkAdapter infantry_run = register(new EntThinkAdapter("infantry_run") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_STAND_GROUND) != 0)
                 self.monsterinfo.currentmove = infantry_move_stand;
@@ -617,7 +615,7 @@ public class M_Infantry {
                 self.monsterinfo.currentmove = infantry_move_run;
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_pain1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -3, null),
@@ -649,8 +647,7 @@ public class M_Infantry {
     static mmove_t infantry_move_pain2 = new mmove_t(FRAME_pain201,
             FRAME_pain210, infantry_frames_pain2, infantry_run);
 
-    static EntPainAdapter infantry_pain = new EntPainAdapter() {
-    	public String getID() { return "infantry_pain"; }
+    static EntPainAdapter infantry_pain = register(new EntPainAdapter("infantry_pain") {
         public void pain(GameEntity self, GameEntity other, float kick, int damage, GameExportsImpl gameExports) {
 
             int n;
@@ -677,7 +674,7 @@ public class M_Infantry {
                         Defines.ATTN_NORM, 0);
             }
         }
-    };
+    });
 
     static float[] aimangles[] = { { 0.0f, 5.0f, 0.0f },
             { 10.0f, 15.0f, 0.0f }, { 20.0f, 25.0f, 0.0f },
@@ -687,8 +684,7 @@ public class M_Infantry {
             { 40.0f, 35.0f, 0.0f }, { 70.0f, 35.0f, 0.0f },
             { 90.0f, 35.0f, 0.0f } };
 
-    static EntThinkAdapter InfantryMachineGun = new EntThinkAdapter() {
-    	public String getID() { return "InfantryMachineGun"; }
+    static EntThinkAdapter InfantryMachineGun = register(new EntThinkAdapter("InfantryMachineGun") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] start = { 0, 0, 0 }, target = { 0, 0, 0 };
             float[] forward = { 0, 0, 0 }, right = { 0, 0, 0 };
@@ -730,21 +726,19 @@ public class M_Infantry {
                     GameDefines.DEFAULT_BULLET_VSPREAD, flash_number, gameExports);
             return true;
         }
-    };
+    });
 
-    static EntInteractAdapter infantry_sight = new EntInteractAdapter() {
-    	public String getID() { return "infantry_sight"; }
+    static EntInteractAdapter infantry_sight = register(new EntInteractAdapter("infantry_sight") {
         public boolean interact(GameEntity self, GameEntity other, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_BODY, sound_sight, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     ///
 
-    static EntThinkAdapter infantry_dead = new EntThinkAdapter() {
-    	public String getID() { return "infantry_dead"; }
+    static EntThinkAdapter infantry_dead = register(new EntThinkAdapter("infantry_dead") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             Math3D.VectorSet(self.mins, -16, -16, -24);
             Math3D.VectorSet(self.maxs, 16, 16, -8);
@@ -755,7 +749,7 @@ public class M_Infantry {
             M.M_FlyCheck.think(self, gameExports);
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_death1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -4, null),
@@ -827,8 +821,7 @@ public class M_Infantry {
     static mmove_t infantry_move_death3 = new mmove_t(FRAME_death301,
             FRAME_death309, infantry_frames_death3, infantry_dead);
 
-    public static EntDieAdapter infantry_die = new EntDieAdapter() {
-    	public String getID() { return "infantry_die"; }
+    public static EntDieAdapter infantry_die = register(new EntDieAdapter("infantry_die") {
         public void die(GameEntity self, GameEntity inflictor, GameEntity attacker,
                         int damage, float[] point, GameExportsImpl gameExports) {
 
@@ -875,10 +868,9 @@ public class M_Infantry {
                         Defines.ATTN_NORM, 0);
             }
         }
-    };
+    });
 
-    static EntThinkAdapter infantry_duck_down = new EntThinkAdapter() {
-    	public String getID() { return "infantry_duck_down"; }
+    static EntThinkAdapter infantry_duck_down = register(new EntThinkAdapter("infantry_duck_down") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if ((self.monsterinfo.aiflags & GameDefines.AI_DUCKED) != 0)
                 return true;
@@ -889,10 +881,9 @@ public class M_Infantry {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter infantry_duck_hold = new EntThinkAdapter() {
-    	public String getID() { return "infantry_duck_hold"; }
+    static EntThinkAdapter infantry_duck_hold = register(new EntThinkAdapter("infantry_duck_hold") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (gameExports.level.time >= self.monsterinfo.pausetime)
                 self.monsterinfo.aiflags &= ~GameDefines.AI_HOLD_FRAME;
@@ -900,10 +891,9 @@ public class M_Infantry {
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter infantry_duck_up = new EntThinkAdapter() {
-    	public String getID() { return "infantry_duck_up"; }
+    static EntThinkAdapter infantry_duck_up = register(new EntThinkAdapter("infantry_duck_up") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             self.monsterinfo.aiflags &= ~GameDefines.AI_DUCKED;
             self.maxs[2] += 32;
@@ -911,7 +901,7 @@ public class M_Infantry {
             gameExports.gameImports.linkentity(self);
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_duck[] = new mframe_t[] {
             new mframe_t(GameAI.ai_move, -2, infantry_duck_down),
@@ -923,8 +913,7 @@ public class M_Infantry {
     static mmove_t infantry_move_duck = new mmove_t(FRAME_duck01, FRAME_duck05,
             infantry_frames_duck, infantry_run);
 
-    static EntDodgeAdapter infantry_dodge = new EntDodgeAdapter() {
-    	public String getID() { return "infantry_dodge"; }
+    static EntDodgeAdapter infantry_dodge = register(new EntDodgeAdapter("infantry_dodge") {
         public void dodge(GameEntity self, GameEntity attacker, float eta, GameExportsImpl gameExports) {
             if (Lib.random() > 0.25)
                 return;
@@ -934,10 +923,9 @@ public class M_Infantry {
 
             self.monsterinfo.currentmove = infantry_move_duck;
         }
-    };
+    });
 
-    static EntThinkAdapter infantry_cock_gun = new EntThinkAdapter() {
-    	public String getID() { return "infantry_cock_gun"; }
+    static EntThinkAdapter infantry_cock_gun = register(new EntThinkAdapter("infantry_cock_gun") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             int n;
 
@@ -948,10 +936,9 @@ public class M_Infantry {
                     * Defines.FRAMETIME;
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter infantry_fire = new EntThinkAdapter() {
-    	public String getID() { return "infantry_fire"; }
+    static EntThinkAdapter infantry_fire = register(new EntThinkAdapter("infantry_fire") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             InfantryMachineGun.think(self, gameExports);
 
@@ -961,7 +948,7 @@ public class M_Infantry {
                 self.monsterinfo.aiflags |= GameDefines.AI_HOLD_FRAME;
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_attack1[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 4, null),
@@ -983,18 +970,16 @@ public class M_Infantry {
     static mmove_t infantry_move_attack1 = new mmove_t(FRAME_attak101,
             FRAME_attak115, infantry_frames_attack1, infantry_run);
 
-    static EntThinkAdapter infantry_swing = new EntThinkAdapter() {
-    	public String getID() { return "infantry_swing"; }
+    static EntThinkAdapter infantry_swing = register(new EntThinkAdapter("infantry_swing") {
 
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             gameExports.gameImports.sound(self, Defines.CHAN_WEAPON, sound_punch_swing, 1,
                     Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
-    static EntThinkAdapter infantry_smack = new EntThinkAdapter() {
-    	public String getID() { return "infantry_smack"; }
+    static EntThinkAdapter infantry_smack = register(new EntThinkAdapter("infantry_smack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             float[] aim = { 0, 0, 0 };
 
@@ -1004,7 +989,7 @@ public class M_Infantry {
                         1, Defines.ATTN_NORM, 0);
             return true;
         }
-    };
+    });
 
     static mframe_t infantry_frames_attack2[] = new mframe_t[] {
             new mframe_t(GameAI.ai_charge, 3, null),
@@ -1019,8 +1004,7 @@ public class M_Infantry {
     static mmove_t infantry_move_attack2 = new mmove_t(FRAME_attak201,
             FRAME_attak208, infantry_frames_attack2, infantry_run);
 
-    static EntThinkAdapter infantry_attack = new EntThinkAdapter() {
-    	public String getID() { return "infantry_attack"; }
+    static EntThinkAdapter infantry_attack = register(new EntThinkAdapter("infantry_attack") {
         public boolean think(GameEntity self, GameExportsImpl gameExports) {
             if (GameUtil.range(self, self.enemy) == GameDefines.RANGE_MELEE)
                 self.monsterinfo.currentmove = infantry_move_attack2;
@@ -1028,7 +1012,7 @@ public class M_Infantry {
                 self.monsterinfo.currentmove = infantry_move_attack1;
             return true;
         }
-    };
+    });
 
     /*
      * QUAKED monster_infantry (1 .5 0) (-16 -16 -24) (16 16 32) Ambush

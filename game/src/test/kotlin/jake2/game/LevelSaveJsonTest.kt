@@ -24,10 +24,21 @@ class LevelSaveJsonTest {
     lateinit var tempDir: Path
 
     @Test
+    fun `duplicate callback ID fails and preserves the original handler`() {
+        val id = "test.level.duplicateUse"
+        val original = SuperAdapter.registerUse(id) { _, _, _, _ -> }
+        val error = assertThrows(IllegalStateException::class.java) {
+            SuperAdapter.registerUse(id) { _, _, _, _ -> }
+        }
+        assertTrue(error.message!!.contains(id))
+        assertTrue(SuperAdapter.getFromID(id) === original)
+    }
+
+    @Test
     fun `unknown and incorrectly typed saved callbacks fail during restoration`() {
         val entity = GameEntity(0)
         val wrongType = SuperAdapter.registerUse("test.level.wrongThinkType") { _, _, _, _ -> }
-        for (id in listOf("test.level.unregisteredThink", wrongType.iD)) {
+        for (id in listOf("test.level.unregisteredThink", wrongType.id)) {
             val snapshot = LevelSaveSnapshots.snapshot(0, entity).copy(thinkActionId = id)
             val error = assertThrows(IllegalArgumentException::class.java) {
                 LevelSaveSnapshots.apply(entity, snapshot, emptyList(), arrayOf(entity), emptyArray())
@@ -40,11 +51,9 @@ class LevelSaveJsonTest {
     fun levelLocalsAndEntitySnapshotsRoundTripRepresentativeState() {
         val think = SuperAdapter.registerThink("test.level.think") { _, _ -> true }
         val use = SuperAdapter.registerUse("test.level.use") { _, _, _, _ -> }
-        val ai = object : AIAdapter() {
+        val ai = SuperAdapter.register(object : AIAdapter("test.level.ai") {
             override fun ai(self: GameEntity, dist: Float, gameExports: GameExportsImpl) = Unit
-            override val iD: String = "test.level.ai"
-        }
-        SuperAdapter.register(ai.iD, ai)
+        })
 
         val level = level_locals_t().apply {
             framenum = 12
@@ -128,11 +137,9 @@ class LevelSaveJsonTest {
         entity.monsterinfo.currentmove = mmove_t(1, 2, arrayOf(mframe_t(ai, 5f, think)), think)
         entity.monsterinfo.stand = think
         entity.monsterinfo.search = think
-        val sight = object : jake2.game.adapters.EntInteractAdapter() {
+        val sight = SuperAdapter.register(object : jake2.game.adapters.EntInteractAdapter("test.level.sight") {
             override fun interact(self: GameEntity, other: GameEntity?, gameExports: GameExportsImpl): Boolean = true
-            override val iD: String = "test.level.sight"
-        }
-        SuperAdapter.register(sight.iD, sight)
+        })
         entity.monsterinfo.sight = sight
         entity.monsterinfo.saved_goal[0] = 6f
         entity.monsterinfo.last_sighting[1] = 7f
@@ -188,7 +195,7 @@ class LevelSaveJsonTest {
         assertSame(think, restoredEntity.monsterinfo.currentmove.endfunc)
         assertSame(think, restoredEntity.monsterinfo.stand)
         assertSame(think, restoredEntity.monsterinfo.search)
-        assertEquals("test.level.sight", restoredEntity.monsterinfo.sight.iD)
+        assertEquals("test.level.sight", restoredEntity.monsterinfo.sight.id)
     }
 
     @Test
