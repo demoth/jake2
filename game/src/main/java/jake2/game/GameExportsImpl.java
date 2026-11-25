@@ -1381,6 +1381,7 @@ public class GameExportsImpl implements GameExports {
             if (changeLevel != null) {
                 PlayerHud.BeginIntermission(changeLevel, this);
             } else {
+                // generic map hack
                 // the map designer didn't include a change level,
                 // so create a fake ent that goes back to the same level
                 PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);

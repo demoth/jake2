@@ -547,7 +547,10 @@ public class PlayerClient {
 
         // find a single player start spot
         if (null == spot) {
+            // generic map hack
+            // This also supplies a start when a deathmatch or additional co-op player lacks a spot.
             for (GameEntity start : gameExports.findEntities(e -> "info_player_start".equalsIgnoreCase(e.classname))) {
+                // generic map hack
                 // Keep the last start as a fallback if no entrance matches.
                 spot = start;
 

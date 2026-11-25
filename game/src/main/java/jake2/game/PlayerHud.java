@@ -127,8 +127,9 @@ public class PlayerHud {
         var spots = gameExports.findEntities(e -> "info_player_intermission".equalsIgnoreCase(e.classname));
         var iterator = spots.iterator();
         ServerEntity ent = iterator.hasNext() ? iterator.next() : null;
-        if (ent == null) { // the map creator forgot to put in an intermission
-                           // point...
+        if (ent == null) {
+            // generic map hack
+            // the map creator forgot to put in an intermission point...
             ent = gameExports.findEntity(e -> "info_player_start".equalsIgnoreCase(e.classname));
             if (ent == null)
                 ent = gameExports.findEntity(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
