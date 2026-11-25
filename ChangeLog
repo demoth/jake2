@@ -1,3 +1,11 @@
+1.3.0
+    - fixed target_lightramp timing, endpoint handling, and toggle behavior
+    - aligned target, trigger, pickup, and moving brush behavior with Yamagi Quake II
+    - added a configurable boarding delay for co-op platforms and fixed rotating door travel after loading a save
+    - simplified entity lookup and normalized classnames and target links while preserving shared targetnames
+    - separated spawn functions from saved callbacks and made duplicate callback IDs fail at registration
+    - added headless entity scenarios covering activation, frame timing, and save/load behavior
+
 1.2.11
     - fixed brief camera flashes in network games when prediction had no moves to replay
     - fixed unreadable first-profile menus when the original Quake II UI assets are unavailable
