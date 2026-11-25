@@ -119,7 +119,7 @@ public class GameBase {
             return null;
         }
 
-        for (GameEntity entity : gameExports.findEntities(e -> targetname.equalsIgnoreCase(e.targetname))) {
+        for (GameEntity entity : gameExports.findEntities(e -> targetname.equals(e.targetname))) {
             choice[num_choices++] = entity;
             if (num_choices == MAXCHOICES)
                 break;

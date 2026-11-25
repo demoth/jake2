@@ -444,7 +444,7 @@ public class PlayerClient {
         GameEntity spot2;
         GameEntity spot1 = spot2 = null;
 
-        var spots = gameExports.findEntities(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
+        var spots = gameExports.findEntities(e -> "info_player_deathmatch".equals(e.classname));
         for (GameEntity spot : spots) {
             count++;
             float range = PlayersRangeFromSpot(spot, gameExports);
@@ -483,7 +483,7 @@ public class PlayerClient {
         GameEntity bestspot = null;
         float bestdistance = 0;
 
-        for (GameEntity spot : gameExports.findEntities(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname))) {
+        for (GameEntity spot : gameExports.findEntities(e -> "info_player_deathmatch".equals(e.classname))) {
             float bestplayerdistance = PlayersRangeFromSpot(spot, gameExports);
 
             if (bestplayerdistance > bestdistance) {
@@ -498,7 +498,7 @@ public class PlayerClient {
 
         // if there is a player just spawned on each and every start spot
         // we have no choice to turn one into a telefrag meltdown
-        return gameExports.findEntity(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
+        return gameExports.findEntity(e -> "info_player_deathmatch".equals(e.classname));
     }
 
     
@@ -519,11 +519,11 @@ public class PlayerClient {
             return null;
 
         // assume there are four coop spots at each spawnpoint
-        for (GameEntity spot : gameExports.findEntities(e -> "info_player_coop".equalsIgnoreCase(e.classname))) {
+        for (GameEntity spot : gameExports.findEntities(e -> "info_player_coop".equals(e.classname))) {
             String target = spot.targetname;
             if (target == null)
                 target = "";
-            if (Lib.Q_stricmp(gameExports.game.spawnpoint, target) == 0) {
+            if (gameExports.game.spawnpoint.equals(target)) {
                 // this is a coop spawn point for one of the clients here
                 index--;
                 if (0 == index)
@@ -549,7 +549,7 @@ public class PlayerClient {
         if (null == spot) {
             // generic map hack
             // This also supplies a start when a deathmatch or additional co-op player lacks a spot.
-            for (GameEntity start : gameExports.findEntities(e -> "info_player_start".equalsIgnoreCase(e.classname))) {
+            for (GameEntity start : gameExports.findEntities(e -> "info_player_start".equals(e.classname))) {
                 // generic map hack
                 // Keep the last start as a fallback if no entrance matches.
                 spot = start;
@@ -562,7 +562,7 @@ public class PlayerClient {
                         || spot.targetname == null)
                     continue;
 
-                if (Lib.Q_stricmp(gameExports.game.spawnpoint, spot.targetname) == 0)
+                if (gameExports.game.spawnpoint.equals(spot.targetname))
                     break;
             }
 

@@ -11,6 +11,7 @@ import jake2.qcommon.entity_state_t;
 import jake2.qcommon.util.Lib;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class GameEntity extends ServerEntity {
@@ -239,6 +240,21 @@ public class GameEntity extends ServerEntity {
         s.index = i;
         st = new ExtraSpawnProperties();
         index = i;
+    }
+
+    // Classnames and target links are lowercase throughout gameplay.
+    void normalizeSpawnNames() {
+        classname = classname.toLowerCase(Locale.ROOT);
+        targetname = lowercaseName(targetname);
+        target = lowercaseName(target);
+        killtarget = lowercaseName(killtarget);
+        pathtarget = lowercaseName(pathtarget);
+        combattarget = lowercaseName(combattarget);
+        deathtarget = lowercaseName(deathtarget);
+    }
+
+    private static String lowercaseName(String name) {
+        return name == null ? null : name.toLowerCase(Locale.ROOT);
     }
 
     public boolean setField(String key, String value) {

@@ -25,6 +25,8 @@ package jake2.game;
 
 import jake2.qcommon.util.Lib;
 
+import java.util.Locale;
+
 /**
  * spawn_temp_t
  * Used to hold entity field values that
@@ -75,7 +77,7 @@ public class ExtraSpawnProperties {
 				pausetime = Lib.atof(value);
 				return true;
 			case "item":
-				item = Lib.decodeBackslash(value);
+				item = Lib.decodeBackslash(value).toLowerCase(Locale.ROOT);
 				return true;
 			case "gravity":
 				gravity = Lib.decodeBackslash(value);

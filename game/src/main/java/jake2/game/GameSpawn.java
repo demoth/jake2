@@ -624,7 +624,7 @@ public class GameSpawn {
         // todo: split into different functions
 
         gameExports.level.mapname = mapname;
-        gameExports.game.spawnpoint = spawnpoint;
+        gameExports.game.spawnpoint = spawnpoint.toLowerCase(Locale.ROOT);
 
         final int skill = gameExports.gameCvars.skill.getTypedValue();
 
@@ -635,7 +635,8 @@ public class GameSpawn {
         EntityParserKt.parseEntities(entities).forEach(map -> {
 
             final GameEntity ent;
-            if ("worldspawn".equals(map.get("classname")))
+            String classname = map.getOrDefault("classname", "").toLowerCase(Locale.ROOT);
+            if ("worldspawn".equals(classname))
                 ent = gameExports.g_edicts[0];
             else
                 ent = gameExports.G_Spawn();
@@ -646,12 +647,12 @@ public class GameSpawn {
             // todo: add description
             // yet another map hack
             if ("command".equalsIgnoreCase(gameExports.level.mapname)
-                    && "trigger_once".equalsIgnoreCase(ent.classname)
+                    && "trigger_once".equals(classname)
                     && "*27".equalsIgnoreCase(ent.model))
                 ent.spawnflags &= ~GameDefines.SPAWNFLAG_NOT_HARD;
 
             boolean spawned = true;
-            if (!ent.classname.equals("worldspawn")) {
+            if (!"worldspawn".equals(classname)) {
                 if (gameExports.gameCvars.deathmatch.getTypedValue()) {
                     if ((ent.spawnflags & GameDefines.SPAWNFLAG_NOT_DEATHMATCH) != 0) {
                         spawned = false;
@@ -697,6 +698,8 @@ public class GameSpawn {
             return;
         }
 
+        ent.normalizeSpawnNames();
+
         // check item spawn functions
         var item = gameExports.items.stream()
                 .filter(it -> ent.classname.equals(it.classname))
@@ -707,7 +710,7 @@ public class GameSpawn {
         }
 
         // check normal spawn functions
-        var spawn = spawns.get(ent.classname.toLowerCase());
+        var spawn = spawns.get(ent.classname);
         if (spawn != null) {
             spawn.spawn(ent, gameExports);
             ent.st = null;
@@ -728,7 +731,7 @@ public class GameSpawn {
     static void SpawnNewEntity(GameEntity creator, List<String> args, GameExportsImpl gameExports) {
         String className;
         if (args.size() >= 2)
-            className = args.get(1);
+            className = args.get(1).toLowerCase(Locale.ROOT);
         else {
             Com.Print("usage: spawn <classname>");
             return;

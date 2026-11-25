@@ -327,7 +327,7 @@ private val miscViperBombUse = registerUse("misc_viper_bomb_use") { self, _, act
     self.activator = activator
 
     // get the ship reference (so it sticks to the first found ship?)
-    val viper = game.findEntity { it.classname.equals("misc_viper", ignoreCase = true) }
+    val viper = game.findEntity { it.classname == "misc_viper" }
 
     // the bomb goes same direction as the viper ship
     val viperMove: MoveInfo = viper!!.getComponent()!!
@@ -412,7 +412,7 @@ fun miscTeleporter(self: GameEntity, game: GameExportsImpl) {
 private val teleporterTriggerTouch = registerTouch("teleporter_touch") { self, other, plane, surf, game ->
     val client = other.client ?: return@registerTouch
 
-    val dest = game.findEntity { it.targetname != null && it.targetname.equals(self.target, ignoreCase = true) }
+    val dest = game.findEntity { it.targetname != null && it.targetname == self.target }
 
     if (dest == null) {
         Com.Warn(GAME, "Couldn't find destination")

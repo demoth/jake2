@@ -58,7 +58,7 @@ public class GameUtil {
         if (ent.delay != 0) {
             // create a temp object to fire at a later time
             GameEntity t = gameExports.G_Spawn();
-            t.classname = "DelayedUse";
+            t.classname = "delayeduse";
             t.think.nextTime = gameExports.level.time + ent.delay;
             t.think.action = Think_Delay;
             t.activator = activator;
@@ -85,7 +85,7 @@ public class GameUtil {
 
         // kill killtargets
         if (ent.killtarget != null) {
-            for (GameEntity t : gameExports.findEntities(e -> e.targetname != null && e.targetname.equalsIgnoreCase(ent.killtarget))) {
+            for (GameEntity t : gameExports.findEntities(e -> e.targetname != null && e.targetname.equals(ent.killtarget))) {
                 gameExports.freeEntity(t);
                 if (!ent.inuse) {
                     Com.Warn(GAME, "entity was removed while using killtargets");
@@ -96,11 +96,10 @@ public class GameUtil {
 
         // fire (use) targets
         if (ent.target != null) {
-            for (GameEntity t : gameExports.findEntities(e -> e.targetname != null && e.targetname.equalsIgnoreCase(ent.target))) {
+            for (GameEntity t : gameExports.findEntities(e -> e.targetname != null && e.targetname.equals(ent.target))) {
                 // doors fire area portals in a specific way
-                if (Lib.Q_stricmp("func_areaportal", t.classname) == 0
-                        && (Lib.Q_stricmp("func_door", ent.classname) == 0 || Lib
-                                .Q_stricmp("func_door_rotating", ent.classname) == 0))
+                if ("func_areaportal".equals(t.classname)
+                        && ("func_door".equals(ent.classname) || "func_door_rotating".equals(ent.classname)))
                     continue;
 
                 if (t == ent) {

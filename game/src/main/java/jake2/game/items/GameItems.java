@@ -862,7 +862,7 @@ public class GameItems {
      */
     public static GameItem FindItemByClassname(String classname, GameExportsImpl gameExports) {
         return gameExports.items.stream()
-                .filter(it -> classname.equalsIgnoreCase(it.classname))
+                .filter(it -> classname.equals(it.classname))
                 .findFirst()
                 .orElse(null);
     }

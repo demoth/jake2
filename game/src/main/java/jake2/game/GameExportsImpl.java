@@ -17,6 +17,7 @@ import jake2.qcommon.vfs.EngineWriteRoot;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -1377,7 +1378,7 @@ public class GameExportsImpl implements GameExports {
             // go to a specific map
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
         } else { // search for a changelevel
-            GameEntity changeLevel = findEntity(e -> "target_changelevel".equalsIgnoreCase(e.classname));
+            GameEntity changeLevel = findEntity(e -> "target_changelevel".equals(e.classname));
             if (changeLevel != null) {
                 PlayerHud.BeginIntermission(changeLevel, this);
             } else {
@@ -1544,9 +1545,9 @@ public class GameExportsImpl implements GameExports {
             gameImports.cprintf(ent, PRINT_HIGH, "usage: findbyname <targetname>\n");
             return;
         }
-        var name = args.get(1);
+        var name = args.get(1).toLowerCase(Locale.ROOT);
         Arrays.stream(g_edicts)
-                .filter(s -> name.equalsIgnoreCase(s.targetname))
+                .filter(s -> name.equals(s.targetname))
                 .forEach(s -> printEntityInfo(ent, List.of("", String.valueOf(s.index))));
 
     }

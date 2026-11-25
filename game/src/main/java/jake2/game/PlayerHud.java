@@ -124,15 +124,15 @@ public class PlayerHud {
         gameExports.level.exitintermission = false;
 
         // find an intermission spot
-        var spots = gameExports.findEntities(e -> "info_player_intermission".equalsIgnoreCase(e.classname));
+        var spots = gameExports.findEntities(e -> "info_player_intermission".equals(e.classname));
         var iterator = spots.iterator();
         ServerEntity ent = iterator.hasNext() ? iterator.next() : null;
         if (ent == null) {
             // generic map hack
             // the map creator forgot to put in an intermission point...
-            ent = gameExports.findEntity(e -> "info_player_start".equalsIgnoreCase(e.classname));
+            ent = gameExports.findEntity(e -> "info_player_start".equals(e.classname));
             if (ent == null)
-                ent = gameExports.findEntity(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
+                ent = gameExports.findEntity(e -> "info_player_deathmatch".equals(e.classname));
         } else { // chose one of four spots
             int i = Lib.rand() & 3;
             iterator = spots.iterator();

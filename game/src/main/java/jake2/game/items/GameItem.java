@@ -28,6 +28,7 @@ import org.apache.commons.csv.CSVRecord;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Locale;
 
 import static jake2.game.GameDefines.*;
 import static jake2.qcommon.Defines.*;
@@ -112,7 +113,7 @@ public class GameItem {
                     String icon, String pickup_name, int count_width, int quantity,
                     String ammo, int flags, int weapmodel, gitem_armor_t info,
                     String precaches, int index) {
-        this.classname = classname;
+        this.classname = classname == null ? null : classname.toLowerCase(Locale.ROOT);
         this.pickup = pickup;
         this.use = use;
         this.drop = drop;

@@ -84,19 +84,25 @@ class InfoFamilyBehaviorTest {
             val missing = scenario.spawn("info_player_coop") { targetname = null }
             val matching = scenario.spawn("info_player_coop") { targetname = "EXIT" }
             game.G_RunFrame()
-            assertEquals(if (map == "base1") null else "Exit", missing.targetname, map)
-            assertEquals("EXIT", matching.targetname)
+            assertEquals(if (map == "base1") null else "exit", missing.targetname, map)
+            assertEquals("exit", matching.targetname)
         }
     }
 
     @Test
     fun spawnSelectionUsesTheFirstMatchingEntranceAndFallsBackToTheLastStart() {
-        scenario.spawn("info_player_start") { targetname = "gate"; s.origin[0] = 10f }
-        scenario.spawn("info_player_start") { targetname = "GATE"; s.origin[0] = 20f }
-        scenario.spawn("info_player_start") { targetname = "lift"; s.origin[0] = 30f }
+        val entities = """
+            { "classname" "WorldSpawn" "message" "Keep My Case" }
+            { "classname" "INFO_PLAYER_START" "targetname" "gate" "origin" "10 0 0" }
+            { "classname" "info_player_start" "targetname" "GATE" "origin" "20 0 0" }
+            { "classname" "info_player_start" "targetname" "lift" "origin" "30 0 0" }
+        """.trimIndent()
         val origin = FloatArray(3)
         for ((entrance, expected) in listOf("Gate" to 10f, "unknown" to 30f, "" to 30f)) {
-            game.game.spawnpoint = entrance
+            val game = GameExportsImpl(TestGameImports())
+            game.SpawnEntities("base1", entities, entrance)
+            assertEquals("worldspawn", game.g_edicts[0].classname)
+            assertEquals("Keep My Case", game.level.level_name)
             PlayerClient.SelectSpawnPoint(game.g_edicts[1], origin, FloatArray(3), game)
             assertEquals(expected, origin[0])
         }

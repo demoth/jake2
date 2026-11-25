@@ -34,7 +34,7 @@ private val unnamedStartEntrances = mapOf(
     "power2" to "power1",
     "waste1" to "power2",
     "waste2" to "waste1",
-    "city2" to "city2NL"
+    "city2" to "city2nl"
 )
 
 /*
@@ -48,7 +48,7 @@ private val unnamedStartEntrances = mapOf(
  */
 private val createUnnamedStart = registerThink("SP_CreateUnnamedSpawn") { self, game ->
     val entrance = unnamedStartEntrances[game.level.mapname.lowercase()] ?: return@registerThink true
-    if (entrance.equals(self.targetname, ignoreCase = true)) {
+    if (entrance == self.targetname) {
         game.spawnOptional()?.apply {
             classname = "info_player_start"
             Math3D.VectorCopy(self.s.origin, s.origin)
@@ -108,14 +108,12 @@ fun infoPlayerCoop(self: GameEntity, game: GameExportsImpl) {
  */
 private val fixCoopStartHack = registerThink("SP_FixCoopSpots") { self, game ->
     val d = floatArrayOf(0f, 0f, 0f)
-    for (spot in game.findEntities { it.classname.equals("info_player_start", ignoreCase = true) }) {
+    for (spot in game.findEntities { it.classname == "info_player_start" }) {
         if (spot.targetname == null)
             continue
         Math3D.VectorSubtract(self.s.origin, spot.s.origin, d)
         if (Math3D.VectorLength(d) < 550) {
-            if (!spot.targetname.equals(self.targetname, ignoreCase = true)) {
-                self.targetname = spot.targetname
-            }
+            self.targetname = spot.targetname
             return@registerThink true
         }
     }

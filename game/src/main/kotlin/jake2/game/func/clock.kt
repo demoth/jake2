@@ -62,7 +62,7 @@ private val clockThink = registerThink("func_clock_think") { self, game ->
         // Compatibility: Yamagi skips the display update if another class matches the name first.
         // Look up the display directly so an unrelated entity cannot hide it.
         display = game.findEntity {
-            it.classname == "target_string" && it.targetname.equals(self.target, ignoreCase = true)
+            it.classname == "target_string" && it.targetname == self.target
         }
         self.enemy = display
     }

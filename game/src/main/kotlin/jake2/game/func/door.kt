@@ -740,8 +740,8 @@ private fun doorUseAreaPortals(self: GameEntity, open: Boolean, game: GameExport
     if (self.target == null)
         return
 
-    for (entity in game.findEntities { it.targetname.equals(self.target, ignoreCase = true) }) {
-        if ("func_areaportal".equals(entity.classname, true)) {
+    for (entity in game.findEntities { it.targetname == self.target }) {
+        if (entity.classname == "func_areaportal") {
             game.gameImports.SetAreaPortalState(entity.style, open)
         }
     }

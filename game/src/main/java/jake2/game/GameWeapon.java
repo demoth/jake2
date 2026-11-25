@@ -50,7 +50,7 @@ public class GameWeapon {
             }
     
             if (gameExports.gameCvars.dev_blaster.getTypedValue()) {
-                if (self.getOwner().getClient() != null && !"worldspawn".equalsIgnoreCase(other.classname)) {
+                if (self.getOwner().getClient() != null && !"worldspawn".equals(other.classname)) {
                     gameExports.gameImports.centerprintf(gameExports.g_edicts[1], buildEntityInfo(other) + "\n");
                     gameExports.freeEntity(self);
                     return;
@@ -63,7 +63,7 @@ public class GameWeapon {
 
             if (other.takedamage != 0) {
                 int mod;
-                if ("target_blaster".equalsIgnoreCase(self.getOwner().classname))
+                if ("target_blaster".equals(self.getOwner().classname))
                     mod = GameDefines.MOD_TARGET_BLASTER;
                 else if ((self.spawnflags & 1) != 0)
                     mod = GameDefines.MOD_HYPERBLASTER;

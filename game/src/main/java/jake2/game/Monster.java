@@ -185,7 +185,7 @@ public class Monster {
             boolean notcombat = false;
             boolean fixup = false;
 
-            for (GameEntity target : gameExports.findEntities(e -> self.target.equalsIgnoreCase(e.targetname))) {
+            for (GameEntity target : gameExports.findEntities(e -> self.target.equals(e.targetname))) {
                 if ("point_combat".equals(target.classname)) {
                     self.combattarget = self.target;
                     fixup = true;
@@ -204,7 +204,7 @@ public class Monster {
         // validate combattarget
         if (self.combattarget != null) {
 
-            for (GameEntity target : gameExports.findEntities(e -> self.combattarget.equalsIgnoreCase(e.targetname))) {
+            for (GameEntity target : gameExports.findEntities(e -> self.combattarget.equals(e.targetname))) {
 
                 if (!"point_combat".equals(target.classname)) {
                     Com.Warn(GAME, self.classname + " at "

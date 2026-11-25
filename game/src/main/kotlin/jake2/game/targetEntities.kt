@@ -475,7 +475,7 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
     // find a target by name
     if (lightRamp.targetLightStyle == -1) {
         // check all the targets
-        for (entity in game.findEntities { it.targetname != null && it.targetname.equals(self.target, ignoreCase = true) }) {
+        for (entity in game.findEntities { it.targetname != null && it.targetname == self.target }) {
             if ("light" == entity.classname) {
                 lightRamp.targetLightStyle = entity.style
             } else {
@@ -713,7 +713,7 @@ private val laserInit = registerThink("target_laser_start") { self, game ->
     // target or direction
     if (self.enemy == null) {
         if (self.target != null) {
-            val target = game.findEntity { it.targetname.equals(self.target, ignoreCase = true) }
+            val target = game.findEntity { it.targetname == self.target }
             if (target != null) {
                 self.enemy = target
             } else {

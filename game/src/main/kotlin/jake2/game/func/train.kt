@@ -363,7 +363,7 @@ fun miscFlyingShip(self: GameEntity, game: GameExportsImpl, model: String) {
 }
 
 private val miscFlyingShipUse = registerUse("misc_viper_use") { self, other, activator, game ->
-    if (activator == null || (other == null && self.classname.equals("misc_viper", ignoreCase = true))) return@registerUse
+    if (activator == null || (other == null && self.classname == "misc_viper")) return@registerUse
     self.svflags = self.svflags and Defines.SVF_NOCLIENT.inv()
     self.use = trainUse
     trainUse.use(self, other, activator, game)
