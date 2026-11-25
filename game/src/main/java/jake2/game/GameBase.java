@@ -69,42 +69,6 @@ public class GameBase {
 
 
     /**
-     * Searches all active entities for the next one that holds the matching
-     * string at fieldofs (use the FOFS() macro) in the structure.
-     * 
-     * Searches beginning at the edict after from, or the beginning if null null
-     * will be returned if the end of the list is reached.
-     *
-     * @param name - either className or targetName
-     * @deprecated Use {@link GameExportsImpl#findEntity(java.util.function.Predicate)} for a single match.
-     * Use {@link GameExportsImpl#findEntities(java.util.function.Predicate)} to visit multiple matches.
-     */
-    @Deprecated
-    public static EdictIterator G_Find(EdictIterator from, EdictFindFilter eff,
-                                String name, GameExportsImpl gameExports) {
-
-        if (from == null)
-            from = new EdictIterator(0);
-        else
-            from.i++;
-
-        for (; from.i < gameExports.num_edicts; from.i++) {
-            from.o = gameExports.g_edicts[from.i];
-            if (from.o.classname == null) {
-                Com.Warn(GAME, "edict with classname = null" + from.o.index);
-            }
-
-            if (!from.o.inuse)
-                continue;
-
-            if (eff.matches(from.o, name))
-                return from;
-        }
-
-        return null;
-    }
-
-    /**
      * Returns entities that have origins within a spherical area.
      */
     public static EdictIterator findradius(EdictIterator from, float[] org,
@@ -217,17 +181,4 @@ public class GameBase {
     }
 
     static final int STEPSIZE = 18;
-
-
-    /** @deprecated Compare targetname directly in the predicate passed to findEntity or findEntities. */
-    @Deprecated
-    public static final EdictFindFilter findByTargetName = (e, targetName) -> {
-        if (e.targetname == null)
-            return false;
-        return e.targetname.equalsIgnoreCase(targetName);
-    };
-
-    /** @deprecated Compare classname directly in the predicate passed to findEntity or findEntities. */
-    @Deprecated
-    static final EdictFindFilter findByClassName = (e, className) -> e.classname.equalsIgnoreCase(className);
 }

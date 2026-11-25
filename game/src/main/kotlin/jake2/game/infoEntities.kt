@@ -108,12 +108,7 @@ fun infoPlayerCoop(self: GameEntity, game: GameExportsImpl) {
  */
 private val fixCoopStartHack = registerThink("SP_FixCoopSpots") { self, game ->
     val d = floatArrayOf(0f, 0f, 0f)
-    var es: EdictIterator? = null
-    while (true) {
-        es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_start", game)
-        if (es == null)
-            return@registerThink true
-        val spot = es.o
+    for (spot in game.findEntities { it.classname.equals("info_player_start", ignoreCase = true) }) {
         if (spot.targetname == null)
             continue
         Math3D.VectorSubtract(self.s.origin, spot.s.origin, d)

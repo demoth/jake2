@@ -90,6 +90,19 @@ class InfoFamilyBehaviorTest {
     }
 
     @Test
+    fun spawnSelectionUsesTheFirstMatchingEntranceAndFallsBackToTheLastStart() {
+        scenario.spawn("info_player_start") { targetname = "gate"; s.origin[0] = 10f }
+        scenario.spawn("info_player_start") { targetname = "GATE"; s.origin[0] = 20f }
+        scenario.spawn("info_player_start") { targetname = "lift"; s.origin[0] = 30f }
+        val origin = FloatArray(3)
+        for ((entrance, expected) in listOf("Gate" to 10f, "unknown" to 30f, "" to 30f)) {
+            game.game.spawnpoint = entrance
+            PlayerClient.SelectSpawnPoint(game.g_edicts[1], origin, FloatArray(3), game)
+            assertEquals(expected, origin[0])
+        }
+    }
+
+    @Test
     fun unrelatedMapKeepsItsOriginalStart() {
         game.level.mapname = "base1"
         scenario.spawn("info_player_start") { targetname = "mintro" }

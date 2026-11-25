@@ -475,12 +475,7 @@ private val targetLightrampUse = registerUse("target_lightramp_use") { self, _, 
     // find a target by name
     if (lightRamp.targetLightStyle == -1) {
         // check all the targets
-        var es: EdictIterator? = null
-        while (true) {
-            es = GameBase.G_Find(es, GameBase.findByTargetName, self.target, game)
-            if (es == null)
-                break
-            val entity = es.o
+        for (entity in game.findEntities { it.targetname != null && it.targetname.equals(self.target, ignoreCase = true) }) {
             if ("light" == entity.classname) {
                 lightRamp.targetLightStyle = entity.style
             } else {
@@ -718,9 +713,9 @@ private val laserInit = registerThink("target_laser_start") { self, game ->
     // target or direction
     if (self.enemy == null) {
         if (self.target != null) {
-            val target = GameBase.G_Find(null, GameBase.findByTargetName, self.target, game)
+            val target = game.findEntity { it.targetname.equals(self.target, ignoreCase = true) }
             if (target != null) {
-                self.enemy = target.o
+                self.enemy = target
             } else {
                 Com.Warn(GAME, "${self.classname} at ${Lib.vtos(self.s.origin)}: ${self.target} is a bad target")
                 // fixme: free such entity?

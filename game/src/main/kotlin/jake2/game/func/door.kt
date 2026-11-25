@@ -2,7 +2,6 @@ package jake2.game.func
 
 import jake2.qcommon.Com
 import jake2.qcommon.Com.LogSubsystem.GAME
-import jake2.game.EdictIterator
 import jake2.game.GameBase
 import jake2.game.GameBase.G_SetMovedir
 import jake2.game.GameCombat
@@ -741,16 +740,9 @@ private fun doorUseAreaPortals(self: GameEntity, open: Boolean, game: GameExport
     if (self.target == null)
         return
 
-    var iterator: EdictIterator? = null
-    
-    while (true) {
-        iterator = GameBase.G_Find(iterator, GameBase.findByTargetName, self.target, game)
-        if (iterator == null)
-            break
-        val entity = iterator.o
-
-        if ("func_areaportal".equals(entity?.classname, true)) {
-            game.gameImports.SetAreaPortalState(entity!!.style, open)
+    for (entity in game.findEntities { it.targetname.equals(self.target, ignoreCase = true) }) {
+        if ("func_areaportal".equals(entity.classname, true)) {
+            game.gameImports.SetAreaPortalState(entity.style, open)
         }
     }
 }

@@ -22,8 +22,6 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import static jake2.qcommon.Com.LogSubsystem.GAME;
-import static jake2.game.GameBase.G_Find;
-import static jake2.game.GameBase.findByClassName;
 import static jake2.game.GameWeapon.buildEntityInfo;
 import static jake2.game.PlayerClient.*;
 import static jake2.game.items.GameItems.createGameItemList;
@@ -53,7 +51,6 @@ public class GameExportsImpl implements GameExports {
                     "jake2.game.adapters.SuperAdapter",
                     "jake2.game.PlayerWeapon",
                     "jake2.game.EdictIterator",
-                    "jake2.game.EdictFindFilter",
                     "jake2.game.GameAI",
                     "jake2.game.GameBase",
                     "jake2.game.GameChase",
@@ -1376,18 +1373,18 @@ public class GameExportsImpl implements GameExports {
         }
 
         //not in the map list
-        if (level.nextmap.length() > 0) // go to a specific map
+        if (!level.nextmap.isEmpty()) {
+            // go to a specific map
             PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.nextmap), this);
-        else { // search for a changelevel
-            EdictIterator edit = null;
-            edit = G_Find(edit, findByClassName, "target_changelevel", this);
-            if (edit == null) { // the map designer didn't include a
-                // change level,
+        } else { // search for a changelevel
+            GameEntity changeLevel = findEntity(e -> "target_changelevel".equalsIgnoreCase(e.classname));
+            if (changeLevel != null) {
+                PlayerHud.BeginIntermission(changeLevel, this);
+            } else {
+                // the map designer didn't include a change level,
                 // so create a fake ent that goes back to the same level
                 PlayerHud.BeginIntermission(CreateTargetChangeLevel(level.mapname), this);
-                return;
             }
-            PlayerHud.BeginIntermission(edit.o, this);
         }
     }
 

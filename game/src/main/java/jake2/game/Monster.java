@@ -185,11 +185,7 @@ public class Monster {
             boolean notcombat = false;
             boolean fixup = false;
 
-            EdictIterator edit = null;
-
-            while ((edit = GameBase.G_Find(edit, GameBase.findByTargetName,
-                    self.target, gameExports)) != null) {
-                GameEntity target = edit.o;
+            for (GameEntity target : gameExports.findEntities(e -> self.target.equalsIgnoreCase(e.targetname))) {
                 if ("point_combat".equals(target.classname)) {
                     self.combattarget = self.target;
                     fixup = true;
@@ -208,10 +204,7 @@ public class Monster {
         // validate combattarget
         if (self.combattarget != null) {
 
-            EdictIterator edit = null;
-            while ((edit = GameBase.G_Find(edit, GameBase.findByTargetName,
-                    self.combattarget, gameExports)) != null) {
-                GameEntity target = edit.o;
+            for (GameEntity target : gameExports.findEntities(e -> self.combattarget.equalsIgnoreCase(e.targetname))) {
 
                 if (!"point_combat".equals(target.classname)) {
                     Com.Warn(GAME, self.classname + " at "

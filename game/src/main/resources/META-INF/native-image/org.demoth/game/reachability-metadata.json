@@ -43,9 +43,6 @@
       "type": "jake2.game.EdictIterator"
     },
     {
-      "type": "jake2.game.EdictFindFilter"
-    },
-    {
       "type": "jake2.game.GameAI"
     },
     {

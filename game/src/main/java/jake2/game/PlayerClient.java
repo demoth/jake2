@@ -440,17 +440,12 @@ public class PlayerClient {
         int count = 0;
         float range2;
 
-        GameEntity spot;
-
         float range1 = range2 = 99999;
         GameEntity spot2;
         GameEntity spot1 = spot2 = null;
 
-        EdictIterator es = null;
-
-        while ((es = GameBase.G_Find(es, GameBase.findByClassName,
-                "info_player_deathmatch", gameExports)) != null) {
-            spot = es.o;
+        var spots = gameExports.findEntities(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
+        for (GameEntity spot : spots) {
             count++;
             float range = PlayersRangeFromSpot(spot, gameExports);
             if (range < range1) {
@@ -472,21 +467,11 @@ public class PlayerClient {
 
         int selection = Lib.rand() % count;
 
-        spot = null;
-        es = null;
-        do {
-            es = GameBase.G_Find(es, GameBase.findByClassName,
-                    "info_player_deathmatch", gameExports);
-            
-            if (es == null) 
-                break;
-            
-            spot = es.o;
-            if (spot == spot1 || spot == spot2)
-                selection++;
-        } while (selection-- > 0);
-
-        return spot;
+        for (GameEntity spot : spots) {
+            if (spot != spot1 && spot != spot2 && selection-- == 0)
+                return spot;
+        }
+        return null;
     }
 
     /** 
@@ -495,13 +480,10 @@ public class PlayerClient {
      */
     static GameEntity SelectFarthestDeathmatchSpawnPoint(GameExportsImpl gameExports) {
 
-        GameEntity spot;
         GameEntity bestspot = null;
         float bestdistance = 0;
 
-        EdictIterator es = null;
-        while ((es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_deathmatch", gameExports)) != null) {
-            spot = es.o;
+        for (GameEntity spot : gameExports.findEntities(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname))) {
             float bestplayerdistance = PlayersRangeFromSpot(spot, gameExports);
 
             if (bestplayerdistance > bestdistance) {
@@ -516,11 +498,7 @@ public class PlayerClient {
 
         // if there is a player just spawned on each and every start spot
         // we have no choice to turn one into a telefrag meltdown
-        EdictIterator edit = GameBase.G_Find(null, GameBase.findByClassName, "info_player_deathmatch", gameExports);
-        if (edit == null)
-            return null;
-        
-        return edit.o;
+        return gameExports.findEntity(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
     }
 
     
@@ -540,22 +518,8 @@ public class PlayerClient {
         if (index == 0)
             return null;
 
-        GameEntity spot;
-        EdictIterator es = null;
-
         // assume there are four coop spots at each spawnpoint
-        while (true) {
-
-            es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_coop", gameExports);
-                    
-            if (es == null)
-                return null;
-            
-            spot = es.o;
-                
-            if (spot == null)
-                return null; // we didn't have enough...
-
+        for (GameEntity spot : gameExports.findEntities(e -> "info_player_coop".equalsIgnoreCase(e.classname))) {
             String target = spot.targetname;
             if (target == null)
                 target = "";
@@ -566,6 +530,7 @@ public class PlayerClient {
                     return spot; // this is it
             }
         }
+        return null; // we didn't have enough...
 
     }
 
@@ -580,11 +545,11 @@ public class PlayerClient {
         else if (gameExports.gameCvars.coop.getTypedValue())
             spot = SelectCoopSpawnPoint(ent, gameExports);
 
-        EdictIterator es = null;
         // find a single player start spot
         if (null == spot) {
-            while ((es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_start", gameExports)) != null) {
-                spot = es.o;
+            for (GameEntity start : gameExports.findEntities(e -> "info_player_start".equalsIgnoreCase(e.classname))) {
+                // Keep the last start as a fallback if no entrance matches.
+                spot = start;
 
                 if (gameExports.game.spawnpoint.length() == 0
                         && spot.targetname == null)
@@ -599,18 +564,8 @@ public class PlayerClient {
             }
 
             if (null == spot) {
-                if (gameExports.game.spawnpoint.length() == 0) {
-                    // there wasn't a spawnpoint without a
-                    // target, so use any
-                    es = GameBase.G_Find(es, GameBase.findByClassName, "info_player_start", gameExports);
-                    
-                    if (es != null)
-                        spot = es.o;
-                }
-                if (null == spot) {
-                    gameExports.gameImports.error("Couldn't find spawn point " + gameExports.game.spawnpoint + "\n");
-                    return;
-                }
+                gameExports.gameImports.error("Couldn't find spawn point " + gameExports.game.spawnpoint);
+                return;
             }
         }
 

@@ -124,7 +124,9 @@ public class PlayerHud {
         gameExports.level.exitintermission = false;
 
         // find an intermission spot
-        ServerEntity ent = gameExports.findEntity(e -> "info_player_intermission".equalsIgnoreCase(e.classname));
+        var spots = gameExports.findEntities(e -> "info_player_intermission".equalsIgnoreCase(e.classname));
+        var iterator = spots.iterator();
+        ServerEntity ent = iterator.hasNext() ? iterator.next() : null;
         if (ent == null) { // the map creator forgot to put in an intermission
                            // point...
             ent = gameExports.findEntity(e -> "info_player_start".equalsIgnoreCase(e.classname));
@@ -132,15 +134,12 @@ public class PlayerHud {
                 ent = gameExports.findEntity(e -> "info_player_deathmatch".equalsIgnoreCase(e.classname));
         } else { // chose one of four spots
             int i = Lib.rand() & 3;
-            EdictIterator es = null;
-
+            iterator = spots.iterator();
             while (i-- > 0) {
-                es = GameBase.G_Find(es, GameBase.findByClassName,
-                        "info_player_intermission", gameExports);
-
-                if (es == null) // wrap around the list
-                    continue;
-                ent = es.o;
+                if (iterator.hasNext())
+                    ent = iterator.next();
+                else // wrap around the list on the next step
+                    iterator = spots.iterator();
             }
         }
 
